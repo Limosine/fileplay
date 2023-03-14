@@ -40,26 +40,21 @@
 
     @keyframes upAndDown {
         0% {
-
+            transform: translateY(20px);
         }
 
-        50% {
-            transform: translateY(-100px);
-        }
         100% {
-            transform: translateY(100px);
+            transform: translateY(-20px);
         }
     }
 
     img {
         position: relative;
-        top: 10px;
+        top: 30px;
         margin: 0 auto;
         max-width: 25px;
         max-height: 50px;
-        animation-name: upAndDown;
-        animation-duration: 1s;
-        animation-iteration-count: infinite;
+        animation: upAndDown 0.6s infinite alternate;
     }
 
     .content #fileInput {
