@@ -1,65 +1,35 @@
-<main>
-    <div>
-        <h1>fileplay.me</h1>
+<script lang="ts">
+  import { tweened } from 'svelte/motion';
+	import { elasticInOut } from 'svelte/easing';
 
-        <div class="content">
-            <label for="fileInput">Share File</label>
-            <input type="file" name="fileInput" id="fileInput" />
+  import LinearProgress from "@smui/linear-progress"
 
-            <img src="arrow_up.png" alt="arrow" />
-        </div>
-    </div>
-</main>
+  import Viewblock from "./Viewblock.svelte";
+  import type { PageData } from './$types';
 
-<style>
-    h1 {
-        margin: 0px;
-        padding: 20px;
-        text-align: center;
-        font-family: Verdana, Geneva, Tahoma, sans-serif;
-        font-size: 30px;
-        background: rgba(0, 100, 255);
-    }
-    .content {
-        display: grid;
-        justify-content: center;
-        align-content: center;
-        height: 80vh;
-    }
+  // loading state
+  let loading_state = 0;
+	const progress = tweened(0, {
+		duration: 400,
+		easing: elasticInOut
+	});
+  const loading_states: [number, string][] = [
+    [0.3, "checking network"],
+    [0.7, "checking service worker"]
+  ]
+  $: progress.set((0 <= loading_state && loading_state< loading_states.length) ? loading_states[loading_state][0] : 0);
 
-    label {
-        text-align: center;
-        font-family: Verdana, Geneva, Tahoma, sans-serif;
-        font-size: 110%;
-        border: 2px solid #000;
-        border-radius: 5px;
-        display: inline-block;
-        padding: 6px 12px;
-        cursor: pointer;
-    }
+</script>
 
-    @keyframes upAndDown {
-        0% {
-            transform: translateY(20px);
-        }
-
-        100% {
-            transform: translateY(-20px);
-        }
-    }
-
-    img {
-        position: relative;
-        top: 30px;
-        margin: 0 auto;
-        max-width: 25px;
-        max-height: 50px;
-        animation: upAndDown 0.6s infinite alternate;
-    }
-
-    .content #fileInput {
-        display: none;
-    }
-
-    
-</style>
+<div>
+  {#if loading_state < loading_states.length}
+    <Viewblock>
+      <div>
+        <LinearProgress progress={$progress}></LinearProgress>
+        <p>{(0 <= loading_state && loading_state< loading_states.length) ? loading_states[loading_state][1] : ""}</p>
+        <button on:click={() => {loading_state = loading_state+1}}>hi there</button>
+      </div>
+    </Viewblock>
+  {/if}
+  <h1>hi</h1>
+</div>

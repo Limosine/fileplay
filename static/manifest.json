@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "FilePlay",
+  "short_name": "FilePlay",
+  "start_url": "/",
+  "scope": "/",
+  "theme_color": "white",
+  "display": "standalone",
+  "background_color": "#fff",
+  "description": "A P2P filesharing app.",
+  "share_target": {
+    "action": "/handle",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "name",
+      "text": "description",
+      "url": "link",
+      "files": [
+        {
+          "name": "files",
+          "accept": [
+            ".txt",
+            "text/plain",
+            ".pdf",
+            "application/pdf"
+          ]
+        }
+      ]
+    }
+  },
+  "icons": [
+    {
+      "src": "/pwa-assets/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-assets/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa-assets/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-assets/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
