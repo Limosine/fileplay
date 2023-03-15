@@ -20,10 +20,8 @@
         {
           "name": "files",
           "accept": [
-            ".txt",
-            "text/plain",
-            ".pdf",
-            "application/pdf"
+            "*/*",
+            ".*"
           ]
         }
       ]
