@@ -11,7 +11,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
     {
       darkMode: true,
       favicon: true,
-      path: "/pwa-assets/",
+      pathOverride: "/pwa-assets",
       scrape: false,
     }
   );
@@ -32,8 +32,8 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         },
         manifest: Object.assign(
           {},
-          await import("./src/manifest.json"),
-          manifestJsonContent
+          (await import("./src/manifest.json")).default,
+          { icons: manifestJsonContent }
         ) as unknown as ManifestOptions,
       }),
     ],

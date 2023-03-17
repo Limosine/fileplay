@@ -8,7 +8,6 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "pwa-assets": "pwa-asset-generator https://elegantapp.github.io/pwa-asset-generator/static/logo.png ./static/pwa-assets/ -v /pwa-assets -m ./static/manifest.json -i ./src/app.html "
   },
   "devDependencies": {
     "@smui/linear-progress": "^7.0.0-beta.0",
