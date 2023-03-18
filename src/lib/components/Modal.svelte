@@ -1,20 +1,23 @@
 <script>
+
+  import Checkbox from "./Checkbox.svelte";
+
   export let box_height = 0.5,
     box_width = 0.5;
   export let title = "Title";
 
   let contacts = [
     { name: "a" },
-    { name: "a" },
-    { name: "a" },
-    { name: "a" },
-    { name: "a" },
-    { name: "a" },
-    { name: "a" },
-    { name: "a" },
-    { name: "a" },
-    { name: "a" },
-    { name: "a" },
+    { name: "b" },
+    { name: "c" },
+    { name: "d" },
+    { name: "e" },
+    { name: "f" },
+    { name: "g" },
+    { name: "h" },
+    { name: "i" },
+    { name: "j" },
+    { name: "k" },
   ];
 
   let sizePerItem = 1;
@@ -29,7 +32,9 @@
     <div class="line" />
     <form method="post">
       {#each contacts as contact}
-        <label> <input type="checkbox" value={contact.name} /></label>
+      <!-- <Checkbox id={contact.name}></Checkbox> -->
+        <!-- <label> <input type="checkbox" value={contact.name} /></label> -->
+        <Checkbox id={contact.name}></Checkbox>
       {/each}
     </form>
   </div>
@@ -62,8 +67,10 @@
     display: grid;
   }
   form {
+    padding: 20px 10px 10px 0px;
     display: grid;
-    height: 100%;
+    overflow-y: auto;
+    height: 200px;
     width: 100%;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -74,29 +81,4 @@
     align-items: center;
   }
 
-  input {
-    display: none;
-  }
-
-  label {
-    border: 1px solid black;
-    justify-self: center;
-    width: 100px;
-    height: 100px;
-    text-align: center;
-  }
-
-  label:before {
-    border: 1px solid black;
-    justify-self: center;
-    width: 100px;
-    height: 100px;
-    text-align: center;
-    background-color: red;
-  }
-
-  input[type="checkbox"]:checked + label:before,
-  label:hover:before {
-    color: red;
-  }
 </style>
