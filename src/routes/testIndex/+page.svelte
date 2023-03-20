@@ -3,18 +3,7 @@
 </script>
 
 <main>
-  <testLayout>
-    <div>
-      <h1>fileplay.me</h1>
 
-      <div class="content">
-        <label for="fileInput">Share File</label>
-        <input type="file" name="fileInput" id="fileInput" />
-
-        <img src="arrow_up.png" alt="arrow" />
-      </div>
-    </div>
-  </testLayout>
 </main>
 
 <style>

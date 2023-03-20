@@ -1,16 +1,22 @@
 <script>
+  import Navbar from "$lib/components/Navbar.svelte";
+  import Sidebar from "$lib/components/Sidebar.svelte";
+  import Footer from "$lib//components/Footer.svelte";
 </script>
 
-<div class="main">
-    <h1>Test</h1>
-
-    <slot name="popup"></slot>
-
-    <slot></slot>
+<Navbar />
+<div class="app-container">
+  <slot />
 </div>
 
+<Sidebar />
+<Footer />
+
 <style>
-    h1 {
-        z-index: -1000;
-    }
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
 </style>
