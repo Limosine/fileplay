@@ -1,40 +1,90 @@
-<script>
-
+<script lang="js">
+  // @ts-nocheck
+  import { goto } from "$app/navigation";
+  import { construct_svelte_component } from "svelte/internal";
   import Checkbox from "./Checkbox.svelte";
+  import { createEventDispatcher } from "svelte";
+  const dispatch = createEventDispatcher();
 
   export let box_height = 0.5,
     box_width = 0.5;
   export let title = "Title";
 
+  function makeid(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      counter += 1;
+    }
+    return result;
+}
+
   let contacts = [
-    { name: "a" },
-    { name: "b" },
-    { name: "c" },
-    { name: "d" },
-    { name: "e" },
-    { name: "f" },
-    { name: "g" },
-    { name: "h" },
-    { name: "i" },
-    { name: "j" },
-    { name: "k" },
+    {name: makeid(5)}, 
+    {name: makeid(5)}, 
+    {name: makeid(5)}, 
+    {name: makeid(5)}, 
+    {name: makeid(5)}, 
+    {name: makeid(5)}, 
+    {name: makeid(5)}, 
+    {name: makeid(5)}, 
+    {name: makeid(5)}, 
+    {name: makeid(5)}
   ];
+
+  let selected = [];
+
+  const toggleStatus = (name) => {
+    console.log(selected);
+    if (selected.find((n) => n == name)) {
+      selected = selected.filter((n) => n != name);
+    } else {
+      selected = [...selected, name];
+      console.log(name);
+    }
+  };
+
+  const toHomePage = (c) => {
+    console.log(c);
+    if (c == "backdrop") {
+      goto("/testIndex");
+    }
+  };
 
   let sizePerItem = 1;
 </script>
 
-<div class="backdrop">
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div
+  class="backdrop"
+  on:click|self={() => {
+    toHomePage("backdrop");
+  }}
+>
   <div
     class="box"
     style="max-height: calc(100vh * {box_height}); max-width: calc(100vw * {box_width});"
   >
     <h1>{title}</h1>
+    <div class="flex">
+      {#if !(selected === undefined || selected.length == 0)}
+        {#each selected as s}
+          <div class="flexitem" on:click={toggleStatus(s)}>{s}</div>
+        {/each}
+      {/if}
+    </div>
     <div class="line" />
     <form method="post">
       {#each contacts as contact}
-      <!-- <Checkbox id={contact.name}></Checkbox> -->
+        <!-- <Checkbox id={contact.name}></Checkbox> -->
         <!-- <label> <input type="checkbox" value={contact.name} /></label> -->
-        <Checkbox id={contact.name}></Checkbox>
+        <Checkbox
+          id={contact.name}
+          on:click={() => toggleStatus(contact.name)} checked={selected.find((n) => n == contact.name)}
+        />
       {/each}
     </form>
   </div>
@@ -70,7 +120,7 @@
     padding: 20px 10px 10px 0px;
     display: grid;
     overflow-y: auto;
-    height: 200px;
+    height: 20vh;
     width: 100%;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -80,5 +130,33 @@
     justify-items: center;
     align-items: center;
   }
+  .flex {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    overflow-y: scroll;
+    align-items: center;
+    align-content: flex-start;
+    width: 100%;
+    height: 10vh;
+  }
+  .flexitem {
+    width: 20%;
+    text-align: center;
+    margin: 1vh;
+    padding: 1vh;
+    border-radius: 5px;
+    border: 1px solid black;
+    background-color: rgba(240, 240, 240, 200);
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
 
+  .flexitem:hover {
+    background-color: white;
+  }
 </style>

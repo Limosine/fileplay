@@ -1,15 +1,18 @@
 <script>
-    import Modal from '$lib/components/Modal.svelte';
+  import Modal from "$lib/components/Modal.svelte";
 
-    export let contacts;
-
+  export let contacts;
 </script>
 
-<Modal title="Contacts">
 <div>
-
+  <Modal title="Contacts" />
 </div>
-</Modal>
-<style>
 
+<style>
+  div {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
 </style>

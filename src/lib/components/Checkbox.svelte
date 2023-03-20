@@ -1,5 +1,6 @@
 <script>
   export let id = "id";
+  export let checked = false;
 </script>
 
 <link
@@ -9,7 +10,7 @@
 
 <div>
   <div class="tile">
-    <input type="checkbox" {id} />
+    <input type="checkbox" {id} on:click bind:checked={checked}/>
     <label for={id}
       ><i class="fa fa-user-circle-o" aria-hidden="true" />
       <h6>{id}</h6>
