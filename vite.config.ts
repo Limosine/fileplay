@@ -15,9 +15,10 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
       SvelteKitPWA({
         srcDir: "src",
         filename: "sw.ts",
-        registerType: "autoUpdate",
+        registerType: "prompt",
         strategies: "injectManifest",
-        useCredentials: true,
+        includeAssets: ["static/*"],
+        useCredentials: true, // disable in prod
         devOptions: {
           enabled: true,
           type: "module",
@@ -25,7 +26,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         },
         manifest: Object.assign((await import("./src/manifest.json")).default, {
           icons: getManifestIcons(),
-        }),
+        }), // enable sourcemap in dev
       }),
     ],
   };

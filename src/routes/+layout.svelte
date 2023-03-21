@@ -1,27 +1,34 @@
 <script>
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
+  import { registerSW } from "virtual:pwa-register";
   import { HTMLImageTags } from "virtual:pwa-assets";
-  import { each } from "svelte/internal";
 
-  for(const tag of HTMLImageTags) {
-    console.log(tag)
-  }
   onMount(async () => {
     if (pwaInfo) {
-      const { registerSW } = await import("virtual:pwa-register");
-      registerSW({
-        immediate: true,
-        onRegistered(r) {
+      registerSW({  // TODO handle queued update (show in notifications, update if inactive)
+        onRegisteredSW(swUrl, r) {
           r &&
-            setInterval(() => {
-              console.log("Checking for sw update");
-              r.update();
-            }, 20000);
-          console.log(`SW Registered: ${r}`);
+            setInterval(async () => {
+              // check if sw is installing or navigator is offline
+              if (!(!r.installing && navigator)) return;
+              if ("connection" in navigator && !navigator.onLine) return;
+
+              const resp = await fetch(swUrl, {
+                cache: "no-store",
+                headers: {
+                  cache: "no-store",
+                  "cache-control": "no-cache",
+                },
+              });
+
+              if (resp.status === 200) {
+                await r.update();
+              }
+            }, 1000 * 60 * 60);
         },
         onRegisterError(error) {
-          console.log("SW registration error", error);
+          console.error("SW registration error", error);
         },
       });
     }
@@ -32,7 +39,7 @@
 
 <svelte:head>
   {@html webManifest}
-  {@html HTMLImageTags.join('\n')}
+  {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
 <main>
