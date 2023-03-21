@@ -1,7 +1,12 @@
 <script>
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
+  import { HTMLImageTags } from "virtual:pwa-assets";
+  import { each } from "svelte/internal";
 
+  for(const tag of HTMLImageTags) {
+    console.log(tag)
+  }
   onMount(async () => {
     if (pwaInfo) {
       const { registerSW } = await import("virtual:pwa-register");
@@ -27,6 +32,7 @@
 
 <svelte:head>
   {@html webManifest}
+  {@html HTMLImageTags.join('\n')}
 </svelte:head>
 
 <main>

@@ -26,7 +26,7 @@ let allowlist: undefined | RegExp[];
 if (import.meta.env.DEV) allowlist = [/^\/$/];
 
 // to allow work offline
-registerRoute(new NavigationRoute(createHandlerBoundToURL("/"), { allowlist }));
+// registerRoute(new NavigationRoute(createHandlerBoundToURL("/"), { allowlist }));
 
 
 self.addEventListener("fetch", async (event) => {

@@ -1,24 +1,17 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
-import { generateImages } from "pwa-asset-generator";
-import type { ManifestOptions } from "vite-plugin-pwa";
+import PWAAssets, { getManifestIcons } from "./scripts";
 
 export default async function (config: ConfigEnv): Promise<UserConfig> {
-  const { savedImages, htmlMeta, manifestJsonContent } = await generateImages(
-    "src/logo.png",
-    "static/pwa-assets/",
-    {
-      darkMode: true,
-      favicon: true,
-      pathOverride: "/pwa-assets",
-      scrape: false,
-    }
-  );
-
   return {
     plugins: [
       sveltekit(),
+      PWAAssets({
+        publicPath: "/pwa-assets",
+        src: "static/favicon.png",
+        mode: "fit",
+      }),
       SvelteKitPWA({
         srcDir: "src",
         filename: "sw.ts",
@@ -30,11 +23,9 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
           type: "module",
           navigateFallback: "/",
         },
-        manifest: Object.assign(
-          {},
-          (await import("./src/manifest.json")).default,
-          { icons: manifestJsonContent }
-        ) as unknown as ManifestOptions,
+        manifest: Object.assign((await import("./src/manifest.json")).default, {
+          icons: getManifestIcons(),
+        }),
       }),
     ],
   };
