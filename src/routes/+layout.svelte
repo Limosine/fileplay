@@ -3,6 +3,10 @@
   import { pwaInfo } from "virtual:pwa-info";
   import { registerSW } from "virtual:pwa-register";
   import { HTMLImageTags } from "virtual:pwa-assets";
+  
+  import Navbar from "$lib/components/Navbar.svelte";
+  import Sidebar from "$lib/components/Sidebar.svelte";
+  import Footer from "$lib//components/Footer.svelte";
 
   onMount(async () => {
     if (pwaInfo) {
@@ -42,6 +46,19 @@
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
-<main>
+<Navbar />
+<div class="app-container">
   <slot />
-</main>
+</div>
+
+<Sidebar />
+<Footer />
+
+<style>
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
