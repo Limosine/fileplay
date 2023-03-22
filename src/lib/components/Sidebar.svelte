@@ -35,6 +35,7 @@
         font-weight: bold;
         color: black;
         font-size: 20px;
+        transition-duration: 0.7s;
     }
 
     li a:hover {

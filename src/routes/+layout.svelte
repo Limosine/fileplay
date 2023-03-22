@@ -3,14 +3,16 @@
   import { pwaInfo } from "virtual:pwa-info";
   import { registerSW } from "virtual:pwa-register";
   import { HTMLImageTags } from "virtual:pwa-assets";
-  
+
   import Navbar from "$lib/components/Navbar.svelte";
   import Sidebar from "$lib/components/Sidebar.svelte";
-  import Footer from "$lib//components/Footer.svelte";
+  import Footer from "$lib/components/Footer.svelte";
+  import MainPage from "$lib/components/Mainpage.svelte";
 
   onMount(async () => {
     if (pwaInfo) {
-      registerSW({  // TODO handle queued update (show in notifications, update if inactive)
+      registerSW({
+        // TODO handle queued update (show in notifications, update if inactive)
         onRegisteredSW(swUrl, r) {
           r &&
             setInterval(async () => {
@@ -49,10 +51,10 @@
 <div>
   <Navbar />
   <Sidebar />
-    <div class="app-container">
-      <slot />
-    </div>
-  <!-- </Sidebar> -->
+  <div class="app-container">
+    <!-- <slot /> -->
+  </div>
+  <MainPage />
   <Footer />
 </div>
 

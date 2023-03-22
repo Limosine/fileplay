@@ -2,7 +2,10 @@
   <input type="checkbox" class="toggle-menu" />
   <div class="hamburger" />
   <div class="account">
+    <i class="fa fa-cog" aria-hidden="true" />
     <i class="fa fa-user-circle-o" aria-hidden="true" />
+    <span class="status"></span>
+    <i class="status-tooltip">Status: Online</i>
   </div>
 </div>
 <link
@@ -85,20 +88,65 @@
   }
 
   .account {
-    float: right;
     position: absolute;
-    right: 0;
     top: 0px;
-    width: 60px;
+    width: 100%;
+    height: 10vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: 10vh;
+    grid-auto-flow: dense;
+    justify-content: center;
+    align-items: center;
+    justify-items: center;
   }
+
+  .status {
+    background-color: lightgreen;
+    grid-column: 5;
+    height: 10px;
+    cursor: pointer;
+    width: 10px;
+    border-radius: 50%;
+    border: 1px solid black;
+  }
+
+  .status:hover ~ .status-tooltip {
+    opacity: 100%;
+  }
+
+  .status-tooltip {
+    position: absolute;
+    grid-column-start: 5;
+    grid-column-end: 6;
+    background-color: rgba(200, 200, 200, 0.7);
+    padding: 5px 10px;
+    border-radius: 2px;
+    width: 150px;
+    text-align: center;
+    left: 25%;
+    top: 75%;
+    opacity: 0%;
+    transition-duration: 1s;
+  }
+
   .fa {
-    margin: 25% 0 50% 0;
+    grid-column: 1;
     font-size: 300%;
     cursor: pointer;
+    margin-left: 50%;
+    transition-duration: 0.7s;
+  }
+
+  .fa-cog {
+    grid-column: 9;
+  }
+
+  .fa-user-circle-o {
+    grid-column: 10;
   }
 
   .fa:hover {
-    transition-duration: 0.5s;
     color: white;
   }
 

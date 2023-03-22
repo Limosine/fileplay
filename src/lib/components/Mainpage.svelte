@@ -11,22 +11,21 @@
 
 <style>
   .content {
+    z-index: -1000;
     position: absolute;
-    top: 50%;
-    left: 50%;
+    height: 100%;
+    width: 100%;
   }
 
   label {
-    text-align: center;
+    position: absolute;
+    top: 47%;
+    left: calc(50% - 50px);
+    width: 100px;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-size: 110%;
     border: 2px solid #000;
-    width: 100px;
     border-radius: 5px;
-    position: absolute;
-    top: 50%;
-    left: calc(50% - 50px);
-    display: inline-block;
     padding: 6px 12px;
     cursor: pointer;
   }
@@ -43,8 +42,9 @@
 
   img {
     position: absolute;
-    top: 70px;
-    margin: 0 auto;
+    top: 57%;
+    left: 50%;
+    text-align: center;
     max-width: 25px;
     max-height: 50px;
     animation: upAndDown 0.6s infinite alternate;
