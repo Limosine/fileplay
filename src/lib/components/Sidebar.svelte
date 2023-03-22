@@ -7,6 +7,10 @@
 </div>
 
 <style>
+    div {
+        float: left;
+        height: 100vh;
+    }
     ul {
         background-color: gray;
         width: 200px;
@@ -17,11 +21,12 @@
         flex-wrap: wrap;
         align-content: center;
         border-right: 1px solid black;
+        justify-content: space-around;
     }
 
-    li {
-        padding: 10vh;
-    }
+    /* li {
+        padding: 20%;
+    } */
 
     li a{
         text-decoration: none;

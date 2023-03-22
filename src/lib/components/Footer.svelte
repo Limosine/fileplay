@@ -11,7 +11,7 @@
     padding: 1rem;
     background-color: #efefef;
     text-align: center;
-    height: 8%;
+    height: 2%;
     display: flex;
     flex-direction: row;
     justify-content: center;

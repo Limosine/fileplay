@@ -6,13 +6,12 @@
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
 
-  export let box_height = 0.5,
-    box_width = 0.5;
   export let title = "Title";
 
   function makeid(length) {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = "";
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     const charactersLength = characters.length;
     let counter = 0;
     while (counter < length) {
@@ -20,19 +19,19 @@
       counter += 1;
     }
     return result;
-}
+  }
 
   let contacts = [
-    {name: makeid(5)}, 
-    {name: makeid(5)}, 
-    {name: makeid(5)}, 
-    {name: makeid(5)}, 
-    {name: makeid(5)}, 
-    {name: makeid(5)}, 
-    {name: makeid(5)}, 
-    {name: makeid(5)}, 
-    {name: makeid(5)}, 
-    {name: makeid(5)}
+    { name: makeid(5) },
+    { name: makeid(5) },
+    { name: makeid(5) },
+    { name: makeid(5) },
+    { name: makeid(5) },
+    { name: makeid(5) },
+    { name: makeid(5) },
+    { name: makeid(5) },
+    { name: makeid(5) },
+    { name: makeid(5) },
   ];
 
   let selected = [];
@@ -64,10 +63,7 @@
     toHomePage("backdrop");
   }}
 >
-  <div
-    class="box"
-    style="max-height: calc(100vh * {box_height}); max-width: calc(100vw * {box_width});"
-  >
+  <div class="box">
     <h1>{title}</h1>
     <div class="flex">
       {#if !(selected === undefined || selected.length == 0)}
@@ -83,9 +79,11 @@
         <!-- <label> <input type="checkbox" value={contact.name} /></label> -->
         <Checkbox
           id={contact.name}
-          on:click={() => toggleStatus(contact.name)} checked={selected.find((n) => n == contact.name)}
+          on:click={() => toggleStatus(contact.name)}
+          checked={selected.find((n) => n == contact.name)}
         />
       {/each}
+      <input class="submit" type="submit" value="Senden" />
     </form>
   </div>
 </div>
@@ -109,8 +107,9 @@
     background: rgba(0, 0, 0, 0.5);
   }
   .box {
-    padding: 10px;
+    padding: 10px 10px 40px 10px;
     border-radius: 10px;
+    width: 50%;
     margin: 10% auto 10% auto;
     text-align: center;
     background: white;
@@ -158,5 +157,24 @@
 
   .flexitem:hover {
     background-color: white;
+  }
+
+  .submit {
+    position: absolute;
+    border-radius: 5px;
+    border: 3px solid black;
+    background-color: white;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 5px;
+    bottom: 29.5%;
+  }
+
+  .submit:hover {
+    background-color: #478bfb;
+    color: white;
+    transition-duration: 0.1s;
+    transform: scale(1.2);
   }
 </style>

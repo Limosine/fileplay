@@ -1,16 +1,22 @@
-
-
 <div>
   <input type="checkbox" class="toggle-menu" />
   <div class="hamburger" />
-
+  <div class="account">
+    <i class="fa fa-user-circle-o" aria-hidden="true" />
+  </div>
 </div>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+/>
 
 <style>
   div {
-    width: 100vw;
-    height: 20vh;
-    background-color: purple;
+    width: 100%;
+    height: 10vh;
+    position: absolute;
+    top: 0;
+    background-color: #0193cb;
   }
 
   .hamburger {
@@ -78,9 +84,28 @@
     display: none;
   }
 
+  .account {
+    float: right;
+    position: absolute;
+    right: 0;
+    top: 0px;
+    width: 60px;
+  }
+  .fa {
+    margin: 25% 0 50% 0;
+    font-size: 300%;
+    cursor: pointer;
+  }
+
+  .fa:hover {
+    transition-duration: 0.5s;
+    color: white;
+  }
+
   @media screen and (max-width: 400px) {
-    .hamburger, .toggle-menu {
-        display: block;
+    .hamburger,
+    .toggle-menu {
+      display: block;
     }
   }
 </style>

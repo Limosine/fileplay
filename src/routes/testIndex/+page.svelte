@@ -1,25 +1,19 @@
-<script>
-  import testLayout from "$lib/components/Layout.svelte";
-</script>
-
 <main>
+  <div>
+    <div class="content">
+      <label for="fileInput">Share File</label>
+      <input type="file" name="fileInput" id="fileInput" />
 
+      <img src="arrow_up.png" alt="arrow" />
+    </div>
+  </div>
 </main>
 
 <style>
-  h1 {
-    margin: 0px;
-    padding: 20px;
-    text-align: center;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-    font-size: 30px;
-    background: rgba(0, 100, 255);
-  }
   .content {
-    display: grid;
-    justify-content: center;
-    align-content: center;
-    height: 80vh;
+    position: absolute;
+    top: 50%;
+    left: 50%;
   }
 
   label {
@@ -27,7 +21,11 @@
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-size: 110%;
     border: 2px solid #000;
+    width: 100px;
     border-radius: 5px;
+    position: absolute;
+    top: 50%;
+    left: calc(50% - 50px);
     display: inline-block;
     padding: 6px 12px;
     cursor: pointer;
@@ -44,8 +42,8 @@
   }
 
   img {
-    position: relative;
-    top: 30px;
+    position: absolute;
+    top: 70px;
     margin: 0 auto;
     max-width: 25px;
     max-height: 50px;

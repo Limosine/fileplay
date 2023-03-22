@@ -4,19 +4,24 @@
   import Footer from "$lib//components/Footer.svelte";
 </script>
 
-<Navbar />
-<div class="app-container">
-  <slot />
+<div>
+  <Navbar />
+  <Sidebar />
+    <div class="app-container">
+      <slot />
+    </div>
+  <!-- </Sidebar> -->
+  <Footer />
 </div>
 
-<Sidebar />
-<Footer />
-
 <style>
+  div {
+    z-index: -100;
+  }
   .app-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    z-index: 100;
+    position: absolute;
+    top: 50%;
+    left: 50%;
   }
 </style>

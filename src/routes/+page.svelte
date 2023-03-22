@@ -23,9 +23,9 @@
   );
 </script>
 
-<div>
+<div class="main">
   {#if loading_state < loading_states.length}
-    <Viewblock>
+    <!-- <Viewblock> -->
       <div>
         <LinearProgress progress={$progress} />
         <p>
@@ -39,7 +39,14 @@
           }}>hi there</button
         >
       </div>
-    </Viewblock>
+    <!-- </Viewblock> -->
   {/if}
   <h1>hi</h1>
 </div>
+
+<style> 
+  .main {
+    position: absolute;
+    top: 50%;
+  }
+</style>
