@@ -18,6 +18,7 @@
   }
 
   label {
+    text-align: center;
     position: absolute;
     top: 47%;
     left: calc(50% - 50px);
