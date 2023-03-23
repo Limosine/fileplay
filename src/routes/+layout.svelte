@@ -7,7 +7,7 @@
   import Navbar from "$lib/components/Navbar.svelte";
   import Sidebar from "$lib/components/Sidebar.svelte";
   import Footer from "$lib/components/Footer.svelte";
-  import MainPage from "$lib/components/Mainpage.svelte";
+  import Mainpage from "$lib/container/Mainpage.svelte";
 
   onMount(async () => {
     if (pwaInfo) {
@@ -48,24 +48,18 @@
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
-<div>
-  <Navbar />
-  <Sidebar />
-  <div class="app-container">
-    <!-- <slot /> -->
-  </div>
-  <MainPage />
-  <Footer />
+<!-- <div class="main"> -->
+<Navbar />
+<Sidebar />
+<div class="app-container">
+  <slot />
 </div>
+<Mainpage />
+<Footer />
 
+<!-- </div> -->
 <style>
-  div {
-    z-index: -100;
-  }
   .app-container {
-    z-index: 100;
-    position: absolute;
-    top: 50%;
-    left: 50%;
+    z-index: -50;
   }
 </style>

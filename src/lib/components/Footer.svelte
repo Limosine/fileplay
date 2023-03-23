@@ -16,5 +16,6 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    z-index: -50;
   }
 </style>

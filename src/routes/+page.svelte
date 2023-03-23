@@ -1,10 +1,16 @@
 <script lang="ts">
   import { tweened } from "svelte/motion";
   import { elasticInOut } from "svelte/easing";
-
   import LinearProgress from "@smui/linear-progress";
+  import Backdrop from "$lib/components/Backdrop.svelte";
 
   import Viewblock from "./Viewblock.svelte";
+  import { onDestroy, onMount } from "svelte";
+  import pageLoadCount from "$lib/stores/PageLoadStore";
+
+  let visible = true;
+
+  let loadCount = 0;
 
   // loading state
   let loading_state = 0;
@@ -21,11 +27,37 @@
       ? loading_states[loading_state][0]
       : 0
   );
+
+  function toggleVisible() {
+    visible = !visible;
+  }
+
+  function subscribe() {
+    pageLoadCount.subscribe((value) => {
+      loadCount = value;
+    });
+  }
+
+  onMount(() => {
+    subscribe();
+
+    if (loadCount == 0) {
+      pageLoadCount.update((n) => n + 1);
+    } else {
+      visible = false;
+    }
+  });
+
+  onDestroy(() => {
+    subscribe();
+  });
 </script>
 
-<div class="main">
-  {#if loading_state < loading_states.length}
-    <!-- <Viewblock> -->
+{#if visible}
+  <div class="main">
+    {#if loading_state < loading_states.length}
+      <!-- <Viewblock> -->
+
       <div>
         <LinearProgress progress={$progress} />
         <p>
@@ -36,17 +68,26 @@
         <button
           on:click={() => {
             loading_state = loading_state + 1;
+            if (loading_state >= loading_states.length) {
+              toggleVisible();
+            }
           }}>hi there</button
         >
       </div>
-    <!-- </Viewblock> -->
-  {/if}
-  <h1>hi</h1>
-</div>
+      <!-- </Viewblock> -->
+      <Backdrop />
+    {/if}
+  </div>
+{/if}
 
-<style> 
+<style>
   .main {
     position: absolute;
-    top: 50%;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-content: center;
   }
 </style>

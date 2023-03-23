@@ -1,7 +1,5 @@
 <script lang="js">
   // @ts-nocheck
-  import { goto } from "$app/navigation";
-  import { construct_svelte_component } from "svelte/internal";
   import Checkbox from "./Checkbox.svelte";
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
@@ -48,44 +46,35 @@
 
   const toHomePage = (c) => {
     console.log(c);
-    if (c == "backdrop") {
-      goto("/testIndex");
-    }
   };
 
   let sizePerItem = 1;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  class="backdrop"
-  on:click|self={() => {
-    toHomePage("backdrop");
-  }}
->
-  <div class="box">
-    <h1>{title}</h1>
-    <div class="flex">
-      {#if !(selected === undefined || selected.length == 0)}
-        {#each selected as s}
-          <div class="flexitem" on:click={toggleStatus(s)}>{s}</div>
-        {/each}
-      {/if}
-    </div>
-    <div class="line" />
-    <form method="post">
-      {#each contacts as contact}
-        <!-- <Checkbox id={contact.name}></Checkbox> -->
-        <!-- <label> <input type="checkbox" value={contact.name} /></label> -->
-        <Checkbox
-          id={contact.name}
-          on:click={() => toggleStatus(contact.name)}
-          checked={selected.find((n) => n == contact.name)}
-        />
+<div class="box">
+  <h1>{title}</h1>
+  <div class="flex">
+    {#if !(selected === undefined || selected.length == 0)}
+      {#each selected as s}
+        <div class="flexitem" on:click={toggleStatus(s)}>{s}</div>
       {/each}
-      <input class="submit" type="submit" value="Senden" />
-    </form>
+    {/if}
   </div>
+  <div class="line" />
+  <form method="post">
+    {#each contacts as contact}
+      <!-- <Checkbox id={contact.name}></Checkbox> -->
+      <!-- <label> <input type="checkbox" value={contact.name} /></label> -->
+      <Checkbox
+        id={contact.name}
+        on:click={() => toggleStatus(contact.name)}
+        checked={selected.find((n) => n == contact.name)}
+      />
+    {/each}
+
+    <input class="submit" type="submit" value="Senden" />
+  </form>
 </div>
 
 <style>
@@ -100,13 +89,8 @@
     margin: 0px;
     padding: 0px;
   }
-  .backdrop {
-    width: 100%;
-    height: 100%;
-    position: fixed;
-    background: rgba(0, 0, 0, 0.5);
-  }
   .box {
+    animation: 0.4s ease-in-out 0s 1 grow;
     padding: 10px 10px 40px 10px;
     border-radius: 10px;
     width: 50%;
@@ -160,7 +144,6 @@
   }
 
   .submit {
-    position: absolute;
     border-radius: 5px;
     border: 3px solid black;
     background-color: white;
@@ -168,7 +151,10 @@
     font-weight: bold;
     font-size: 15px;
     padding: 5px;
-    bottom: 29.5%;
+    position: absolute;
+    bottom: 29%;
+    
+    animation: 0.4s ease-in-out 0s 1 displayy;
   }
 
   .submit:hover {
@@ -176,5 +162,31 @@
     color: white;
     transition-duration: 0.1s;
     transform: scale(1.2);
+  }
+
+  @keyframes grow {
+    0% {
+      transform: scale(0);
+    }
+
+    75% {
+      transform: scale(1.1);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes displayy {
+    0% {
+      visibility: hidden;
+    }
+    99% {
+      visibility: hidden;
+    }
+    100% {
+      visibility: visible;
+    }
   }
 </style>

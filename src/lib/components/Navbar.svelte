@@ -1,31 +1,68 @@
-<div>
-  <input type="checkbox" class="toggle-menu" />
-  <div class="hamburger" />
-  <div class="account">
-    <i class="fa fa-cog" aria-hidden="true" />
-    <i class="fa fa-user-circle-o" aria-hidden="true" />
-    <span class="status"></span>
+<script>
+  // @ts-nocheck
+
+  import SidebarToggleStore from "$lib/stores/SidebarToggleStore.js";
+  import { onDestroy, onMount } from "svelte";
+
+  let visible = true;
+  const unsubscribe = SidebarToggleStore.subscribe((value) => {
+    visible = value;
+  });
+
+  onDestroy(unsubscribe);
+
+  const toggleVisible = () => {
+    console.log(visible);
+    SidebarToggleStore.update((n) => (n = !n));
+  };
+</script>
+
+<nav>
+  <input type="checkbox" class="toggle-menu" on:click={toggleVisible}/>
+  <div class="hamburger"/>
+  <ul>
+    <li>
+      <div class="status" />
+    </li>
+    <li>
+      <i class="fa fa-cog" aria-hidden="true" />
+    </li>
+    <li>
+      <i class="fa fa-user-circle-o" aria-hidden="true" />
+    </li>
     <i class="status-tooltip">Status: Online</i>
-  </div>
-</div>
+  </ul>
+</nav>
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
 />
 
 <style>
-  div {
-    width: 100%;
-    height: 10vh;
+  nav ul {
+    float: right;
+  }
+
+  nav ul li {
+    display: inline-block;
+    margin-top: 10px;
+    margin-left: 20px;
+  }
+
+  nav {
+    z-index: -50;
+    width: 100vw;
+    height: 10%;
     position: absolute;
     top: 0;
+    right: 0;
     background-color: #0193cb;
   }
 
   .hamburger {
     position: absolute;
-    left: 10px;
-    top: 20px;
+    left: 20px;
+    top: 30px;
     width: 30px;
     height: 4px;
     background: #fff;
@@ -56,9 +93,10 @@
   }
 
   .toggle-menu {
+    display: inline;
     position: relative;
-    left: 6.5px;
-    top: 5px;
+    left: 16px;
+    top: 14px;
     width: 30px;
     height: 30px;
     z-index: 3;
@@ -72,33 +110,19 @@
 
   input:checked ~ .hamburger:before {
     top: 0;
-    transform: rotate(-45deg);
+    transform: rotate(45deg);
     width: 30px;
   }
 
   input:checked ~ .hamburger:after {
     top: 0;
-    transform: rotate(45deg);
+    transform: rotate(-45deg);
     width: 30px;
   }
 
   .hamburger,
   .toggle-menu {
     display: none;
-  }
-
-  .account {
-    position: absolute;
-    top: 0px;
-    width: 100%;
-    height: 10vh;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-    grid-template-rows: 10vh;
-    grid-auto-flow: dense;
-    justify-content: center;
-    align-items: center;
-    justify-items: center;
   }
 
   .status {
@@ -109,6 +133,9 @@
     width: 10px;
     border-radius: 50%;
     border: 1px solid black;
+    position: absolute;
+    top: 30px;
+    left: 40%;
   }
 
   .status:hover ~ .status-tooltip {
@@ -131,29 +158,23 @@
   }
 
   .fa {
-    grid-column: 1;
     font-size: 300%;
     cursor: pointer;
-    margin-left: 50%;
-    transition-duration: 0.7s;
-  }
-
-  .fa-cog {
-    grid-column: 9;
+    transition: color 0.7s;
   }
 
   .fa-user-circle-o {
-    grid-column: 10;
+    margin-right: 10px;
   }
 
   .fa:hover {
     color: white;
   }
 
-  @media screen and (max-width: 400px) {
+  @media screen and (max-width: 500px) {
     .hamburger,
     .toggle-menu {
-      display: block;
+      display: inline;
     }
   }
 </style>
