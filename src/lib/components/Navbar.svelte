@@ -2,7 +2,7 @@
   // @ts-nocheck
 
   import SidebarToggleStore from "$lib/stores/SidebarToggleStore.js";
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy } from "svelte";
 
   let visible = true;
   const unsubscribe = SidebarToggleStore.subscribe((value) => {
@@ -18,8 +18,8 @@
 </script>
 
 <nav>
-  <input type="checkbox" class="toggle-menu" on:click={toggleVisible}/>
-  <div class="hamburger"/>
+  <input type="checkbox" class="toggle-menu" on:click={toggleVisible} />
+  <div class="hamburger" />
   <ul>
     <li>
       <div class="status" />
@@ -28,9 +28,11 @@
       <i class="fa fa-cog" aria-hidden="true" />
     </li>
     <li>
+      <i class="fa fa-bell" aria-hidden="true" />
+    </li>
+    <li>
       <i class="fa fa-user-circle-o" aria-hidden="true" />
     </li>
-    <i class="status-tooltip">Status: Online</i>
   </ul>
 </nav>
 <link
@@ -138,23 +140,26 @@
     left: 40%;
   }
 
-  .status:hover ~ .status-tooltip {
-    opacity: 100%;
+  .status::before {
+    content: "Online";
+    width: 150px;
+    height: 20px;
+    line-height: 20px;
+    position: absolute;
+    text-align: center;
+    background-color: rgba(200, 200, 200, 0.7);
+    padding: 2px;
+    border-radius: 5px;
+    top: 20px;
+    left: 5px;
+    opacity: 0%;
+    cursor: default;
+    transition: 0.3s opacity;
+    pointer-events: none;
   }
 
-  .status-tooltip {
-    position: absolute;
-    grid-column-start: 5;
-    grid-column-end: 6;
-    background-color: rgba(200, 200, 200, 0.7);
-    padding: 5px 10px;
-    border-radius: 2px;
-    width: 150px;
-    text-align: center;
-    left: 25%;
-    top: 75%;
-    opacity: 0%;
-    transition-duration: 1s;
+  .status:hover::before {
+    opacity: 100%;
   }
 
   .fa {
