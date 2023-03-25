@@ -30,7 +30,7 @@
   );
 
   function toggleVisible() {
-    visible = !visible;
+    visible = false;
   }
 
   function subscribe() {
