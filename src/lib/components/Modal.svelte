@@ -98,6 +98,10 @@
     text-align: center;
     background: white;
     display: grid;
+    position: absolute;
+    left: 25%;
+    top: auto;
+    bottom: auto;
   }
   form {
     padding: 20px 10px 10px 0px;
@@ -152,9 +156,9 @@
     font-size: 15px;
     padding: 5px;
     position: absolute;
-    bottom: 29%;
-    
-    animation: 0.4s ease-in-out 0s 1 displayy;
+    bottom: 10px;
+    left: 45%;
+    /* animation: 0.4s ease-in-out 0s 1 displayy; */
   }
 
   .submit:hover {

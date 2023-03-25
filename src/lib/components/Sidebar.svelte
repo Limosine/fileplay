@@ -1,6 +1,8 @@
 <script>
   import SidebarToggleStore from "$lib/stores/SidebarToggleStore.js";
   import { onDestroy } from "svelte";
+  import { goto } from "$app/navigation";
+  import { redirect } from "@sveltejs/kit";
 
   let visible = true;
   const unsubscribe = SidebarToggleStore.subscribe((value) => {
@@ -8,19 +10,31 @@
   });
 
   onDestroy(unsubscribe);
+
+  const addContact = () => {
+    goto("/contacts");
+  };
+
+  const addDevice = () => {
+    goto("/contacts");
+  };
 </script>
 
 <div class={visible ? "" : "middle"}>
   <ul>
-    <li><a href="/contacts">+ Gerät hinzufügen</a></li>
-    <li><a href="/contacts">+ Kontakt hinzufügen</a></li>
+    <li>
+      <button on:click={addDevice}>+Gerät hinzufügen</button>
+    </li>
+    <li><button on:click={addContact}>+ Kontakt hinzufügen</button></li>
   </ul>
 </div>
 
 <style>
   div {
     position: absolute;
-    height: 100vh;
+    top: 100px;
+    height: 85%;
+    bottom: 0;
     z-index: -51;
     transition-duration: 0.5s;
     background-color: gray;
@@ -30,7 +44,6 @@
   }
   ul {
     width: 200px;
-    margin-top: 50%;
     height: 100%;
     list-style-type: none;
     display: flex;
@@ -41,33 +54,29 @@
     justify-content: flex-start;
   }
 
-  li {
-    padding: 10% 5% 10% 10%;
-    border: 3px solid black;
+  button {
+    padding: 10% 10% 10% 10%;
+    border: 3px solid white;
+    background-color: rgb(55, 55, 55);
     border-radius: 5px;
     margin-top: 20px;
     margin-left: 10%;
     margin-right: 10%;
     transition-duration: 0.7s;
-  }
-
-  li:hover > a {
-    color: white;
-  }
-
-  li:hover {
-    background-color: black;
-    border-color: white;
-  }
-
-  li a {
     text-decoration: none;
     font-size: large;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-weight: bold;
-    color: black;
+    color: white;
     font-size: 20px;
-    transition-duration: 0.7s;
+    text-align: center;
+  }
+
+  button:hover {
+    background-color: white;
+    border-color: black;
+    color: black;
+    cursor: pointer;
   }
 
   @media screen and (max-width: 500px) {

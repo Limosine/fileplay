@@ -21,6 +21,7 @@
   const loading_states: [number, string][] = [
     [0.3, "checking network"],
     [0.7, "checking service worker"],
+    [1, "Eating cookies"],
   ];
   $: progress.set(
     0 <= loading_state && loading_state < loading_states.length
@@ -41,8 +42,22 @@
   onMount(() => {
     subscribe();
 
-    if (loadCount == 0) {
-      pageLoadCount.update((n) => n + 1);
+    setTimeout(() => {
+      loading_state = 1;
+    }, 1000);
+
+    setTimeout(() => {
+      loading_state = 2;
+    }, 2000);
+
+    setTimeout(() => {
+      toggleVisible();
+    }, 3000);
+
+    console.log(loadCount);
+
+    if (loadCount <= 0) {
+      pageLoadCount.set(1);
     } else {
       visible = false;
     }
@@ -65,14 +80,6 @@
             ? loading_states[loading_state][1]
             : ""}
         </p>
-        <button
-          on:click={() => {
-            loading_state = loading_state + 1;
-            if (loading_state >= loading_states.length) {
-              toggleVisible();
-            }
-          }}>hi there</button
-        >
       </div>
       <!-- </Viewblock> -->
       <Backdrop />
@@ -89,5 +96,14 @@
     height: 100%;
     justify-content: center;
     align-content: center;
+  }
+
+  p {
+    color: white;
+    font-weight: bold;
+    margin-top: 50px;
+    text-align: center;
+    font-size: 20px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
   }
 </style>

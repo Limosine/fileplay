@@ -47,14 +47,14 @@
 
   nav ul li {
     display: inline-block;
-    margin-top: 10px;
+    margin-top: 25px;
     margin-left: 20px;
   }
 
   nav {
     z-index: -50;
     width: 100vw;
-    height: 10%;
+    height: 100px;
     position: absolute;
     top: 0;
     right: 0;
@@ -129,15 +129,14 @@
 
   .status {
     background-color: lightgreen;
-    grid-column: 5;
     height: 10px;
     cursor: pointer;
     width: 10px;
     border-radius: 50%;
     border: 1px solid black;
     position: absolute;
-    top: 30px;
-    left: 40%;
+    bottom: 45px;
+    left: 25%;
   }
 
   .status::before {
