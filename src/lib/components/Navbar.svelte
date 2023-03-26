@@ -52,22 +52,23 @@
   }
 
   nav {
-    z-index: -50;
+    z-index: -49;
     width: 100vw;
     height: 100px;
     position: absolute;
     top: 0;
     right: 0;
-    background-color: #0193cb;
+    background-color: white;
+    box-shadow: 0 4px 10px gray;
   }
 
   .hamburger {
     position: absolute;
     left: 20px;
-    top: 30px;
+    top: 50px;
     width: 30px;
     height: 4px;
-    background: #fff;
+    background: #000;
     border-radius: 10px;
     cursor: pointer;
     z-index: 2;
@@ -79,7 +80,7 @@
     position: absolute;
     height: 4px;
     left: 0;
-    background-color: #fff;
+    background-color: #000;
     border-radius: 10px;
     transition: 0.3s;
   }
@@ -142,14 +143,10 @@
     content: "Online";
     width: 150px;
     height: 20px;
-    line-height: 20px;
-    position: absolute;
     text-align: center;
     background-color: rgba(200, 200, 200, 0.7);
-    padding: 2px;
+    padding: 5px;
     border-radius: 5px;
-    top: 20px;
-    left: 5px;
     opacity: 0%;
     cursor: default;
     transition: 0.3s opacity;
@@ -163,7 +160,7 @@
   .fa {
     font-size: 300%;
     cursor: pointer;
-    transition: color 0.7s;
+    transition-duration: 0.3s;
   }
 
   .fa-user-circle-o {
@@ -171,7 +168,7 @@
   }
 
   .fa:hover {
-    color: white;
+    transform: scale(1.2);
   }
 
   @media screen and (max-width: 500px) {

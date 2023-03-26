@@ -9,7 +9,8 @@
     bottom: 0;
     left: 0;
     padding: 1rem;
-    background-color: #efefef;
+    background-color: white;
+    box-shadow: 0px 9px 10px 10px gray;
     text-align: center;
     height: 2%;
     display: flex;
