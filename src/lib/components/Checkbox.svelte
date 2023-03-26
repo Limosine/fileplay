@@ -10,7 +10,7 @@
 
 <div>
   <div class="tile">
-    <input type="checkbox" {id} on:click bind:checked={checked}/>
+    <input type="checkbox" {id} on:click|self bind:checked={checked}/>
     <label for={id}
       ><i class="fa fa-user-circle-o" aria-hidden="true" />
       <h6>{id}</h6>

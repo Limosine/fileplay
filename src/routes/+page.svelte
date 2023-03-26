@@ -7,6 +7,7 @@
   import Viewblock from "./Viewblock.svelte";
   import { onDestroy, onMount } from "svelte";
   import pageLoadCount from "$lib/stores/PageLoadStore";
+  import { goto } from "$app/navigation";
 
   let visible = true;
 
@@ -41,25 +42,21 @@
 
   onMount(() => {
     subscribe();
-
-    setTimeout(() => {
-      loading_state = 1;
-    }, 1000);
-
-    setTimeout(() => {
-      loading_state = 2;
-    }, 2000);
-
-    setTimeout(() => {
+    if (loadCount > 0) {
       toggleVisible();
-    }, 3000);
-
-    console.log(loadCount);
-
-    if (loadCount <= 0) {
-      pageLoadCount.set(1);
     } else {
-      visible = false;
+      setTimeout(() => {
+        loading_state = 1;
+      }, 1000);
+
+      setTimeout(() => {
+        loading_state = 2;
+      }, 2000);
+
+      setTimeout(() => {
+        pageLoadCount.set(1);
+        goto("/name");
+      }, 3000);
     }
   });
 

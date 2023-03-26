@@ -134,9 +134,8 @@
     width: 10px;
     border-radius: 50%;
     border: 1px solid black;
-    position: absolute;
-    bottom: 45px;
-    left: 25%;
+    margin-bottom: 8px;
+    margin-right: 20px;
   }
 
   .status::before {
