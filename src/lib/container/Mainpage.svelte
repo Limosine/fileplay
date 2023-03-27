@@ -21,7 +21,7 @@
     text-align: center;
     position: absolute;
     top: 47%;
-    left: calc(50% - 50px);
+    left: calc(50% - 60px);
     width: 100px;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-size: 110%;
@@ -44,7 +44,7 @@
   img {
     position: absolute;
     top: 57%;
-    left: 50%;
+    left: calc(50% - 10px);
     text-align: center;
     max-width: 25px;
     max-height: 50px;

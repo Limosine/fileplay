@@ -12,7 +12,6 @@
   onDestroy(unsubscribe);
 
   const toggleVisible = () => {
-    console.log(visible);
     SidebarToggleStore.update((n) => (n = !n));
   };
 </script>
@@ -98,8 +97,8 @@
   .toggle-menu {
     display: inline;
     position: relative;
-    left: 16px;
-    top: 14px;
+    left: 17px;
+    top: 32px;
     width: 30px;
     height: 30px;
     z-index: 3;

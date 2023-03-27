@@ -32,6 +32,7 @@
       id="name"
       required
       placeholder={showPlaceholder ? "Enter your name" : ""}
+      maxlength="16"
       bind:value={name}
       on:focusin={togglePlaceholder}
       on:focusout={togglePlaceholder}
@@ -61,7 +62,7 @@
     grid-column: 2;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-weight: bold;
-    font-size: 30px;
+    font-size: 80%;
     color: white;
     text-align: center;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
@@ -71,14 +72,18 @@
   input {
     text-align: center;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
-    font-size: 30px;
+    font-size: 50%;
     font-weight: bold;
     border-radius: 5px;
     border: solid 3px;
-    padding: 10px 0;
+    padding: 10px 0px;
     color: rgb(0, 100, 200);
     grid-row: 2;
     grid-column: 2;
     margin-top: 10px;
+    width: 80%;
+    max-width: 80%;
+    justify-self: center;
+    overflow-x: scroll;
   }
 </style>

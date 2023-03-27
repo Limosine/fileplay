@@ -157,8 +157,6 @@
     padding: 5px;
     position: absolute;
     bottom: 10px;
-    left: 45%;
-    /* animation: 0.4s ease-in-out 0s 1 displayy; */
   }
 
   .submit:hover {
@@ -179,18 +177,6 @@
 
     100% {
       transform: scale(1);
-    }
-  }
-
-  @keyframes displayy {
-    0% {
-      visibility: hidden;
-    }
-    99% {
-      visibility: hidden;
-    }
-    100% {
-      visibility: visible;
     }
   }
 </style>
