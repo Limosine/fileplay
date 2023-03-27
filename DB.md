@@ -1,23 +1,27 @@
-## Database
+# Database
 
-# Person
-- id: int
-- name: String
-- imageID: int
-- contacts: [ Person ]
-- devices: [ Device ]
+## User
+- id: uuid <primary>
+- name: string
+- avatarSeed: string
+- contacts: [ User ] (added: datetime)
+- devices: [ Device ] (added: datetime)
 
-# Device
-- id: int
-- publicKey: String (for receiving files)
-- authHash: String (Authentication with the API)
+## Device
+- id: uuid <primary>
+- publicKey: string
+- authHash: string
+- authSalt: string
+- user: User (added: datetime)
 - isOnline: boolean
-- pushLink: String
-- pushCSRFkey: String
+- lastSeen: datetime
+- webPushEndpoint: string
+- webPushP256DH: string
+- webPushNoCSRF: string
 
-# Group
+### (Group)
 - id: id
-- creator: Person
-- name: String
-- description: String
-- people: [ Person ] (with attribute 'Permission')
+- creator: User
+- name: string
+- description: string
+- people: [ User ] (with attribute 'Permission')
