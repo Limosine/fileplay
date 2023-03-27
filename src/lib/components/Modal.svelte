@@ -97,17 +97,17 @@
     margin: 10% auto 10% auto;
     text-align: center;
     background: white;
-    display: grid;
     position: absolute;
-    left: 25%;
-    top: auto;
-    bottom: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
   }
   form {
     padding: 20px 10px 10px 0px;
     display: grid;
     overflow-y: auto;
-    height: 20vh;
+    height: 50%;
     width: 100%;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -116,6 +116,7 @@
     gap: 10px;
     justify-items: center;
     align-items: center;
+    justify-self: center;
   }
   .flex {
     display: inline-flex;
@@ -156,7 +157,8 @@
     font-size: 15px;
     padding: 5px;
     position: absolute;
-    bottom: 10px;
+    justify-self: center;
+    bottom: 3%;
   }
 
   .submit:hover {
