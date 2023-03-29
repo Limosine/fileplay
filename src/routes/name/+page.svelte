@@ -62,18 +62,18 @@
     grid-column: 2;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-weight: bold;
-    font-size: 80%;
+    font-size: 2.5vw;
     color: white;
     text-align: center;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
       1px 1px 0 #000;
-    margin-bottom: 100px;
+    margin-bottom: 150px;
   }
   input {
     text-align: center;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
-    font-size: 50%;
     font-weight: bold;
+    font-size: 2.5vw;
     border-radius: 5px;
     border: solid 3px;
     padding: 10px 0px;
