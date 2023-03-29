@@ -1,23 +1,29 @@
 # Database
 
 ## User
-- id: uuid <primary>
-- name: string
-- avatarSeed: string
-- contacts: [ User ] (added: datetime)
-- devices: [ Device ] (added: datetime)
+- id: integer <primary>
+- name: text
+- avatarSeed: text
 
 ## Device
-- id: uuid <primary>
-- publicKey: string
-- authHash: string
-- authSalt: string
-- user: User (added: datetime)
-- isOnline: boolean
-- lastSeen: datetime
-- webPushEndpoint: string
-- webPushP256DH: string
-- webPushNoCSRF: string
+- id: integer <primary>
+- publicKey: text
+- authHash: text
+- authSalt: text
+- user: id in User <foreign>
+- isOnline: integer
+- lastSeen: integer
+- webPushEndpoint: text
+- webPushP256DH: text
+- webPushNoCSRF: text
+
+## UserToUser
+- id: id in User <primary>
+- contact: id in User <foreign>
+
+## UserToDevice
+- id: id in User <primary>
+- linked: id in Device <foreign>
 
 ### (Group)
 - id: id
