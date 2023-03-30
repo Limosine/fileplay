@@ -81,12 +81,13 @@
   const renderBackground = () => {
     let reader = new FileReader();
     reader.readAsDataURL(files[0]);
+    removeClassesByPrefix(document.getElementById("iconid"), "fa");
+    document.getElementById("drop").style.backgroundImage = "none";
     reader.onload = () => {
       if (isImage(files[0].name)) {
         document.getElementById("drop").style.backgroundImage =
           "url(" + reader.result + ")";
       } else {
-        removeClassesByPrefix(document.getElementById("iconid"), "fa");
         document
           .getElementById("iconid")
           .classList.add("fa-regular", `fa-file-${getFileType(files[0].name)}`);
@@ -165,10 +166,13 @@
     border-radius: 5px;
     background-color: rgb(0, 255, 0);
     cursor: pointer;
+    border: 2px solid black;
   }
 
   #next:hover {
     color: grey;
+    border-color: grey;
+    background-color: white;
   }
 
   .fileicon {

@@ -76,7 +76,7 @@
     font-size: 2.5vw;
     border-radius: 5px;
     border: solid 3px;
-    padding: 10px 0px;
+    padding: 10px 1vw;
     color: rgb(0, 100, 200);
     grid-row: 2;
     grid-column: 2;
