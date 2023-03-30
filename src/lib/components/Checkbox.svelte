@@ -1,6 +1,6 @@
-<script>
-  export let id = "id";
-  export let checked = false;
+<script lang="ts">
+  export let id:string = "id";
+  export let checked:boolean = false;
 </script>
 
 <link

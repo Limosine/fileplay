@@ -1,13 +1,13 @@
-<script>
+<script lang="ts">
   import Modal from "$lib/components/Modal.svelte";
   import Backdrop from "$lib/components/Backdrop.svelte";
 
-  export let contacts;
+  export let data;
 </script>
 
 
 <div>
-  <Modal title="Contacts" />
+  <Modal title="Contacts" contacts={data.contacts}/>
   <Backdrop />
 </div>
 

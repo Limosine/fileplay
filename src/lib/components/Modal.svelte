@@ -1,40 +1,15 @@
-<script lang="js">
-  // @ts-nocheck
+<script lang="ts">
   import Checkbox from "./Checkbox.svelte";
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
 
   export let title = "Title";
 
-  function makeid(length) {
-    let result = "";
-    const characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      counter += 1;
-    }
-    return result;
-  }
+  export let contacts: any = [];
 
-  let contacts = [
-    { name: makeid(5) },
-    { name: makeid(5) },
-    { name: makeid(5) },
-    { name: makeid(5) },
-    { name: makeid(5) },
-    { name: makeid(5) },
-    { name: makeid(5) },
-    { name: makeid(5) },
-    { name: makeid(5) },
-    { name: makeid(5) },
-  ];
+  let selected: string[] = [];
 
-  let selected = [];
-
-  const toggleStatus = (name) => {
+  const toggleStatus = (name: string) => {
     console.log(selected);
     if (selected.find((n) => n == name)) {
       selected = selected.filter((n) => n != name);
@@ -42,10 +17,6 @@
       selected = [...selected, name];
       console.log(name);
     }
-  };
-
-  const toHomePage = (c) => {
-    console.log(c);
   };
 
   let sizePerItem = 1;
@@ -57,7 +28,7 @@
   <div class="flex">
     {#if !(selected === undefined || selected.length == 0)}
       {#each selected as s}
-        <div class="flexitem" on:click={toggleStatus(s)}>{s}</div>
+        <div class="flexitem" on:click={() => toggleStatus(s)}>{s}</div>
       {/each}
     {/if}
   </div>
@@ -69,7 +40,7 @@
       <Checkbox
         id={contact.name}
         on:click={() => toggleStatus(contact.name)}
-        checked={selected.find((n) => n == contact.name)}
+        checked={selected.includes(contact.name)}
       />
     {/each}
 

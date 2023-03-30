@@ -136,7 +136,7 @@
       >
         <span id="filename"
           >{files[0] === undefined
-            ? "Drop here"
+            ? "Drop file or click here"
             : trimFileName(files[0].name)}</span
         >
         <div class="fileicon">
