@@ -6,8 +6,6 @@
   let files = [];
 
   const addFiles = (e) => {
-    // console.log(e.dataTransfer.files);
-    // console.log(e.dataTransfer.files[0]);
     if (e.dataTransfer?.files !== undefined) {
       files = e.dataTransfer.files;
     }
@@ -79,21 +77,32 @@
   }
 
   const renderBackground = () => {
-    let reader = new FileReader();
-    reader.readAsDataURL(files[0]);
-    removeClassesByPrefix(document.getElementById("iconid"), "fa");
-    document.getElementById("drop").style.backgroundImage = "none";
-    reader.onload = () => {
-      if (isImage(files[0].name)) {
-        document.getElementById("drop").style.backgroundImage =
-          "url(" + reader.result + ")";
-      } else {
-        document
-          .getElementById("iconid")
-          .classList.add("fa-regular", `fa-file-${getFileType(files[0].name)}`);
-      }
-      document.getElementById("filename").style.alignSelf = "flex-end";
-    };
+    if (files[0]) {
+      let reader = new FileReader();
+      reader.readAsDataURL(files[0]);
+      removeClassesByPrefix(document.getElementById("iconid"), "fa");
+      document.getElementById("drop").style.backgroundImage = "none";
+      reader.onload = () => {
+        if (isImage(files[0].name)) {
+          document.getElementById("drop").style.backgroundImage =
+            "url(" + reader.result + ")";
+        } else {
+          document
+            .getElementById("iconid")
+            .classList.add(
+              "fa-regular",
+              `fa-file-${getFileType(files[0].name)}`
+            );
+        }
+        document.getElementById("filename").style.alignSelf = "flex-end";
+        document.getElementById("next").style.display = "block";
+      };
+    } else {
+      document.getElementById("filename").style.alignSelf = "center";
+      removeClassesByPrefix(document.getElementById("iconid"), "fa");
+      document.getElementById("drop").style.backgroundImage = "none";
+      document.getElementById("next").style.display = "block";
+    }
   };
 
   const trimFileName = (fileName) => {
@@ -167,6 +176,7 @@
     background-color: rgb(0, 255, 0);
     cursor: pointer;
     border: 2px solid black;
+    display: none;
   }
 
   #next:hover {
