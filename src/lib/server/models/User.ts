@@ -1,32 +1,32 @@
-import type { SchemaObject } from "neode";
+import type { SchemaObject, NodeProperty } from "neode";
 
 export default {
-  uuid: {
-    primary: true,
+  id: {
     type: "uuid",
-  },
-  key: {
-    type: "string",
+    primary: true,
   },
   name: {
     type: "string",
   },
-  avatar_seed: {
+  avatarSeed: {
     type: "string",
   },
-  is_subscibed: {
-    type: "boolean",
+  contacts: {
+    type: "relationships",
+    target: "User",
+    relationship: "CONTACT",
+    direction: "direction_both",
+    properties: {
+      "added": "datetime"
+    }
   },
-  subscription_id: {
-    type: "string",
-  },
-  last_seen: {
-    type: "datetime",
-  },
-  contacts_list: {
-    type: "relationship",
-    target: "Contacts",
-    relationship: "CONTACTS_LIST",
-    direction: "out",
+  devices: {
+    type: "relationships",
+    target: "Device",
+    relationship: "LINKED",
+    direction: "direction_both",
+    properties: {
+      "added": "datetime"
+    }
   }
 } satisfies SchemaObject;

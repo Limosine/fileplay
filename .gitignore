@@ -181,3 +181,6 @@ package
 # .pnp.*
 
 # End of https://www.toptal.com/developers/gitignore/api/svelte,yarn,git,node
+
+
+static/pwa-assets
