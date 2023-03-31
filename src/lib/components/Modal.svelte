@@ -1,11 +1,27 @@
 <script lang="ts">
   import Checkbox from "./Checkbox.svelte";
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
+  import { goto } from "$app/navigation";
+  import { createSearchStore, searchHandler } from "$lib/stores/SearchStore";
+
   const dispatch = createEventDispatcher();
 
   export let title = "Title";
 
-  export let contacts: any = [];
+  export let contacts: any;
+
+  const searchContacts = contacts.map((contact: any) => ({
+    ...contact,
+    searchTerms: `${contact.name}`,
+  }));
+
+  const searchStore = createSearchStore(searchContacts);
+
+  const unsubscribe = searchStore.subscribe((model) => searchHandler(model));
+
+  onDestroy(() => {
+    unsubscribe();
+  });
 
   let selected: string[] = [];
 
@@ -15,16 +31,64 @@
       selected = selected.filter((n) => n != name);
     } else {
       selected = [...selected, name];
-      console.log(name);
     }
   };
 
-  let sizePerItem = 1;
+  let showPlaceHolder: boolean = true;
+
+  const toggleShowPlaceHolder = (event: any) => {
+    if (event.target.value == "") showPlaceHolder = !showPlaceHolder;
+  };
+
+  const handleKeydown = (event: any) => {
+    if (event.keyCode == 27) {
+      if (
+        document.getElementsByClassName("searchbar").item(0) ==
+        document.activeElement
+      ) {
+        (document.activeElement as HTMLElement).blur();
+      } else {
+        let box: HTMLElement = document
+          .getElementsByClassName("box")
+          .item(0) as HTMLElement;
+        goto("/");
+      }
+    }
+  };
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="box">
   <h1>{title}</h1>
+  <input
+    class="searchbar"
+    type="text"
+    placeholder={showPlaceHolder ? "Search..." : ""}
+    on:focusin={toggleShowPlaceHolder}
+    on:focusout={toggleShowPlaceHolder}
+    bind:value={$searchStore.search}
+  />
+  <div class="line" />
+  <form method="post">
+    {#each $searchStore.filtered as contact}
+      <Checkbox
+        id={contact.name}
+        on:click={() => toggleStatus(contact.name)}
+        checked={selected.includes(contact.name)}
+      />
+    {/each}
+  </form>
+
+  <button
+    class="back"
+    on:click={() => {
+      goto("/");
+    }}>Back</button
+  >
+  <button class="submit">Submit</button>
+
   <div class="flex">
     {#if !(selected === undefined || selected.length == 0)}
       {#each selected as s}
@@ -32,20 +96,6 @@
       {/each}
     {/if}
   </div>
-  <div class="line" />
-  <form method="post">
-    {#each contacts as contact}
-      <!-- <Checkbox id={contact.name}></Checkbox> -->
-      <!-- <label> <input type="checkbox" value={contact.name} /></label> -->
-      <Checkbox
-        id={contact.name}
-        on:click={() => toggleStatus(contact.name)}
-        checked={selected.includes(contact.name)}
-      />
-    {/each}
-
-    <input class="submit" type="submit" value="Senden" />
-  </form>
 </div>
 
 <style>
@@ -53,65 +103,89 @@
     padding: 20px;
     font-size: 3vh;
     font-weight: bold;
-  }
-  .line {
-    height: 1px;
-    border-top: 1px solid black;
-    margin: 0px;
-    padding: 0px;
-  }
-  .box {
-    animation: 0.4s ease-in-out 0s 1 grow;
-    padding: 10px 10px 40px 10px;
-    border-radius: 10px;
-    width: 50%;
-    margin: 10% auto 10% auto;
-    text-align: center;
-    background: white;
     position: absolute;
     left: 0;
     right: 0;
-    top: 0;
-    bottom: 0;
   }
+
+  .searchbar {
+    display: inline;
+    position: relative;
+    top: 110px;
+    height: 40px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 20px;
+    border-radius: 5px 5px 0 0;
+    text-align: center;
+  }
+
+  .line {
+    position: relative;
+    width: 100%;
+    border-bottom: 2px solid black;
+    top: 110px;
+  }
+
+  .box {
+    border-radius: 10px;
+    width: 100%;
+    height: 98vh;
+    text-align: center;
+    background: rgb(238, 238, 238);
+    position: absolute;
+    top: 2%;
+    display: flex;
+    flex-direction: column;
+  }
+
   form {
-    padding: 20px 10px 10px 0px;
     display: grid;
     overflow-y: auto;
-    height: 50%;
+    position: relative;
+    top: 125px;
+    height: 30%;
     width: 100%;
-    margin-top: 10px;
-    margin-bottom: 10px;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     grid-template-rows: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 10px;
+    gap: 5px;
     justify-items: center;
     align-items: center;
     justify-self: center;
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+    border-radius: 2px;
   }
+
   .flex {
+    position: relative;
+    top: 200px;
+    border-radius: 2px;
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
     display: inline-flex;
     flex-direction: row;
-    justify-content: flex-start;
     flex-wrap: wrap;
     overflow-y: scroll;
-    align-items: center;
-    align-content: flex-start;
     width: 100%;
     height: 10vh;
   }
+
+  .flex:empty {
+    display: none;
+  }
+
   .flexitem {
     width: 20%;
     text-align: center;
-    margin: 1vh;
-    padding: 1vh;
+    margin: 2px;
+    height: 50px;
+    padding: 5px;
     border-radius: 5px;
     border: 1px solid black;
     background-color: rgba(240, 240, 240, 200);
     display: flex;
     flex-direction: column;
-    align-content: center;
-    align-items: center;
+    justify-content: center;
     cursor: pointer;
   }
 
@@ -119,7 +193,8 @@
     background-color: white;
   }
 
-  .submit {
+  .submit,
+  .back {
     border-radius: 5px;
     border: 3px solid black;
     background-color: white;
@@ -127,29 +202,39 @@
     font-weight: bold;
     font-size: 15px;
     padding: 5px;
+    width: 100px;
     position: absolute;
     justify-self: center;
     bottom: 3%;
   }
 
-  .submit:hover {
+  .submit {
+    float: right;
+    left: calc(75% - 50px);
+  }
+
+  .back {
+    float: left;
+    left: calc(25% - 50px);
+  }
+
+  .submit:hover,
+  .back:hover {
     background-color: #478bfb;
     color: white;
     transition-duration: 0.1s;
-    transform: scale(1.2);
+    transform: scale(1.1);
   }
 
-  @keyframes grow {
-    0% {
-      transform: scale(0);
-    }
-
-    75% {
-      transform: scale(1.1);
-    }
-
+  @keyframes slidein {
     100% {
-      transform: scale(1);
+      top: 2vh;
+    }
+  }
+
+  @keyframes slideout {
+    100% {
+      top: 100%;
     }
   }
 </style>

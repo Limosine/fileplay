@@ -43,10 +43,6 @@
     transition: 0.3s;
   }
 
-  input[type="checkbox"]:hover {
-    transform: scale(1.08);
-  }
-
   input[type="checkbox"]:checked {
     border: 3px solid #478bfb;
   }

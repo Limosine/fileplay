@@ -3,10 +3,6 @@
 
   import { goto } from "$app/navigation";
 
-  // @ts-nocheck
-
-  import Backdrop from "$lib/components/Backdrop.svelte";
-
   /**
    * @type {any}
    */
@@ -42,8 +38,6 @@
     <label for="name">{name}</label>
   </form>
 </main>
-
-<Backdrop clickHandler="false" />
 
 <style>
   form {

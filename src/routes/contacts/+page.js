@@ -4,7 +4,7 @@ export async function load({ fetch }) {
 
     if (res.ok) {
         return {
-            contacts: data
+            contacts: data,
         }
     }
 
