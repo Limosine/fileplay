@@ -3,7 +3,6 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   import { goto } from "$app/navigation";
   import { createSearchStore, searchHandler } from "$lib/stores/SearchStore";
-  import { fly } from "svelte/transition";
 
   const dispatch = createEventDispatcher();
 
