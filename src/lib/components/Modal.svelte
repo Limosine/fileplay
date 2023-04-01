@@ -3,6 +3,7 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   import { goto } from "$app/navigation";
   import { createSearchStore, searchHandler } from "$lib/stores/SearchStore";
+  import { fly } from "svelte/transition";
 
   const dispatch = createEventDispatcher();
 
@@ -148,12 +149,12 @@
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     grid-template-rows: repeat(auto-fit, minmax(100px, 1fr));
     gap: 5px;
-    justify-items: center;
-    align-items: center;
+    justify-items: flex-start;
     justify-self: center;
     border-top: 2px solid black;
     border-bottom: 2px solid black;
     border-radius: 2px;
+    padding-left: 0.3vw;
   }
 
   .flex {
@@ -168,6 +169,7 @@
     overflow-y: scroll;
     width: 100%;
     height: 10vh;
+    align-items: center;
   }
 
   .flex:empty {
@@ -177,7 +179,6 @@
   .flexitem {
     width: 20%;
     text-align: center;
-    margin: 2px;
     height: 50px;
     padding: 5px;
     border-radius: 5px;
