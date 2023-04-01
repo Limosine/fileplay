@@ -27,7 +27,6 @@
   let selected: string[] = [];
 
   const toggleStatus = (name: string) => {
-    console.log(selected);
     if (selected.find((n) => n == name)) {
       selected = selected.filter((n) => n != name);
     } else {
@@ -93,7 +92,11 @@
   <div class="flex">
     {#if !(selected === undefined || selected.length == 0)}
       {#each selected as s}
-        <div class="flexitem" on:click={() => toggleStatus(s)}>{s}</div>
+        <Checkbox
+          id={s}
+          on:click={() => toggleStatus(s)}
+          checked={selected.includes(s)}
+        />
       {/each}
     {/if}
   </div>
@@ -129,8 +132,8 @@
 
   .box {
     border-radius: 10px;
+    height: 95vh;
     width: 100%;
-    height: 98vh;
     text-align: center;
     background: rgb(238, 238, 238);
     position: absolute;
@@ -145,7 +148,7 @@
     position: relative;
     top: 125px;
     height: 30%;
-    width: 100%;
+    width: 98%;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     grid-template-rows: repeat(auto-fit, minmax(100px, 1fr));
     gap: 5px;
@@ -154,9 +157,8 @@
     border-top: 2px solid black;
     border-bottom: 2px solid black;
     border-radius: 2px;
-    padding-left: 0.3vw;
+    padding-left: 0.5%;
   }
-
   .flex {
     position: relative;
     top: 200px;
@@ -168,30 +170,15 @@
     flex-wrap: wrap;
     overflow-y: scroll;
     width: 100%;
-    height: 10vh;
+    height: 100px;
     align-items: center;
+    justify-content: flex-start;
+    row-gap: 5%;
+    column-gap: 2%;
   }
 
   .flex:empty {
     display: none;
-  }
-
-  .flexitem {
-    width: 20%;
-    text-align: center;
-    height: 50px;
-    padding: 5px;
-    border-radius: 5px;
-    border: 1px solid black;
-    background-color: rgba(240, 240, 240, 200);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  .flexitem:hover {
-    background-color: white;
   }
 
   .submit,
