@@ -1,16 +1,16 @@
 <script lang="ts">
-  import Checkbox from "./Checkbox.svelte";
+  import Checkbox from "$lib/components/Checkbox.svelte";
   import { createEventDispatcher, onDestroy } from "svelte";
   import { goto } from "$app/navigation";
   import { createSearchStore, searchHandler } from "$lib/stores/SearchStore";
 
   const dispatch = createEventDispatcher();
 
-  export let title = "Title";
+  let title = "Select Contacts";
 
-  export let contacts: any;
+  export let data;
 
-  const searchContacts = contacts.map((contact: any) => ({
+  const searchContacts: Contact[] = data.contacts.map((contact: Contact) => ({
     ...contact,
     searchTerms: `${contact.name}`,
   }));
@@ -39,24 +39,7 @@
     if (event.target.value == "") showPlaceHolder = !showPlaceHolder;
   };
 
-  const handleKeydown = (event: any) => {
-    if (event.keyCode == 27) {
-      if (
-        document.getElementsByClassName("searchbar").item(0) ==
-        document.activeElement
-      ) {
-        (document.activeElement as HTMLElement).blur();
-      } else {
-        let box: HTMLElement = document
-          .getElementsByClassName("box")
-          .item(0) as HTMLElement;
-        goto("/");
-      }
-    }
-  };
 </script>
-
-<svelte:window on:keydown={handleKeydown} />
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="box">
@@ -73,7 +56,8 @@
   <form method="post">
     {#each $searchStore.filtered as contact}
       <Checkbox
-        id={contact.name}
+        id={contact.id}
+        name={contact.name}
         on:click={() => toggleStatus(contact.name)}
         checked={selected.includes(contact.name)}
       />
@@ -148,15 +132,14 @@
     top: 125px;
     height: 30%;
     width: 98%;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    grid-template-rows: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-rows: repeat(auto-fill, minmax(100px, 1fr));
     gap: 5px;
-    justify-items: flex-start;
-    justify-self: center;
     border-top: 2px solid black;
     border-bottom: 2px solid black;
     border-radius: 2px;
     padding-left: 0.5%;
+    padding-top: 0.5%;
   }
   .flex {
     position: relative;

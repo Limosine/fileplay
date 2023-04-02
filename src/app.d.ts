@@ -7,6 +7,11 @@ declare global {
 		// interface PageData {}
 		// interface Platform {}
 	}
+
+	interface Contact {
+		id: string
+		name: string
+	}
 }
 
 export {};

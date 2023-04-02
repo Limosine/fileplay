@@ -4,9 +4,8 @@
   import LinearProgress from "@smui/linear-progress";
   import Backdrop from "$lib/components/Backdrop.svelte";
 
-  import Viewblock from "./Viewblock.svelte";
   import { onDestroy, onMount } from "svelte";
-  import pageLoadCount from "$lib/stores/PageLoadStore";
+  import { pageLoadCount } from "$lib/stores/PageLoadStore";
   import { goto } from "$app/navigation";
 
   let visible = true;
@@ -15,6 +14,8 @@
 
   // loading state
   let loading_state = 0;
+  pageLoadCount.useLocalStorage();
+
   const progress = tweened(0, {
     duration: 400,
     easing: elasticInOut,

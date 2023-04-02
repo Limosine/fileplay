@@ -3,6 +3,7 @@
 
   export let id: string = "id";
   export let checked: boolean = false;
+  export let name: string = "test";
 </script>
 
 <link
@@ -15,7 +16,7 @@
     <input type="checkbox" {id} on:click|self bind:checked />
     <label for={id}
       ><i class="fa fa-user-circle-o" aria-hidden="true" />
-      <h6>{id}</h6>
+      <h6>{name}</h6>
     </label>
   </div>
 </div>

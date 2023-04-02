@@ -124,7 +124,7 @@
 <main>
   <div>
     <div class="content">
-      <button id="next" on:click={() => goto("/contacts")}>Next</button>
+      <button id="next" on:click={() => goto("/contacts/select")}>Next</button>
       <label
         for="fileInput"
         id="drop"

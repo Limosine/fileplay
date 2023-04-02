@@ -1,40 +1,51 @@
-<script>
-  // @ts-nocheck
-
+<script lang="ts">
+  import { goto } from "$app/navigation";
   import { fly } from "svelte/transition";
   export let url = "";
-  const visibleOverflow = (e)=> {
-    e.target.style.overflow = "visible";
-    console.log("intro start")
-  }
 
-  const hiddenOverflow = (e)=> {
-    e.target.style.overflow = "hidden";
-    console.log("outro start")
-  }
+  var inputs = ["input", "select", "button", "textarea"];
 
-  const unsetOverflow = (e)=> {
-    e.target.style.overflow = "unset";
-    console.log("outro end")
-  }
-
+  const handleKeydown = (event: any) => {
+    var activeElement = document.activeElement;
+    if (event.keyCode == 27) {
+      if (
+        activeElement &&
+        inputs.indexOf(activeElement.tagName.toLowerCase()) !== -1
+      ) {
+        (document.activeElement as HTMLElement).blur();
+      } else {
+        goto("/");
+      }
+    }
+  };
 </script>
 
-{#key url}
-  {#if url !== "/name" && url !== "/"}
-    <div
-      in:fly={{ duration: 400, opacity: 1, y: window.innerHeight }}
-      out:fly={{ duration: 400, opacity: 1, y: window.innerHeight }}
-      on:introend={visibleOverflow}
-      on:outrostart={hiddenOverflow}
-      on:outroend={unsetOverflow}
+<div class="transition-outer">
+  {#key url}
+    {#if url !== "/name" && url !== "/"}
+      <div
+        class="transition-inner"
+        in:fly={{ duration: 700, opacity: 1, y: window.innerHeight }}
+        out:fly={{ duration: 700, opacity: 1, y: window.innerHeight }}
       >
+        <slot />
+      </div>
+    {:else}
       <slot />
-    </div>
-  {:else}
-    <slot />
-  {/if}
-{/key}
+    {/if}
+  {/key}
+</div>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <style>
+  .transition-outer {
+    display: grid;
+    grid-template: 1fr 1fr;
+  }
+
+  .transition-inner {
+    grid-row: 1;
+    grid-column: 1;
+  }
 </style>
