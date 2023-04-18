@@ -2,8 +2,6 @@
   import { tweened } from "svelte/motion";
   import { elasticInOut } from "svelte/easing";
 
-  let visible = true;
-
   // loading state
   let loading_state = 0;
   // pageLoadCount.useLocalStorage();
@@ -22,10 +20,6 @@
       ? loading_states[loading_state][0]
       : 0
   );
-
-  function toggleVisible() {
-    visible = false;
-  }
 
 </script>
 
