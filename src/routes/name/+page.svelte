@@ -1,38 +1,28 @@
-<script>
-  // @ts-nocheck
-
-  import { goto } from "$app/navigation";
+<script lang="ts">
+  import { enhance } from "$app/forms";
 
   /**
    * @type {any}
    */
   let name = "";
   let showPlaceholder = true;
-  const togglePlaceholder = (event) => {
+  const togglePlaceholder = (event: any) => {
     if (event.target.value == "") showPlaceholder = !showPlaceholder;
   };
-
-  function goHome (event) {
-    let keyCode = event.keyCode;
-    if (keyCode == 13) {
-      goto("/");  
-      console.log("Rerouting")
-    }
-  }
 </script>
 
 <main>
-  <form on:submit|preventDefault>
+  <form method="post" action="/name?/submit" on:submit|preventDefault use:enhance>
     <input
       type="text"
       id="name"
       required
+      name="name"
       placeholder={showPlaceholder ? "Enter your name" : ""}
       maxlength="16"
       bind:value={name}
       on:focusin={togglePlaceholder}
       on:focusout={togglePlaceholder}
-      on:keydown={goHome}
     />
 
     <label for="name">{name}</label>

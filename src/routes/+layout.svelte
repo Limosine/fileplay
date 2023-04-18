@@ -10,6 +10,7 @@
   import Mainpage from "$lib/container/Mainpage.svelte";
   import PageTransition from "$lib/components/PageTransition.svelte";
   import Backdrop from "$lib/components/Backdrop.svelte";
+  import LoadingBar from "$lib/LoadingBar.svelte";
 
   export let data;
   $: urlpath = data.data;
@@ -53,6 +54,7 @@
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
+<LoadingBar />
 <!-- <div class="main"> -->
 <Navbar />
 <Sidebar />
