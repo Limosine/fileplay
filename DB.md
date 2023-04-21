@@ -9,15 +9,16 @@
 
 ## Device
 - id: uuid <primary>
-- publicKey: string
 - authHash: string
 - authSalt: string
-- user: User (added: datetime)
+- userId: User (added: datetime)
 - isOnline: boolean
 - lastSeen: datetime
 - webPushEndpoint: string
 - webPushP256DH: string
 - webPushNoCSRF: string
+
+A public key is created during each connection
 
 ### (Group)
 - id: id
