@@ -15,6 +15,7 @@ export const POST: RequestHandler = async ({
     throw error(400, "Already logged in");
   }
   if (!platform?.env?.DATABASE) {
+    console.log('database not found')
     throw error(500, "Database not found");
   }
   const db = platform.env.DATABASE;
