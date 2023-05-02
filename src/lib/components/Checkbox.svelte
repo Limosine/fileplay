@@ -1,6 +1,9 @@
-<script>
-  export let id = "id";
-  export let checked = false;
+<script lang="ts">
+  import { scale, slide } from "svelte/transition";
+
+  export let id: string = "id";
+  export let checked: boolean = false;
+  export let name: string = "test";
 </script>
 
 <link
@@ -8,12 +11,12 @@
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
 />
 
-<div>
+<div in:scale out:scale>
   <div class="tile">
-    <input type="checkbox" {id} on:click|self bind:checked={checked}/>
+    <input type="checkbox" {id} on:click|self bind:checked />
     <label for={id}
       ><i class="fa fa-user-circle-o" aria-hidden="true" />
-      <h6>{id}</h6>
+      <h6>{name}</h6>
     </label>
   </div>
 </div>
@@ -43,10 +46,6 @@
     transition: 0.3s;
   }
 
-  input[type="checkbox"]:hover {
-    transform: scale(1.08);
-  }
-
   input[type="checkbox"]:checked {
     border: 3px solid #478bfb;
   }
@@ -68,7 +67,7 @@
     font-size: 60px;
     color: #2c2c51;
   }
-  input[type="checkbox"]:checked + label .fa{
+  input[type="checkbox"]:checked + label .fa {
     color: #478bfb;
     transition: 0.3s;
     animation: grow 0.5s;
@@ -76,7 +75,7 @@
 
   @keyframes grow {
     50% {
-        transform: scale(1.5);
+      transform: scale(1.5);
     }
   }
   label h6 {

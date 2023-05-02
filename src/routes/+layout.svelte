@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
   import { registerSW } from "virtual:pwa-register";
@@ -8,6 +8,12 @@
   import Sidebar from "$lib/components/Sidebar.svelte";
   import Footer from "$lib/components/Footer.svelte";
   import Mainpage from "$lib/container/Mainpage.svelte";
+  import PageTransition from "$lib/components/PageTransition.svelte";
+  import Backdrop from "$lib/components/Backdrop.svelte";
+  import LoadingBar from "$lib/LoadingBar.svelte";
+
+  export let data;
+  $: urlpath = data.data;
 
   onMount(async () => {
     if (pwaInfo) {
@@ -48,11 +54,17 @@
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
+<LoadingBar />
 <!-- <div class="main"> -->
 <Navbar />
 <Sidebar />
 <div class="app-container">
-  <slot />
+  <PageTransition url={urlpath}>
+    <slot/>
+  </PageTransition>
+  {#if urlpath !== "/"}
+  <Backdrop clickHandler={urlpath !== "/name" ? true: false}></Backdrop>
+  {/if}
 </div>
 <Mainpage />
 <Footer />

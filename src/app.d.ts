@@ -16,6 +16,11 @@ declare global {
       }
     }
 	}
+
+	interface Contact {
+		id: string
+		name: string
+	}
 }
 
 export {};

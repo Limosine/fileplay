@@ -46,7 +46,7 @@
 
   nav ul li {
     display: inline-block;
-    margin-top: 25px;
+    margin-top: 30px;
     margin-left: 20px;
   }
 
@@ -134,8 +134,9 @@
     width: 10px;
     border-radius: 50%;
     border: 1px solid black;
-    margin-bottom: 8px;
-    margin-right: 20px;
+    position: relative;
+    right: 20px;
+    bottom: 5px;
   }
 
   .status::before {
@@ -157,7 +158,7 @@
   }
 
   .fa {
-    font-size: 300%;
+    font-size: 250%;
     cursor: pointer;
     transition-duration: 0.3s;
   }

@@ -12,11 +12,11 @@
   onDestroy(unsubscribe);
 
   const addContact = () => {
-    goto("/contacts");
+    goto("/contacts/add");
   };
 
   const addDevice = () => {
-    goto("/contacts");
+    goto("/devices/add");
   };
 </script>
 

@@ -1,11 +1,9 @@
 # Database
 
 ## User
-- id: uuid <primary>
-- name: string
-- avatarSeed: string
-- contacts: [ User ] (added: datetime)
-- devices: [ Device ] (added: datetime)
+- id: integer <primary>
+- name: text
+- avatarSeed: text
 
 ## Device
 - id: uuid <primary>
