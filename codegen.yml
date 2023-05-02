@@ -1,0 +1,9 @@
+schema: "https://nameless-brook-400377.eu-central-1.aws.cloud.dgraph.io/graphql"
+documents: "src/gql/**/*.gql"
+generates:
+  src/lib/gql.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typed-document-node
+      - graphql-codegen-svelte-apollo
