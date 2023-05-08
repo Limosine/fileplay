@@ -11,7 +11,10 @@
   import PageTransition from "$lib/components/PageTransition.svelte";
   import Backdrop from "$lib/components/Backdrop.svelte";
   import LoadingBar from "$lib/LoadingBar.svelte";
+  import { connect } from "$lib/db";
 
+  // connect();
+  
   export let data;
   $: urlpath = data.data;
 
@@ -60,10 +63,10 @@
 <Sidebar />
 <div class="app-container">
   <PageTransition url={urlpath}>
-    <slot/>
+    <slot />
   </PageTransition>
   {#if urlpath !== "/"}
-  <Backdrop clickHandler={urlpath !== "/name" ? true: false}></Backdrop>
+    <Backdrop clickHandler={urlpath !== "/name" ? true : false} />
   {/if}
 </div>
 <Mainpage />
