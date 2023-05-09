@@ -1,6 +1,7 @@
 import { split, HttpLink, InMemoryCache, ApolloClient } from "@apollo/client";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { WebSocketLink } from "@apollo/client/link/ws";
+import { SubscriptionClient } from "subscriptions-transport-ws";
 import {
   PUBLIC_DGRAPH_HTTP_URL,
   PUBLIC_DGRAPH_WS_URL,
@@ -17,15 +18,15 @@ export function connect(jwt: string) {
     headers,
   });
 
-  const wsLink = new WebSocketLink({
-    uri: PUBLIC_DGRAPH_WS_URL,
-    options: {
+  const wsLink = new WebSocketLink(
+    new SubscriptionClient(PUBLIC_DGRAPH_WS_URL, {
       reconnect: true,
+      lazy: true,
       connectionParams: {
         headers,
       },
-    },
-  });
+    })
+  );
 
   const link = split(
     ({ query }) => {
@@ -48,3 +49,4 @@ export function connect(jwt: string) {
 
   setClient(client);
 }
+

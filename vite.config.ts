@@ -2,7 +2,6 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
 import PWAAssets, { getManifestIcons } from "./scripts";
-import { builtinModules } from "module";
 
 export default async function (config: ConfigEnv): Promise<UserConfig> {
   return {
@@ -32,8 +31,8 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
     ],
     build: {
       rollupOptions: {
-        external: builtinModules,
-      },
-    },
+        external: ['react']   // mark as external because it is imported somewhere but not used
+      }
+    }
   };
 }
