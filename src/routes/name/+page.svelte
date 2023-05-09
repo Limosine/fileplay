@@ -31,10 +31,12 @@
 
 <style>
   form {
-    position: absolute;
+    position: fixed;
+    top: 0;
+    z-index: 10000;
     width: 100%;
     display: grid;
-    height: 100%;
+    height: 100vh;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr;
     justify-content: center;

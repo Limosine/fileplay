@@ -121,49 +121,42 @@
   referrerpolicy="no-referrer"
 />
 
-<main>
-  <div>
-    <div class="content">
-      <button id="next" on:click={() => goto("/contacts/select")}>Next</button>
-      <label
-        for="fileInput"
-        id="drop"
-        on:dragover|preventDefault
-        on:drop|preventDefault={(e) => {
-          addFiles(e);
-        }}
-        on:dragleave|preventDefault
-      >
-        <span id="filename"
-          >{files[0] === undefined
-            ? "Drop file or click here"
-            : trimFileName(files[0].name)}</span
-        >
-        <div class="fileicon">
-          <i id="iconid" />
-        </div>
-      </label>
-      <input
-        type="file"
-        name="fileInput"
-        id="fileInput"
-        bind:files
-        on:input={(e) => {
-          files = e.target.files;
-          renderBackground();
-        }}
-      />
-      <img src="arrow_up.png" alt="arrow" />
+<div class="content">
+  <button id="next" on:click={() => goto("/contacts/select")}>Next</button>
+  <label
+    for="fileInput"
+    id="drop"
+    on:dragover|preventDefault
+    on:drop|preventDefault={(e) => {
+      addFiles(e);
+    }}
+    on:dragleave|preventDefault
+  >
+    <span id="filename"
+      >{files[0] === undefined
+        ? "Drop file or click here"
+        : trimFileName(files[0].name)}</span
+    >
+    <div class="fileicon">
+      <i id="iconid" />
     </div>
-  </div>
-</main>
+  </label>
+  <input
+    type="file"
+    name="fileInput"
+    id="fileInput"
+    bind:files
+    on:input={(e) => {
+      files = e.target.files;
+      renderBackground();
+    }}
+  />
+  <img src="/arrow_up.png" alt="arrow" />
+</div>
 
 <style>
   .content {
     z-index: -1000;
-    position: absolute;
-    height: 100%;
-    width: 100%;
   }
 
   #next {

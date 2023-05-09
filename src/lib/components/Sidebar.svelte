@@ -2,7 +2,6 @@
   import SidebarToggleStore from "$lib/stores/SidebarToggleStore.js";
   import { onDestroy } from "svelte";
   import { goto } from "$app/navigation";
-  import { redirect } from "@sveltejs/kit";
 
   let visible = true;
   const unsubscribe = SidebarToggleStore.subscribe((value) => {
@@ -31,16 +30,14 @@
 
 <style>
   div {
-    position: absolute;
-    top: 100px;
-    height: 85%;
-    bottom: 0;
+    height: 100%;
+    width: 200px;
     z-index: -51;
     transition-duration: 0.5s;
     background-color: gray;
   }
   .middle {
-    left: 0px;
+    margin-left: 0px;
   }
   ul {
     width: 200px;
@@ -81,7 +78,7 @@
 
   @media screen and (max-width: 500px) {
     div {
-      left: -200px;
+      margin-left: -200px;
     }
   }
 </style>

@@ -53,25 +53,50 @@
   {@html webManifest}
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
-
-<LoadingBar />
-<!-- <div class="main"> -->
-<Navbar />
-<Sidebar />
 <div class="app-container">
   <PageTransition url={urlpath}>
-    <slot/>
+    <slot />
   </PageTransition>
   {#if urlpath !== "/"}
-  <Backdrop clickHandler={urlpath !== "/name" ? true: false}></Backdrop>
+    <Backdrop clickHandler={urlpath !== "/name" ? true : false} />
   {/if}
 </div>
-<Mainpage />
-<Footer />
+<LoadingBar />
+<div class="main">
+  <div class="header">
+    <Navbar />
+  </div>
+  <div class="content">
+    <Sidebar />
+    <Mainpage />
+  </div>
+  <div class="footer">
+    <Footer />
+  </div>
+</div>
 
-<!-- </div> -->
 <style>
+  .main {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 1fr;
+    min-height: 100vh;
+    grid-template-areas: "header" "content" "footer";
+  }
+
+  .header {
+    grid-area: "header";
+  }
+
+  .content {
+    grid-area: "content";
+  }
+
+  .footer {
+    grid-area: "footer";
+  }
+
   .app-container {
-    z-index: -50;
+    z-index: 50;
   }
 </style>
