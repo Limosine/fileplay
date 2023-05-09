@@ -11,7 +11,10 @@
   import PageTransition from "$lib/components/PageTransition.svelte";
   import Backdrop from "$lib/components/Backdrop.svelte";
   import LoadingBar from "$lib/LoadingBar.svelte";
+  import { connect } from "$lib/db";
 
+  // connect();
+  
   export let data;
   $: urlpath = data.data;
 

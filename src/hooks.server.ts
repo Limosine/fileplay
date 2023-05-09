@@ -1,5 +1,5 @@
 import { redirect, type Handle } from "@sveltejs/kit";
-
+/*
 export const handle: Handle = async ({ event, resolve }) => {
 
     const { cookies, fetch } = event;
@@ -13,3 +13,4 @@ export const handle: Handle = async ({ event, resolve }) => {
     return await resolve(event);
 
 }
+*/

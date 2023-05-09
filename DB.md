@@ -6,24 +6,17 @@
 - avatarSeed: text
 
 ## Device
-- id: integer <primary>
-- publicKey: text
-- authHash: text
-- authSalt: text
-- user: id in User <foreign>
-- isOnline: integer
-- lastSeen: integer
-- webPushEndpoint: text
-- webPushP256DH: text
-- webPushNoCSRF: text
+- id: uuid <primary>
+- authHash: string
+- authSalt: string
+- userId: User (added: datetime)
+- isOnline: boolean
+- lastSeen: datetime
+- webPushEndpoint: string
+- webPushP256DH: string
+- webPushNoCSRF: string
 
-## UserToUser
-- id: id in User <primary>
-- contact: id in User <foreign>
-
-## UserToDevice
-- id: id in User <primary>
-- linked: id in Device <foreign>
+A public key is created during each connection
 
 ### (Group)
 - id: id

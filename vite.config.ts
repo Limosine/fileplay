@@ -29,5 +29,10 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         }), // enable sourcemap in dev
       }),
     ],
+    build: {
+      rollupOptions: {
+        external: ['react']   // mark as external because it is imported somewhere but not used
+      }
+    }
   };
 }
