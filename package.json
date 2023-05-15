@@ -29,6 +29,7 @@
     "@smui/linear-progress": "^7.0.0-beta.0",
     "@smui/list": "^7.0.0-beta.8",
     "@smui/paper": "^7.0.0-beta.8",
+    "@smui/textfield": "^7.0.0-beta.8",
     "@smui/tooltip": "^7.0.0-beta.8",
     "@smui/top-app-bar": "^7.0.0-beta.8",
     "@sveltejs/adapter-cloudflare": "^2.2.0",

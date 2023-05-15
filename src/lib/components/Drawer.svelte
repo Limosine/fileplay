@@ -15,10 +15,10 @@
     <Content>
       <List>
         <Item href="javascript:void(0)">
-          <Text>Gerät hinzufügen</Text>
+          <Text>Add device</Text>
         </Item>
-        <Item href="javascript:void(0)">
-          <Text>Kontakt hinzufügen</Text>
+        <Item href="/contacts/add">
+          <Text>Add contact</Text>
         </Item>
       </List>
     </Content>
