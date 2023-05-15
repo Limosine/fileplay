@@ -28,14 +28,10 @@
   
   function closeHandler(e: CustomEvent<{ action: string }>) {
     switch (e.detail.action) {
-      case "close":
-      case "cancel":
-        goto("/");
-        break;
       case "confirm":
         console.log(addContact());
-        break;
     }
+    goto("/");
   }
 
   async function addContact () {
