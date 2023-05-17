@@ -1,0 +1,5 @@
+query getLinkedDevice {
+  queryDevice {
+    displayName
+  }
+}

@@ -1,25 +1,26 @@
-import { split, HttpLink, InMemoryCache, ApolloClient } from "@apollo/client";
+import {
+  split,
+  HttpLink,
+  InMemoryCache,
+  ApolloClient,
+} from "@apollo/client/core";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { SubscriptionClient } from "subscriptions-transport-ws";
-import {
-  PUBLIC_DGRAPH_HTTP_URL,
-  PUBLIC_DGRAPH_WS_URL,
-} from "$env/static/public";
-import { setClient } from "svelte-apollo";
+import { PUBLIC_DGRAPH_HTTP, PUBLIC_DGRAPH_WS } from "$env/static/public";
 
-export function connect(jwt: string) {
+export function createApolloClient(jwt: string) {
   const headers = {
     Authorization: `Bearer ${jwt}`,
   };
 
   const httpLink = new HttpLink({
-    uri: PUBLIC_DGRAPH_HTTP_URL,
+    uri: new URL("/graphql", PUBLIC_DGRAPH_HTTP).href,
     headers,
   });
 
   const wsLink = new WebSocketLink(
-    new SubscriptionClient(PUBLIC_DGRAPH_WS_URL, {
+    new SubscriptionClient(new URL("/graphql", PUBLIC_DGRAPH_WS).href, {
       reconnect: true,
       lazy: true,
       connectionParams: {
@@ -47,6 +48,5 @@ export function connect(jwt: string) {
     cache,
   });
 
-  setClient(client);
+  return client;
 }
-

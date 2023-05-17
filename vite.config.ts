@@ -3,6 +3,8 @@ import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
 import PWAAssets, { getManifestIcons } from "./scripts";
 
+// await import('dotenv-vault-core').default.config();
+
 export default async function (config: ConfigEnv): Promise<UserConfig> {
   return {
     plugins: [
@@ -20,7 +22,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         includeAssets: ["static/*"],
         useCredentials: true, // disable in prod
         devOptions: {
-          enabled: true,
+          enabled: false,
           type: "module",
           navigateFallback: "/",
         },
@@ -29,10 +31,5 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         }), // enable sourcemap in dev
       }),
     ],
-    build: {
-      rollupOptions: {
-        external: ['react']   // mark as external because it is imported somewhere but not used
-      }
-    }
   };
 }

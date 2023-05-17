@@ -10,7 +10,7 @@
     "sourceMap": true,
     "strict": true,
     "types": ["vite-plugin-pwa/client"],
-    "lib": ["DOM", "WebWorker","ESNext"]
+    "lib": ["DOM", "WebWorker", "ESNext"]
   }
   // Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
   //
