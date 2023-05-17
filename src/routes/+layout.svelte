@@ -14,8 +14,11 @@
 
   // connect();
   
-  export let data;
-  $: urlpath = data.data;
+  import TopAppBar from '../lib/components/TopAppBar.svelte';
+  import Drawer from '../lib/components/Drawer.svelte';
+  import Input from '../lib/components/Input.svelte'
+
+
 
   onMount(async () => {
     if (pwaInfo) {
@@ -56,20 +59,11 @@
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
-<LoadingBar />
-<!-- <div class="main"> -->
-<Navbar />
-<Sidebar />
-<div class="app-container">
-  <PageTransition url={urlpath}>
-    <slot />
-  </PageTransition>
-  {#if urlpath !== "/"}
-    <Backdrop clickHandler={urlpath !== "/name" ? true : false} />
-  {/if}
-</div>
-<Mainpage />
-<Footer />
+<TopAppBar/>
+
+<Drawer>
+  <slot />
+</Drawer>
 
 <!-- </div> -->
 <style>

@@ -54,9 +54,6 @@
     z-index: -49;
     width: 100vw;
     height: 100px;
-    position: absolute;
-    top: 0;
-    right: 0;
     background-color: white;
     box-shadow: 0 4px 10px gray;
   }

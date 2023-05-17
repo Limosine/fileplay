@@ -6,8 +6,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     const name = cookies.get('name');
 
-    console.log("Cookie", name);
-
     if (!name && event.url.pathname != "/name") {
         throw redirect(302, "/name");
     }
