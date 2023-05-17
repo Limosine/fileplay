@@ -3,13 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "yarn graphql-code-generator && vite dev",
-    "build": "yarn graphql-code-generator && vite build",
+    "dev": "graphql-code-generator && vite dev",
+    "build": "graphql-code-generator && vite build",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && node .github/workflows/validate-schema.js",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "postinstall": "husky install && echo 'Please install the required dotenv files'",
-    "husky:pre-commit": "yarn dotenv-vault build && yarn dotenv-vault push",
+    "postinstall": "husky install && husky set .husky/pre-commit '' && echo 'Please install and login to dotenv-vault to access the required .env files'",
+    "husky:pre-commit": "dotenv-vault build && dotenv-vault push && dotenv-vault push production",
     "prepare": "npm run smui-theme-light && npm run smui-theme-dark",
     "smui-theme-light": "smui-theme compile static/smui.css -i src/theme",
     "smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"

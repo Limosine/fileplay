@@ -5,7 +5,7 @@ import { createApolloClient } from "$lib/db";
 
 export const ssr = false; // disable ssr for localStorage access during load function
 
-export const load = async ({ url, fetch }) => {
+/*export */const load = async ({ url, fetch }) => {   // disabled because onboard does not yet exist
   if (browser && url.pathname !== "/onboard") {
     let jwt = localStorage.getItem("jwt");
     if (!jwt) {
