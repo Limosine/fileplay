@@ -1,33 +1,47 @@
 <script lang="ts">
   import Dialog, { Title, Content, Actions } from "@smui/dialog";
-  import Paper, { Content as P_Content } from "@smui/paper";
   import Button, { Label } from "@smui/button";
   import Textfield from '@smui/textfield';
-  import HelperText from '@smui/textfield/helper-text';
   import { goto } from "$app/navigation";
   import { onMount } from 'svelte';
 
   let open = true;
 
   let uid = "";
-  let fullusername: string;
+  let hostname: string;
 
   onMount(() => {
-    setFullusername();
+    hostname = location.hostname;
+    setHostname();
   });
 
-  function setFullusername() {
-    if (!uid) {
-      fullusername = "username@server.com"
-    } else if (!uid.includes("@")){
-      fullusername = uid + "@" + location.hostname;
-    } else {
-      fullusername = uid;
+  function setHostname() {
+    if (!uid.includes("@")) {
+      hostname = uid.slice(uid.search("@"));
+      console.log(hostname);
+    }
+  }
+
+  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
+    event = event as KeyboardEvent;
+
+    if (event.key === "Escape") {
+      closeHandler("cancel");
+    } else if (event.key === "Enter" && uid != "") {
+      closeHandler("confirm");
     }
   }
   
-  function closeHandler(e: CustomEvent<{ action: string }>) {
-    switch (e.detail.action) {
+  function closeHandler(e: CustomEvent<{ action: string }> | string) {
+    let action: string;
+
+    if (typeof e === "string") {
+      action = e;
+    } else {
+      action = e.detail.action;
+    }
+
+    switch (action) {
       case "confirm":
         console.log(addContact());
     }
@@ -47,6 +61,8 @@
   }
 </script>
 
+<svelte:window on:keydown={handleKeyDown}/>
+
 <Dialog
   bind:open
   aria-labelledby="title"
@@ -56,15 +72,7 @@
   <Title id="title">Add contact</Title>
   <Content>
     <div id="content">
-      <Paper>
-        <P_Content style="text-align: center;">
-          {fullusername}
-        </P_Content>
-      </Paper>
-      <Textfield on:input={setFullusername} bind:value={uid} label="username@server.com" input$maxlength={18}>
-        <svelte:fragment slot="helper">
-          <HelperText>Input user id</HelperText>
-        </svelte:fragment>
+      <Textfield on:input={setHostname} bind:value={uid} label="Username" input$maxlength={18}>
       </Textfield>
     </div>
   </Content>
