@@ -15,8 +15,6 @@ declare global {
     id: string;
     name: string;
   }
-
-  declare module "virtual:*"
 }
 
 export { };
