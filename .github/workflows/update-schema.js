@@ -15,7 +15,6 @@ schema += `\n# Dgraph.Authorization {"VerificationKey": "${process.env.DGRAPH_JW
 
 const url = new URL("/admin/schema", process.env.PUBLIC_DGRAPH_HTTP);
 const token = process.env.DGRAPH_ADMIN_TOKEN;
-PUBLIC_DGRAPH_HTTP;
 
 const res = await fetch(url, {
   method: "POST",
