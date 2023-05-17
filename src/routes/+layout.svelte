@@ -6,6 +6,7 @@
 
   import TopAppBar from "../lib/components/TopAppBar.svelte";
   import Drawer from "../lib/components/Drawer.svelte";
+  import Input from "../lib/components/Input.svelte";
 
   onMount(async () => {
     if (pwaInfo) {
@@ -52,9 +53,4 @@
   <slot />
 </Drawer>
 
-<!-- </div> -->
-<style>
-  .app-container {
-    z-index: -50;
-  }
-</style>
+<Input />
