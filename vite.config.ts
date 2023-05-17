@@ -21,7 +21,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         registerType: "prompt",
         strategies: "injectManifest",
         includeAssets: ["static/*"],
-        useCredentials: !import.meta.env.CF_PROD,   // disabled in production
+        useCredentials: !process.env.CF_PROD,   // disabled in production
         devOptions: {
           enabled: false,
           type: "module",

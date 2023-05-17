@@ -67,9 +67,6 @@
     "workbox-routing": "^6.5.4"
   },
   "type": "module",
-  "dependencies": {
-    "yarn": "^1.22.19"
-  },
   "husky": {
     "hooks": {
       "pre-commit": "yarn husky:pre-commit"

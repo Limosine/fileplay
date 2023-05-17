@@ -4,21 +4,8 @@
   import { registerSW } from "virtual:pwa-register";
   import { HTMLImageTags } from "virtual:pwa-assets";
 
-  import Navbar from "$lib/components/Navbar.svelte";
-  import Sidebar from "$lib/components/Sidebar.svelte";
-  import Footer from "$lib/components/Footer.svelte";
-  import Mainpage from "$lib/container/Mainpage.svelte";
-  import PageTransition from "$lib/components/PageTransition.svelte";
-  import Backdrop from "$lib/components/Backdrop.svelte";
-  import LoadingBar from "$lib/LoadingBar.svelte";
-
-  // connect();
-  
-  import TopAppBar from '../lib/components/TopAppBar.svelte';
-  import Drawer from '../lib/components/Drawer.svelte';
-  import Input from '../lib/components/Input.svelte'
-
-
+  import TopAppBar from "../lib/components/TopAppBar.svelte";
+  import Drawer from "../lib/components/Drawer.svelte";
 
   onMount(async () => {
     if (pwaInfo) {
@@ -59,7 +46,7 @@
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
-<TopAppBar/>
+<TopAppBar />
 
 <Drawer>
   <slot />
