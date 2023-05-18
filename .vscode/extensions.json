@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript-tslint-plugin",
+    "capaj.graphql-codegen-vscode",
+    "mikestead.dotenv",
+    "editorconfig.editorconfig",
+    "graphql.vscode-graphql",
+    "graphql.vscode-graphql-syntax",
+    "bierner.markdown-preview-github-styles",
+    "syler.sass-indented",
+    "redhat.vscode-yaml"
+  ]
+}

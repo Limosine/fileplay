@@ -14,6 +14,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         publicPath: "/pwa-assets",
         src: "static/favicon.png",
         mode: "fit",
+        background: "#f00"
       }),
       SvelteKitPWA({
         srcDir: "src",
