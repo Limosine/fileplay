@@ -3,6 +3,7 @@
   import List, { Item, Text } from "@smui/list";
   import { AutoAdjust } from "@smui/top-app-bar";
   import { writable } from 'svelte/store';
+  import { page } from '$app/stores';
 
   import { topAppBar } from './TopAppBar.svelte';
 
@@ -28,13 +29,22 @@
   </Drawer>
 
   {#if width >= 650}
+  {#if $page.url.pathname == "/"}
+  <AppContent>
+    <slot />
+  </AppContent>
+  {:else}
   <AppContent class="app-content">
 
     <AutoAdjust topAppBar={$topAppBar}>
       <slot />
     </AutoAdjust>
-    
+
   </AppContent>
+  {/if}
+  {:else}
+  {#if $page.url.pathname == "/"}
+  <slot />
   {:else}
   <div class="app-content">
 
@@ -43,6 +53,7 @@
     </AutoAdjust>
 
   </div>
+  {/if}
   {/if}
 </aside>
 
