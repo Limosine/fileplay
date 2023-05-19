@@ -18,7 +18,7 @@
   <Drawer class="mdc-top-app-bar--fixed-adjust" variant="dismissible" bind:open={$open}>
     <Content>
       <List>
-        <Item href="javascript:void(0)">
+        <Item href="/devices/add">
           <Text>Add device</Text>
         </Item>
         <Item href="/contacts/add">
