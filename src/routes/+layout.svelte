@@ -12,14 +12,14 @@
     if (pwaInfo) {
       registerSW({
         // TODO handle queued update (show in notifications, update if inactive)
-        onRegisteredSW(swUrl, r) {
-          r &&
+        onRegisteredSW(swScriptUrl: string, registration: ServiceWorkerRegistration) {
+          registration &&
             setInterval(async () => {
               // check if sw is installing or navigator is offline
-              if (!(!r.installing && navigator)) return;
+              if (!(!registration.installing && navigator)) return;
               if ("connection" in navigator && !navigator.onLine) return;
 
-              const resp = await fetch(swUrl, {
+              const resp = await fetch(swScriptUrl, {
                 cache: "no-store",
                 headers: {
                   cache: "no-store",
@@ -28,11 +28,11 @@
               });
 
               if (resp.status === 200) {
-                await r.update();
+                await registration.update();
               }
             }, 1000 * 60 * 60);
         },
-        onRegisterError(error) {
+        onRegisterError(error: any) {
           console.error("SW registration error", error);
         },
       });

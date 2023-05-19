@@ -3,7 +3,7 @@ src/lib/gql.ts
 *.key
 static/pwa-assets
 tmp*
-static/smui-*
+static/smui*
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/svelte,yarn,git,node
