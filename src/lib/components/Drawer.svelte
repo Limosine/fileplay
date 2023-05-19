@@ -1,10 +1,13 @@
 <script lang="ts" context="module">
   import Drawer, { AppContent, Content } from "@smui/drawer";
   import List, { Item, Text } from "@smui/list";
+  import { AutoAdjust } from "@smui/top-app-bar";
   import { writable } from 'svelte/store';
 
+  import { topAppBar } from './TopAppBar.svelte';
+
   export const open = writable(false);
-  
+
   let width: number;
 </script>
 
@@ -25,14 +28,21 @@
   </Drawer>
 
   {#if width >= 650}
-  <AppContent> <!-- class="app-content" -->
-    <!-- <AutoAdjust {topAppBar}></AutoAdjust> -->
-    
-    <slot />
+  <AppContent class="app-content">
 
+    <AutoAdjust topAppBar={$topAppBar}>
+      <slot />
+    </AutoAdjust>
+    
   </AppContent>
   {:else}
-  <slot />
+  <div class="app-content">
+
+    <AutoAdjust topAppBar={$topAppBar}>
+      <slot />
+    </AutoAdjust>
+
+  </div>
   {/if}
 </aside>
 

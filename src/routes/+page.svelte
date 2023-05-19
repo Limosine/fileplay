@@ -1,8 +1,7 @@
-
 <script lang="ts">
   import { Icon } from '@smui/common';
   import Card, { PrimaryAction } from '@smui/card';
-  import { input, files } from '../lib/components/Input.svelte'
+  import Input, { input, files } from '../lib/components/Input.svelte'
   import { goto } from '$app/navigation';
 
   const handleDrop = (e: DragEvent) => {
@@ -21,6 +20,8 @@
     $input.click()
   }
 </script>
+
+<Input />
 
 <div class="center">
   <div class="beside">

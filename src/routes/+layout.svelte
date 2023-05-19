@@ -6,7 +6,6 @@
 
   import TopAppBar from "../lib/components/TopAppBar.svelte";
   import Drawer from "../lib/components/Drawer.svelte";
-  import Input from "../lib/components/Input.svelte";
 
   onMount(async () => {
     if (pwaInfo) {
@@ -52,5 +51,3 @@
 <Drawer>
   <slot />
 </Drawer>
-
-<Input />

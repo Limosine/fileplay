@@ -1,16 +1,16 @@
-<script lang="ts">
+<script lang="ts" context="module">
   import TopAppBar, {
     Row,
     Section,
     Title,
-    AutoAdjust,
   } from "@smui/top-app-bar";
   import IconButton from "@smui/icon-button";
   import Tooltip, { Wrapper } from '@smui/tooltip';
+  import { writable } from 'svelte/store';
 
   import { open as drawer_open } from './Drawer.svelte';
 
-  let topAppBar: TopAppBar;
+  export const topAppBar = writable<TopAppBar>();
 
   const colors = ["green", "yellow", "red"];
   const status = ["Online", "Connecting", "Offline"];
@@ -18,7 +18,7 @@
 </script>
 
 <header class="mdc-top-app-bar">
-  <TopAppBar bind:this={topAppBar} variant="fixed">
+  <TopAppBar bind:this={$topAppBar} variant="fixed">
     <Row>
       <Section>
         <IconButton class="material-icons" on:click={() => drawer_open.update(open => (open = !open))}
