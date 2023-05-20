@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from '$app/stores';
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
   import { registerSW } from "virtual:pwa-register";
@@ -39,6 +40,12 @@
   });
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
+
+  const preventDefault = (e: Event) => {
+    if ($page.url.pathname == "/") {
+      e.preventDefault();
+    }
+  }
 </script>
 
 <svelte:head>
@@ -46,8 +53,10 @@
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
-<TopAppBar />
+<div on:touchmove={preventDefault}>
+  <TopAppBar />
 
-<Drawer>
-  <slot />
-</Drawer>
+  <Drawer>
+    <slot />
+  </Drawer>
+</div>
