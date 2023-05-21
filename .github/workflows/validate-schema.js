@@ -6,7 +6,7 @@ config();
 
 console.log('Checking GraphQL schema...')
 
-let schema = readFileSync("src/gql/schema.gql", "utf8");
+let schema = readFileSync("src/schema.gql", "utf8");
 
 const url = new URL("/admin/schema/validate", process.env.PUBLIC_DGRAPH_HTTP);
 

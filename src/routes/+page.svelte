@@ -1,82 +1,84 @@
-
 <script lang="ts">
-  import { Icon } from '@smui/common';
-  import Card, { PrimaryAction } from '@smui/card';
-  import { input, files } from '../lib/components/Input.svelte'
-  import { goto } from '$app/navigation';
+  import { Icon } from "@smui/common";
+  import Card, { PrimaryAction } from "@smui/card";
+  import SetupDialog from "$lib/dialogs/SetupDialog.svelte";
+  import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
+  import { writable } from "svelte/store";
+  import { onMount } from "svelte";
+  import { state } from "$lib/stores/state";
+
+  const files = writable<FileList>();
+
+  let fileInput: HTMLInputElement;
+  let emptyFileInput: HTMLInputElement;
+  let SetupDialogIsOpen = false;
+  let SelectContactsDialogIsOpen = false;
+
+  const clearFiles = () => {
+    if (emptyFileInput.files) $files = emptyFileInput.files;
+    fileInput.value = "";
+  };
 
   const handleDrop = (e: DragEvent) => {
-    e.preventDefault()
-    if (!e?.dataTransfer?.files) {
-      return
+    if (!e?.dataTransfer?.files || SetupDialogIsOpen) {
+      return;
     }
-    $files = e.dataTransfer.files
-  }
+    $files = e.dataTransfer.files;
+  };
 
-  const handleDragOver = (e: Event) => {
-    e.preventDefault()
-  }
-  
-  const onClick = () => {
-    $input.click()
-  }
+  onMount(() => {
+    if (!$state.isLoggedIn) {
+      SetupDialogIsOpen = true;
+      console.log("Apollo client not initialized");
+    }
+  });
 </script>
 
-<div class="center">
-  <div class="beside">
-    <div on:drop={handleDrop} on:dragover={handleDragOver}>
-      <Card>
-        <PrimaryAction on:click={onClick}  style="padding: 64px">
-          <Icon class="material-icons" style="font-size: 30px"
-          >upload</Icon>
-          Select file(s)
-        </PrimaryAction>
-      </Card>
-    </div>
+<svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
-    {#if $files}
+<input
+  style="display: none"
+  type="file"
+  bind:this={fileInput}
+  on:change={() => {
+    if (fileInput.files) $files = fileInput.files;
+  }}
+  multiple
+/>
+<input type="file" style="display: none" bind:this={emptyFileInput} />
+
+<div class="root">
+  <SetupDialog bind:open={SetupDialogIsOpen} />
+  <SelectContactsDialog
+    bind:open={SelectContactsDialogIsOpen}
+    {files}
+    {clearFiles}
+  />
+  <Card>
+    <PrimaryAction on:click={() => fileInput.click()} style="padding: 64px">
+      <Icon class="material-icons" style="font-size: 30px">check</Icon>
+      Select file(s)
+    </PrimaryAction>
+  </Card>
+  {#if $files?.length > 0}
     <Card>
-      <PrimaryAction on:click={() => goto('/contacts/select')}  style="padding: 64px">
-        <Icon class="material-icons" style="font-size: 30px"
-        >contacts</Icon>
-        Select contact(s)
+      <PrimaryAction
+        on:click={() => (SelectContactsDialogIsOpen = true)}
+        style="padding: 64px"
+      >
+        <Icon class="material-icons" style="font-size: 30px">send</Icon>
+        Share
       </PrimaryAction>
     </Card>
-    {/if}
-  </div>
-
-  {#if $files}
-  <Card padded>
-    <h4>Selected file(s):</h4>
-    <p class="small"><br /></p>
-
-    {#each Array.from($files) as file}
-    <p>{file.name}</p>
-    {/each}
-  </Card>
   {/if}
 </div>
 
 <style>
-  p.small {
-    line-height: 0.2;
-  }
-
-  .beside {
+  .root {
+    padding: 1em;
     display: flex;
-    flex-basis: auto;
-    flex-flow: row wrap;
-    justify-content: center;
-    gap: 5px;
-  }
-
-  .center {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    min-height: 100vh;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1em;
   }
 </style>

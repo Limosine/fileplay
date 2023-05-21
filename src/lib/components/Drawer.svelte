@@ -1,17 +1,16 @@
 <script lang="ts" context="module">
   import Drawer, { AppContent, Content } from "@smui/drawer";
   import List, { Item, Text } from "@smui/list";
-  import { writable } from 'svelte/store';
+  import { writable } from "svelte/store";
 
-  export const open = writable(false);
-  
+
   let width: number;
 </script>
 
-<svelte:window bind:outerWidth={width}></svelte:window>
+<svelte:window bind:outerWidth={width} />
 
-<aside>
-  <Drawer class="mdc-top-app-bar--fixed-adjust" variant="dismissible" bind:open={$open}>
+<div>
+  <Drawer>
     <Content>
       <List>
         <Item href="javascript:void(0)">
@@ -25,16 +24,16 @@
   </Drawer>
 
   {#if width >= 650}
-  <AppContent> <!-- class="app-content" -->
-    <!-- <AutoAdjust {topAppBar}></AutoAdjust> -->
-    
-    <slot />
-
-  </AppContent>
+    <AppContent>
+      <!-- class="app-content" -->
+      <!-- <AutoAdjust {topAppBar}></AutoAdjust> -->
+      <p>hi</p>
+      <slot />
+    </AppContent>
   {:else}
-  <slot />
+    <slot />
   {/if}
-</aside>
+</div>
 
 <!-- ::file-selector-button -->
 <style>

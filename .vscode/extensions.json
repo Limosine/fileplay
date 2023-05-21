@@ -2,7 +2,6 @@
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "ms-vscode.vscode-typescript-tslint-plugin",
     "capaj.graphql-codegen-vscode",
     "mikestead.dotenv",
     "editorconfig.editorconfig",

@@ -3,7 +3,7 @@
 
 
   export const input = writable<HTMLInputElement>();
-  export const files = writable<FileList>();
+
 
 </script>
 

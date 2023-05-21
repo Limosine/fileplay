@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 
 config();
 
-let schema = readFileSync("src/gql/schema.gql", "utf8");
+let schema = readFileSync("src/schema.gql", "utf8");
 
 schema += `\n# Dgraph.Authorization {"VerificationKey": "${process.env.DGRAPH_JWT_PUBLIC_KEY.replace(
   /(?:\r\n|\r|\n)/g,

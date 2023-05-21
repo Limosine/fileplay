@@ -14,15 +14,14 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         publicPath: "/pwa-assets",
         src: "static/favicon.png",
         mode: "fit",
-        background: "#f00"
+        background: "#f00",
       }),
       SvelteKitPWA({
         srcDir: "src",
         filename: "sw.ts",
         registerType: "prompt",
         strategies: "injectManifest",
-        includeAssets: ["static/*"],
-        useCredentials: !process.env.CF_PROD,   // disabled in production
+        useCredentials: !process.env.CF_PROD, // disabled in production
         devOptions: {
           enabled: false,
           type: "module",

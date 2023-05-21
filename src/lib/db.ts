@@ -3,13 +3,22 @@ import {
   HttpLink,
   InMemoryCache,
   ApolloClient,
+  type NormalizedCacheObject,
 } from "@apollo/client/core";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { SubscriptionClient } from "subscriptions-transport-ws";
 import { PUBLIC_DGRAPH_HTTP, PUBLIC_DGRAPH_WS } from "$env/static/public";
+import { getClient, setClient } from "svelte-apollo";
+import { writable, type Writable } from "svelte/store";
+import { browser } from "$app/environment";
+import { getLinkedDeviceDocument } from "$lib/gql";
 
-export function createApolloClient(jwt: string) {
+export let apolloClient: Writable<ApolloClient<NormalizedCacheObject> | null> =
+  writable(null);
+
+export function createApolloClient(jwt: string | null) {
+  if (!jwt) return;
   const headers = {
     Authorization: `Bearer ${jwt}`,
   };
@@ -47,6 +56,13 @@ export function createApolloClient(jwt: string) {
     link,
     cache,
   });
+
+  // test client and return null if not connected
+  client.query({
+    query: getLinkedDeviceDocument,
+  }).then((res) => {
+    res.data.getDevice?.id;
+  })
 
   return client;
 }
