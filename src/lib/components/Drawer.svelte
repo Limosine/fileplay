@@ -3,6 +3,7 @@
   import List, { Item, Text } from "@smui/list";
   import { writable } from "svelte/store";
 
+  export const open = writable(false);
 
   let width: number;
 </script>
@@ -13,7 +14,7 @@
   <Drawer>
     <Content>
       <List>
-        <Item href="javascript:void(0)">
+        <Item href="/devices/add">
           <Text>Add device</Text>
         </Item>
         <Item href="/contacts/add">
@@ -27,7 +28,6 @@
     <AppContent>
       <!-- class="app-content" -->
       <!-- <AutoAdjust {topAppBar}></AutoAdjust> -->
-      <p>hi</p>
       <slot />
     </AppContent>
   {:else}

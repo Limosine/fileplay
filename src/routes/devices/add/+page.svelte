@@ -3,7 +3,6 @@
   import Button, { Label } from "@smui/button";
   import Textfield from '@smui/textfield';
   import { goto } from "$app/navigation";
-  import { onMount } from 'svelte';
 
   import { open as drawer_open } from '../../../lib/components/Drawer.svelte';
 
@@ -11,27 +10,14 @@
 
   let open = true;
 
-  let uid = "";
-  let hostname: string;
-
-  onMount(() => {
-    hostname = location.hostname;
-    setHostname();
-  });
-
-  function setHostname() {
-    if (!uid.includes("@")) {
-      hostname = uid.slice(uid.search("@"));
-      console.log(hostname);
-    }
-  }
+  let deviceid = "";
 
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
     event = event as KeyboardEvent;
 
     if (event.key === "Escape") {
       closeHandler("cancel");
-    } else if (event.key === "Enter" && uid != "") {
+    } else if (event.key === "Enter" && deviceid != "") {
       closeHandler("confirm");
     }
   }
@@ -47,15 +33,15 @@
 
     switch (action) {
       case "confirm":
-        console.log(addContact());
+        console.log(addDevice());
     }
     goto("/");
   }
 
-  async function addContact () {
+  async function addDevice () {
 	  const res = await fetch('/api/user/contacts/add', {
 		  method: 'POST',
-      body: JSON.stringify({deviceId: uid, deviceSecret: "test secret"})
+      body: JSON.stringify({deviceId: deviceid, deviceSecret: "test secret"})
 	  });
 		
 	  const json = await res.json();
@@ -73,10 +59,10 @@
   aria-describedby="content"
   on:SMUIDialog:closed={closeHandler}
 >
-  <Title id="title">Add contact</Title>
+  <Title id="title">Add device</Title>
   <Content>
     <div id="content">
-      <Textfield on:input={setHostname} bind:value={uid} label="Username" input$maxlength={18}>
+      <Textfield bind:value={deviceid} label="Device ID" input$maxlength={18}>
       </Textfield>
     </div>
   </Content>
@@ -84,7 +70,7 @@
     <Button action="cancel">
       <Label>Cancel</Label>
     </Button>
-    <Button action="confirm" disabled={uid == ""}>
+    <Button action="confirm" disabled={deviceid == ""}>
       <Label>Add</Label>
     </Button>
   </Actions>

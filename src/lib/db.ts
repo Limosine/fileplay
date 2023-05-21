@@ -12,7 +12,7 @@ import { PUBLIC_DGRAPH_HTTP, PUBLIC_DGRAPH_WS } from "$env/static/public";
 import { getClient, setClient } from "svelte-apollo";
 import { writable, type Writable } from "svelte/store";
 import { browser } from "$app/environment";
-import { getLinkedDeviceDocument } from "$lib/gql";
+// import { getLinkedDeviceDocument } from "$lib/gql";
 
 export let apolloClient: Writable<ApolloClient<NormalizedCacheObject> | null> =
   writable(null);
@@ -58,11 +58,11 @@ export function createApolloClient(jwt: string | null) {
   });
 
   // test client and return null if not connected
-  client.query({
-    query: getLinkedDeviceDocument,
-  }).then((res) => {
-    res.data.getDevice?.id;
-  })
+  // client.query({
+  //   query: getLinkedDeviceDocument,
+  // }).then((res) => {
+  //   res.data.getDevice?.id;
+  // })
 
   return client;
 }
