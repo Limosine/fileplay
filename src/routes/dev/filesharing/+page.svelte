@@ -1,6 +1,6 @@
 <script lang="ts">
   import { sendFile } from "$lib/fileshare";
-  import Peer from "peerjs";
+  import type Peer from "peerjs";
 
   let remotePeerIds: string[] = ["4321F", "1234F"];
   let connections: any[] = [];
@@ -23,24 +23,11 @@
       //   });
       // });
 
-      sendFile(me, remotePeerIds, files);
+      sendFile("224F", remotePeerIds, files);
     }
   };
 
-  const stunServerUrl = "stun:stun.l.google.com:19302";
   let me: Peer;
-
-  const connect = () => {
-    me = new Peer("224F", {
-      host: "localhost",
-      port: 9000,
-      path: "/myapp",
-    });
-
-    me.on("open", (id) => {
-      console.log("Connected: ", id);
-    });
-  };
   //   setTimeout(() => {
   //     let conn = me.connect("1234F");
   //     let conn2 = me.connect("4321F");
@@ -73,7 +60,6 @@
   };
 </script>
 
-<button on:click={connect}>Connect</button>
 <button on:click={sendMessage}>Send</button>
 <button on:click={info}> INFO </button>
 

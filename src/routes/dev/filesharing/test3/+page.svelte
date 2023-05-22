@@ -13,11 +13,7 @@
   };
 
   const prepare = () => {
-    me = new Peer("4321F", {
-      host: "localhost",
-      port: 9000,
-      path: "/myapp",
-    });
+    me = new Peer("4321F");
 
     // let conn = me.connect("224F");
     // conn.on("open", () => {

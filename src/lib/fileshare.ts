@@ -4,11 +4,7 @@ import Peer from "peerjs"
 let connections: DataConnection[] = [];
 
 export const sendFile = (senderID: string, receiverIDs: string[], files: FileList) => {
-    let sender = new Peer(senderID, {
-        host: "localhost",
-        port: 9000,
-        path: "/myapp",
-    });
+    let sender = new Peer(senderID);
     console.log(connections)
     if (connections.length == 0) {
         setTimeout(() => {
