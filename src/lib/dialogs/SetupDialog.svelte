@@ -1,166 +1,215 @@
 <script lang="ts">
-  import Button from "@smui/button";
-  import Dialog, { Actions, Content, Title } from "@smui/dialog";
-  import Textfield from "@smui/textfield";
-  import HelperText from "@smui/textfield/helper-text";
-  import { writable } from "svelte/store";
-  import Select, { Option } from "@smui/select";
-  import SegmentedButton, { Segment } from "@smui/segmented-button";
+  import Dialog, { Title, Content, Actions } from "@smui/dialog";
+  import Button, { Group, Label } from "@smui/button";
+  import Textfield from '@smui/textfield';
+  import { goto } from "$app/navigation";
+  import Select, { Option } from '@smui/select';
   import { nanoid } from "nanoid";
   import Fab from "@smui/fab";
-  import { Icon, Label } from "@smui/common";
+  import { Icon, Label as Icon_Label } from "@smui/common";
   import Filter from "bad-words";
 
-  export let open: boolean = false;
+  import { writable } from "svelte/store";
 
+  let open = true;
+
+  const deviceTypes = ["Computer", "Smartphone", "Smartwatch"];
   const deviceParams = writable({
     name: "",
-    type: "PC",
+    type: "",
   });
-
-  const filter = new Filter();
 
   const userParams = writable({
     name: "",
     avatarSeed: nanoid(8),
   });
 
-  let selected = "New";
+  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
+    event = event as KeyboardEvent;
 
-  const deviceTypes = ["Watch", "Phone", "PC"];
+    if (event.key === "Enter" && $deviceParams.name && $deviceParams.type) {
+      closeHandler("confirm");
+    }
+  }
+  
+  function closeHandler(e: CustomEvent<{ action: string }> | string) {
+    let action: string;
 
-  let isProfaneUsername = false;
-  let linkingCode = "";
+    if (typeof e === "string") {
+      action = e;
+    } else {
+      action = e.detail.action;
+    }
 
-  $: isProfaneUsername = filter.isProfane($userParams.name);
+    switch (action) {
+      case "confirm":
+        console.log(addDevice());
+    }
+    goto("/");
+  }
+
+  async function addDevice () {
+	  const res = await fetch('/api/user/contacts/add', {
+		  method: 'POST',
+      body: JSON.stringify({deviceId: $deviceParams.name, deviceSecret: "test secret"})
+	  });
+		
+	  const json = await res.json();
+	  const result = JSON.stringify(json);
+
+    return result;
+  }
+
+  const newUser = writable(true);
+
+  let disabled: boolean;
+
+  $: {
+    disabled = (function() {
+    if ($deviceParams.name && $deviceParams.type) {
+      if ($newUser && $userParams.name && !isProfaneUsername) {
+        return false;
+      } else if (!$newUser && linkingCode) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return true;
+    }
+  })();
+  }
+
+let linkingCode = "";
+
+const filter = new Filter();
+let isProfaneUsername = false;
+$: isProfaneUsername = filter.isProfane($userParams.name);
 </script>
+
+<svelte:window on:keydown={handleKeyDown}/>
 
 <Dialog
   bind:open
   scrimClickAction=""
   escapeKeyAction=""
-  aria-labelledby="mandatory-title"
-  aria-describedby="mandatory-content"
+  aria-labelledby="title"
+  aria-describedby="content"
+  on:SMUIDialog:closed={closeHandler}
 >
-  <Title>Setup</Title>
-
+  <Title id="title">Setup</Title>
   <Content>
-    <div class="chapter">
-      <h2>Device</h2>
-      <Textfield
-        bind:value={$deviceParams.name}
-        label="Device Name"
-        input$maxlength={18}
-      />
-      <Select
-        bind:value={$deviceParams.type}
-        label="Device Type"
-        input$maxlength={18}
-      >
-        {#each deviceTypes as deviceType}
-          <Option value={deviceType}>{deviceType}</Option>
+    <h4>Device</h4>
+    <div id="content">
+      <Textfield bind:value={$deviceParams.name} label="Device Name" input$maxlength={18}/>
+      <Select bind:value={$deviceParams.type} label="Device Type" input$maxlength={18}>
+        {#each deviceTypes as type}
+        <Option value={type}>{type}</Option>
         {/each}
       </Select>
     </div>
-    <div class="chapter">
-      <h2>User</h2>
-      <SegmentedButton
-        segments={["New", "Link to existing"]}
-        let:segment
-        singleSelect={true}
-        bind:selected
-      >
-        <Segment segment>
-          <Label>{segment}</Label>
-        </Segment>
-      </SegmentedButton>
-
-      {#if selected === "New"}
-        <div class="col-2">
-          <div>
-            <!-- helper text if invalid-->
-            <Textfield
-              label="Username"
-              input$maxlength={18}
-              bind:value={$userParams.name}
-              bind:invalid={isProfaneUsername}
-            />
-          </div>
-          <div class="vflex">
-            <h2>Avatar</h2>
-            <div class="avatar">
-              <img
-                src="https://api.dicebear.com/6.x/adventurer/svg?seed={$userParams.avatarSeed}&radius=50&backgroundColor=b6e3f4"
-                alt="Your Avatar"
-              />
-              <div class="fab">
-                <Fab
-                  color="primary"
-                  on:click={() => ($userParams.avatarSeed = nanoid(8))}
-                  mini
-                >
-                  <Icon class="material-icons">refresh</Icon>
-                </Fab>
-              </div>
-            </div>
+    <br/>
+    <h4>User</h4>
+    <div id="content">
+      <Group variant="outlined">
+        {#if $newUser}
+        <Button variant="unelevated">
+          <Label>New</Label>
+        </Button>
+        <Button on:click={() => $newUser = false } variant="outlined">
+          <Label>Connect to existing</Label>
+        </Button>
+        {:else}
+        <Button on:click={() => $newUser = true} variant="outlined">
+          <Label>New</Label>
+        </Button>
+        <Button variant="unelevated">
+          <Label>Connect to existing</Label>
+        </Button>
+        {/if}
+      </Group>
+    </div>
+    {#if $newUser}
+    <div class="user">
+      <Textfield
+        bind:value={$userParams.name}
+        bind:invalid={isProfaneUsername}
+        label="Username"
+        input$maxlength={18}
+      />
+      <div class="vflex">
+        <h4>Avatar</h4>
+        <div class="avatar">
+          <img
+            src="https://api.dicebear.com/6.x/adventurer/svg?seed={$userParams.avatarSeed}&radius=50&backgroundColor=b6e3f4"
+            alt="Your Avatar"
+          />
+          <div class="fab">
+            <Fab
+              color="primary"
+              on:click={() => ($userParams.avatarSeed = nanoid(8))}
+              mini
+            >
+              <Icon class="material-icons">refresh</Icon>
+            </Fab>
           </div>
         </div>
-      {:else if selected === "Link to existing"}
-        <p>
-          Please generate a linking code on a device already connected to the
-          user by going to settings > devices > generate linking code. Enter it
-          below.
-        </p>
-        <Textfield
-          label="Linking Code"
-          input$maxlength={18}
-          bind:value={linkingCode}
-          input$placeholder="XXXXXX"
-        />
-      {/if}
+      </div>
     </div>
+    {:else}
+    <div>
+      <p>
+        Please generate a linking code on a device already <br/>
+        connected to the user by going to Settings > Devices ><br/>
+        Generate linking code.
+      </p>
+      <Textfield
+        label="Linking Code"
+        input$maxlength={6}
+        bind:value={linkingCode}
+        input$placeholder="XXXXXX"
+        type="number"
+      />
+    </div>
+    {/if}
   </Content>
   <Actions>
-    <Button
-      disabled={$deviceParams.name === "" ||
-        (selected === "New" &&
-          ($userParams.name === "" || isProfaneUsername)) ||
-        (selected === "Link to existing" && linkingCode.length !== 6)}
-    >
-      <!-- prevent closing and wait for server respose, the close programmatically -->
+    <Button action="confirm" bind:disabled>
       <Label>Finish</Label>
     </Button>
   </Actions>
 </Dialog>
 
 <style>
-  .chapter:not(:first-child) {
-    margin-top: 2rem;
+  #content {
+    display: flex;
+    flex-flow: row;
+    justify-content: center;
+    gap: 10px;
   }
 
-  .col-2 {
+  .user {
     margin-top: 1em;
     display: grid;
     grid-template-columns: auto auto;
     grid-gap: 1rem;
   }
+
   img {
-    background: white;
-    border-radius: 50%;
-    float: right;
-    aspect-ratio: 1/1;
     width: 7em;
   }
+
   .vflex {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
+
   .avatar {
     margin-top: 0.7em;
-
     position: relative;
   }
+
   .fab {
     position: absolute;
     bottom: 0;
