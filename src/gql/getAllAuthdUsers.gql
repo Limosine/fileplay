@@ -1,5 +1,0 @@
-query getAllAuthdUsersName {
-  queryUser {
-    displayName
-  }
-}

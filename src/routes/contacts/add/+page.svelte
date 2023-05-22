@@ -1,51 +1,98 @@
 <script lang="ts">
-  // export prop ()
-  export let data;
+  import Dialog, { Title, Content, Actions } from "@smui/dialog";
+  import Button, { Label } from "@smui/button";
+  import Textfield from '@smui/textfield';
+  import { goto } from "$app/navigation";
+  import { onMount } from 'svelte';
 
-  console.log(data.code);
-  const copy = (e: any) => {
-    let element = document.getElementsByClassName("code").item(0);
+  import { open as drawer_open } from '../../../lib/components/Drawer.svelte';
+
+  drawer_open.set(false);
+
+  let open = true;
+
+  let uid = "";
+  let hostname: string;
+
+  onMount(() => {
+    hostname = location.hostname;
+    setHostname();
+  });
+
+  function setHostname() {
+    if (!uid.includes("@")) {
+      hostname = uid.slice(uid.search("@"));
+      console.log(hostname);
+    }
+  }
+
+  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
+    event = event as KeyboardEvent;
+
+    if (event.key === "Escape") {
+      closeHandler("cancel");
+    } else if (event.key === "Enter" && uid != "") {
+      closeHandler("confirm");
+    }
+  }
+  
+  function closeHandler(e: CustomEvent<{ action: string }> | string) {
+    let action: string;
+
+    if (typeof e === "string") {
+      action = e;
+    } else {
+      action = e.detail.action;
+    }
+
+    switch (action) {
+      case "confirm":
+        console.log(addContact());
+    }
+    goto("/");
+  }
+
+  async function addContact () {
+	  const res = await fetch('/api/user/contacts/add', {
+		  method: 'POST',
+      body: JSON.stringify({deviceId: uid, deviceSecret: "test secret"})
+	  });
+		
+	  const json = await res.json();
+	  const result = JSON.stringify(json);
+
+    return result;
   }
 </script>
 
-<div class="box">
-    <div class="code">
-        {data?.code ?? ''}
+<svelte:window on:keydown={handleKeyDown}/>
+
+<Dialog
+  bind:open
+  aria-labelledby="title"
+  aria-describedby="content"
+  on:SMUIDialog:closed={closeHandler}
+>
+  <Title id="title">Add contact</Title>
+  <Content>
+    <div id="content">
+      <Textfield on:input={setHostname} bind:value={uid} label="Username" input$maxlength={18}>
+      </Textfield>
     </div>
-    <button on:click={copy}>
-        Copy
-    </button>
-</div>
+  </Content>
+  <Actions>
+    <Button action="cancel">
+      <Label>Cancel</Label>
+    </Button>
+    <Button action="confirm" disabled={uid == ""}>
+      <Label>Add</Label>
+    </Button>
+  </Actions>
+</Dialog>
 
 <style>
-  .box {
-    border-radius: 10px;
-    height: 95vh;
-    width: 100%;
-    text-align: center;
-    background: rgb(238, 238, 238);
-    position: absolute;
-    top: 2%;
+  #content {
     display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .code {
-    border: 2px solid black;
-    padding: 30px;
-    border-radius: 5px;
-  }
-
-  button {
-    padding: 26px;
-    border: 2px solid black;
-    margin-left: 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    font-weight: bold;
-    font-size: 16px;
+    flex-flow: column;
   }
 </style>
