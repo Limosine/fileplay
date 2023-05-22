@@ -45,6 +45,11 @@
   },
   "type": "module",
   "dependencies": {
+    "peerjs": "^1.4.7",
+    "rtc-socket-connector-client": "^0.1.7",
+    "rtc-socket-connector-server": "^0.1.0",
+    "socket.io": "^4.6.1",
+    "socket.io-client": "^4.6.1",
     "yarn": "^1.22.19"
   }
 }

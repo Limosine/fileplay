@@ -33,6 +33,11 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
       rollupOptions: {
         external: ['react']   // mark as external because it is imported somewhere but not used
       }
+    }, 
+    dev: {
+      rollupOptions: {
+        external: ['react']   // mark as external because it is imported somewhere but not used
+      }
     }
   };
 }
