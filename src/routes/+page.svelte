@@ -4,9 +4,7 @@
   import SetupDialog from "$lib/dialogs/SetupDialog.svelte";
   import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
   import { writable } from "svelte/store";
-  import { onMount } from "svelte";
-  import { state } from "$lib/stores/state";
-
+  import { browser } from "$app/environment";
   const files = writable<FileList>();
 
   let fileInput: HTMLInputElement;
@@ -25,6 +23,10 @@
     }
     $files = e.dataTransfer.files;
   };
+
+  if (browser && !localStorage.get("setupDone")) {
+    SetupDialogIsOpen = true;
+  }
 </script>
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
