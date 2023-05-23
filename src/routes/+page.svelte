@@ -25,13 +25,6 @@
     }
     $files = e.dataTransfer.files;
   };
-
-  onMount(() => {
-    if (!$state.isLoggedIn) {
-      SetupDialogIsOpen = true;
-      console.log("Apollo client not initialized");
-    }
-  });
 </script>
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />

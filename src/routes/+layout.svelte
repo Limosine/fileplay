@@ -9,11 +9,7 @@
   import { AutoAdjust } from "@smui/top-app-bar";
   import Tooltip, { Wrapper } from "@smui/tooltip";
   import IconButton from "@smui/icon-button";
-  import { browser } from "$app/environment";
-  import { setClient } from "svelte-apollo";
-  import { createApolloClient } from "$lib/db";
-  import { state } from "$lib/stores/state";
-
+  
   onMount(async () => {
     // update service worker
     if (pwaInfo) {
@@ -49,23 +45,6 @@
     }
   });
 
-  // check/setup database client connection
-  if (browser) {
-    if (!$state.isLoggedIn) {
-      const client = createApolloClient(localStorage.getItem("jwt"));
-      if (!client) {
-        // if (window.location.pathname !== "/") {
-        //   console.log("redirecting to /");
-        //   // might wanna disable this unless it works
-        //   window.location.pathname = "/";
-        // }
-      } else {
-        console.log("creating apollo client");
-        $state.isLoggedIn = true;
-        setClient(client);
-      }
-    }
-  }
 
   let topAppBar: TopAppBar;
   const colors = ["green", "yellow", "red"];

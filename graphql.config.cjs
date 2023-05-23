@@ -16,7 +16,6 @@ module.exports = {
           ],
           config: {
             arrayInputConversion: false,
-            clientPath: '$lib/apolloClient'
           },
         },
       },
