@@ -13,11 +13,10 @@ module.exports = {
             "typescript",
             "typescript-operations",
             "typed-document-node",
-            //"graphql-codegen-svelte-apollo",
           ],
           config: {
             arrayInputConversion: false,
-            namingConvention: "change-case-all#camelCase",
+            clientPath: '$lib/apolloClient'
           },
         },
       },
