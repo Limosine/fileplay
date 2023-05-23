@@ -1,6 +1,7 @@
 <script lang="ts">
   import { sendFile } from "$lib/fileshare";
   import type Peer from "peerjs";
+  import crypto from 'node:crypto'
 
   let remotePeerIds: string[] = ["4321F", "1234F"];
   let connections: any[] = [];
