@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "graphql-codegen": "graphql-codegen",
-    "dev": "graphql-codegen && vite dev",
-    "build": "graphql-codegen && vite build",
+    "codegen": "graphql-codegen && node ./scripts/fix-typed-document-node.js",
+    "dev": "npm run codegen && vite dev",
+    "build": "npm run codegen && vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && node .github/workflows/validate-schema.js",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -16,7 +16,6 @@
     "smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"
   },
   "devDependencies": {
-    "@apollo/client": "^3.7.14",
     "@formkit/auto-animate": "^1.0.0-beta.6",
     "@graphql-codegen/cli": "^3.3.1",
     "@graphql-codegen/client-preset": "^3.0.1",
@@ -57,7 +56,6 @@
     "eslint": "^8.36.0",
     "eslint-plugin-svelte": "^2.28.0",
     "graphql": "^16.6.0",
-    "graphql-codegen-svelte-apollo": "^1.1.0",
     "graphql-config": "^4.5.0",
     "husky": "^8.0.0",
     "idb": "^7.1.1",
@@ -69,9 +67,7 @@
     "rimraf": "^5.0.1",
     "sharp": "^0.31.3",
     "smui-theme": "^7.0.0-beta.8",
-    "subscriptions-transport-ws": "^0.11.0",
     "svelte": "^3.54.0",
-    "svelte-apollo": "^0.5.0",
     "svelte-check": "^3.0.1",
     "tslib": "^2.4.1",
     "typescript": "^5.0.4",
@@ -86,7 +82,6 @@
     "rtc-socket-connector-client": "^0.1.7",
     "rtc-socket-connector-server": "^0.1.0",
     "socket.io": "^4.6.1",
-    "socket.io-client": "^4.6.1",
-    "yarn": "^1.22.19"
+    "socket.io-client": "^4.6.1"
   }
 }
