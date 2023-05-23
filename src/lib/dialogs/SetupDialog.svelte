@@ -7,7 +7,6 @@
   import { nanoid } from "nanoid";
   import Fab from "@smui/fab";
   import { Icon, Label as Icon_Label } from "@smui/common";
-  import Filter from "bad-words";
 
   import { writable } from "svelte/store";
 
@@ -82,9 +81,8 @@
 
 let linkingCode = "";
 
-const filter = new Filter();
 let isProfaneUsername = false;
-$: isProfaneUsername = filter.isProfane($userParams.name);
+
 </script>
 
 <svelte:window on:keydown={handleKeyDown}/>
