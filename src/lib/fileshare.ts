@@ -1,12 +1,5 @@
 import type { DataConnection } from "peerjs";
 import Peer from "peerjs";
-let crypto;
-
-try {
-  crypto = await import("node:crypto");
-} catch (err) {
-  console.error("crypto support is disabled!");
-}
 
 let connections: DataConnection[] = [];
 
