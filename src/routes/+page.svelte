@@ -1,79 +1,73 @@
 <script lang="ts">
-  import { Icon } from "@smui/common";
-  import Card, { PrimaryAction } from "@smui/card";
-  import SetupDialog from "$lib/dialogs/SetupDialog.svelte";
-  import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
-  import { writable } from "svelte/store";
-  import { browser } from "$app/environment";
-  const files = writable<FileList>();
-
-  let fileInput: HTMLInputElement;
-  let emptyFileInput: HTMLInputElement;
-  let SetupDialogIsOpen = false;
-  let SelectContactsDialogIsOpen = false;
-
-  const clearFiles = () => {
-    if (emptyFileInput.files) $files = emptyFileInput.files;
-    fileInput.value = "";
-  };
+  import { Icon } from '@smui/common';
+  import Card, { PrimaryAction } from '@smui/card';
+  import Input, { input, files } from '../lib/components/Input.svelte';
+  import { goto } from '$app/navigation';
 
   const handleDrop = (e: DragEvent) => {
-    if (!e?.dataTransfer?.files || SetupDialogIsOpen) {
-      return;
+    e.preventDefault()
+    if (!e?.dataTransfer?.files) {
+      return
     }
-    $files = e.dataTransfer.files;
-  };
-
-  if (browser && !localStorage.get("setupDone")) {
-    SetupDialogIsOpen = true;
+    $files = e.dataTransfer.files
   }
 </script>
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
-<input
-  style="display: none"
-  type="file"
-  bind:this={fileInput}
-  on:change={() => {
-    if (fileInput.files) $files = fileInput.files;
-  }}
-  multiple
-/>
-<input type="file" style="display: none" bind:this={emptyFileInput} />
+<Input />
 
-<div class="root">
-  <SetupDialog bind:open={SetupDialogIsOpen} />
-  <SelectContactsDialog
-    bind:open={SelectContactsDialogIsOpen}
-    {files}
-    {clearFiles}
-  />
-  <Card>
-    <PrimaryAction on:click={() => fileInput.click()} style="padding: 64px">
-      <Icon class="material-icons" style="font-size: 30px">check</Icon>
-      Select file(s)
-    </PrimaryAction>
-  </Card>
-  {#if $files?.length > 0}
+<div class="center">
+  <div class="beside">
     <Card>
-      <PrimaryAction
-        on:click={() => (SelectContactsDialogIsOpen = true)}
-        style="padding: 64px"
-      >
-        <Icon class="material-icons" style="font-size: 30px">send</Icon>
-        Share
+        <PrimaryAction on:click={() => $input.click()}  style="padding: 64px">
+          <Icon class="material-icons" style="font-size: 30px"
+          >upload</Icon>
+          Select file(s)
+        </PrimaryAction>
+      </Card>
+
+    {#if $files}
+    <Card>
+      <PrimaryAction on:click={() => goto('/contacts/select')}  style="padding: 64px">
+        <Icon class="material-icons" style="font-size: 30px"
+        >contacts</Icon>
+        Select contact(s)
       </PrimaryAction>
     </Card>
+    {/if}
+  </div>
+
+  {#if $files}
+  <Card padded>
+    <h4>Selected file(s):</h4>
+    <p class="small"><br /></p>
+
+    {#each Array.from($files) as file}
+    <p>{file.name}</p>
+    {/each}
+  </Card>
   {/if}
 </div>
 
 <style>
-  .root {
-    padding: 1em;
+  p.small {
+    line-height: 0.2;
+  }
+  .beside {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 1em;
+    flex-basis: auto;
+    flex-flow: row wrap;
+    justify-content: center;
+    gap: 5px;
+  }
+  .center {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
   }
 </style>

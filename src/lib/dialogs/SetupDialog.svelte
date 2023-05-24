@@ -2,7 +2,6 @@
   import Dialog, { Title, Content, Actions } from "@smui/dialog";
   import Button, { Group, Label } from "@smui/button";
   import Textfield from "@smui/textfield";
-  import { goto } from "$app/navigation";
   import Select, { Option } from "@smui/select";
   import { nanoid } from "nanoid";
   import Fab from "@smui/fab";
@@ -11,7 +10,11 @@
   import { writable } from "svelte/store";
   import { browser } from "$app/environment";
 
-  let open = true;
+  export let open: boolean;
+
+  const newUser = writable(true);
+
+  let linkingCode = "";
 
   const deviceTypes = ["Computer", "Smartphone", "Smartwatch"];
   const deviceParams = writable({
@@ -27,7 +30,7 @@
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
     event = event as KeyboardEvent;
 
-    if (event.key === "Enter" && $deviceParams.name && $deviceParams.type) {
+    if (event.key === "Enter" && !disabled) {
       closeHandler("confirm");
     }
   }
@@ -45,7 +48,7 @@
       case "confirm":
         console.log(addDevice());
     }
-    goto("/");
+    open = false;
   }
 
   async function addDevice() {
@@ -63,14 +66,11 @@
     return result;
   }
 
-  const newUser = writable(true);
-
   let disabled: boolean;
-
   $: {
     disabled = (function () {
       if ($deviceParams.name && $deviceParams.type) {
-        if ($newUser && $userParams.name && !profaneUsername) {
+        if ($newUser && $userParams.name && !profaneUsername.profane && !profaneUsername.loading) {
           return false;
         } else if (!$newUser && linkingCode) {
           return false;
@@ -83,15 +83,13 @@
     })();
   }
 
-  let linkingCode = "";
-
   let profaneUsername: { loading: boolean; profane: boolean } = {
     loading: false,
     profane: false,
   };
 
   function updateIsProfaneUsername() {
-    if(!browser) return;
+    if(!browser || !$userParams.name) return;
     profaneUsername.loading = true;
     fetch("/api/checkIsUsernameProfane", {
       method: "POST",

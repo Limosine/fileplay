@@ -4,11 +4,13 @@
   import { pwaInfo } from "virtual:pwa-info";
   import { registerSW } from "virtual:pwa-register";
   import { HTMLImageTags } from "virtual:pwa-assets";
+  import { browser } from "$app/environment";
 
-  import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
-  import { AutoAdjust } from "@smui/top-app-bar";
-  import Tooltip, { Wrapper } from "@smui/tooltip";
-  import IconButton from "@smui/icon-button";
+  import TopAppBar from "$lib/components/TopAppBar.svelte";
+  import Drawer from "$lib/components/Drawer.svelte";
+  import SetupDialog from '$lib/dialogs/SetupDialog.svelte';
+
+  let setup_open = true;
   
   onMount(async () => {
     // update service worker
@@ -45,19 +47,16 @@
     }
   });
 
-
-  let topAppBar: TopAppBar;
-  const colors = ["green", "yellow", "red"];
-  const status = ["Online", "Connecting", "Offline"];
-  let current_status = 0;
-  let webManifest: string;
-
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
 
   const preventDefault = (e: Event) => {
     if ($page.url.pathname == "/") {
       e.preventDefault();
     }
+  }
+
+  if (browser && !localStorage.getItem("setupDone")) {
+    setup_open = true;
   }
 </script>
 
@@ -66,55 +65,12 @@
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
-<TopAppBar variant="fixed" bind:this={topAppBar}>
-  <Row>
-    <Section>
-      <Title>Fileplay</Title>
-    </Section>
-    <Section align="end" toolbar>
-      <Wrapper>
-        <div>
-          <div
-            class="connection-status"
-            style="background-color: {colors[current_status]}"
-          />
-        </div>
-        <Tooltip>Connection status: {status[current_status]}</Tooltip>
-      </Wrapper>
+<div on:touchmove={preventDefault}>
+  <TopAppBar />
 
-      <Wrapper>
-        <IconButton class="material-icons" aria-label="Show notifications"
-          >notifications</IconButton
-        >
-        <Tooltip>Show notifications</Tooltip>
-      </Wrapper>
+  <Drawer>
+    <slot />
+  </Drawer>
 
-      <Wrapper>
-        <IconButton class="material-icons" aria-label="Account page"
-          >account_circle</IconButton
-        >
-        <Tooltip>Account page</Tooltip>
-      </Wrapper>
-
-      <Wrapper>
-        <IconButton class="material-icons" aria-label="Settings Page"
-          >settings</IconButton
-        >
-        <Tooltip>Settings Page</Tooltip>
-      </Wrapper>
-    </Section>
-  </Row>
-</TopAppBar>
-<AutoAdjust {topAppBar}>
-  <slot />
-</AutoAdjust>
-
-<style>
-  .connection-status {
-    margin: 14px;
-    border-radius: 50%;
-    border: 3px solid white;
-    height: 12px;
-    width: 12px;
-  }
-</style>
+  <SetupDialog open={setup_open}></SetupDialog>
+</div>
