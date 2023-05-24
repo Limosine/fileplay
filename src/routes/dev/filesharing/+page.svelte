@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { sendFile } from "$lib/fileshare";
-  import type Peer from "peerjs";
+  import { onMount } from "svelte";
 
-  let remotePeerIds: string[] = ["4321F", "1234F"];
-  let connections: any[] = [];
+  let changeFiles: any;
 
-  const changeFiles = (event: Event) => {
+  onMount(async () => {
+    const { sendFile } = await import('$lib/fileshare');
+
+    changeFiles = (event: Event) => {
     if (event?.target && event.target instanceof HTMLInputElement) {
       let files = (event.target as HTMLInputElement).files;
       if (!files) return;
@@ -26,6 +27,12 @@
       sendFile("224F", remotePeerIds, files);
     }
   };
+  })
+
+  import type Peer from "peerjs";
+
+  let remotePeerIds: string[] = ["4321F", "1234F"];
+  let connections: any[] = [];
 
   let me: Peer;
   //   setTimeout(() => {

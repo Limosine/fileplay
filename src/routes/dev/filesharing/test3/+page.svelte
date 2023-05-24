@@ -1,18 +1,16 @@
 <script lang="ts">
-  import { extractFileInfo } from "$lib/fileshare";
-  import { Peer } from "peerjs";
+  import { onMount } from "svelte";
 
-  let message = "No message";
-  let me: Peer;
-  let file: {
-    url: string;
-    name: string;
-  } = {
-    url: "",
-    name: "",
-  };
+  let prepare: any;
+  let me: any;
 
-  const prepare = () => {
+  onMount(async () => {
+    const { extractFileInfo } = await import('$lib/fileshare');
+    const { Peer } = await import('peerjs');
+
+    me: Peer;
+
+    prepare = () => {
     me = new Peer("4321F");
 
     // let conn = me.connect("224F");
@@ -24,7 +22,7 @@
       console.log("Connected");
     });
 
-    me.on("connection", (conn) => {
+    me.on("connection", (conn: any) => {
       console.log("Connected with: ", conn.connectionId);
       console.log("hi")
       conn.on("data", (data: any) => {
@@ -42,6 +40,17 @@
       });
     });
   };
+  });
+
+  let message = "No message";
+  let file: {
+    url: string;
+    name: string;
+  } = {
+    url: "",
+    name: "",
+  };
+
   const closeConn = () => {
     let conns = me.connections;
     console.log(conns);
