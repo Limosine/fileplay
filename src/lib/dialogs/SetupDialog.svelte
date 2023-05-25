@@ -12,7 +12,7 @@
 
   export let open: boolean;
 
-  const newUser = writable(true);
+  let newUser = true;
 
   let linkingCode = "";
 
@@ -67,21 +67,15 @@
   }
 
   let disabled: boolean;
-  $: {
-    disabled = (function () {
-      if ($deviceParams.name && $deviceParams.type) {
-        if ($newUser && $userParams.name && !profaneUsername.profane && !profaneUsername.loading) {
-          return false;
-        } else if (!$newUser && linkingCode) {
-          return false;
-        } else {
-          return true;
-        }
-      } else {
-        return true;
-      }
-    })();
-  }
+  $: disabled =
+    !$deviceParams.name ||
+    !$deviceParams.type ||
+    (newUser
+      ? !$userParams.name ||
+        !$userParams.avatarSeed ||
+        profaneUsername.profane ||
+        profaneUsername.loading
+      : !linkingCode);
 
   let profaneUsername: { loading: boolean; profane: boolean } = {
     loading: false,
@@ -89,7 +83,7 @@
   };
 
   function updateIsProfaneUsername() {
-    if(!browser || !$userParams.name) return;
+    if (!browser || !$userParams.name) return;
     profaneUsername.loading = true;
     fetch("/api/checkIsUsernameProfane", {
       method: "POST",
@@ -143,15 +137,15 @@
     <h4>User</h4>
     <div id="content">
       <Group variant="outlined">
-        {#if $newUser}
+        {#if newUser}
           <Button variant="unelevated">
             <Label>New</Label>
           </Button>
-          <Button on:click={() => ($newUser = false)} variant="outlined">
+          <Button on:click={() => (newUser = false)} variant="outlined">
             <Label>Connect to existing</Label>
           </Button>
         {:else}
-          <Button on:click={() => ($newUser = true)} variant="outlined">
+          <Button on:click={() => (newUser = true)} variant="outlined">
             <Label>New</Label>
           </Button>
           <Button variant="unelevated">
@@ -160,7 +154,7 @@
         {/if}
       </Group>
     </div>
-    {#if $newUser}
+    {#if newUser}
       <div class="user">
         <Textfield
           bind:value={$userParams.name}
@@ -206,7 +200,7 @@
     {/if}
   </Content>
   <Actions>
-    <Button action="confirm" bind:disabled>
+    <Button action="confirm" bind:disabled on:click={() => {if(browser) localStorage.setItem('setupDone', 'true')}}>
       <Label>Finish</Label>
     </Button>
   </Actions>

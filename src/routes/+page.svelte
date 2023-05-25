@@ -1,52 +1,64 @@
 <script lang="ts">
-  import { Icon } from '@smui/common';
-  import Card, { PrimaryAction } from '@smui/card';
-  import Input, { input, files } from '../lib/components/Input.svelte';
-  import { goto } from '$app/navigation';
+  import { Icon } from "@smui/common";
+  import Card, { PrimaryAction } from "@smui/card";
+  import Input, { input, files } from "../lib/components/Input.svelte";
+  import { goto } from "$app/navigation";
+  import SetupDialog from '$lib/dialogs/SetupDialog.svelte';
+  import { onMount } from "svelte";
+  import { browser } from "$app/environment";
 
   const handleDrop = (e: DragEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!e?.dataTransfer?.files) {
-      return
+      return;
     }
-    $files = e.dataTransfer.files
-  }
+    $files = e.dataTransfer.files;
+  };
+  let setup_open = false;
+
+  onMount(() => {
+    if (browser && !localStorage.getItem("setupDone")) {
+      setup_open = true;
+    }
+  });
 </script>
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
 <Input />
+<SetupDialog open={setup_open} />
 
 <div class="center">
   <div class="beside">
     <Card>
-        <PrimaryAction on:click={() => $input.click()}  style="padding: 64px">
-          <Icon class="material-icons" style="font-size: 30px"
-          >upload</Icon>
-          Select file(s)
-        </PrimaryAction>
-      </Card>
-
-    {#if $files}
-    <Card>
-      <PrimaryAction on:click={() => goto('/contacts/select')}  style="padding: 64px">
-        <Icon class="material-icons" style="font-size: 30px"
-        >contacts</Icon>
-        Select contact(s)
+      <PrimaryAction on:click={() => $input.click()} style="padding: 64px">
+        <Icon class="material-icons" style="font-size: 30px">upload</Icon>
+        Select file(s)
       </PrimaryAction>
     </Card>
+
+    {#if $files}
+      <Card>
+        <PrimaryAction
+          on:click={() => goto("/contacts/select")}
+          style="padding: 64px"
+        >
+          <Icon class="material-icons" style="font-size: 30px">contacts</Icon>
+          Select contact(s)
+        </PrimaryAction>
+      </Card>
     {/if}
   </div>
 
   {#if $files}
-  <Card padded>
-    <h4>Selected file(s):</h4>
-    <p class="small"><br /></p>
+    <Card padded>
+      <h4>Selected file(s):</h4>
+      <p class="small"><br /></p>
 
-    {#each Array.from($files) as file}
-    <p>{file.name}</p>
-    {/each}
-  </Card>
+      {#each Array.from($files) as file}
+        <p>{file.name}</p>
+      {/each}
+    </Card>
   {/if}
 </div>
 

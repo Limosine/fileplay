@@ -8,9 +8,6 @@
 
   import TopAppBar from "$lib/components/TopAppBar.svelte";
   import Drawer from "$lib/components/Drawer.svelte";
-  import SetupDialog from '$lib/dialogs/SetupDialog.svelte';
-
-  let setup_open = true;
   
   onMount(async () => {
     // update service worker
@@ -55,8 +52,8 @@
     }
   }
 
-  if (browser && !localStorage.getItem("setupDone")) {
-    setup_open = true;
+  if (browser && !localStorage.getItem("setupDone") && window.location.pathname != "/") {
+    window.location.href = "/";
   }
 </script>
 
@@ -72,5 +69,4 @@
     <slot />
   </Drawer>
 
-  <SetupDialog open={setup_open}></SetupDialog>
 </div>
