@@ -1,5 +1,6 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
+import type { D1Database } from "@cloudflare/workers-types";
 declare global {
   namespace App {
     // interface Error {}
@@ -8,7 +9,11 @@ declare global {
       userId: string;
     }
     // interface PageData {}
-    interface Platform {}
+    interface Platform {
+      env?: {
+        DATABASE: D1Database;
+      };
+    }
   }
 
   interface Contact {
@@ -17,4 +22,4 @@ declare global {
   }
 }
 
-export { };
+export {};

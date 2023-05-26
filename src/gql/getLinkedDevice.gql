@@ -1,5 +1,0 @@
-query getLinkedDevice($id: ID!) {
-  getDevice(id: $id) {
-    id
-  }
-}

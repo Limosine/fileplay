@@ -1,15 +1,38 @@
-import { Client, fetchExchange } from "@urql/core";
-import { PUBLIC_DGRAPH_HTTP } from "$env/static/public";
-import { SERVER_JWT } from "$env/static/private";
+import { Kysely, type Generated } from "kysely";
+import { D1Dialect } from "kysely-d1";
 
-export async function createUrqlClient() {
-  return new Client({
-    url: new URL("/graphql", PUBLIC_DGRAPH_HTTP).href,
-    exchanges: [fetchExchange],
-    fetchOptions: {
-      headers: {
-        Authorization: `Bearer ${SERVER_JWT}`,
-      },
-    },
+interface UsersTable {
+  id: Generated<number>;
+  displayName: string;
+  isOnline: boolean;
+  lastSeen: Date | null;
+  avatarSeed: string;
+}
+
+interface DecivesTable {
+  id: Generated<number>;
+  displayName: string;
+  publicKey: string;
+  isOnline: boolean;
+  lastSeen: Date | null;
+}
+
+interface DevicesUsersTable {
+  did: number; // primary key, indexed
+  uid: number; // indexed
+}
+
+interface Database {
+  users: UsersTable;
+  devices: DecivesTable;
+  devicesUsers: DevicesUsersTable;
+}
+
+export function createKysely(
+  platform: App.Platform
+): Kysely<Database> | undefined {
+  if (!platform.env?.DATABASE) return;
+  return new Kysely<Database>({
+    dialect: new D1Dialect({ database: platform.env.DATABASE }),
   });
 }

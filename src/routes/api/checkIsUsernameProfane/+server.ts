@@ -1,7 +1,7 @@
 import { json, type RequestHandler } from "@sveltejs/kit";
 import { isProfane } from "$lib/server/utils";
 
-export const POST: RequestHandler = async ({request}) => {
+export const POST: RequestHandler = async ({request, platform}) => {
   const username: string = (await request.json()).username;
   if (!username) return new Response("Missing username!", { status: 400 });
 
