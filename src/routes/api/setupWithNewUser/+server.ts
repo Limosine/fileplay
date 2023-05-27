@@ -19,6 +19,8 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     udn: string = user.displayName,
     uas: string = user.avatarSeed;
 
+  console.log(ddn, dtype, udn, uas);
+
   // verify display name is not profane
   if (isProfane(udn)) throw error(418, "User display name is profane");
 
@@ -29,17 +31,23 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .returning("id")
     .executeTakeFirstOrThrow();
 
+  console.log('dres passed')
+
   const ures = await db
     .insertInto("users")
     .values({ displayName: udn, avatarSeed: uas })
     .returning("id")
     .executeTakeFirstOrThrow();
 
+  console.log('ures passed')
+
   const res = await db
     .insertInto("devicesUsers")
     .values({ did: dres.id, uid: ures.id })
     .returning("did")
     .executeTakeFirstOrThrow();
+  
+  console.log('res passed')
 
   const did = res.did.toString();
 

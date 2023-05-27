@@ -1,7 +1,7 @@
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     displayName TEXT NOT NULL,
-    isOnline INTEGER NOT NULL,
+    isOnline INTEGER DEFAULT 0 NOT NULL,
     avatarSeed TEXT NOT NULL
 );
 
@@ -9,7 +9,7 @@ CREATE TABLE devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     displayName TEXT NOT NULL,
     type TEXT NOT NULL,
-    isOnline INTEGER NOT NULL
+    isOnline INTEGER DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE devicesToUsers (
