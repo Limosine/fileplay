@@ -26,6 +26,10 @@
   });
 </script>
 
+<svelte:head>
+  <title>Fileplay</title>
+</svelte:head>
+
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
 <Input />

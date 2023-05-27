@@ -292,6 +292,7 @@
 
   img {
     width: 7em;
+    aspect-ratio: 1/1;
   }
 
   .vflex {
