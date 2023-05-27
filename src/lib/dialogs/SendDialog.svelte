@@ -6,16 +6,15 @@
   import Button, { Label } from "@smui/button";
   import Textfield from '@smui/textfield';
 
+  let addPendingFile: (files: FileList) => void;
   let multiSend = (files: FileList, reciever_uuids: string[]) => {};
 
   let reciever_uuid = "";
   let reciever_uuids: string[] = [];
 
   onMount(async () => {
-    let { setup } = await import('$lib/peerjs');
+    addPendingFile = (await import('$lib/peerjs')).addPendingFile;
     multiSend = (await import('$lib/peerjs')).multiSend;
-
-    setup("");
   });
 
   export let open: boolean;
@@ -40,6 +39,8 @@
     }
 
     switch (action) {
+      case "link":
+        addPendingFile($files);
       case "confirm":
         multiSend($files, reciever_uuids);
     }
@@ -74,6 +75,9 @@
   <Actions>
     <Button action="cancel">
       <Label>Cancel</Label>
+    </Button>
+    <Button action="link">
+      <Label>Via Link</Label>
     </Button>
     <Button action="confirm" disabled={reciever_uuids.length == 0}>
       <Label>Send</Label>

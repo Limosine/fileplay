@@ -5,7 +5,7 @@
   import { goto } from "$app/navigation";
   import { onMount } from 'svelte';
 
-  import { open as drawer_open } from '../../../lib/components/Drawer.svelte';
+  import { open as drawer_open } from '$lib/components/Drawer.svelte';
 
   drawer_open.set(false);
 
