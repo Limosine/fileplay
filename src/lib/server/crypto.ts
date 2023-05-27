@@ -17,7 +17,7 @@ export async function loadSignedDeviceID(
   key: CryptoKey
 ): Promise<number> {
   const did = cookies.get("id");
-  const signature = cookies.get("di_sig");
+  const signature = cookies.get("id_sig");
   if (!did || !signature) throw error(401, "Not authenticated");
   if (!(await verify(did, signature, key))) throw error(401, "Wrong authentication signature");
   return parseInt(did);
