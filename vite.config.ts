@@ -1,7 +1,10 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
+import { config } from "dotenv-vault-core";
 import PWAAssets, { getManifestIcons } from "./scripts";
+
+config();
 
 export default async function (config: ConfigEnv): Promise<UserConfig> {
   return {
@@ -11,16 +14,16 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         publicPath: "/pwa-assets",
         src: "static/favicon.png",
         mode: "fit",
+        background: "#f00",
       }),
       SvelteKitPWA({
         srcDir: "src",
         filename: "sw.ts",
         registerType: "prompt",
         strategies: "injectManifest",
-        includeAssets: ["static/*"],
-        useCredentials: true, // disable in prod
+        useCredentials: !process.env.CF_PROD, // disabled in production
         devOptions: {
-          enabled: true,
+          enabled: false,
           type: "module",
           navigateFallback: "/",
         },
@@ -29,5 +32,10 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         }), // enable sourcemap in dev
       }),
     ],
+    build: {
+      rollupOptions: {
+        external: ['react']   // mark as external because it is imported somewhere but not used
+      }
+    }, 
   };
 }

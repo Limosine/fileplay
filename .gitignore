@@ -1,3 +1,11 @@
+vite.config.ts.timestamp*
+src/lib/gql.ts
+*.key
+static/pwa-assets
+tmp*
+static/smui*
+
+
 # Created by https://www.toptal.com/developers/gitignore/api/svelte,yarn,git,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=svelte,yarn,git,node
 
@@ -15,6 +23,7 @@
 *_BASE_*.txt
 *_LOCAL_*.txt
 *_REMOTE_*.txt
+
 
 ### Node ###
 # Logs
@@ -182,5 +191,7 @@ package
 
 # End of https://www.toptal.com/developers/gitignore/api/svelte,yarn,git,node
 
-
-static/pwa-assets
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

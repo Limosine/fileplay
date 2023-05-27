@@ -1,26 +1,30 @@
-<script>
+<script lang="ts">
+  import { page } from '$app/stores';
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
   import { registerSW } from "virtual:pwa-register";
   import { HTMLImageTags } from "virtual:pwa-assets";
+  import { browser } from "$app/environment";
 
-  import Navbar from "$lib/components/Navbar.svelte";
-  import Sidebar from "$lib/components/Sidebar.svelte";
-  import Footer from "$lib/components/Footer.svelte";
-  import Mainpage from "$lib/container/Mainpage.svelte";
-
+  import TopAppBar from "$lib/components/TopAppBar.svelte";
+  import Drawer from "$lib/components/Drawer.svelte";
+  
   onMount(async () => {
+    // update service worker
     if (pwaInfo) {
       registerSW({
         // TODO handle queued update (show in notifications, update if inactive)
-        onRegisteredSW(swUrl, r) {
-          r &&
+        onRegisteredSW(
+          swScriptUrl: string,
+          registration: ServiceWorkerRegistration
+        ) {
+          registration &&
             setInterval(async () => {
               // check if sw is installing or navigator is offline
-              if (!(!r.installing && navigator)) return;
+              if (!(!registration.installing && navigator)) return;
               if ("connection" in navigator && !navigator.onLine) return;
 
-              const resp = await fetch(swUrl, {
+              const resp = await fetch(swScriptUrl, {
                 cache: "no-store",
                 headers: {
                   cache: "no-store",
@@ -29,11 +33,11 @@
               });
 
               if (resp.status === 200) {
-                await r.update();
+                await registration.update();
               }
             }, 1000 * 60 * 60);
         },
-        onRegisterError(error) {
+        onRegisterError(error: any) {
           console.error("SW registration error", error);
         },
       });
@@ -41,6 +45,16 @@
   });
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
+
+  const preventDefault = (e: Event) => {
+    if ($page.url.pathname == "/") {
+      e.preventDefault();
+    }
+  }
+
+  if (browser && !localStorage.getItem("setupDone") && window.location.pathname != "/") {
+    window.location.href = "/";
+  }
 </script>
 
 <svelte:head>
@@ -48,18 +62,11 @@
   {@html HTMLImageTags.join("\n")}
 </svelte:head>
 
-<!-- <div class="main"> -->
-<Navbar />
-<Sidebar />
-<div class="app-container">
-  <slot />
-</div>
-<Mainpage />
-<Footer />
+<div on:touchmove={preventDefault}>
+  <TopAppBar />
 
-<!-- </div> -->
-<style>
-  .app-container {
-    z-index: -50;
-  }
-</style>
+  <Drawer>
+    <slot />
+  </Drawer>
+
+</div>

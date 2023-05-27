@@ -33,7 +33,7 @@ interface PWAAssetsConfig {
 
 const DEFAULT_PWA_ASSETS_CONFIG: Omit<Required<PWAAssetsConfig>, "src"> = {
   publicPath: "/pwa-assets",
-  maskablePaddingPercent: 10,
+  maskablePaddingPercent: 15,
   opaque: true,
   mode: "fit",
   background: "#fff",

@@ -1,13 +1,15 @@
-import Neode from "neode";
-import { NEO4J_URL, NEO4J_USERNAME, NEO4J_PASSWORD } from "$env/static/private";
-import User from '$lib/server/models/User'
-import Device from '$lib/server/models/Device'
+import { Client, fetchExchange } from "@urql/core";
+import { PUBLIC_DGRAPH_HTTP } from "$env/static/public";
+import { SERVER_JWT } from "$env/static/private";
 
-export function createNeode(): Neode {
-  const neode = new Neode(NEO4J_URL, NEO4J_USERNAME, NEO4J_PASSWORD);
-  neode.with({
-    User,
-    Device
-  })
-  return neode;
+export async function createUrqlClient() {
+  return new Client({
+    url: new URL("/graphql", PUBLIC_DGRAPH_HTTP).href,
+    exchanges: [fetchExchange],
+    fetchOptions: {
+      headers: {
+        Authorization: `Bearer ${SERVER_JWT}`,
+      },
+    },
+  });
 }
