@@ -13,7 +13,7 @@ CREATE TABLE devices (
 );
 
 CREATE TABLE devicesToUsers (
-    did INTEGER,
+    did INTEGER PRIMARY KEY,
     uid INTEGER,
     FOREIGN KEY (did) REFERENCES devices(id),
     FOREIGN KEY (uid) REFERENCES users(id)
@@ -23,6 +23,7 @@ CREATE INDEX idx_devicesToUsers_did ON devicesToUsers (did);
 CREATE INDEX idx_devicesToUsers_uid ON devicesToUsers (uid);
 
 CREATE TABLE contacts (
+    _id INTEGER PRIMARY KEY AUTOINCREMENT,
     a INTEGER,
     b INTEGER,
     FOREIGN KEY (a) REFERENCES users(id),

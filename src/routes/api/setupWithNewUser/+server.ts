@@ -19,8 +19,6 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     udn: string = user.displayName,
     uas: string = user.avatarSeed;
 
-  console.log(ddn, dtype, udn, uas);
-
   // verify display name is not profane
   if (isProfane(udn)) throw error(418, "User display name is profane");
 
@@ -31,15 +29,11 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .returning("id")
     .executeTakeFirstOrThrow();
 
-  console.log('dres passed')
-
   const ures = await db
     .insertInto("users")
     .values({ displayName: udn, avatarSeed: uas })
     .returning("id")
     .executeTakeFirstOrThrow();
-
-  console.log('ures passed')
 
   const res = await db
     .insertInto("devicesToUsers")
@@ -47,13 +41,13 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .returning("did")
     .executeTakeFirstOrThrow();
   
-  console.log('res passed')
-
   const did = res.did.toString();
 
   // save device id in hmac signed cookie
   const key = await loadKey(COOKIE_SIGNING_SECRET);
+  console.log('loaded key')
   saveSignedDeviceID(did, cookies, key);
+  console.log('saved signed device id')
 
   return new Response(null, { status: 200 });
 };
