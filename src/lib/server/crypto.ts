@@ -42,7 +42,10 @@ export async function loadKey(key: string): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(key),
-    "HMAC",
+    {
+      name: "HMAC",
+      hash: "SHA-256",
+    },
     true,
     ["sign", "verify"]
   );
