@@ -71,7 +71,7 @@
     !$deviceParams.displayName ||
     !$deviceParams.type ||
     (newUser
-      ? !$userParams.name ||
+      ? !$userParams.dispalyName ||
         !$userParams.avatarSeed ||
         profaneUsername.profane ||
         profaneUsername.loading

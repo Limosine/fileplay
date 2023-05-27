@@ -1,7 +1,6 @@
 import type { Cookies } from "@sveltejs/kit";
 import { arrayBufferToHex, hexToArrayBuffer } from "./utils";
 
-
 export async function saveSignedDeviceID(
   did: string,
   cookies: Cookies,
@@ -25,12 +24,14 @@ export async function loadSignedDeviceID(
 
 export async function sign(data: string, key: CryptoKey): Promise<string> {
   const dataBuffer = new TextEncoder().encode(data);
-  return arrayBufferToHex(
-    await crypto.subtle.sign("HMAC", key, dataBuffer)
-  );
+  return arrayBufferToHex(await crypto.subtle.sign("HMAC", key, dataBuffer));
 }
 
-export async function verify(data: string, signature: string, key: CryptoKey): Promise<boolean> {
+export async function verify(
+  data: string,
+  signature: string,
+  key: CryptoKey
+): Promise<boolean> {
   const dataBuffer = new TextEncoder().encode(data);
   const signatureBuffer = hexToArrayBuffer(signature);
   return crypto.subtle.verify("HMAC", key, signatureBuffer, dataBuffer);
@@ -39,7 +40,7 @@ export async function verify(data: string, signature: string, key: CryptoKey): P
 export async function loadKey(key: string): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     "raw",
-    hexToArrayBuffer(key),
+    new TextEncoder().encode(key),
     "HMAC",
     true,
     ["sign", "verify"]
