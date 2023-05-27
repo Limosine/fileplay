@@ -45,9 +45,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   // save device id in hmac signed cookie
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  console.log('loaded key')
-  saveSignedDeviceID(did, cookies, key);
-  console.log('saved signed device id')
+  await saveSignedDeviceID(did, cookies, key);
 
   return new Response(null, { status: 200 });
 };

@@ -1,3 +1,4 @@
+import type { DeviceType } from "$lib/common";
 import { Kysely, type Generated, type ColumnType } from "kysely";
 import { D1Dialect } from "kysely-d1";
 
@@ -10,12 +11,6 @@ interface UsersTable {
   avatarSeed: string;
 }
 
-export enum DeviceType {
-  Desktop = "desktop",
-  Laptop = "laptop",
-  Phone = "phone",
-  Tablet = "tablet",
-}
 
 interface DecivesTable {
   id: Generated<number>;

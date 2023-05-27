@@ -7,7 +7,6 @@ export async function saveSignedDeviceID(
   key: CryptoKey
 ): Promise<void> {
   const signature = await sign(did, key);
-  console.log('signed id')
   cookies.set("did", did);
   cookies.set("did_signature", signature);
 }
