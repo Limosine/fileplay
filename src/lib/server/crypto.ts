@@ -1,5 +1,6 @@
 import { error, type Cookies } from "@sveltejs/kit";
 import { arrayBufferToHex, hexToArrayBuffer } from "./utils";
+import type { CookieSerializeOptions } from "cookie";
 
 export async function saveSignedDeviceID(
   did: number,
@@ -8,8 +9,11 @@ export async function saveSignedDeviceID(
 ): Promise<void> {
   const id = did.toString();
   const signature = await sign(id, key);
-  cookies.set("id", id);
-  cookies.set("id_sig", signature);
+  const cookie_opts: CookieSerializeOptions = {
+    path: "/",
+  };
+  cookies.set("id", id, cookie_opts);
+  cookies.set("id_sig", signature, cookie_opts);
 }
 
 export async function loadSignedDeviceID(
@@ -19,7 +23,8 @@ export async function loadSignedDeviceID(
   const did = cookies.get("id");
   const signature = cookies.get("id_sig");
   if (!did || !signature) throw error(401, "Not authenticated");
-  if (!(await verify(did, signature, key))) throw error(401, "Wrong authentication signature");
+  if (!(await verify(did, signature, key)))
+    throw error(401, "Wrong authentication signature");
   return parseInt(did);
 }
 
