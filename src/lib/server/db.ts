@@ -37,7 +37,7 @@ interface ContactsTable {
 interface Database {
   users: UsersTable;
   devices: DecivesTable;
-  devicesUsers: DevicesToUsersTable;
+  devicesToUsers: DevicesToUsersTable;
   ContactsTable: ContactsTable;
 }
 

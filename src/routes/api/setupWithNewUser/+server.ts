@@ -42,7 +42,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   console.log('ures passed')
 
   const res = await db
-    .insertInto("devicesUsers")
+    .insertInto("devicesToUsers")
     .values({ did: dres.id, uid: ures.id })
     .returning("did")
     .executeTakeFirstOrThrow();
