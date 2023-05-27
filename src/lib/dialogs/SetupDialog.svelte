@@ -18,12 +18,12 @@
 
   const deviceTypes = ["Computer", "Smartphone", "Smartwatch"];
   const deviceParams = writable({
-    name: "",
+    displayName: "",
     type: "",
   });
 
   const userParams = writable({
-    name: "",
+    displayName: "",
     avatarSeed: nanoid(8),
   });
 
@@ -55,7 +55,7 @@
     const res = await fetch("/api/user/contacts/add", {
       method: "POST",
       body: JSON.stringify({
-        deviceId: $deviceParams.name,
+        deviceId: $deviceParams.displayName,
         deviceSecret: "test secret",
       }),
     });
@@ -68,7 +68,7 @@
 
   let disabled: boolean;
   $: disabled =
-    !$deviceParams.name ||
+    !$deviceParams.displayName ||
     !$deviceParams.type ||
     (newUser
       ? !$userParams.name ||
@@ -83,12 +83,12 @@
   };
 
   function updateIsProfaneUsername() {
-    if (!browser || !$userParams.name) return;
+    if (!browser || !$userParams.displayName) return;
     profaneUsername.loading = true;
     fetch("/api/checkIsUsernameProfane", {
       method: "POST",
       body: JSON.stringify({
-        username: $userParams.name,
+        username: $userParams.displayName,
       }),
     })
       .then((res) => res.json())
@@ -119,7 +119,7 @@
     <h4>Device</h4>
     <div id="content">
       <Textfield
-        bind:value={$deviceParams.name}
+        bind:value={$deviceParams.displayName}
         label="Device Name"
         input$maxlength={18}
       />
@@ -157,7 +157,7 @@
     {#if newUser}
       <div class="user">
         <Textfield
-          bind:value={$userParams.name}
+          bind:value={$userParams.displayName}
           bind:invalid={profaneUsername.profane}
           on:focusout={updateIsProfaneUsername}
           label="Username"
