@@ -15,17 +15,12 @@
     }
     $files = e.dataTransfer.files;
   };
-  let setup_open = false;
   let send_open = false;
 
   let sender_uuid = writable<string>();
   let recieved_files = writable<{ url: string, name: string }[]>([]);
 
   onMount(async () => {
-    if (browser && !localStorage.getItem("setupDone")) {
-      setup_open = true;
-    }
-
     sender_uuid = (await import('$lib/peerjs')).sender_uuid;
     recieved_files = (await import('$lib/peerjs')).recieved_files;
   });
@@ -34,7 +29,7 @@
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
 <Input />
-<SetupDialog open={setup_open} />
+<SetupDialog/>
 <SendDialog open={send_open} />
 
 <div class="center">

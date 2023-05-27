@@ -9,6 +9,7 @@
     "graphql.vscode-graphql-syntax",
     "bierner.markdown-preview-github-styles",
     "syler.sass-indented",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "bungcip.better-toml"
   ]
 }
