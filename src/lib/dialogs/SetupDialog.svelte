@@ -72,6 +72,16 @@
       });
   }
 
+  async function handleResponseError(res: Response) {
+    setupLoading = false;
+    const json_ = await res.json();
+    if (json_) {
+      setupError = json_.message;
+    } else {
+      setupError = res.statusText;
+    }
+  }
+
   async function handleConfirm() {
     if (actionDisabled) return;
     setupLoading = true;
@@ -90,9 +100,7 @@
         body: JSON.stringify($deviceParams),
       });
       if (res.status !== 200) {
-        setupLoading = false;
-        console.error(res);
-        setupError = await res.text();
+        handleResponseError(res);
         return;
       }
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
@@ -105,9 +113,7 @@
           body: JSON.stringify($userParams),
         });
         if (res.status !== 200) {
-          setupLoading = false;
-          console.error(res);
-          setupError = await res.text();
+          handleResponseError(res);
           return;
         }
         break;
@@ -118,14 +124,13 @@
           body: JSON.stringify(linkingCode),
         });
         if (res2.status !== 200) {
-          setupLoading = false;
-          console.error(res2);
-          setupError = await res2.text();
+          handleResponseError(res2);
           return;
         }
         break;
     }
 
+    localStorage.removeItem("deviceParams");
     localStorage.setItem("setupDone", "true");
     open = false;
     setupLoading = false;
@@ -252,24 +257,24 @@
         />
       </div>
     {/if}
-    <div class="actions-flex">
-      {#if setupError}
-        <p style="color:red;justify-self:flex-start">{setupError}</p>
-      {/if}
+    <div class="actions">
       <Button bind:disabled={actionDisabled} on:click={handleConfirm}>
         <Label>Finish</Label>
       </Button>
+      {#if setupError}
+        <p style="color:red">{setupError}</p>
+      {/if}
     </div>
   </Content>
 </Dialog>
 
 <style>
-  .actions-flex {
+  .actions {
     margin-top: 1.6em;
     display: flex;
-    flex-flow: row;
-    justify-content: flex-end;
-    align-content: center;
+    flex-flow: row-reverse;
+    justify-content: space-between;
+    align-items: center;
   }
   #content {
     display: flex;
