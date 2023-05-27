@@ -1,4 +1,5 @@
 import type { DeviceType } from "$lib/common";
+import { error } from "@sveltejs/kit";
 import { Kysely, type Generated, type ColumnType } from "kysely";
 import { D1Dialect } from "kysely-d1";
 
@@ -38,9 +39,11 @@ interface Database {
 
 export function createKysely(
   platform: App.Platform | undefined
-): Kysely<Database> | undefined {
-  if (!platform?.env?.DATABASE) return;
-  return new Kysely<Database>({
+): Kysely<Database> {
+  if (!platform?.env?.DATABASE) throw error(500, "Database not configured");
+  const kys = new Kysely<Database>({
     dialect: new D1Dialect({ database: platform.env.DATABASE }),
   });
+  if (!kys) throw error(500, "Database could not be accessed");
+  return kys;
 }

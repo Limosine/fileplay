@@ -1,25 +1,26 @@
-import type { Cookies } from "@sveltejs/kit";
+import { error, type Cookies } from "@sveltejs/kit";
 import { arrayBufferToHex, hexToArrayBuffer } from "./utils";
 
 export async function saveSignedDeviceID(
-  did: string,
+  did: number,
   cookies: Cookies,
   key: CryptoKey
 ): Promise<void> {
-  const signature = await sign(did, key);
-  cookies.set("did", did);
-  cookies.set("did_signature", signature);
+  const id = did.toString();
+  const signature = await sign(id, key);
+  cookies.set("id", id);
+  cookies.set("id_sig", signature);
 }
 
 export async function loadSignedDeviceID(
   cookies: Cookies,
   key: CryptoKey
-): Promise<string | undefined> {
-  const did = cookies.get("did");
-  const signature = cookies.get("did_signature");
-  if (!did || !signature) return undefined;
-  if (!(await verify(did, signature, key))) return undefined;
-  return did;
+): Promise<number> {
+  const did = cookies.get("id");
+  const signature = cookies.get("di_sig");
+  if (!did || !signature) throw error(401, "Not authenticated");
+  if (!(await verify(did, signature, key))) throw error(401, "Wrong authentication signature");
+  return parseInt(did);
 }
 
 export async function sign(data: string, key: CryptoKey): Promise<string> {

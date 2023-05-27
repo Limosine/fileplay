@@ -14,19 +14,12 @@
     }
     $files = e.dataTransfer.files;
   };
-  let setup_open = false;
-
-  onMount(() => {
-    if (browser && !localStorage.getItem("setupDone")) {
-      setup_open = true;
-    }
-  });
 </script>
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
 <Input />
-<SetupDialog open={setup_open} />
+<SetupDialog/>
 
 <div class="center">
   <div class="beside">
