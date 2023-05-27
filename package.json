@@ -3,11 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "codegen": "graphql-codegen && node ./scripts/fix-typed-document-node.js",
-    "dev": "npm run codegen && vite dev",
-    "build": "npm run codegen && vite build",
+    "dev": "vite dev",
+    "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && node .github/workflows/validate-schema.js",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "postinstall": "husky install && rimraf .husky/pre-commit && echo 'Please install and login to dotenv-vault to access the required .env files'",
     "husky:pre-commit": "dotenv-vault build --yes && dotenv-vault push && dotenv-vault push production",
@@ -17,11 +16,6 @@
   },
   "devDependencies": {
     "@formkit/auto-animate": "^1.0.0-beta.6",
-    "@graphql-codegen/cli": "^3.3.1",
-    "@graphql-codegen/client-preset": "^3.0.1",
-    "@graphql-codegen/typed-document-node": "^4.0.1",
-    "@graphql-codegen/typescript-operations": "^3.0.4",
-    "@graphql-eslint/eslint-plugin": "^3.18.0",
     "@smui/banner": "^7.0.0-beta.8",
     "@smui/button": "^7.0.0-beta.8",
     "@smui/card": "^7.0.0-beta.8",
@@ -55,8 +49,6 @@
     "dotenv-vault-core": "^0.7.0",
     "eslint": "^8.36.0",
     "eslint-plugin-svelte": "^2.28.0",
-    "graphql": "^16.6.0",
-    "graphql-config": "^4.5.0",
     "husky": "^8.0.0",
     "idb": "^7.1.1",
     "jsonwebtoken": "^9.0.0",
@@ -77,11 +69,5 @@
     "workbox-precaching": "^6.5.4",
     "workbox-routing": "^6.5.4"
   },
-  "type": "module",
-  "dependencies": {
-    "rtc-socket-connector-client": "^0.1.7",
-    "rtc-socket-connector-server": "^0.1.0",
-    "socket.io": "^4.6.1",
-    "socket.io-client": "^4.6.1"
-  }
+  "type": "module"
 }
