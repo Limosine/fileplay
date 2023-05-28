@@ -3,7 +3,6 @@ import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { sql } from "kysely";
 
 export const GET: RequestHandler = async (request) => {
   // get all devices linked to this account (requires cookie auth)
@@ -44,8 +43,10 @@ export const POST: RequestHandler = async ({
   const own_did = await loadSignedDeviceID(cookies, key);
 
   const did_s = url.searchParams.get("id");
-  if (!did_s) throw error(400, "Missing device id in query params");
-  const did = parseInt(did_s);
+  let did: number;
+  if (did_s) did = parseInt(did_s);
+  else did = own_did;
+
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
   const { displayName, type, isOnline } = await request.json();
@@ -89,8 +90,10 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
   const own_did = await loadSignedDeviceID(cookies, key);
 
   const did_s = url.searchParams.get("id");
-  if (!did_s) throw error(400, "Missing device id in query params");
-  const did = parseInt(did_s);
+  let did: number;
+  if (did_s) did = parseInt(did_s);
+  else did = own_did;
+
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
   if (did == own_did) {
