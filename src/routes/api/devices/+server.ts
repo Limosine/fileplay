@@ -107,8 +107,6 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
       .where("did", "=", did)
       .where("uid", "=", uid)
       .executeTakeFirst();
-
-    console.log(`res1: ${JSON.stringify(res1)}`);
     if (!res1) throw error(403, "You do not own this device");
 
     await db
@@ -123,9 +121,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
       .where("uid", "=", uid)
       .executeTakeFirstOrThrow();
 
-    console.log(`count: ${JSON.stringify(count)}`);
     if (count == 0) {
-      console.log(`deleting user ${uid}`)
       await db
         .deleteFrom("users")
         .where("id", "=", uid)
