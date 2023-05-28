@@ -20,7 +20,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   await saveSignedDeviceID(res.id, cookies, key);
 
-  return new Response(null, { status: 200 });
+  return new Response(null, { status: 201 });
 };
 
 // next step in onboarding: either redeem an advertisement code or create a new user using POST /api/setup/user

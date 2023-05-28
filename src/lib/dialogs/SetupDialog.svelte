@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Dialog, { Title, Content, Actions } from "@smui/dialog";
+  import Dialog, { Title, Content } from "@smui/dialog";
   import Button, { Group, Label } from "@smui/button";
   import Textfield from "@smui/textfield";
   import Select, { Option } from "@smui/select";
@@ -32,15 +32,17 @@
   let setupLoading = false;
 
   let actionDisabled: boolean;
-  $: actionDisabled =
-    !$deviceParams.displayName ||
-    !$deviceParams.type ||
-    (newUser
-      ? !$userParams.displayName ||
+  $: {
+    if (!$deviceParams.displayName || !$deviceParams.type) actionDisabled = true
+    else if (newUser) {
+      actionDisabled = !$userParams.displayName ||
         !$userParams.avatarSeed ||
         profaneUsername.profane ||
         profaneUsername.loading
-      : !linkingCode);
+    } else {
+      actionDisabled = !linkingCode
+    }
+  }
 
   let profaneUsername: { loading: boolean; profane: boolean } = {
     loading: false,

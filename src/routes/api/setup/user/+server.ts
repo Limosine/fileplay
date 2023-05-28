@@ -25,6 +25,6 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
     .returning("did")
     .executeTakeFirstOrThrow();
   
-  return new Response(null, { status: 200 });
+  return new Response(null, { status: 201 });
 
 };
