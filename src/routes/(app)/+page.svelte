@@ -3,10 +3,9 @@
   import Card, { PrimaryAction } from "@smui/card";
   import Input, { input, files } from "$lib/components/Input.svelte";
   import SetupDialog from '$lib/dialogs/SetupDialog.svelte';
-  import SendDialog from "$lib/dialogs/SendDialog.svelte";
   import { onMount } from "svelte";
-  import { browser } from "$app/environment";
   import { writable } from "svelte/store";
+  import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -41,12 +40,12 @@
 
 <Input />
 <SetupDialog/>
-<SendDialog open={send_open} />
+<SelectContactsDialog open={send_open} />
 
 <div class="center">
   {#if $sender_uuid}
     <Card padded>
-      <h4>My uuid: {$sender_uuid}</h4>
+      <h6>My uuid: {$sender_uuid}</h6>
     </Card>
   {/if}
   <div class="beside">
@@ -79,7 +78,7 @@
 
   {#if $files}
     <Card padded>
-      <h4>Selected file(s):</h4>
+      <h6>Selected file(s):</h6>
       <p class="small"><br /></p>
 
       {#each Array.from($files) as file}
@@ -90,7 +89,7 @@
 
   {#if $recieved_files.length != 0}
     <Card padded>
-      <h4>Recieved file(s):</h4>
+      <h6>Recieved file(s):</h6>
       <p class="small"><br /></p>
 
       {#each $recieved_files as recieved_file}

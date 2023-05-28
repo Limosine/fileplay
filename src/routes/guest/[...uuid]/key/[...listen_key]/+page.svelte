@@ -4,6 +4,8 @@
   import { writable } from "svelte/store";
   import { page } from '$app/stores';
 
+  import '$lib/../theme/typography.scss'
+
   let recieved_files = writable<{ url: string, name: string }[]>([]);
 
   onMount(async () => {
@@ -21,7 +23,7 @@
 <div class="center">
   {#if $recieved_files.length != 0}
     <Card padded>
-      <h4>Recieved file(s):</h4>
+      <h6>Recieved file(s):</h6>
       <p class="small"><br /></p>
 
       {#each $recieved_files as recieved_file}
@@ -30,7 +32,7 @@
     </Card>
   {:else}
     <Card padded>
-      <h4>Waiting for files...</h4>
+      <h6>Waiting for files...</h6>
     </Card>
   {/if}
 </div>

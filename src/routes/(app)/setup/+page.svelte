@@ -67,7 +67,7 @@
 >
   <Title id="title">Setup</Title>
   <Content>
-    <h4>Device</h4>
+    <h6>Device</h6>
     <div id="content">
       <Textfield bind:value={deviceid} label="Device Name" input$maxlength={18}/>
       <Select bind:value={devicetype} label="Device Type" input$maxlength={18}>
@@ -77,7 +77,7 @@
       </Select>
     </div>
     <br/>
-    <h4>User</h4>
+    <h6>User</h6>
     <div id="content">
       <Group variant="outlined">
         {#if $newUser}

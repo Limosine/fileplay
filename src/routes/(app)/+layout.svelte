@@ -9,7 +9,7 @@
   import TopAppBar from "$lib/components/TopAppBar.svelte";
   import Drawer from "$lib/components/Drawer.svelte";
 
-  import '../..//theme/typography.scss'
+  import '$lib/../theme/typography.scss'
   
   onMount(async () => {
     // update service worker

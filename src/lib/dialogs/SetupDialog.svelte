@@ -31,8 +31,6 @@
 
   let setupLoading = false;
 
-  // TODO handle keydown
-
   let actionDisabled: boolean;
   $: actionDisabled =
     !$deviceParams.displayName ||
@@ -70,6 +68,13 @@
         profaneUsername.profane = false;
         profaneUsername.loading = false;
       });
+  }
+
+  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
+    event = event as KeyboardEvent;
+    if (event.key === "Enter" && !actionDisabled) {
+      handleConfirm();
+    }
   }
 
   async function handleResponseError(res: Response) {
@@ -149,6 +154,8 @@
     }
   });
 </script>
+
+<svelte:window on:keydown={handleKeyDown} />
 
 <Dialog
   bind:open
