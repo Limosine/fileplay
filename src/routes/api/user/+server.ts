@@ -8,3 +8,6 @@ export const POST: RequestHandler = async (request) => {
   // change user info (requires cookie auth)
 };
 
+export const DELETE: RequestHandler = async (request) => {
+  // completely remove user and all devices (requires cookie auth)
+};
