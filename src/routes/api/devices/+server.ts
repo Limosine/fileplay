@@ -12,7 +12,7 @@ export const GET: RequestHandler = async (request) => {
 
   const devices = await db
     .selectFrom("devices")
-    .select(["displayName", "type", "isOnline"])
+    .selectAll()
     .where(
       "id",
       "in",
@@ -51,10 +51,14 @@ export const POST: RequestHandler = async ({
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
   const { displayName, type } = await request.json();
+  let updateObject: {displayName?: string, type?: string} = {};
+  if (displayName) updateObject["displayName"] = displayName;
+  if (type) updateObject["type"] = type;
+
 
   const res = await db
     .updateTable("devices")
-    .set({ displayName, type })
+    .set(updateObject as any)
     .where("id", "=", did)
     .where(
       "id",
