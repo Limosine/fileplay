@@ -45,16 +45,16 @@ export const POST: RequestHandler = async ({
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const own_did = await loadSignedDeviceID(cookies, key);
 
-  const did_s = url.searchParams.get("did");
+  const did_s = url.searchParams.get("id");
   if (!did_s) throw error(400, "Missing device id in query params");
   const did = parseInt(did_s);
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
-  const { displayName, type } = await request.json();
-  let updateObject: {displayName?: string, type?: string} = {};
+  const { displayName, type, isOnline } = await request.json();
+  let updateObject: {displayName?: string, type?: string, isOnline?: number} = {};
   if (displayName) updateObject["displayName"] = displayName;
   if (type) updateObject["type"] = type;
-
+  if (isOnline) updateObject["isOnline"] = isOnline;
 
   const res = await db
     .updateTable("devices")
@@ -89,7 +89,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const own_did = await loadSignedDeviceID(cookies, key);
 
-  const did_s = url.searchParams.get("did");
+  const did_s = url.searchParams.get("id");
   if (!did_s) throw error(400, "Missing device id in query params");
   const did = parseInt(did_s);
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
