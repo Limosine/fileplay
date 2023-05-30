@@ -10,6 +10,7 @@ interface UsersTable {
   displayName: string;
   isOnline: isOnline;
   avatarSeed: string;
+  createdAt: string;
 }
 
 interface DecivesTable {
@@ -17,16 +18,19 @@ interface DecivesTable {
   displayName: string;
   type: DeviceType;
   isOnline: isOnline;
+  createdAt: string;
 }
 
 interface DevicesToUsersTable {
   did: number; // indexed, foreign key devices.id
   uid: number; // indexed, foreign key users.id
+  createdAt: string;
 }
 
 interface ContactsTable {
   a: number; // indexed, foreign key users.id
   b: number; // indexed, foreign key users.id
+  createdAt: string;
 }
 
 interface DevicesLinkCodesTable {

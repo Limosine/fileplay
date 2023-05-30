@@ -8,8 +8,6 @@
   import Tooltip, { Wrapper } from '@smui/tooltip';
   import { writable } from 'svelte/store';
 
-  import { open as drawer_open } from './Drawer.svelte';
-
   export const topAppBar = writable<TopAppBar>();
 
   const colors = ["green", "yellow", "red"];
@@ -20,12 +18,6 @@
 <header class="mdc-top-app-bar">
   <TopAppBar bind:this={$topAppBar} variant="fixed">
     <Row>
-      <Section>
-        <!-- <IconButton class="material-icons" on:click={() => drawer_open.update(open => (open = !open))}
-          >menu</IconButton
-        > -->
-        <Title>Fileplay</Title>
-      </Section>
       <Section align="end" toolbar>
         <Wrapper>
           <div><div class="connection-status" style="background-color: {colors[current_status]}"></div></div>
