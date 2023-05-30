@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
 
   // generate a code
   let code: string;
-  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const alphabet = "0123456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no I, L, O
   do {
     code = "";
     for (let i = 0; i < 6; i++) {
@@ -54,7 +54,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const own_did = await loadSignedDeviceID(cookies, key);
   const { code: code_any } = await request.json();
-  const code = (code_any as string).toUpperCase();
+  const code = (code_any as string).toUpperCase().replaceAll("O", "0"); // normalize code
 
   // get uid to link to
   const res1 = await db
