@@ -106,7 +106,7 @@
         method: "POST",
         body: JSON.stringify($deviceParams),
       });
-      if (res.status !== 200) {
+      if (String(res.status).charAt(0) !== "2") {
         handleResponseError(res);
         return;
       }
