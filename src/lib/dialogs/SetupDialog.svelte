@@ -119,7 +119,7 @@
           method: "POST",
           body: JSON.stringify($userParams),
         });
-        if (res.status !== 200) {
+        if (String(res.status).charAt(0) !== "2") {
           handleResponseError(res);
           return;
         }
@@ -130,7 +130,7 @@
           method: "POST",
           body: JSON.stringify(linkingCode),
         });
-        if (res2.status !== 200) {
+        if (String(res2.status).charAt(0) !== "2") {
           handleResponseError(res2);
           return;
         }
