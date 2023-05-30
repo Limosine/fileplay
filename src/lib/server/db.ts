@@ -12,7 +12,6 @@ interface UsersTable {
   avatarSeed: string;
 }
 
-
 interface DecivesTable {
   id: Generated<number>;
   displayName: string;
@@ -30,11 +29,25 @@ interface ContactsTable {
   b: number; // indexed, foreign key users.id
 }
 
+interface DevicesLinkCodesTable {
+  code: string; // indexed, primary
+  expires: Date;
+  uid: number; // indexed, foreign key users.id
+}
+
+interface ContactsLinkCodesTable {
+  code: string; // indexed, primary
+  expires: Date;
+  uid: number; // indexed, foreign key users.id
+}
+
 interface Database {
   users: UsersTable;
   devices: DecivesTable;
   devicesToUsers: DevicesToUsersTable;
-  ContactsTable: ContactsTable;
+  contacts: ContactsTable;
+  devicesLinkCodes: DevicesLinkCodesTable;
+  contactsLinkCodes: ContactsLinkCodesTable;
 }
 
 export function createKysely(

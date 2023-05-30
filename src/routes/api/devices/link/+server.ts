@@ -1,13 +1,99 @@
+import { COOKIE_SIGNING_SECRET } from "$env/static/private";
+import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
+import { createKysely } from "$lib/server/db";
+import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
+import { LINKING_EXPIRY_TIME, LINKING_REFRESH_TIME } from "$lib/common";
 
-export const GET: RequestHandler = async (request) => {
+export const GET: RequestHandler = async ({ platform, cookies }) => {
   // returns an advertisement code that can be redeemed to link a device to the connected user (requires cookie auth)
-}
+  const db = createKysely(platform);
+  const key = await loadKey(COOKIE_SIGNING_SECRET);
+  const own_did = await loadSignedDeviceID(cookies, key);
 
-export const POST: RequestHandler = async (request) => {
+  // get uid
+  const { uid } = await db
+    .selectFrom("devicesToUsers")
+    .select("uid")
+    .where("did", "=", own_did)
+    .executeTakeFirstOrThrow();
+
+  // generate a code
+  let code: string;
+  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  do {
+    code = "";
+    for (let i = 0; i < 6; i++) {
+      code += alphabet[Math.floor(Math.random() * alphabet.length)];
+    }
+  } while (
+    await db
+      .selectFrom("devicesLinkCodes")
+      .select("code")
+      .where("code", "=", code)
+      .executeTakeFirst()
+  );
+
+  // set expiration date
+  const expires = new Date(Date.now() + LINKING_EXPIRY_TIME);
+
+  // insert the code into the devicesLinkCodes table
+  await db
+    .insertInto("devicesLinkCodes")
+    .values({ code, uid, expires })
+    .returning("code")
+    .execute();
+
+  return json({ code, expires, refresh: LINKING_REFRESH_TIME });
+};
+
+export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // link a device to the user's account by redeeming an advertisement code (requires cookie auth)
-}
+  const db = createKysely(platform);
+  const key = await loadKey(COOKIE_SIGNING_SECRET);
+  const own_did = await loadSignedDeviceID(cookies, key);
+  const { code: code_any } = await request.json();
+  const code = (code_any as string).toUpperCase();
 
-export const DELETE: RequestHandler = async (request) => {
-  // revoke the current advertisement code (also happens after 5 minutes, code is refreshed after 3) (requires cookie auth)
-}
+  // get uid to link to
+  const res1 = await db
+    .selectFrom("devicesLinkCodes")
+    .select("uid")
+    .where("code", "=", code)
+    .where("expires", ">", new Date())
+    .executeTakeFirst();
+
+  if (!res1) throw error(404, "Invalid code");
+
+  // delete existing devicesToUsers linking if exists
+  await db.deleteFrom("devicesToUsers").where("did", "=", own_did).execute();
+
+  // insert new linking
+  const res2 = await db
+    .insertInto("devicesToUsers")
+    .values({ did: own_did, uid: res1.uid })
+    .returning("did")
+    .executeTakeFirst();
+  if (!res2) throw error(500, "Could not link device");
+
+  return new Response(null, { status: 200 });
+};
+
+export const DELETE: RequestHandler = async ({ platform, cookies }) => {
+  // revoke the current advertisement code (also happens after 15 minutes, code is refreshed after 10) (requires cookie auth)
+  const db = createKysely(platform);
+  const key = await loadKey(COOKIE_SIGNING_SECRET);
+  const own_did = await loadSignedDeviceID(cookies, key);
+
+  // get uid
+  const { uid } = await db
+    .selectFrom("devicesToUsers")
+    .select("uid")
+    .where("did", "=", own_did)
+    .executeTakeFirstOrThrow();
+  
+  // delete the code
+  await db.deleteFrom("devicesLinkCodes").where("uid", "=", uid).execute();
+
+  return new Response(null, { status: 200 });
+};

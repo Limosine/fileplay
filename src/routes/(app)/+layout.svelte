@@ -54,7 +54,7 @@
     }
   }
 
-  if (browser && !localStorage.getItem("setupDone") && window.location.pathname != "/") {
+  if (browser && !localStorage.getItem("loggedIn") && window.location.pathname != "/") {
     window.location.href = "/";
   }
 </script>

@@ -116,20 +116,6 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
       .deleteFrom("devices")
       .where("id", "=", did)
       .executeTakeFirstOrThrow();
-
-    // delete user if no devices left
-    const { count } = await db
-      .selectFrom("devicesToUsers")
-      .select(db.fn.countAll<number>().as("count"))
-      .where("uid", "=", uid)
-      .executeTakeFirstOrThrow();
-
-    if (count == 0) {
-      await db
-        .deleteFrom("users")
-        .where("id", "=", uid)
-        .executeTakeFirstOrThrow();
-    }
   } else {
     // delete deviceToUser mapping
     const res1 = await db

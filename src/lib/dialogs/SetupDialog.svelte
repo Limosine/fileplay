@@ -33,14 +33,16 @@
 
   let actionDisabled: boolean;
   $: {
-    if (!$deviceParams.displayName || !$deviceParams.type) actionDisabled = true
+    if (!$deviceParams.displayName || !$deviceParams.type)
+      actionDisabled = true;
     else if (newUser) {
-      actionDisabled = !$userParams.displayName ||
+      actionDisabled =
+        !$userParams.displayName ||
         !$userParams.avatarSeed ||
         profaneUsername.profane ||
-        profaneUsername.loading
+        profaneUsername.loading;
     } else {
-      actionDisabled = !linkingCode
+      actionDisabled = !linkingCode;
     }
   }
 
@@ -128,7 +130,7 @@
         // link to existing user
         const res2 = await fetch("/api/devices/link", {
           method: "POST",
-          body: JSON.stringify(linkingCode),
+          body: JSON.stringify({code: linkingCode}),
         });
         if (res2.status !== 200) {
           handleResponseError(res2);
@@ -138,7 +140,7 @@
     }
 
     localStorage.removeItem("deviceParams");
-    localStorage.setItem("setupDone", "true");
+    localStorage.setItem("loggedIn", "true");
     open = false;
     setupLoading = false;
   }
@@ -146,7 +148,7 @@
   onMount(() => {
     if (!browser) return;
     // if device is not set up, open dialog
-    if (!localStorage.getItem("setupDone")) {
+    if (!localStorage.getItem("loggedIn")) {
       open = true;
       // if setup was partially completed, load values
       const storedDeviceParams = localStorage.getItem("deviceParams");
@@ -201,7 +203,10 @@
           </Button>
           <Button
             bind:disabled={setupLoading}
-            on:click={() => (newUser = false)}
+            on:click={() => {
+              newUser = false;
+              setupError = "";
+            }}
             variant="outlined"
           >
             <Label>Connect to existing</Label>
@@ -209,7 +214,10 @@
         {:else}
           <Button
             bind:disabled={setupLoading}
-            on:click={() => (newUser = true)}
+            on:click={() => {
+              newUser = true;
+              setupError = "";
+            }}
             variant="outlined"
           >
             <Label>New</Label>
@@ -254,15 +262,16 @@
       <div>
         <p>
           Please generate a linking code on a device already <br />
-          connected to the user by going to Settings > Devices ><br />
-          Generate linking code.
+          connected to the user by going to <br />
+          <strong>Settings</strong> > <strong>Devices</strong> >
+          <strong>Generate linking code</strong>.
         </p>
         <Textfield
           label="Linking Code"
           input$maxlength={6}
           bind:value={linkingCode}
-          input$placeholder="XXXXXX"
-          type="number"
+          bind:disabled={setupLoading}
+          input$placeholder="6-digit code"
         />
       </div>
     {/if}
@@ -279,13 +288,13 @@
 
 <style>
   .actions {
-    margin-top: 1.6em;
     display: flex;
     flex-flow: row-reverse;
     justify-content: space-between;
     align-items: center;
   }
   #content {
+    margin-bottom: 1.6em;
     display: flex;
     flex-flow: row;
     justify-content: center;
