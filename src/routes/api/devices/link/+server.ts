@@ -4,6 +4,7 @@ import { createKysely } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { LINKING_EXPIRY_TIME, LINKING_REFRESH_TIME } from "$lib/common";
+import dayjs from "dayjs";
 
 export const GET: RequestHandler = async ({ platform, cookies }) => {
   // returns an advertisement code that can be redeemed to link a device to the connected user (requires cookie auth)
@@ -35,7 +36,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   );
 
   // set expiration date
-  const expires = new Date(Date.now() + LINKING_EXPIRY_TIME);
+  const expires = dayjs().add(LINKING_EXPIRY_TIME, "millisecond").toISOString();
 
   // insert the code into the devicesLinkCodes table
   await db
@@ -60,7 +61,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .selectFrom("devicesLinkCodes")
     .select("uid")
     .where("code", "=", code)
-    .where("expires", ">", new Date())
+    .where("expires", ">", dayjs().toISOString())
     .executeTakeFirst();
 
   if (!res1) throw error(404, "Invalid code");

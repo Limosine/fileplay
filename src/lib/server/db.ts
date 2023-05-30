@@ -31,13 +31,13 @@ interface ContactsTable {
 
 interface DevicesLinkCodesTable {
   code: string; // indexed, primary
-  expires: Date;
+  expires: string;
   uid: number; // indexed, foreign key users.id
 }
 
 interface ContactsLinkCodesTable {
   code: string; // indexed, primary
-  expires: Date;
+  expires: string;
   uid: number; // indexed, foreign key users.id
 }
 
