@@ -32,12 +32,14 @@ interface ContactsTable {
 interface DevicesLinkCodesTable {
   code: string; // indexed, primary
   expires: string;
+  created_did: number;
   uid: number; // indexed, foreign key users.id
 }
 
 interface ContactsLinkCodesTable {
   code: string; // indexed, primary
   expires: string;
+  created_did: number;
   uid: number; // indexed, foreign key users.id
 }
 

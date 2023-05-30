@@ -41,7 +41,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   // insert the code into the devicesLinkCodes table
   await db
     .insertInto("devicesLinkCodes")
-    .values({ code, uid, expires })
+    .values({ code, uid, expires, created_did: own_did })
     .returning("code")
     .execute();
 
@@ -92,9 +92,15 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
     .select("uid")
     .where("did", "=", own_did)
     .executeTakeFirstOrThrow();
-  
+
   // delete the code
-  await db.deleteFrom("devicesLinkCodes").where("uid", "=", uid).execute();
+  const res1 = await db
+    .deleteFrom("devicesLinkCodes")
+    .where("uid", "=", uid)
+    .where("created_did", "=", own_did) // only the device that created the code can revoke it
+    .returningAll()
+    .executeTakeFirst();
+  if (!res1) throw error(500, "Could not revoke code");
 
   return new Response(null, { status: 200 });
 };
