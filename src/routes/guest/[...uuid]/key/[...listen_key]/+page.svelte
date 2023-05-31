@@ -1,10 +1,10 @@
 <script lang="ts">
+  // ToDo: Notification on download of file
+
   import Card from "@smui/card";
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
   import { page } from '$app/stores';
-
-  import '$lib/../theme/typography.scss'
 
   let recieved_files = writable<{ url: string, name: string }[]>([]);
 

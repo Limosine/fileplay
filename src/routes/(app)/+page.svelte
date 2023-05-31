@@ -7,6 +7,9 @@
   import { writable } from "svelte/store";
   import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
 
+  import { open as select_open } from "$lib/stores/SelectContactStore";
+
+
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
     if (!e?.dataTransfer?.files) {
@@ -14,7 +17,6 @@
     }
     $files = e.dataTransfer.files;
   };
-  let send_open = false;
 
   let sender_uuid = writable<string>();
   let recieved_files = writable<{ url: string, name: string }[]>([]);
@@ -39,8 +41,8 @@
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
 <Input />
-<SetupDialog/>
-<SelectContactsDialog open={send_open} />
+<!-- <SetupDialog/> -->
+<SelectContactsDialog/>
 
 <div class="center">
   {#if $sender_uuid}
@@ -59,7 +61,7 @@
     {#if $files}
       <Card>
         <PrimaryAction
-          on:click={() => send_open = true}
+          on:click={() => select_open.set(true)}
           style="padding: 64px"
         >
           <Icon class="material-icons" style="font-size: 30px">send</Icon>

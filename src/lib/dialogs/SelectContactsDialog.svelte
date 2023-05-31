@@ -7,6 +7,7 @@
   import { onMount } from "svelte";
   import { files } from "$lib/components/Input.svelte";
   import Textfield from "@smui/textfield";
+  import { open } from "$lib/stores/SelectContactStore";
 
   let addPendingFile: (files: FileList) => void;
   let multiSend = (files: FileList, reciever_uuids: string[]) => {};
@@ -33,8 +34,6 @@
     multiSend = (await import('$lib/peerjs')).multiSend;
   });
 
-  export let open: boolean;
-
   const selected = writable<{ [name: string]: string }>({});
 
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
@@ -60,7 +59,7 @@
       case "confirm":
         multiSend($files, reciever_uuids);
     }
-    open = false;
+    $open = false;
   }
 
   function add2array() {
@@ -84,7 +83,7 @@
 <svelte:window on:keydown={handleKeyDown} />
 
 <Dialog
-  bind:open
+  bind:open={$open}
   aria-labelledby="title"
   aria-describedby="content"
   on:SMUIDialog:closed={closeHandler}

@@ -9,6 +9,8 @@
   import { writable } from 'svelte/store';
   import { goto } from '$app/navigation';
 
+  import { open as drawer_open } from './Drawer.svelte';
+
   export const topAppBar = writable<TopAppBar>();
 
   const colors = ["green", "yellow", "red"];
@@ -32,9 +34,9 @@
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Account page"
-            >account_circle</IconButton>
-          <Tooltip>Account page</Tooltip>
+          <IconButton class="material-icons" aria-label="Account page" on:click={() => drawer_open.update(open => (open = !open))}
+            >contacts</IconButton>
+          <Tooltip>Manage contacts</Tooltip>
         </Wrapper>
 
         <Wrapper>
