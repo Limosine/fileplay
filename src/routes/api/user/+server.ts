@@ -13,7 +13,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   const userInfo = await db
     .selectFrom("users")
     .selectAll()
-    .where("id", "=", db.selectFrom("devicesToUsers").where("did", "=", did))
+    .where("id", "=", db.selectFrom("devicesToUsers").select('uid').where("did", "=", did))
     .executeTakeFirstOrThrow();
 
   return json(userInfo);
@@ -26,14 +26,14 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   const did = await loadSignedDeviceID(cookies, key);
   const updateValues = await request.json();
 
-  const user = await db
+  const res1 = await db
     .updateTable("users")
     .set(updateValues)
     .where("id", "=", db.selectFrom("devicesToUsers").where("did", "=", did))
-    .returningAll()
+    .returning('id')
     .executeTakeFirst();
   
-  if (user) throw error(500, "Failed to update user info");
+  if (res1) throw error(500, "Failed to update user info");
 
   return new Response(null, { status: 204 });
 };
