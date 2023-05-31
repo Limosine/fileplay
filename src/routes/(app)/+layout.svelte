@@ -53,10 +53,6 @@
       e.preventDefault();
     }
   }
-
-  if (browser && !localStorage.getItem("loggedIn") && window.location.pathname != "/") {
-    window.location.href = "/";
-  }
 </script>
 
 <svelte:head>

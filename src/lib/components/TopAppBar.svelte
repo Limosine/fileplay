@@ -7,6 +7,7 @@
   import IconButton from "@smui/icon-button";
   import Tooltip, { Wrapper } from '@smui/tooltip';
   import { writable } from 'svelte/store';
+  import { goto } from '$app/navigation';
 
   export const topAppBar = writable<TopAppBar>();
 
@@ -37,7 +38,7 @@
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Settings Page"
+          <IconButton class="material-icons" aria-label="Settings Page" on:click={() => goto("/settings")}
             >settings</IconButton>
           <Tooltip>Settings Page</Tooltip>
         </Wrapper>
