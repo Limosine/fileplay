@@ -1,7 +1,6 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, saveSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
-import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ({ platform, request, cookies }) => {
@@ -13,13 +12,13 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // insert new device into db
   const res = await db
     .insertInto("devices")
-    .values({ displayName, type, createdAt: dayjs().unix() })
-    .returning("id")
+    .values({ displayName, type })
+    .returning("did")
     .executeTakeFirstOrThrow();
 
   // save device id in hmac signed cookie
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  await saveSignedDeviceID(res.id, cookies, key);
+  await saveSignedDeviceID(res.did, cookies, key);
 
   return new Response(null, { status: 201 });
 };

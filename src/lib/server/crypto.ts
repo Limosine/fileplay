@@ -12,16 +12,16 @@ export async function saveSignedDeviceID(
   const cookie_opts: CookieSerializeOptions = {
     path: "/",
   };
-  cookies.set("id", id, cookie_opts);
-  cookies.set("id_sig", signature, cookie_opts);
+  cookies.set("did", id, cookie_opts);
+  cookies.set("did_sig", signature, cookie_opts);
 }
 
 export async function loadSignedDeviceID(
   cookies: Cookies,
   key: CryptoKey
 ): Promise<number> {
-  const did = cookies.get("id");
-  const signature = cookies.get("id_sig");
+  const did = cookies.get("did");
+  const signature = cookies.get("did_sig");
   if (!did || !signature) throw error(401, "Not authenticated");
   if (!(await verify(did, signature, key)))
     throw error(401, "Wrong authentication signature");

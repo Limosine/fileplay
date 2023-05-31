@@ -4,47 +4,48 @@ import { Kysely, type Generated, type ColumnType } from "kysely";
 import { D1Dialect } from "kysely-d1";
 
 type isOnline = ColumnType<boolean, boolean | undefined, boolean>;
-type unixDatetime = ColumnType<number, number, undefined>;
 
 interface UsersTable {
-  id: Generated<number>;
+  uid: Generated<number>;
   displayName: string;
   isOnline: isOnline;
   avatarSeed: string;
-  createdAt: unixDatetime;
+  createdAt: ColumnType<number, undefined, undefined>;
+  lastSeenAt: ColumnType<number, number | undefined, number>;
 }
 
 interface DecivesTable {
-  id: Generated<number>;
+  did: Generated<number>;
   displayName: string;
   type: DeviceType;
   isOnline: isOnline;
-  createdAt: unixDatetime;
+  createdAt: ColumnType<number, undefined, undefined>;
+  lastSeenAt: ColumnType<number, number | undefined, number>;
 }
 
 interface DevicesToUsersTable {
   did: number; // indexed, foreign key devices.id
   uid: number; // indexed, foreign key users.id
-  createdAt: unixDatetime;
+  createdAt: ColumnType<number, undefined, undefined>;
 }
 
 interface ContactsTable {
   cid: Generated<number>;
   a: number; // indexed, foreign key users.id
   b: number; // indexed, foreign key users.id
-  createdAt: unixDatetime;
+  createdAt: ColumnType<number, undefined, undefined>;
 }
 
 interface DevicesLinkCodesTable {
   code: string; // indexed, primary
-  expires: unixDatetime;
+  expires: ColumnType<number, number, undefined>;
   created_did: number;
   uid: number; // indexed, foreign key users.id
 }
 
 interface ContactsLinkCodesTable {
   code: string; // indexed, primary
-  expires: unixDatetime;
+  expires: ColumnType<number, number, undefined>;
   created_did: number;
   uid: number; // indexed, foreign key users.id
 }

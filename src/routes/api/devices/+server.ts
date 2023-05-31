@@ -12,18 +12,20 @@ export const GET: RequestHandler = async (request) => {
 
   const devices = await db
     .selectFrom("devices")
-    .selectAll()
+    .innerJoin("devicesToUsers", "devices.did", "devicesToUsers.did")
+    .select([
+      "devices.did",
+      "devices.type",
+      "devices.displayName",
+      "devices.isOnline",
+      "devices.createdAt",
+      "devices.lastSeenAt",
+      "devicesToUsers.createdAt as linkedAt",
+    ])
     .where(
-      "id",
-      "in",
-      db
-        .selectFrom("devicesToUsers")
-        .select("did")
-        .where(
-          "uid",
-          "=",
-          db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
-        )
+      "devicesToUsers.uid",
+      "=",
+      db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
     )
     .orderBy("displayName")
     .execute();
@@ -50,14 +52,14 @@ export const POST: RequestHandler = async ({
 
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
-  const updateObject = await request.json();  // todo validation using ajv / joi
+  const updateObject = await request.json(); // todo validation using ajv / joi
 
   const res = await db
     .updateTable("devices")
     .set(updateObject)
-    .where("id", "=", did)
+    .where("did", "=", did)
     .where(
-      "id",
+      "did",
       "in",
       db
         .selectFrom("devicesToUsers")
@@ -110,7 +112,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
 
     await db
       .deleteFrom("devices")
-      .where("id", "=", did)
+      .where("did", "=", did)
       .executeTakeFirstOrThrow();
   } else {
     // delete deviceToUser mapping
@@ -128,7 +130,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
     // delete device
     await db
       .deleteFrom("devices")
-      .where("id", "=", did)
+      .where("did", "=", did)
       .executeTakeFirstOrThrow();
   }
 

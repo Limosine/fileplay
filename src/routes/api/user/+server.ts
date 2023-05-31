@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
     .selectFrom("users")
     .selectAll()
     .where(
-      "id",
+      "uid",
       "=",
       db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
     )
@@ -34,11 +34,11 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
     .updateTable("users")
     .set(updateValues)
     .where(
-      "id",
+      "uid",
       "=",
       db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
     )
-    .returning("id")
+    .returning("uid")
     .executeTakeFirst();
 
   if (!res1) throw error(500, "Failed to update user info");
@@ -46,7 +46,7 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   return new Response(null, { status: 204 });
 };
 
-export const DELETE: RequestHandler = async (request) => {
+export const DELETE: RequestHandler = async () => {
   // completely remove user and all devices (requires cookie auth)
   throw new Error("Not implemented");
 };

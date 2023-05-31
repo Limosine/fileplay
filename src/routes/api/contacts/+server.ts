@@ -18,7 +18,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
 
   const contacts = await db
     .selectFrom("contacts")
-    .innerJoin("users", "contacts.a", "users.id")
+    .innerJoin("users", "contacts.a", "users.uid")
     .select([
       "contacts.cid",
       "users.displayName",
@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
     .union(
       db
         .selectFrom("contacts")
-        .innerJoin("users", "contacts.b", "users.id")
+        .innerJoin("users", "contacts.b", "users.uid")
         .select([
           "contacts.cid",
           "users.displayName",
