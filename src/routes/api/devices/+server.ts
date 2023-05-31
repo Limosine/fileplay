@@ -114,6 +114,9 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
       .deleteFrom("devices")
       .where("did", "=", did)
       .executeTakeFirstOrThrow();
+    
+    cookies.delete("did");
+    cookies.delete("did_sig");
   } else {
     // delete deviceToUser mapping
     const res1 = await db

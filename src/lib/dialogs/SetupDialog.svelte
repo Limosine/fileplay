@@ -101,7 +101,10 @@
       storedDeviceParams !== JSON.stringify($deviceParams)
     ) {
       storedDeviceParams = null;
-      // TODO delete old user with still present cookie auth
+      // delete old user with still present cookie auth
+      await fetch("/api/devices", {
+        method: "DELETE",
+      });
     }
     if (!storedDeviceParams) {
       const res = await fetch("/api/setup/device", {
