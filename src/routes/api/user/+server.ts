@@ -41,7 +41,7 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
     .returning("id")
     .executeTakeFirst();
 
-  if (res1) throw error(500, "Failed to update user info");
+  if (!res1) throw error(500, "Failed to update user info");
 
   return new Response(null, { status: 204 });
 };
