@@ -72,7 +72,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // insert new linking
   const res2 = await db
     .insertInto("devicesToUsers")
-    .values({ did: did, uid: res1.uid })
+    .values({ did: did, uid: res1.uid, createdAt: dayjs().unix() })
     .returning("did")
     .executeTakeFirst();
   if (!res2) throw error(500, "Could not link device");

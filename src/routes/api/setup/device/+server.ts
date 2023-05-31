@@ -1,6 +1,7 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, saveSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
+import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ({ platform, request, cookies }) => {
@@ -9,10 +10,12 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   const { displayName, type } = await request.json();
 
+  const now = dayjs().unix();
+
   // insert new device into db
   const res = await db
     .insertInto("devices")
-    .values({ displayName, type })
+    .values({ displayName, type, createdAt: now, lastSeenAt: now })
     .returning("did")
     .executeTakeFirstOrThrow();
 
