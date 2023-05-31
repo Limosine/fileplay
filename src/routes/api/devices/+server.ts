@@ -25,6 +25,7 @@ export const GET: RequestHandler = async (request) => {
           db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
         )
     )
+    .orderBy("displayName")
     .execute();
 
   return json(devices, { status: 200 });
@@ -42,23 +43,18 @@ export const POST: RequestHandler = async ({
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const own_did = await loadSignedDeviceID(cookies, key);
 
-  const did_s = url.searchParams.get("id");
+  const did_s = url.searchParams.get("did");
   let did: number;
   if (did_s) did = parseInt(did_s);
   else did = own_did;
 
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
-  const { displayName, type, isOnline } = await request.json();
-  let updateObject: { displayName?: string; type?: string; isOnline?: number } =
-    {};
-  if (displayName) updateObject["displayName"] = displayName;
-  if (type) updateObject["type"] = type;
-  if (isOnline) updateObject["isOnline"] = isOnline;
+  const updateObject = await request.json();  // todo validation using ajv / joi
 
   const res = await db
     .updateTable("devices")
-    .set(updateObject as any)
+    .set(updateObject)
     .where("id", "=", did)
     .where(
       "id",
@@ -89,7 +85,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const own_did = await loadSignedDeviceID(cookies, key);
 
-  const did_s = url.searchParams.get("id");
+  const did_s = url.searchParams.get("did");
   let did: number;
   if (did_s) did = parseInt(did_s);
   else did = own_did;

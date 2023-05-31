@@ -40,6 +40,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
         ])
         .where("contacts.a", "=", uid)
     )
+    .orderBy("displayName")
     .execute();
 
   return json(contacts);
@@ -53,7 +54,7 @@ export const DELETE: RequestHandler = async ({ platform, url, cookies }) => {
   const did = await loadSignedDeviceID(cookies, key);
 
   const cid_s = url.searchParams.get("cid");
-  if (!cid_s) throw error(400, "No cid provided");
+  if (!cid_s) throw error(400, "No contact id provided");
   const cid = parseInt(cid_s);
 
   const { uid } = await db
@@ -65,12 +66,10 @@ export const DELETE: RequestHandler = async ({ platform, url, cookies }) => {
   const res1 = await db
     .deleteFrom("contacts")
     .where("cid", "=", cid)
-    .where(({ or, cmpr }) =>
-      or([cmpr("a", "=", uid), cmpr("b", "=", uid)])
-  )
+    .where(({ or, cmpr }) => or([cmpr("a", "=", uid), cmpr("b", "=", uid)]))
     .returning("cid")
     .executeTakeFirst();
-  
+
   if (!res1) throw error(404, "Contact not found");
 
   return new Response(null, { status: 204 });
