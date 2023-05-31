@@ -3,7 +3,7 @@ create table devicesLinkCodes (
     uid integer not null,
     created_did integer not null, -- created by device id
     expires integer not null,
-    foreign key (uid) references devices(id)
+    foreign key (uid) references devices(did)
 );
 
 create table contactsLinkCodes (
@@ -11,6 +11,6 @@ create table contactsLinkCodes (
     uid integer not null,
     created_did integer not null, -- created by device id
     expires integer not null,
-    foreign key (uid) references users(id)
+    foreign key (uid) references users(uid)
 );
 

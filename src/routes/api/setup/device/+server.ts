@@ -3,7 +3,6 @@ import { loadKey, saveSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
-import { error } from "@sveltejs/kit";
 
 export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // post device info here, create a new device (sets cookie auth)
@@ -18,11 +17,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .insertInto("devices")
     .values({ displayName, type, createdAt: now, lastSeenAt: now })
     .returning("did")
-    .executeTakeFirst();
-  
-  console.log(res)
-  
-  if(!res) throw error(500, "Failed to create device")
+    .executeTakeFirstOrThrow();
 
   // save device id in hmac signed cookie
   const key = await loadKey(COOKIE_SIGNING_SECRET);

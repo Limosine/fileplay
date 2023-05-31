@@ -20,8 +20,8 @@ create table devicesToUsers (
     did integer primary key,
     uid integer not null,
     createdAt integer not null,
-    foreign key (did) references devices(id),
-    foreign key (uid) references users(id)
+    foreign key (did) references devices(did),
+    foreign key (uid) references users(uid)
 );
 
 create index idx_devicesToUsers_did on devicesToUsers (did);
@@ -32,8 +32,8 @@ create table contacts (
     a integer not null,
     b integer not null,
     createdAt integer not null,
-    foreign key (a) references users(id),
-    foreign key (b) references users(id)
+    foreign key (a) references users(uid),
+    foreign key (b) references users(uid)
 );
 
 create index idx_contacts_a on contacts(a);
