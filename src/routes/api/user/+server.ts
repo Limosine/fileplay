@@ -13,7 +13,11 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   const userInfo = await db
     .selectFrom("users")
     .selectAll()
-    .where("id", "=", db.selectFrom("devicesToUsers").select('uid').where("did", "=", did))
+    .where(
+      "id",
+      "=",
+      db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
+    )
     .executeTakeFirstOrThrow();
 
   return json(userInfo);
@@ -29,10 +33,14 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   const res1 = await db
     .updateTable("users")
     .set(updateValues)
-    .where("id", "=", db.selectFrom("devicesToUsers").where("did", "=", did))
-    .returning('id')
+    .where(
+      "id",
+      "=",
+      db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
+    )
+    .returning("id")
     .executeTakeFirst();
-  
+
   if (res1) throw error(500, "Failed to update user info");
 
   return new Response(null, { status: 204 });
