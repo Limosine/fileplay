@@ -41,7 +41,7 @@
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
 <Input />
-<!-- <SetupDialog/> -->
+<SetupDialog/>
 <SelectContactsDialog/>
 
 <div class="center">
