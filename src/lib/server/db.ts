@@ -29,6 +29,7 @@ interface DevicesToUsersTable {
 }
 
 interface ContactsTable {
+  cid: Generated<number>;
   a: number; // indexed, foreign key users.id
   b: number; // indexed, foreign key users.id
   createdAt: unixDatetime;
