@@ -75,6 +75,8 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   const { uid: b } = res1;
 
+  if (a === b) throw error(400, "Cannot create contact to self");
+
   // insert new linking
   const res2 = await db
     .insertInto("contacts")
