@@ -15,7 +15,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // insert new device into db
   const res = await db
     .insertInto("devices")
-    .values({ displayName, type, createdAt: now, lastSeenAt: now })
+    .values({ displayName, type })
     .returning("did")
     .executeTakeFirstOrThrow();
 

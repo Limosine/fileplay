@@ -80,7 +80,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // insert new linking
   const res2 = await db
     .insertInto("contacts")
-    .values({ a, b, createdAt: dayjs().unix() })
+    .values({ a, b })
     .returning("cid")
     .executeTakeFirst();
   if (!res2) throw error(500, "Could not create contact");

@@ -21,14 +21,14 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   // insert new user into db
   const { uid } = await db
     .insertInto("users")
-    .values({ displayName, avatarSeed, createdAt: now, lastSeenAt: now })
+    .values({ displayName, avatarSeed })
     .returning("uid")
     .executeTakeFirstOrThrow();
 
   // link user to device
   await db
     .insertInto("devicesToUsers")
-    .values({ did, uid, createdAt: now })
+    .values({ did, uid })
     .returning("did")
     .executeTakeFirstOrThrow();
 
