@@ -1,16 +1,16 @@
-CREATE TABLE devicesLinkCodes (
-    code TEXT PRIMARY KEY,
-    uid INTEGER NOT NULL,
-    created_did INTEGER NOT NULL, -- created by device id
-    expires DATETIME NOT NULL,
-    FOREIGN KEY (uid) REFERENCES devices(id)
+create table devicesLinkCodes (
+    code text primary key,
+    uid integer not null,
+    created_did integer not null, -- created by device id
+    expires integer not null,
+    foreign key (uid) references devices(id)
 );
 
-CREATE TABLE contactsLinkCodes (
-    code TEXT PRIMARY KEY,
-    uid INTEGER NOT NULL,
-    created_did INTEGER NOT NULL, -- created by device id
-    expires DATETIME NOT NULL,
-    FOREIGN KEY (uid) REFERENCES users(id)
+create table contactsLinkCodes (
+    code text primary key,
+    uid integer not null,
+    created_did integer not null, -- created by device id
+    expires integer not null,
+    foreign key (uid) references users(id)
 );
 

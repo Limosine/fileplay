@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
 
   // generate a code
   let code: string;
-  const alphabet = "0123456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no I, L, O
+  const alphabet = "0123456789ABCDEF";
   do {
     code = "";
     for (let i = 0; i < 6; i++) {
@@ -36,7 +36,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   );
 
   // set expiration date
-  const expires = dayjs().add(LINKING_EXPIRY_TIME, "millisecond").toISOString();
+  const expires = dayjs().add(LINKING_EXPIRY_TIME, "millisecond").unix();
 
   // insert the code into the devicesLinkCodes table
   await db
@@ -61,7 +61,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .selectFrom("devicesLinkCodes")
     .select("uid")
     .where("code", "=", code)
-    .where("expires", ">", dayjs().toISOString())
+    .where("expires", ">", dayjs().unix())
     .executeTakeFirst();
 
   if (!res1) throw error(404, "Invalid code");
@@ -72,7 +72,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // insert new linking
   const res2 = await db
     .insertInto("devicesToUsers")
-    .values({ did: own_did, uid: res1.uid })
+    .values({ did: own_did, uid: res1.uid, createdAt: dayjs().unix() })
     .returning("did")
     .executeTakeFirst();
   if (!res2) throw error(500, "Could not link device");

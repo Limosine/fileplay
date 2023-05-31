@@ -1,3 +1,3 @@
-DROP TABLE devicesLinkCodes;
+drop table devicesLinkCodes;
 
-DROP TABLE contactsLinkCodes;
+drop table contactsLinkCodes;

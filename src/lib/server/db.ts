@@ -4,13 +4,14 @@ import { Kysely, type Generated, type ColumnType } from "kysely";
 import { D1Dialect } from "kysely-d1";
 
 type isOnline = ColumnType<boolean, boolean | undefined, boolean>;
+type unixDatetime = ColumnType<number, number, undefined>;
 
 interface UsersTable {
   id: Generated<number>;
   displayName: string;
   isOnline: isOnline;
   avatarSeed: string;
-  createdAt: string;
+  createdAt: unixDatetime;
 }
 
 interface DecivesTable {
@@ -18,31 +19,31 @@ interface DecivesTable {
   displayName: string;
   type: DeviceType;
   isOnline: isOnline;
-  createdAt: string;
+  createdAt: unixDatetime;
 }
 
 interface DevicesToUsersTable {
   did: number; // indexed, foreign key devices.id
   uid: number; // indexed, foreign key users.id
-  createdAt: string;
+  createdAt: unixDatetime;
 }
 
 interface ContactsTable {
   a: number; // indexed, foreign key users.id
   b: number; // indexed, foreign key users.id
-  createdAt: string;
+  createdAt: unixDatetime;
 }
 
 interface DevicesLinkCodesTable {
   code: string; // indexed, primary
-  expires: string;
+  expires: unixDatetime;
   created_did: number;
   uid: number; // indexed, foreign key users.id
 }
 
 interface ContactsLinkCodesTable {
   code: string; // indexed, primary
-  expires: string;
+  expires: unixDatetime;
   created_did: number;
   uid: number; // indexed, foreign key users.id
 }

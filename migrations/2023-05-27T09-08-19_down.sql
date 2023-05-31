@@ -1,7 +1,7 @@
-DROP TABLE devicesToUsers;
+drop table devicesToUsers;
 
-DROP TABLE contacts;
+drop table contacts;
 
-DROP TABLE users;
+drop table users;
 
-DROP TABLE devices;
+drop table devices;

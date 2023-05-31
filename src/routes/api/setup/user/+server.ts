@@ -4,6 +4,7 @@ import { createKysely } from "$lib/server/db";
 import { isProfane } from "$lib/server/utils";
 import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
+import dayjs from "dayjs";
 
 export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   // create a new user, link to current device (requires cookie auth)
@@ -18,14 +19,14 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   // insert new user into db
   const { id: uid } = await db
     .insertInto("users")
-    .values({ displayName, avatarSeed })
+    .values({ displayName, avatarSeed, createdAt: dayjs().unix() })
     .returning("id")
     .executeTakeFirstOrThrow();
 
   // link user to device
   await db
     .insertInto("devicesToUsers")
-    .values({ did, uid })
+    .values({ did, uid, createdAt: dayjs().unix() })
     .returning("did")
     .executeTakeFirstOrThrow();
 
