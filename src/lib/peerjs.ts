@@ -24,7 +24,7 @@ const openPeer = (uuid: string) => {
 };
 
 export const disconnectPeer = () =>{
-  peer.disconnect;
+  peer.disconnect();
 };
 
 const listen = () => {
