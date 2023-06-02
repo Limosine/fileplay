@@ -15,22 +15,16 @@
 
   export const open = writable(false);
 
-  let width: number;
+  async function getContacts(): Promise<{cid: number, displayName: string, avatarSeed: string, linkedAt: number, isOnline: number}[]> {
+    const res = await fetch('/api/contacts', {
+      method: 'GET'
+    });
 
-  var names: string[] = [
-    "Computer",
-    "Smartphone",
-    "Tablet",
-    "Laptop",
-    "Smartwatch",
-  ];
+    const contacts = await res.json();
 
-  for (let i = 0; i < 100; i++) {
-    names.push(String(i));
+    return contacts;
   }
 </script>
-
-<svelte:window bind:outerWidth={width}></svelte:window>
 
 <div dir="rtl">
   <Drawer class="mdc-top-app-bar--fixed-adjust" dir="ltr" variant="dismissible" bind:open={$open}>
@@ -51,22 +45,28 @@
     </Header>
     <Content>
       <div class="list-box">
-        {#each names as name}
-          <Card>
-            <PrimaryAction class="items-box">
-              <div class="box">
-                <div class="left">{name}</div>
-                <div class="right">
-                  <Wrapper>
-                    <IconButton class="material-icons" aria-label="Delete contact"
-                      >more_vert</IconButton>
-                    <Tooltip>Manage contacts</Tooltip>
-                  </Wrapper>
+        {#await getContacts()}
+          <p>Contacts are loading...</p>
+        {:then contacts}
+          {#each contacts as contact}
+            <Card>
+              <PrimaryAction class="items-box">
+                <div class="box">
+                  <div class="left">{contact.displayName}</div>
+                  <div class="right">
+                    <Wrapper>
+                      <IconButton class="material-icons" aria-label="Delete contact"
+                        >more_vert</IconButton>
+                      <Tooltip>Manage contacts</Tooltip>
+                    </Wrapper>
+                  </div>
                 </div>
-              </div>
-            </PrimaryAction>
-          </Card>
-        {/each}
+              </PrimaryAction>
+            </Card>
+          {/each}
+        {:catch}
+          <p>Failed to load contacts.</p>
+        {/await}
       </div>
     </Content>
   </Drawer>

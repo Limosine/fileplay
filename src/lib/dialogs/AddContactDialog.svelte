@@ -10,7 +10,7 @@
   let hostname: string;
   let code: string;
 
-  let redeemCode = true;
+  let redeemCode_section = true;
 
   function setHostname() {
     if ($codehostname.includes("@")) {
@@ -34,7 +34,7 @@
     if (event.key === "Escape") {
       add_open.set(false);
       closeHandler("cancel");
-    } else if (event.key === "Enter" && $codehostname != "") {
+    } else if (event.key === "Enter" && code != "") {
       add_open.set(false);
       closeHandler("confirm");
     }
@@ -52,11 +52,11 @@
     switch (action) {
       case "confirm":
         setHostname();
-        console.log(addContact());
+        console.log(redeemCode());
     }
   }
 
-  async function addContact () {
+  async function redeemCode() {
     var link = '/api/contacts/link';
     if (hostname) {
       link = "https://" + hostname + link;
@@ -66,11 +66,6 @@
 		  method: 'POST',
       body: JSON.stringify({code: code})
 	  });
-		
-	  const json = await res.json();
-	  const result = JSON.stringify(json);
-
-    return result;
   }
 
   async function generateCode(): Promise<{code: string, expires: number, refresh: number}> {
@@ -97,13 +92,13 @@
   <Content>
     <div id="content">
       <Group variant="outlined">
-        {#if redeemCode}
+        {#if redeemCode_section}
           <Button variant="unelevated">
             <Label>Redeem code</Label>
           </Button>
           <Button
             on:click={() => {
-              redeemCode = false;
+              redeemCode_section = false;
               generateCode();
             }}
             variant="outlined"
@@ -113,7 +108,7 @@
         {:else}
           <Button
             on:click={() => {
-              redeemCode = true;
+              redeemCode_section = true;
             }}
             variant="outlined"
           >
@@ -124,7 +119,7 @@
           </Button>
         {/if}
       </Group>
-      {#if redeemCode}
+      {#if redeemCode_section}
       <Textfield bind:value={$codehostname} label="Linking code" input$maxlength={18}>
       </Textfield>
       {:else}
