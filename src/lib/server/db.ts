@@ -21,12 +21,22 @@ interface DecivesTable {
   isOnline: isOnline;
   createdAt: ColumnType<number, undefined, undefined>;
   lastSeenAt: ColumnType<number, undefined, number>;
+  peerJsId: string | null;
+  encryptionPublicKey: string;
+  pushSubscription: number | null; // foreign key pushSubcriptions.pid
 }
 
 interface DevicesToUsersTable {
   did: number; // indexed, foreign key devices.id
   uid: number; // indexed, foreign key users.id
   createdAt: ColumnType<number, undefined, undefined>;
+}
+
+interface PushSubcriptionsTable {
+  pid: Generated<number>;
+  endpoint: string;
+  auth: string;
+  p256dh: string;
 }
 
 interface ContactsTable {

@@ -1,5 +1,7 @@
 # API Routes
 
+<h1> NOT UPTO DATE ANYMORE. LOOK AT THE POSTMAN COLLECTION!!! </h1>
+
 ## User
 
 | verb | endpoint | payload | return | description |
