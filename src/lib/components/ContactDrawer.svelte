@@ -1,29 +1,30 @@
 <script lang="ts" context="module">
   import Drawer, { AppContent, Content, Header, Subtitle, Title } from "@smui/drawer";
   import { AutoAdjust } from "@smui/top-app-bar";
-  import { writable } from 'svelte/store';
+  import { get, writable } from 'svelte/store';
   import { page } from '$app/stores';
 
   import { topAppBar } from './TopAppBar.svelte';
   import Tooltip, { Wrapper } from "@smui/tooltip";
   import IconButton from "@smui/icon-button";
   import Card, { PrimaryAction } from "@smui/card";
-  import Fab, { Label, Icon } from "@smui/fab";
+  import { Icon } from "@smui/icon-button";
   import Button from "@smui/button";
 
   import { add_open } from "$lib/stores/Dialogs";
 
-  export const open = writable(false);
+  import { contacts, contacts_loaded, getContacts } from "$lib/personal";
+  import Group from "@smui/button";
 
-  async function getContacts(): Promise<{cid: number, displayName: string, avatarSeed: string, linkedAt: number, isOnline: number}[]> {
-    const res = await fetch('/api/contacts', {
-      method: 'GET'
-    });
-
-    const contacts = await res.json();
-
-    return contacts;
+  const contacts_available = () => {
+    if (contacts_loaded) {
+      return contacts;
+    } else {
+      return getContacts();
+    }
   }
+
+  export const open = writable(false);
 </script>
 
 <div dir="rtl">
@@ -32,20 +33,22 @@
       <Title>Contacts</Title>
       <Subtitle>Manage your contacts</Subtitle>
       <div class="button-box">
-        <Button
+          <Button
           variant="unelevated"
           color="primary"
           style="width: 100%;"
           on:click={() => add_open.update(open => (open = !open))}
         >
-          <Icon class="material-icons">add_circle</Icon>
-          &ensp;Add contact
+          Add contact
+        </Button>
+        <Button class="material-icons" variant="unelevated" on:click={() => getContacts()}>
+          refresh
         </Button>
       </div>
     </Header>
     <Content>
       <div class="list-box">
-        {#await getContacts()}
+        {#await contacts_available()}
           <p>Contacts are loading...</p>
         {:then contacts}
           {#each contacts as contact}
@@ -100,6 +103,7 @@
   }
   .button-box {
     display: flex;
+    gap: 5px;
     padding: 7px;
     padding-top: 10px;
   }
