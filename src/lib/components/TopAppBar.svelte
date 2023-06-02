@@ -9,7 +9,18 @@
   import { writable } from 'svelte/store';
   import { goto } from '$app/navigation';
 
-  import { open as drawer_open } from './Drawer.svelte';
+  import { open as drawer_open } from './ContactDrawer.svelte';
+  import { notification_open } from '$lib/stores/Dialogs';
+
+  const open = (drawer: string) => {
+    if (drawer == "contact") {
+      notification_open.set(false);
+      drawer_open.update(open => (open = !open));
+    } else {
+      drawer_open.set(false);
+      notification_open.update(open => (open = !open));
+    }
+  }
 
   export const topAppBar = writable<TopAppBar>();
 
@@ -28,13 +39,13 @@
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Show notifications"
+          <IconButton class="material-icons" aria-label="Show notifications" on:click={() => open("notification")}
             >notifications</IconButton>
           <Tooltip>Show notifications</Tooltip>
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Account page" on:click={() => drawer_open.update(open => (open = !open))}
+          <IconButton class="material-icons" aria-label="Manage contacts" on:click={() => open("contact")}
             >contacts</IconButton>
           <Tooltip>Manage contacts</Tooltip>
         </Wrapper>

@@ -1,15 +1,158 @@
 <script lang="ts">
+  import Dialog, { Title, Content, Actions } from "@smui/dialog";
   import Button, { Label } from "@smui/button";
-  import Dialog, {Content, Actions} from "@smui/dialog";
+  import Textfield from '@smui/textfield';
 
-  export let open: boolean = false;
+  import { add_open, codehostname } from "$lib/stores/Dialogs";
+  import Group from "@smui/button/src/Group.svelte";
+  import dayjs from "dayjs";
+
+  let hostname: string;
+  let code: string;
+
+  let redeemCode = true;
+
+  function setHostname() {
+    if ($codehostname.includes("@")) {
+      hostname = $codehostname.slice($codehostname.search("@")+1);
+      code = $codehostname.slice(0, $codehostname.search("@"));
+      console.log(code, hostname);
+    } else {
+      code = $codehostname;
+    }
+  }
+
+  function convertUnixtoDate(unix_timestamp: number) {
+    const dayjs_object = dayjs.unix(unix_timestamp);
+    const date = dayjs_object.format("D.M.YYYY, H:mm");
+    return date;
+  }
+
+  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
+    event = event as KeyboardEvent;
+
+    if (event.key === "Escape") {
+      add_open.set(false);
+      closeHandler("cancel");
+    } else if (event.key === "Enter" && $codehostname != "") {
+      add_open.set(false);
+      closeHandler("confirm");
+    }
+  }
+  
+  function closeHandler(e: CustomEvent<{ action: string }> | string) {
+    let action: string;
+
+    if (typeof e === "string") {
+      action = e;
+    } else {
+      action = e.detail.action;
+    }
+
+    switch (action) {
+      case "confirm":
+        setHostname();
+        console.log(addContact());
+    }
+  }
+
+  async function addContact () {
+    var link = '/api/contacts/link';
+    if (hostname) {
+      link = "https://" + hostname + link;
+    }
+
+	  const res = await fetch(link, {
+		  method: 'POST',
+      body: JSON.stringify({code: code})
+	  });
+		
+	  const json = await res.json();
+	  const result = JSON.stringify(json);
+
+    return result;
+  }
+
+  async function generateCode(): Promise<{code: string, expires: number, refresh: number}> {
+
+	  const res = await fetch('/api/contacts/link', {
+		  method: 'GET'
+	  });
+
+	  const codeproperties = await res.json();
+
+    return codeproperties;
+  }
 </script>
 
-<Dialog bind:open={open}>
+<svelte:window on:keydown={handleKeyDown}/>
+
+<Dialog
+  bind:open={$add_open}
+  aria-labelledby="title"
+  aria-describedby="content"
+  on:SMUIDialog:closed={closeHandler}
+>
+  <Title id="title">Add contact</Title>
   <Content>
-    <p>Content</p>
+    <div id="content">
+      <Group variant="outlined">
+        {#if redeemCode}
+          <Button variant="unelevated">
+            <Label>Redeem code</Label>
+          </Button>
+          <Button
+            on:click={() => {
+              redeemCode = false;
+              generateCode();
+            }}
+            variant="outlined"
+          >
+            <Label>Generate code</Label>
+          </Button>
+        {:else}
+          <Button
+            on:click={() => {
+              redeemCode = true;
+            }}
+            variant="outlined"
+          >
+            <Label>Redeem code</Label>
+          </Button>
+          <Button variant="unelevated">
+            <Label>Generate code</Label>
+          </Button>
+        {/if}
+      </Group>
+      {#if redeemCode}
+      <Textfield bind:value={$codehostname} label="Linking code" input$maxlength={18}>
+      </Textfield>
+      {:else}
+      <br/>
+      {#await generateCode()}
+        <p>Generating code...</p>
+      {:then codeproperties} 
+        <p>Code: {codeproperties.code}<br/>
+        Expires on {convertUnixtoDate(codeproperties.expires)}</p>
+      {:catch}
+        <p>Failed to generate code.</p>
+      {/await}
+      {/if}
+    </div>
   </Content>
   <Actions>
-    
+    <Button action="cancel">
+      <Label>Cancel</Label>
+    </Button>
+    <Button action="confirm" disabled={code == ""}>
+      <Label>Add</Label>
+    </Button>
   </Actions>
 </Dialog>
+
+<style>
+  #content {
+    display: flex;
+    flex-flow: column;
+  }
+</style>

@@ -5,10 +5,11 @@
   import SetupDialog from '$lib/dialogs/SetupDialog.svelte';
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
-  import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
 
+  import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
   import { open as select_open } from "$lib/stores/SelectContactStore";
 
+  import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -43,6 +44,7 @@
 <Input />
 <SetupDialog/>
 <SelectContactsDialog/>
+<AddContactDialog/>
 
 <div class="center">
   {#if $sender_uuid}

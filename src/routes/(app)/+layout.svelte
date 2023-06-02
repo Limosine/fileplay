@@ -7,7 +7,8 @@
   import { browser } from "$app/environment";
 
   import TopAppBar from "$lib/components/TopAppBar.svelte";
-  import Drawer from "$lib/components/Drawer.svelte";
+  import Drawer from "$lib/components/ContactDrawer.svelte";
+  import N_Drawer from "$lib/components/NotificationDrawer.svelte";
 
   import '$lib/../theme/typography.scss'
   
@@ -63,8 +64,9 @@
 <div on:touchmove={preventDefault}>
   <TopAppBar />
 
-  <Drawer>
-    <slot />
-  </Drawer>
-
+  <N_Drawer>
+    <Drawer>
+      <slot />
+    </Drawer>
+  </N_Drawer>
 </div>

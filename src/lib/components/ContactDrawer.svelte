@@ -6,9 +6,12 @@
 
   import { topAppBar } from './TopAppBar.svelte';
   import Tooltip, { Wrapper } from "@smui/tooltip";
-  import IconButton from "@smui/icon-button/src/IconButton.svelte";
-  import Card from "@smui/card/src/Card.svelte";
-  import PrimaryAction from "@smui/card/src/PrimaryAction.svelte";
+  import IconButton from "@smui/icon-button";
+  import Card, { PrimaryAction } from "@smui/card";
+  import Fab, { Label, Icon } from "@smui/fab";
+  import Button from "@smui/button";
+
+  import { add_open } from "$lib/stores/Dialogs";
 
   export const open = writable(false);
 
@@ -34,6 +37,17 @@
     <Header dir="ltr">
       <Title>Contacts</Title>
       <Subtitle>Manage your contacts</Subtitle>
+      <div class="button-box">
+        <Button
+          variant="unelevated"
+          color="primary"
+          style="width: 100%;"
+          on:click={() => add_open.update(open => (open = !open))}
+        >
+          <Icon class="material-icons">add_circle</Icon>
+          &ensp;Add contact
+        </Button>
+      </div>
     </Header>
     <Content>
       <div class="list-box">
@@ -58,35 +72,17 @@
   </Drawer>
 </div>
 
-{#if width >= 650}
-  {#if $page.url.pathname == "/"}
-    <AppContent>
-      <slot />
-    </AppContent>
-  {:else}
-    <AppContent class="app-content">
 
-      <AutoAdjust topAppBar={$topAppBar}>
-        <slot />
-      </AutoAdjust>
-
-    </AppContent>
-  {/if}
+{#if $page.url.pathname == "/"}
+  <slot />
 {:else}
-  {#if $page.url.pathname == "/"}
-    <slot />
-  {:else}
-    <div class="app-content">
-
-      <AutoAdjust topAppBar={$topAppBar}>
-        <slot />
-      </AutoAdjust>
-
-    </div>
-  {/if}
+  <div class="app-content">
+    <AutoAdjust topAppBar={$topAppBar}>
+      <slot />
+    </AutoAdjust>
+  </div>
 {/if}
 
-<!-- ::file-selector-button -->
 <style>
   * :global(.app-content) {
     padding: 16px;
@@ -101,6 +97,11 @@
     display: flex;
     align-items: center;
     padding: 1px;
+  }
+  .button-box {
+    display: flex;
+    padding: 7px;
+    padding-top: 10px;
   }
   .list-box {
     display: flex;

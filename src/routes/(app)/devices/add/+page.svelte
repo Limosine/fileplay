@@ -4,7 +4,7 @@
   import Textfield from '@smui/textfield';
   import { goto } from "$app/navigation";
 
-  import { open as drawer_open } from '$lib/components/Drawer.svelte';
+  import { open as drawer_open } from '$lib/components/ContactDrawer.svelte';
 
   drawer_open.set(false);
 
