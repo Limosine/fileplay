@@ -11,6 +11,7 @@
   import { writable } from "svelte/store";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
+  import { generateKeyPair, exportKeyToPem } from "$lib/FileEncryption";
 
   let open: boolean;
 
@@ -107,9 +108,18 @@
       });
     }
     if (!storedDeviceParams) {
+      const keyPair = await generateKeyPair();
+      localStorage.setItem(
+        "encryptionPrivateKey",
+        await exportKeyToPem(keyPair.privateKey)
+      );
       const res = await fetch("/api/setup/device", {
         method: "POST",
-        body: JSON.stringify($deviceParams),
+        body: JSON.stringify(
+          Object.assign({}, $deviceParams, {
+            encryptionPublicKey: await exportKeyToPem(keyPair.publicKey),
+          })
+        ),
       });
       if (String(res.status).charAt(0) !== "2") {
         handleResponseError(res);
@@ -133,7 +143,7 @@
         // link to existing user
         const res2 = await fetch("/api/devices/link", {
           method: "POST",
-          body: JSON.stringify({code: linkingCode}),
+          body: JSON.stringify({ code: linkingCode }),
         });
         if (String(res2.status).charAt(0) !== "2") {
           handleResponseError(res2);

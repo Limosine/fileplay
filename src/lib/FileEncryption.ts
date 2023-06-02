@@ -1,7 +1,5 @@
-import * as CryptoJS from "crypto-js";
-
 // Generate RSA key pair
-async function generateKeyPair() {
+export async function generateKeyPair(): Promise<CryptoKeyPair> {
   const keyPair = await crypto.subtle.generateKey(
     {
       name: "RSA-OAEP",
@@ -17,8 +15,8 @@ async function generateKeyPair() {
 }
 
 // Convert Key to PEM format
-function exportKeyToPem(key: CryptoKey) {
-  return crypto.subtle.exportKey("spki", key).then((spki) => {
+export async function exportKeyToPem(key: CryptoKey): Promise<string> {
+  return await crypto.subtle.exportKey("spki", key).then((spki) => {
     const exportedKey = String.fromCharCode.apply(null, [
       ...new Uint8Array(spki),
     ]);
