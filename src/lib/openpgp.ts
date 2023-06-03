@@ -53,6 +53,38 @@ export async function encryptFile(files: FileList, publicKey_armored: string) {
   return encrypted_files;
 }
 
+export async function encryptFileWithPassword(files: FileList, password: string) {
+  const filePromises = Array.from(files).map((file) => {
+    return new Promise<openpgp.WebStream<string>>((resolve, reject) => {
+      const reader = new FileReader;
+      reader.onload = async () => {
+        try {
+          console.log(reader.result)
+          if (reader.result instanceof ArrayBuffer) {
+            console.log(true);
+            const encrypted = await openpgp.encrypt({
+              message: await openpgp.createMessage({ binary: new Uint8Array(reader.result), format: "binary" }),
+              passwords: [password]
+            });
+
+            resolve(encrypted);
+          }
+        } catch(err) {
+          reject(err);
+        }
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  });
+
+  const encrypted_files = await Promise.all(filePromises);
+
+  return encrypted_files;
+}
+
 export async function decryptFile(encrypted_files: openpgp.WebStream<string>[]) {
   const filePromises = Array.from(encrypted_files).map((file) => {
     return new Promise<openpgp.MaybeStream<openpgp.Data>> (async (resolve, reject) => {
@@ -62,7 +94,30 @@ export async function decryptFile(encrypted_files: openpgp.WebStream<string>[]) 
 
       const { data: decrypted } = await openpgp.decrypt({
         message,
-        decryptionKeys: privateKey_object
+        decryptionKeys: privateKey_object,
+        format: "binary"
+      });
+  
+      resolve(decrypted);
+    });
+  });
+
+  const decrypted_files = await Promise.all(filePromises);
+
+  return decrypted_files;
+}
+
+export async function decryptFileWithPassword(encrypted_files: openpgp.WebStream<string>[], password: string) {
+  const filePromises = Array.from(encrypted_files).map((file) => {
+    return new Promise<openpgp.MaybeStream<openpgp.Data>> (async (resolve, reject) => {
+      const message = await openpgp.readMessage({
+        armoredMessage: file
+      });
+
+      const { data: decrypted } = await openpgp.decrypt({
+        message,
+        passwords: [password],
+        format: "binary"
       });
   
       resolve(decrypted);

@@ -4,13 +4,14 @@
     Section,
     Title,
   } from "@smui/top-app-bar";
-  import IconButton from "@smui/icon-button";
+  import Badge from '@smui-extra/badge';
+  import IconButton, { Icon } from "@smui/icon-button";
   import Tooltip, { Wrapper } from '@smui/tooltip';
   import { writable } from 'svelte/store';
   import { goto } from '$app/navigation';
 
   import { open as drawer_open } from './ContactDrawer.svelte';
-  import { notification_open } from '$lib/stores/Dialogs';
+  import { notifications, notification_open } from '$lib/stores/Dialogs';
 
   const open = (drawer: string) => {
     if (drawer == "contact") {
@@ -39,8 +40,13 @@
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Show notifications" on:click={() => open("notification")}
-            >notifications</IconButton>
+          <IconButton class="material-icons" aria-label="Show notifications" on:click={() => open("notification")}>
+            <Icon class="material-icons">notifications</Icon>
+            {#if $notifications.length != 0}
+              <Badge aria-label="notification count" color="secondary">{$notifications.length}</Badge>
+            {/if}
+          </IconButton>
+
           <Tooltip>Show notifications</Tooltip>
         </Wrapper>
 

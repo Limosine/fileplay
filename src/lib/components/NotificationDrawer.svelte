@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Drawer, { AppContent, Content, Header, Title } from "@smui/drawer";
+  import Drawer, { Content, Header, Title } from "@smui/drawer";
 
-  import IconButton, { Icon } from "@smui/icon-button";
+  import IconButton from "@smui/icon-button";
   import Card, { ActionButtons, ActionIcons, Actions, Content as C_Content } from "@smui/card";
   import Button, { Label } from "@smui/button";
   import { notification_open, notifications } from "$lib/stores/Dialogs";
@@ -30,11 +30,13 @@
               {notification.content}
             </C_Content>
             <Actions>
-              <ActionButtons>
-                <Button>
-                  <Label>Add</Label>
-                </Button>
-              </ActionButtons>
+              {#if notification.title == "Contact request"}
+                <ActionButtons>
+                  <Button>
+                    <Label>Add</Label>
+                  </Button>
+                </ActionButtons>
+              {/if}
               <ActionIcons>
                 <IconButton class="material-icons" on:click={() => deleteNotification(notification)}>
                   close

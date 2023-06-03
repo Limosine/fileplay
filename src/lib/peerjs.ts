@@ -2,6 +2,8 @@ import { nanoid } from "nanoid";
 import type { DataConnection } from "peerjs";
 import Peer from "peerjs";
 import { get, writable } from "svelte/store";
+import { notifications } from "./stores/Dialogs";
+import { decryptFile, decryptFileWithPassword, encryptFile, encryptFileWithPassword, publicKey_armored } from "./openpgp";
 
 let peer: Peer;
 export const sender_uuid = writable<string>();
@@ -43,26 +45,52 @@ const handleData = (data: any, conn: DataConnection) => {
     for (pending of pending_files) {
       if (pending.listen_key == data.listen_key) {
         send(pending.files, conn.peer);
+
+        let notification;
+        if (pending.files.length == 1) {
+          notification = {
+            title: "File downloaded",
+            content: `The file "${Array.from(pending.files)[0].name}" was downloaded.`
+          }
+        } else {
+          notification = {
+            title: "Files downloaded",
+            content: `The files "${Array.from(pending.files)[0].name}", ... were downloaded.`
+          }
+        }
+
+        notifications.set([
+          ...get(notifications),
+          notification,
+        ]);
+        pending_files.splice(pending_files.indexOf(pending), 1);
       }
     }
   } else if (Array.isArray(data.file) && Array.isArray(data.filename)){
-    for (let i = 0; i < data.file.length; i++){
-      let url = createFileURL(data.file[i]);
-      let info = {
-        url: url,
-        name: data.filename[i],
+    let decrypted_files = decryptFileWithPassword(data.file, "password");
+    console.log(decrypted_files);
+    decrypted_files.then((decrypted_files) => {
+      console.log(decrypted_files);
+      for (let i = 0; i < decrypted_files.length; i++){
+        console.log(decrypted_files[i]);
+        let url = createFileURL(decrypted_files[i]);
+        let info = {
+          url: url,
+          name: data.filename[i]
+        };
+  
+        recieved_files.set([
+          ...get(recieved_files),
+          info,
+        ]);
       };
-
-      recieved_files.set([
-        ...get(recieved_files),
-        info,
-      ]);
-    };
+    })
   }
 };
 
-const createFileURL = (c_file: ArrayBuffer) => {
-  var blob = new Blob([c_file]);
+const createFileURL = (file: any) => {
+  var blob = new Blob([file]);
+  console.log(blob);
   var url = URL.createObjectURL(blob);
   return url;
 };
@@ -114,30 +142,33 @@ export const send = (files: FileList, reciever_uuid: string) => {
       filenames.push(file.name);
     };
 
-    let connect_return = connected(reciever_uuid);
-    if (connect_return == false) {
+    let encrypted_files = encryptFileWithPassword(files, "password"); // todo: real publicKey
+    encrypted_files.then((encrypted_files) => {
+      let connect_return = connected(reciever_uuid);
+      if (connect_return == false) {
     
-      let conn = peer.connect(reciever_uuid);
+        let conn = peer.connect(reciever_uuid);
 
-      conn.on("open", function() {
+        conn.on("open", function() {
   
-        conn.send({
-          file: Array.from(files),
+          conn.send({
+            file: Array.from(encrypted_files),
+            filename: filenames,
+          });
+        });
+
+        conn.on("data", function(received_data) {
+          handleData(received_data, conn);
+        });
+
+        connections.push(conn);
+      } else {
+        connect_return.send({
+          file: Array.from(encrypted_files),
           filename: filenames,
         });
-      });
-
-      conn.on("data", function(received_data) {
-        handleData(received_data, conn);
-      });
-
-      connections.push(conn);
-    } else {
-      connect_return.send({
-        file: Array.from(files),
-        filename: filenames,
-      });
-    }
+      }
+    });
   };
 };
 

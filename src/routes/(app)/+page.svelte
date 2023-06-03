@@ -11,22 +11,6 @@
 
   import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
 
-  import { publicKey_armored, setup as pgp_setup, encryptFile, decryptFile } from "$lib/openpgp";
-
-  // pgp_setup();
-  // let decrypted;
-
-  // const test = () => {
-  //   let encrypted = encryptFile($files, publicKey_armored);
-  //   encrypted.then((result) => {
-  //     console.log(result);
-  //     decrypted = decryptFile(result);
-  //     decrypted.then((result) => {
-  //       console.log(result);
-  //     });
-  //   })
-  // }
-
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
     if (!e?.dataTransfer?.files) {
@@ -75,12 +59,6 @@
         Select file(s)
       </PrimaryAction>
     </Card>
-    <!-- <Card>
-      <PrimaryAction on:click={() => test()} style="padding: 64px">
-        <Icon class="material-icons" style="font-size: 30px">upload</Icon>
-        Test OpenPGP.js
-      </PrimaryAction>
-    </Card> -->
 
     {#if $files}
       <Card>
