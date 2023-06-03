@@ -1,11 +1,14 @@
-drop table devicesLinkCodes;
+drop table if exists devicesLinkCodes;
 
-drop table contactsLinkCodes;
+drop table if exists contactsLinkCodes;
 
-drop table devicesToUsers;
+drop table if exists devicesToUsers;
 
-drop table contacts;
+drop table if exists contacts;
 
-drop table users;
+drop table if exists users;
 
-drop table devices;
+drop table if exists devices;
+
+drop table if exists pushSubscriptions;
+

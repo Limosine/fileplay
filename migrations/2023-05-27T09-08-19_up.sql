@@ -14,7 +14,7 @@ create table devices (
     isOnline integer DEFAULT 0 not null,
     createdAt integer not null default (unixepoch('now')),
     lastSeenAt integer not null default (unixepoch('now')),
-    peerJsId text not null,
+    peerJsId text,
     encryptionPublicKey text not null,
     pushSubscription integer,
     foreign key (pushSubscription) references pushSubscriptions(pid)
