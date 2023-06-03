@@ -1,20 +1,20 @@
 <script lang="ts" context="module">
   import Drawer, { AppContent, Content, Header, Subtitle, Title } from "@smui/drawer";
   import { AutoAdjust } from "@smui/top-app-bar";
-  import { get, writable } from 'svelte/store';
+  import { writable } from 'svelte/store';
   import { page } from '$app/stores';
 
   import { topAppBar } from './TopAppBar.svelte';
   import Tooltip, { Wrapper } from "@smui/tooltip";
   import IconButton from "@smui/icon-button";
   import Card, { PrimaryAction } from "@smui/card";
-  import { Icon } from "@smui/icon-button";
   import Button from "@smui/button";
 
   import { add_open } from "$lib/stores/Dialogs";
 
   import { contacts, contacts_loaded, getContacts } from "$lib/personal";
-  import Group from "@smui/button";
+
+  import { generateKey } from "$lib/openpgp";
 
   const contacts_available = () => {
     if (contacts_loaded) {
@@ -33,7 +33,7 @@
       <Title>Contacts</Title>
       <Subtitle>Manage your contacts</Subtitle>
       <div class="button-box">
-          <Button
+        <Button
           variant="unelevated"
           color="primary"
           style="width: 100%;"
@@ -41,7 +41,7 @@
         >
           Add contact
         </Button>
-        <Button class="material-icons" variant="unelevated" on:click={() => getContacts()}>
+        <Button class="material-icons" variant="unelevated" on:click={() => generateKey()}>
           refresh
         </Button>
       </div>

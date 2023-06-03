@@ -11,7 +11,7 @@
   import { writable } from "svelte/store";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
-  import { generateKeyPair, exportKeyToPem } from "$lib/FileEncryption";
+  import { publicKey_armored, setup as pgp_setup } from "$lib/openpgp";
 
   let open: boolean;
 
@@ -108,16 +108,12 @@
       });
     }
     if (!storedDeviceParams) {
-      const keyPair = await generateKeyPair();
-      localStorage.setItem(
-        "encryptionPrivateKey",
-        await exportKeyToPem(keyPair.privateKey)
-      );
+      pgp_setup();
       const res = await fetch("/api/setup/device", {
         method: "POST",
         body: JSON.stringify(
           Object.assign({}, $deviceParams, {
-            encryptionPublicKey: await exportKeyToPem(keyPair.publicKey),
+            encryptionPublicKey: publicKey_armored,
           })
         ),
       });
