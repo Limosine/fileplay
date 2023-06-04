@@ -120,18 +120,17 @@
         {/if}
       </Group>
       {#if redeemCode_section}
-      <Textfield bind:value={$codehostname} label="Linking code" input$maxlength={18}>
-      </Textfield>
+        <Textfield bind:value={$codehostname} label="Linking code" input$maxlength={18}/>
       {:else}
-      <br/>
-      {#await generateCode()}
-        <p>Generating code...</p>
-      {:then codeproperties} 
-        <p>Code: {codeproperties.code}<br/>
-        Expires on {convertUnixtoDate(codeproperties.expires)}</p>
-      {:catch}
-        <p>Failed to generate code.</p>
-      {/await}
+        <br/>
+        {#await generateCode()}
+          <p>Generating code...</p>
+        {:then codeproperties} 
+          <p>Code: {codeproperties.code}<br/>
+          Expires on {convertUnixtoDate(codeproperties.expires)}</p>
+        {:catch}
+          <p>Failed to generate code.</p>
+        {/await}
       {/if}
     </div>
   </Content>

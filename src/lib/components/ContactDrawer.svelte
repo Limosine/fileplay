@@ -10,14 +10,13 @@
   import Card, { PrimaryAction } from "@smui/card";
   import Button from "@smui/button";
 
-  import { add_open, setup_completed } from "$lib/stores/Dialogs";
+  import { add_open } from "$lib/stores/Dialogs";
 
-  import { contacts, getContacts } from "$lib/personal";
+  import { contacts, contacts_loaded, getContacts } from "$lib/personal";
 
   export const open = writable(false);
 </script>
 
-{#if $setup_completed}
 <div dir="rtl">
   <Drawer class="mdc-top-app-bar--fixed-adjust" dir="ltr" variant="dismissible" bind:open={$open}>
     <Header dir="ltr">
@@ -39,6 +38,7 @@
     </Header>
     <Content>
       <div class="list-box">
+        {#if $contacts_loaded}
         {#await $contacts}
           <p>Contacts are loading...</p>
         {:then contacts}
@@ -61,11 +61,11 @@
         {:catch}
           <p>Failed to load contacts.</p>
         {/await}
+        {/if}
       </div>
     </Content>
   </Drawer>
 </div>
-{/if}
 
 {#if $page.url.pathname == "/"}
   <slot />

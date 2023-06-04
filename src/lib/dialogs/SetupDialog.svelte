@@ -12,7 +12,6 @@
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
   import { publicKey_armored } from "$lib/openpgp";
-  import { setup_completed } from "$lib/stores/Dialogs";
   import { getContent } from "$lib/personal"
 
   let open: boolean;
@@ -152,7 +151,6 @@
     localStorage.removeItem("deviceParams");
     localStorage.setItem("loggedIn", "true");
     open = false;
-    $setup_completed = true;
     setupLoading = false;
 
     getContent();
@@ -170,7 +168,6 @@
         $deviceParams = JSON.parse(storedDeviceParams);
       }
     } else {
-      $setup_completed = true;
       getContent();
     }
   });
