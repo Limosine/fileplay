@@ -11,7 +11,8 @@
   import { writable } from "svelte/store";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
-  import { publicKey_armored, setup as pgp_setup } from "$lib/openpgp";
+  import { publicKey_armored } from "$lib/openpgp";
+  import { setup_completed } from "$lib/stores/Dialogs";
 
   let open: boolean;
 
@@ -108,7 +109,6 @@
       });
     }
     if (!storedDeviceParams) {
-      pgp_setup();
       const res = await fetch("/api/setup/device", {
         method: "POST",
         body: JSON.stringify(
@@ -151,6 +151,7 @@
     localStorage.removeItem("deviceParams");
     localStorage.setItem("loggedIn", "true");
     open = false;
+    $setup_completed = true;
     setupLoading = false;
   }
 
@@ -158,12 +159,15 @@
     if (!browser) return;
     // if device is not set up, open dialog
     if (!localStorage.getItem("loggedIn")) {
+      
       open = true;
       // if setup was partially completed, load values
       const storedDeviceParams = localStorage.getItem("deviceParams");
       if (storedDeviceParams) {
         $deviceParams = JSON.parse(storedDeviceParams);
       }
+    } else {
+      $setup_completed = true;
     }
   });
 </script>

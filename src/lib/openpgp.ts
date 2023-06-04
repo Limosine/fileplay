@@ -12,13 +12,19 @@ export async function generateKey() {
     userIDs: [{ name: 'Jon Smith'}], // displayName
   });
 
-  privateKey_object = await openpgp.readPrivateKey({ armoredKey: privateKey });
+  convertPrivateKey();
 
   privateKey_armored = privateKey;
   publicKey_armored = publicKey;
   revocationCertificate_top = revocationCertificate;
 
   localStorage.setItem("encryptionPrivateKey", privateKey_armored);
+  localStorage.setItem("encryptionPublicKey", publicKey_armored);
+  localStorage.setItem("encryptionRevocationCertificate", revocationCertificate_top);
+}
+
+async function convertPrivateKey(){
+  privateKey_object = await openpgp.readPrivateKey({ armoredKey: privateKey_armored });
 }
 
 export async function encryptFile(files: FileList, publicKey_armored: string) {
@@ -131,6 +137,17 @@ export async function decryptFileWithPassword(encrypted_files: openpgp.WebStream
 
 export const setup = () => {
   if (!privateKey_object || !privateKey_armored || !publicKey_armored || !revocationCertificate_top) {
-    generateKey();
+    const privateKey = localStorage.getItem("encryptionPrivateKey");
+    const publicKey = localStorage.getItem("encryptionPublicKey");
+    const revocationCertificate = localStorage.getItem("encryptionrevocationCertificate");
+
+    if (privateKey && publicKey && revocationCertificate) {
+      privateKey_armored = privateKey;
+      publicKey_armored = publicKey;
+      revocationCertificate_top = revocationCertificate;
+      convertPrivateKey();
+    } else {
+      generateKey();
+    }
   }
 }

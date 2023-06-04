@@ -10,7 +10,7 @@
   import Card, { PrimaryAction } from "@smui/card";
   import Button from "@smui/button";
 
-  import { add_open } from "$lib/stores/Dialogs";
+  import { add_open, setup_completed } from "$lib/stores/Dialogs";
 
   import { contacts, contacts_loaded, getContacts } from "$lib/personal";
 
@@ -27,6 +27,7 @@
   export const open = writable(false);
 </script>
 
+{#if $setup_completed}
 <div dir="rtl">
   <Drawer class="mdc-top-app-bar--fixed-adjust" dir="ltr" variant="dismissible" bind:open={$open}>
     <Header dir="ltr">
@@ -74,7 +75,7 @@
     </Content>
   </Drawer>
 </div>
-
+{/if}
 
 {#if $page.url.pathname == "/"}
   <slot />
