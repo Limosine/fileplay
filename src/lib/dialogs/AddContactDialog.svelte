@@ -1,14 +1,13 @@
 <script lang="ts">
   import Dialog, { Title, Content, Actions } from "@smui/dialog";
-  import Button, { Label } from "@smui/button";
+  import Button, { Label, Group } from "@smui/button";
   import Textfield from '@smui/textfield';
 
   import { add_open, codehostname } from "$lib/stores/Dialogs";
-  import Group from "@smui/button/src/Group.svelte";
   import dayjs from "dayjs";
 
   let hostname: string;
-  let code: string;
+  let code = "";
 
   let redeemCode_section = true;
 
@@ -120,7 +119,7 @@
         {/if}
       </Group>
       {#if redeemCode_section}
-        <Textfield bind:value={$codehostname} label="Linking code" input$maxlength={18}/>
+        <Textfield bind:value={$codehostname} on:input={() => setHostname()} label="Linking code" input$maxlength={24}/>
       {:else}
         <br/>
         {#await generateCode()}

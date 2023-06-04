@@ -12,6 +12,8 @@
   import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
   import { setup as pgp_setup } from "$lib/openpgp";
 
+  import SettingsDialog from "$lib/dialogs/SettingsDialog.svelte";
+
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
     if (!e?.dataTransfer?.files) {
@@ -49,6 +51,7 @@
 <Input />
 <SelectContactsDialog/>
 <AddContactDialog/>
+<SettingsDialog/>
 
 <div class="center">
   {#if $sender_uuid}

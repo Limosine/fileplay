@@ -16,6 +16,23 @@ export async function getContacts(): Promise<{cid: number, displayName: string, 
   return contacts_new;
 }
 
+export const devices = writable<Promise<{did: number, type: string, displayName: string, isOnline: number, createdAt: number, lastSeenAt: number, linkedAt: number}[]>>();
+export const devices_loaded = writable(false);
+
+export async function getDevices(): Promise<{did: number, type: string, displayName: string, isOnline: number, createdAt: number, lastSeenAt: number, linkedAt: number}[]> {
+  const res = await fetch('/api/devices', {
+    method: 'GET'
+  });
+
+  const devices_new = await res.json();
+
+  devices.set(devices_new);
+  if (!get(devices_loaded)) devices_loaded.set(true);
+
+  return devices_new;
+}
+
 export function getContent() {
   getContacts();
+  getDevices();
 }

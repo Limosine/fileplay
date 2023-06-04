@@ -11,15 +11,17 @@
   import { goto } from '$app/navigation';
 
   import { open as drawer_open } from './ContactDrawer.svelte';
-  import { notifications, notification_open } from '$lib/stores/Dialogs';
+  import { notifications, notification_open, settings_open } from '$lib/stores/Dialogs';
 
   const open = (drawer: string) => {
     if (drawer == "contact") {
       notification_open.set(false);
       drawer_open.update(open => (open = !open));
-    } else {
+    } else if (drawer == "notification") {
       drawer_open.set(false);
       notification_open.update(open => (open = !open));
+    } else {
+      settings_open.set(true);
     }
   }
 
@@ -57,7 +59,7 @@
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Settings Page" on:click={() => goto("/settings")}
+          <IconButton class="material-icons" aria-label="Settings Page" on:click={() => open("settings")}
             >settings</IconButton>
           <Tooltip>Settings Page</Tooltip>
         </Wrapper>
