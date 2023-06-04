@@ -4,12 +4,24 @@
     Section,
     Title,
   } from "@smui/top-app-bar";
-  import IconButton from "@smui/icon-button";
+  import Badge from '@smui-extra/badge';
+  import IconButton, { Icon } from "@smui/icon-button";
   import Tooltip, { Wrapper } from '@smui/tooltip';
   import { writable } from 'svelte/store';
   import { goto } from '$app/navigation';
 
-  import { open as drawer_open } from './Drawer.svelte';
+  import { open as drawer_open } from './ContactDrawer.svelte';
+  import { notifications, notification_open } from '$lib/stores/Dialogs';
+
+  const open = (drawer: string) => {
+    if (drawer == "contact") {
+      notification_open.set(false);
+      drawer_open.update(open => (open = !open));
+    } else {
+      drawer_open.set(false);
+      notification_open.update(open => (open = !open));
+    }
+  }
 
   export const topAppBar = writable<TopAppBar>();
 
@@ -28,13 +40,18 @@
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Show notifications"
-            >notifications</IconButton>
+          <IconButton class="material-icons" aria-label="Show notifications" on:click={() => open("notification")}>
+            <Icon class="material-icons">notifications</Icon>
+            {#if $notifications.length != 0}
+              <Badge aria-label="notification count" color="secondary">{$notifications.length}</Badge>
+            {/if}
+          </IconButton>
+
           <Tooltip>Show notifications</Tooltip>
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Account page" on:click={() => drawer_open.update(open => (open = !open))}
+          <IconButton class="material-icons" aria-label="Manage contacts" on:click={() => open("contact")}
             >contacts</IconButton>
           <Tooltip>Manage contacts</Tooltip>
         </Wrapper>
