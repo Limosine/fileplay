@@ -1,25 +1,16 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from '$app/stores';
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
   import { registerSW } from "virtual:pwa-register";
   import { HTMLImageTags } from "virtual:pwa-assets";
-  import { browser } from "$app/environment";
-  import {
-    convertKeyToPEM,
-    decryptFile,
-    encryptFile,
-    extractKeyFromPEM,
-    generateKeyPair,
-  } from "$lib/FileEncryption";
 
   import TopAppBar from "$lib/components/TopAppBar.svelte";
   import Drawer from "$lib/components/ContactDrawer.svelte";
   import N_Drawer from "$lib/components/NotificationDrawer.svelte";
 
-  import "$lib/../theme/typography.scss";
-  import { error } from "@sveltejs/kit";
-
+  import '$lib/../theme/typography.scss'
+  
   onMount(async () => {
     // update service worker
     if (pwaInfo) {
@@ -53,31 +44,15 @@
         },
       });
     }
-    name();
   });
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
-
-  async function name() {
-    let keyPair = await generateKeyPair();
-    let privateKey = keyPair.privateKey;
-    let publicKey = keyPair.publicKey;
-
-    let pemPrivateKey = await convertKeyToPEM(privateKey, true);
-    let pemPublicKey = await convertKeyToPEM(publicKey, false);
-
-    // console.log("PEM: ", pemPrivateKey, " | ", pemPublicKey);
-
-    let extractedPrivateKey = await extractKeyFromPEM(pemPrivateKey, true);
-    let extractedPublicKey = await extractKeyFromPEM(pemPublicKey, false);
-
-  }
 
   const preventDefault = (e: Event) => {
     if ($page.url.pathname == "/") {
       e.preventDefault();
     }
-  };
+  }
 </script>
 
 <svelte:head>
