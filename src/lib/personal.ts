@@ -1,7 +1,6 @@
 import { writable, type Writable } from "svelte/store";
 
-export let contacts: Promise<{cid: number, displayName: string, avatarSeed: string, linkedAt: number, isOnline: number}[]>;
-export let contacts_loaded = false;
+export const contacts = writable<Promise<{cid: number, displayName: string, avatarSeed: string, linkedAt: number, isOnline: number}[]>>();
 
 export async function getContacts(): Promise<{cid: number, displayName: string, avatarSeed: string, linkedAt: number, isOnline: number}[]> {
   const res = await fetch('/api/contacts', {
@@ -10,8 +9,11 @@ export async function getContacts(): Promise<{cid: number, displayName: string, 
 
   const contacts_new = await res.json();
 
-  contacts = contacts_new;
-  if (!contacts_loaded) contacts_loaded = true;
+  contacts.set(contacts_new);
 
   return contacts_new;
+}
+
+export function getContent() {
+  getContacts();
 }

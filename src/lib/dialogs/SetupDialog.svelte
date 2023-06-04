@@ -13,6 +13,7 @@
   import { onMount } from "svelte";
   import { publicKey_armored } from "$lib/openpgp";
   import { setup_completed } from "$lib/stores/Dialogs";
+  import { getContent } from "$lib/personal"
 
   let open: boolean;
 
@@ -153,6 +154,8 @@
     open = false;
     $setup_completed = true;
     setupLoading = false;
+
+    getContent();
   }
 
   onMount(() => {
@@ -168,6 +171,7 @@
       }
     } else {
       $setup_completed = true;
+      getContent();
     }
   });
 </script>

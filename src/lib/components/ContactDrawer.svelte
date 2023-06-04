@@ -12,17 +12,7 @@
 
   import { add_open, setup_completed } from "$lib/stores/Dialogs";
 
-  import { contacts, contacts_loaded, getContacts } from "$lib/personal";
-
-  import { generateKey } from "$lib/openpgp";
-
-  const contacts_available = () => {
-    if (contacts_loaded) {
-      return contacts;
-    } else {
-      return getContacts();
-    }
-  }
+  import { contacts, getContacts } from "$lib/personal";
 
   export const open = writable(false);
 </script>
@@ -42,14 +32,14 @@
         >
           Add contact
         </Button>
-        <Button class="material-icons" variant="unelevated" on:click={() => generateKey()}>
+        <Button class="material-icons" variant="unelevated" on:click={() => getContacts()}>
           refresh
         </Button>
       </div>
     </Header>
     <Content>
       <div class="list-box">
-        {#await contacts_available()}
+        {#await $contacts}
           <p>Contacts are loading...</p>
         {:then contacts}
           {#each contacts as contact}
