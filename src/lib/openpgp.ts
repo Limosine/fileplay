@@ -12,11 +12,11 @@ export async function generateKey() {
     userIDs: [{ name: 'Jon Smith'}], // displayName
   });
 
-  convertPrivateKey();
-
   privateKey_armored = privateKey;
   publicKey_armored = publicKey;
   revocationCertificate_top = revocationCertificate;
+
+  convertPrivateKey();
 
   localStorage.setItem("encryptionPrivateKey", privateKey_armored);
   localStorage.setItem("encryptionPublicKey", publicKey_armored);
@@ -27,18 +27,20 @@ async function convertPrivateKey(){
   privateKey_object = await openpgp.readPrivateKey({ armoredKey: privateKey_armored });
 }
 
-export async function encryptFile(files: FileList, publicKey_armored: string) {
-  const publicKey = await openpgp.readKey({ armoredKey: publicKey_armored });
+export async function encryptFile(files: FileList, publicKeys_armored: string[]) {
+  const publicKeys = await Promise.all(publicKeys_armored.map(armoredKey => openpgp.readKey({ armoredKey })));
 
   const filePromises = Array.from(files).map((file) => {
     return new Promise<openpgp.WebStream<string>>((resolve, reject) => {
       const reader = new FileReader;
       reader.onload = async () => {
         try {
-          if (typeof reader.result === "string") {
+          console.log(reader.result)
+          if (reader.result instanceof ArrayBuffer) {
+            console.log(true);
             const encrypted = await openpgp.encrypt({
-              message: await openpgp.createMessage({ text: reader.result }),
-              encryptionKeys: publicKey
+              message: await openpgp.createMessage({ binary: new Uint8Array(reader.result), format: "binary" }),
+              encryptionKeys: publicKeys
             });
 
             resolve(encrypted);
@@ -50,7 +52,7 @@ export async function encryptFile(files: FileList, publicKey_armored: string) {
       reader.onerror = (error) => {
         reject(error);
       };
-      reader.readAsText(file);
+      reader.readAsArrayBuffer(file);
     });
   });
 
@@ -139,7 +141,7 @@ export const setup = () => {
   if (!privateKey_object || !privateKey_armored || !publicKey_armored || !revocationCertificate_top) {
     const privateKey = localStorage.getItem("encryptionPrivateKey");
     const publicKey = localStorage.getItem("encryptionPublicKey");
-    const revocationCertificate = localStorage.getItem("encryptionrevocationCertificate");
+    const revocationCertificate = localStorage.getItem("encryptionRevocationCertificate");
 
     if (privateKey && publicKey && revocationCertificate) {
       privateKey_armored = privateKey;

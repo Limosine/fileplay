@@ -2,8 +2,9 @@ import { nanoid } from "nanoid";
 import type { DataConnection } from "peerjs";
 import Peer from "peerjs";
 import { get, writable } from "svelte/store";
+import { page } from '$app/stores';
 import { notifications } from "./stores/Dialogs";
-import { decryptFile, decryptFileWithPassword, encryptFile, encryptFileWithPassword, publicKey_armored } from "./openpgp";
+import { decryptFile, decryptFileWithPassword, encryptFile, encryptFileWithPassword } from "./openpgp";
 
 let peer: Peer;
 export const sender_uuid = writable<string>();
@@ -44,7 +45,7 @@ const handleData = (data: any, conn: DataConnection) => {
     let pending: { listen_key: string, files: FileList };
     for (pending of pending_files) {
       if (pending.listen_key == data.listen_key) {
-        send(pending.files, conn.peer);
+        send(pending.files, conn.peer, pending.listen_key);
 
         let notification;
         if (pending.files.length == 1) {
@@ -67,7 +68,13 @@ const handleData = (data: any, conn: DataConnection) => {
       }
     }
   } else if (Array.isArray(data.file) && Array.isArray(data.filename)){
-    let decrypted_files = decryptFileWithPassword(data.file, "password");
+    let decrypted_files
+    if (data.encrypted == "publicKey") {
+      decrypted_files = decryptFile(data.file);
+    } else {
+      decrypted_files = decryptFileWithPassword(data.file, get(page).params.listen_key);
+    }
+    
     console.log(decrypted_files);
     decrypted_files.then((decrypted_files) => {
       console.log(decrypted_files);
@@ -133,7 +140,7 @@ export function connected(reciever_uuid: string): (DataConnection | false) {
   return false;
 };
 
-export const send = (files: FileList, reciever_uuid: string) => {
+export const send = (files: FileList, reciever_uuid: string, password: string | undefined = undefined, publicKeys: string[] | undefined = undefined) => {
   if (files) {
 
     let filenames: string[] = [];
@@ -142,7 +149,15 @@ export const send = (files: FileList, reciever_uuid: string) => {
       filenames.push(file.name);
     };
 
-    let encrypted_files = encryptFileWithPassword(files, "password"); // todo: real publicKey
+    let encrypted_files;
+    if (publicKeys !== undefined){
+      encrypted_files = encryptFile(files, publicKeys); // todo: real publicKeys
+    } else if (password !== undefined){
+      encrypted_files = encryptFileWithPassword(files, password);
+    } else {
+      throw new Error("A password or public key has to be defined.");
+    }
+    
     encrypted_files.then((encrypted_files) => {
       let connect_return = connected(reciever_uuid);
       if (connect_return == false) {
@@ -151,10 +166,19 @@ export const send = (files: FileList, reciever_uuid: string) => {
 
         conn.on("open", function() {
   
-          conn.send({
-            file: Array.from(encrypted_files),
-            filename: filenames,
-          });
+          if (publicKeys !== undefined){
+            conn.send({
+              file: Array.from(encrypted_files),
+              filename: filenames,
+              encrypted: "publicKey"
+            });
+          } else {
+            conn.send({
+              file: Array.from(encrypted_files),
+              filename: filenames,
+              encrypted: "password"
+            });
+          }
         });
 
         conn.on("data", function(received_data) {
@@ -163,19 +187,28 @@ export const send = (files: FileList, reciever_uuid: string) => {
 
         connections.push(conn);
       } else {
-        connect_return.send({
-          file: Array.from(encrypted_files),
-          filename: filenames,
-        });
+        if (publicKeys !== undefined){
+          connect_return.send({
+            file: Array.from(encrypted_files),
+            filename: filenames,
+            encrypted: "publicKey"
+          });
+        } else {
+          connect_return.send({
+            file: Array.from(encrypted_files),
+            filename: filenames,
+            encrypted: "password"
+          });
+        }
       }
     });
   };
 };
 
-export const multiSend = (files: FileList, reciever_uuids: string[]) => {
+export const multiSend = (files: FileList, reciever_uuids: string[], publicKeys: string[]) => {
   let reciever_uuid: string;
   for (reciever_uuid of reciever_uuids) {
-    send(files, reciever_uuid);
+    send(files, reciever_uuid, undefined, publicKeys);
   };
 };
 

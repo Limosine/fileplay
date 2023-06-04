@@ -8,9 +8,10 @@
   import { files } from "$lib/components/Input.svelte";
   import Textfield from "@smui/textfield";
   import { open } from "$lib/stores/SelectContactStore";
+  import { publicKey_armored } from "$lib/openpgp";
 
   let addPendingFile: (files: FileList) => void;
-  let multiSend = (files: FileList, reciever_uuids: string[]) => {};
+  let multiSend = (files: FileList, reciever_uuids: string[], publicKeys: string[]) => {};
 
   let reciever_uuid = "";
   let reciever_uuids: string[] = [];
@@ -57,7 +58,7 @@
       case "link":
         addPendingFile($files);
       case "confirm":
-        multiSend($files, reciever_uuids);
+        multiSend($files, reciever_uuids, [publicKey_armored]);
     }
     $open = false;
   }

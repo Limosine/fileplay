@@ -1,10 +1,9 @@
 <script lang="ts">
-  // ToDo: Notification on download of file
-
   import Card from "@smui/card";
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
   import { page } from '$app/stores';
+  import { setup as pgp_setup } from "$lib/openpgp";
 
   let recieved_files = writable<{ url: string, name: string }[]>([]);
 
@@ -12,6 +11,7 @@
     const { setup, connectAsListener } = await import('$lib/peerjs');
     recieved_files = (await import('$lib/peerjs')).recieved_files;
 
+    pgp_setup();
     setup("");
 
     let reciever_uuid = $page.params.uuid;
