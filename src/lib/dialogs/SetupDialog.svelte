@@ -144,7 +144,6 @@
   escapeKeyAction=""
   aria-labelledby="title"
   aria-describedby="content"
-  on:SMUIDialog:closed={() => console.log("closed")}
 >
   {#if $setupLoading}
     <LinearProgress indeterminate />

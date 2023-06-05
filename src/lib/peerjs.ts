@@ -75,11 +75,8 @@ const handleData = (data: any, conn: DataConnection) => {
       decrypted_files = decryptFileWithPassword(data.file, get(page).params.listen_key);
     }
     
-    console.log(decrypted_files);
     decrypted_files.then((decrypted_files) => {
-      console.log(decrypted_files);
       for (let i = 0; i < decrypted_files.length; i++){
-        console.log(decrypted_files[i]);
         let url = createFileURL(decrypted_files[i]);
         let info = {
           url: url,
@@ -97,7 +94,6 @@ const handleData = (data: any, conn: DataConnection) => {
 
 const createFileURL = (file: any) => {
   var blob = new Blob([file]);
-  console.log(blob);
   var url = URL.createObjectURL(blob);
   return url;
 };
