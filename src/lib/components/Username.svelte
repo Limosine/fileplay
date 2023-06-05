@@ -20,13 +20,21 @@
     $original_username = user.displayName;
     $original_avatarSeed = user.avatarSeed;
   }
+
+  const generateAvatar = () => {
+    $userParams.avatarSeed = nanoid(8);
+  }
 </script>
 
-{#if $user_loaded}
-  {#await $user then user}
-    {loadInfos(user)}
-  {/await}
-{/if}
+<div style="display: none">
+  {#if $user_loaded}
+    {#await $user then user}
+      {loadInfos(user)}
+    {/await}
+  {:else}
+    {generateAvatar()}
+  {/if}
+</div>
 
 <div class="user">
   <Textfield

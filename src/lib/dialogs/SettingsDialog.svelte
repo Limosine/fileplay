@@ -21,7 +21,9 @@
       !$userParams.displayName ||
       !$userParams.avatarSeed ||
       $profaneUsername.profane ||
-      $profaneUsername.loading;
+      $profaneUsername.loading ||
+      $userParams.displayName == $original_username ||
+      $userParams.avatarSeed == $original_avatarSeed;
   }
 
   function convertUnixtoDate(unix_timestamp: number) {
@@ -87,7 +89,6 @@
   }
 
   async function updateUserInfo() {
-
     const res = await fetch('/api/user', {
       method: 'POST',
       body: JSON.stringify({
@@ -95,10 +96,6 @@
         avatarSeed: $userParams.avatarSeed,
       }),
     });
-
-    const result = await res.json();
-
-    return result;
   }
 
 </script>
