@@ -17,6 +17,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
       "displayName",
       "avatarSeed",
       "createdAt",
+      "lastSeenAt"
     ])
     .where('uid', '=', uid)
     .executeTakeFirstOrThrow();
