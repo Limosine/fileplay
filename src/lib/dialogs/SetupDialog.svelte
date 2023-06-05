@@ -3,16 +3,16 @@
   import Button, { Group, Label } from "@smui/button";
   import Textfield from "@smui/textfield";
   import Select, { Option } from "@smui/select";
-  import { nanoid } from "nanoid";
-  import Fab from "@smui/fab";
-  import { Icon } from "@smui/common";
   import LinearProgress from "@smui/linear-progress";
 
-  import { writable } from "svelte/store";
+  import { get, writable } from "svelte/store";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
   import { publicKey_armored } from "$lib/openpgp";
-  import { getContent } from "$lib/personal"
+  import { getContent } from "$lib/personal";
+
+  import { deviceParams, userParams, profaneUsername, setupLoading } from "$lib/stores/Dialogs";
+  import Username from "$lib/components/Username.svelte";
 
   let open: boolean;
 
@@ -21,17 +21,6 @@
   let linkingCode = "";
 
   const deviceTypes = ["Computer", "Smartphone", "Smartwatch"];
-  const deviceParams = writable({
-    displayName: "",
-    type: "",
-  });
-
-  const userParams = writable({
-    displayName: "",
-    avatarSeed: nanoid(8),
-  });
-
-  let setupLoading = false;
 
   let actionDisabled: boolean;
   $: {
@@ -41,40 +30,14 @@
       actionDisabled =
         !$userParams.displayName ||
         !$userParams.avatarSeed ||
-        profaneUsername.profane ||
-        profaneUsername.loading;
+        get(profaneUsername).profane ||
+        get(profaneUsername).loading;
     } else {
       actionDisabled = !linkingCode;
     }
   }
 
-  let profaneUsername: { loading: boolean; profane: boolean } = {
-    loading: false,
-    profane: false,
-  };
-
   let setupError: string;
-
-  function updateIsProfaneUsername() {
-    if (!browser || !$userParams.displayName) return;
-    profaneUsername.loading = true;
-    fetch("/api/checkIsUsernameProfane", {
-      method: "POST",
-      body: JSON.stringify({
-        username: $userParams.displayName,
-      }),
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        profaneUsername.profane = json.isProfane;
-        profaneUsername.loading = false;
-      })
-      .catch((e) => {
-        console.error(e);
-        profaneUsername.profane = false;
-        profaneUsername.loading = false;
-      });
-  }
 
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
     event = event as KeyboardEvent;
@@ -84,7 +47,7 @@
   }
 
   async function handleResponseError(res: Response) {
-    setupLoading = false;
+    setupLoading.set(false);
     const json_ = await res.json();
     if (json_) {
       setupError = json_.message;
@@ -95,7 +58,7 @@
 
   async function handleConfirm() {
     if (actionDisabled) return;
-    setupLoading = true;
+    setupLoading.set(true);
     // setup device if not already done so
     let storedDeviceParams = localStorage.getItem("deviceParams");
     if (
@@ -151,7 +114,7 @@
     localStorage.removeItem("deviceParams");
     localStorage.setItem("loggedIn", "true");
     open = false;
-    setupLoading = false;
+    setupLoading.set(false);
 
     getContent();
   }
@@ -193,13 +156,13 @@
       <Textfield
         bind:value={$deviceParams.displayName}
         label="Device Name"
-        bind:disabled={setupLoading}
+        bind:disabled={$setupLoading}
         input$maxlength={18}
       />
       <Select
         bind:value={$deviceParams.type}
         label="Device Type"
-        bind:disabled={setupLoading}
+        bind:disabled={$setupLoading}
         input$maxlength={18}
       >
         {#each deviceTypes as type}
@@ -212,11 +175,11 @@
     <div id="content">
       <Group variant="outlined">
         {#if newUser}
-          <Button variant="unelevated" bind:disabled={setupLoading}>
+          <Button variant="unelevated" bind:disabled={$setupLoading}>
             <Label>New</Label>
           </Button>
           <Button
-            bind:disabled={setupLoading}
+            bind:disabled={$setupLoading}
             on:click={() => {
               newUser = false;
               setupError = "";
@@ -227,7 +190,7 @@
           </Button>
         {:else}
           <Button
-            bind:disabled={setupLoading}
+            bind:disabled={$setupLoading}
             on:click={() => {
               newUser = true;
               setupError = "";
@@ -236,42 +199,14 @@
           >
             <Label>New</Label>
           </Button>
-          <Button variant="unelevated" bind:disabled={setupLoading}>
+          <Button variant="unelevated" bind:disabled={$setupLoading}>
             <Label>Connect to existing</Label>
           </Button>
         {/if}
       </Group>
     </div>
     {#if newUser}
-      <div class="user">
-        <Textfield
-          bind:value={$userParams.displayName}
-          bind:invalid={profaneUsername.profane}
-          bind:disabled={setupLoading}
-          on:focusout={updateIsProfaneUsername}
-          label="Username"
-          input$maxlength={18}
-        />
-        <div class="vflex">
-          <h6>Avatar</h6>
-          <div class="avatar">
-            <img
-              src="https://api.dicebear.com/6.x/adventurer/svg?seed={$userParams.avatarSeed}&radius=50&backgroundColor=b6e3f4"
-              alt="Your Avatar"
-            />
-            <div class="fab">
-              <Fab
-                color="primary"
-                on:click={() => ($userParams.avatarSeed = nanoid(8))}
-                bind:disabled={setupLoading}
-                mini
-              >
-                <Icon class="material-icons">refresh</Icon>
-              </Fab>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Username/>
     {:else}
       <div>
         <p>
@@ -284,7 +219,7 @@
           label="Linking Code"
           input$maxlength={6}
           bind:value={linkingCode}
-          bind:disabled={setupLoading}
+          bind:disabled={$setupLoading}
           input$placeholder="6-digit code"
         />
       </div>
@@ -313,34 +248,5 @@
     flex-flow: row;
     justify-content: center;
     gap: 10px;
-  }
-
-  .user {
-    margin-top: 1em;
-    display: grid;
-    grid-template-columns: auto auto;
-    grid-gap: 1rem;
-  }
-
-  img {
-    width: 7em;
-    aspect-ratio: 1/1;
-  }
-
-  .vflex {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .avatar {
-    margin-top: 0.7em;
-    position: relative;
-  }
-
-  .fab {
-    position: absolute;
-    bottom: 0;
-    right: 0;
   }
 </style>

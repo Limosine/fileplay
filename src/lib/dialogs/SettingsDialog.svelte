@@ -9,9 +9,20 @@
   import { settings_open } from "$lib/stores/Dialogs";
   import Tab, { Label as Tab_Label } from '@smui/tab';
   import TabBar from '@smui/tab-bar';
+  import Username from "$lib/components/Username.svelte";
+  import { userParams, profaneUsername, updateIsProfaneUsername, setupLoading, original_username, original_avatarSeed } from "$lib/stores/Dialogs";
 
   let active = "Account"
   let generated_code = false;
+
+  let actionDisabled: boolean;
+  $: {
+    actionDisabled =
+      !$userParams.displayName ||
+      !$userParams.avatarSeed ||
+      $profaneUsername.profane ||
+      $profaneUsername.loading;
+  }
 
   function convertUnixtoDate(unix_timestamp: number) {
     const dayjs_object = dayjs.unix(unix_timestamp);
@@ -43,6 +54,11 @@
     switch (action) {
       case "confirm":
         console.log("Settings dialog closed");
+        if (!actionDisabled) {
+          updateUserInfo();
+        } else {
+          console.log("Username, AvatarSeed empty or username profane");
+        }
     }
   }
 
@@ -68,6 +84,21 @@
     generated_code = true;
 
     return codeproperties;
+  }
+
+  async function updateUserInfo() {
+
+    const res = await fetch('/api/user', {
+      method: 'POST',
+      body: JSON.stringify({
+        displayName: $userParams.displayName,
+        avatarSeed: $userParams.avatarSeed,
+      }),
+    });
+
+    const result = await res.json();
+
+    return result;
   }
 
 </script>
@@ -150,12 +181,12 @@
           {/if}
         </DataTable>
       {:else}
-        <p>Edit user properities.</p>
+        <Username/>
       {/if}
     </div>
   </Content>
   <Actions>
-    <Button action="confirm">
+    <Button bind:disabled={actionDisabled} action="confirm">
       <Label>Close</Label>
     </Button>
   </Actions>
