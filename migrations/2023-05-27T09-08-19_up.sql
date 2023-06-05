@@ -2,8 +2,8 @@ create table users (
     uid integer primary key autoincrement,
     displayName text not null,
     avatarSeed text not null,
-    createdAt integer not null as (unixepoch('now')) stored,
-    lastSeenAt integer not null as (unixepoch('now')) stored
+    createdAt integer not null default (unixepoch('now')),
+    lastSeenAt integer not null default (unixepoch('now'))
 );
 
 create table devices (
@@ -12,8 +12,8 @@ create table devices (
     type text not null,
     uid integer,
     linkedAt integer,
-    createdAt integer not null as (unixepoch('now')) stored,
-    lastSeenAt integer not null as (unixepoch('now')) stored,
+    createdAt integer not null default (unixepoch('now')),
+    lastSeenAt integer not null default (unixepoch('now')),
     peerJsId text,
     encryptionPublicKey text not null,
     pushSubscription text,
@@ -42,7 +42,7 @@ create table contacts (
     cid integer primary key autoincrement,
     a integer not null,
     b integer not null,
-    createdAt integer not null as (unixepoch('now')) stored,
+    createdAt integer not null default (unixepoch('now')),
     foreign key (a) references users(uid),
     foreign key (b) references users(uid)
 );
