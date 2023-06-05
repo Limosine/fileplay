@@ -10,11 +10,11 @@ command = "npm run build"
 [[d1_databases]]
 binding = "DB"
 database_name = "fileplay-dev"
-database_id = "14603b6b-a017-44fb-a201-d00ba618aba1"
+database_id = "49d8462f-a969-475f-82b6-5f70ecd13421"
 
 [env.production]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "fileplay-prod"
-database_id = "efd8d0f3-cb40-4a8c-b74b-207d0b7398cc"
+database_id = "4ce6378e-473b-4a2e-8401-7f3407ed6784"

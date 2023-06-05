@@ -10,14 +10,9 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   // returns an advertisement code that can be redeemed to link a device to the connected user (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const did = await loadSignedDeviceID(cookies, key);
+  const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
-  // get uid
-  const { uid } = await db
-    .selectFrom("devicesToUsers")
-    .select("uid")
-    .where("did", "=", did)
-    .executeTakeFirstOrThrow();
+  if (!uid) throw error(401, "No user associated with this device");
 
   // generate a code
   let code: string;
@@ -38,12 +33,21 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   // set expiration date
   const expires = dayjs().add(LINKING_EXPIRY_TIME, "millisecond").unix();
 
-  // insert the code into the devicesLinkCodes table
+
+  // delete previous code
   await db
+    .deleteFrom("devicesLinkCodes")
+    .where("uid", "=", uid)
+    .execute();
+
+  // insert the code into the devicesLinkCodes table
+  const res1 = await db
     .insertInto("devicesLinkCodes")
     .values({ code, uid, expires, created_did: did })
     .returning("code")
-    .execute();
+    .executeTakeFirst();
+
+  if (!res1) throw error(500, "Could not generate code");
 
   return json({ code, expires, refresh: LINKING_REFRESH_TIME });
 };
@@ -52,7 +56,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // link a device to the user's account by redeeming an advertisement code (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const did = await loadSignedDeviceID(cookies, key);
+  const { did } = await loadSignedDeviceID(cookies, key, db);
   const { code: code_any } = await request.json();
   const code = (code_any as string).toUpperCase().replaceAll("O", "0"); // normalize code
 
@@ -66,13 +70,11 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   if (!res1) throw error(404, "Invalid code");
 
-  // delete existing devicesToUsers linking if exists
-  await db.deleteFrom("devicesToUsers").where("did", "=", did).execute();
-
   // insert new linking
   const res2 = await db
-    .insertInto("devicesToUsers")
-    .values({ did: did, uid: res1.uid })
+    .updateTable("devices")
+    .set({ uid: res1.uid, linkedAt: dayjs().unix() })
+    .where("did", "=", did)
     .returning("did")
     .executeTakeFirst();
   if (!res2) throw error(500, "Could not link device");
@@ -84,21 +86,15 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
   // revoke the current advertisement code (also happens after 15 minutes, code is refreshed after 10) (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const did = await loadSignedDeviceID(cookies, key);
-
-  // get uid
-  const { uid } = await db
-    .selectFrom("devicesToUsers")
-    .select("uid")
-    .where("did", "=", did)
-    .executeTakeFirstOrThrow();
+  const { did, uid } = await loadSignedDeviceID(cookies, key, db);
+  if(!uid) throw error(401, "No user associated with this device");
 
   // delete the code
   const res1 = await db
     .deleteFrom("devicesLinkCodes")
     .where("uid", "=", uid)
     .where("created_did", "=", did) // only the device that created the code can revoke it
-    .returningAll()
+    .returning("uid")
     .executeTakeFirst();
   if (!res1) throw error(500, "Could not revoke code");
 

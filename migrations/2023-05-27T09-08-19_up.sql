@@ -1,37 +1,22 @@
 create table users (
     uid integer primary key autoincrement,
     displayName text not null,
-    isOnline integer default 0 not null,
     avatarSeed text not null,
-    createdAt integer not null default (unixepoch('now')),
-    lastSeenAt integer not null default (unixepoch('now'))
+    createdAt integer not null as (unixepoch('now')) stored,
+    lastSeenAt integer not null as (unixepoch('now')) stored
 );
 
 create table devices (
     did integer primary key autoincrement,
     displayName text not null,
     type text not null,
-    isOnline integer DEFAULT 0 not null,
-    createdAt integer not null default (unixepoch('now')),
-    lastSeenAt integer not null default (unixepoch('now')),
+    uid integer,
+    linkedAt integer,
+    createdAt integer not null as (unixepoch('now')) stored,
+    lastSeenAt integer not null as (unixepoch('now')) stored,
     peerJsId text,
     encryptionPublicKey text not null,
-    pushSubscription integer,
-    foreign key (pushSubscription) references pushSubscriptions(pid)
-);
-
-create table pushSubscriptions (
-    pid integer primary key autoincrement,
-    endpoint text not null,
-    p256dh text not null,
-    auth text not null
-);
-
-create table devicesToUsers (
-    did integer primary key not null,
-    uid integer not null,
-    createdAt integer not null default (unixepoch('now')),
-    foreign key (did) references devices(did),
+    pushSubscription text,
     foreign key (uid) references users(uid)
 );
 
@@ -51,16 +36,13 @@ create table contactsLinkCodes (
     foreign key (uid) references users(uid)
 );
 
-
-
-create index idx_devicesToUsers_did on devicesToUsers (did);
-create index idx_devicesToUsers_uid on devicesToUsers (uid);
+create index idx_devices_uid on devices (uid);
 
 create table contacts (
     cid integer primary key autoincrement,
     a integer not null,
     b integer not null,
-    createdAt integer not null default (unixepoch('now')),
+    createdAt integer not null as (unixepoch('now')) stored,
     foreign key (a) references users(uid),
     foreign key (b) references users(uid)
 );

@@ -8,13 +8,8 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   // get all contacts of this account (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const did = await loadSignedDeviceID(cookies, key);
-
-  const { uid } = await db
-    .selectFrom("devicesToUsers")
-    .select("uid")
-    .where("did", "=", did)
-    .executeTakeFirstOrThrow();
+  const { uid } = await loadSignedDeviceID(cookies, key, db);
+  if(!uid) throw error(400, "No user associated with this device")
 
   const contacts = await db
     .selectFrom("contacts")
@@ -24,7 +19,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
       "users.displayName",
       "users.avatarSeed",
       "contacts.createdAt as linkedAt",
-      "users.isOnline",
+      "users.lastSeenAt"
     ])
     .where("contacts.b", "=", uid)
     .union(
@@ -36,7 +31,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
           "users.displayName",
           "users.avatarSeed",
           "contacts.createdAt as linkedAt",
-          "users.isOnline",
+          "users.lastSeenAt"
         ])
         .where("contacts.a", "=", uid)
     )
@@ -51,17 +46,12 @@ export const DELETE: RequestHandler = async ({ platform, url, cookies }) => {
   // cid in query params
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const did = await loadSignedDeviceID(cookies, key);
+  const { uid } = await loadSignedDeviceID(cookies, key, db);
+  if(!uid) throw error(400, "No user associated with this device")
 
   const cid_s = url.searchParams.get("cid");
   if (!cid_s) throw error(400, "No contact id provided");
   const cid = parseInt(cid_s);
-
-  const { uid } = await db
-    .selectFrom("devicesToUsers")
-    .select("uid")
-    .where("did", "=", did)
-    .executeTakeFirstOrThrow();
 
   const res1 = await db
     .deleteFrom("contacts")

@@ -1,6 +1,8 @@
 import { error, type Cookies } from "@sveltejs/kit";
 import { arrayBufferToHex, hexToArrayBuffer } from "./utils";
 import type { CookieSerializeOptions } from "cookie";
+import type { Database } from "$lib/db";
+import dayjs from "dayjs";
 
 export async function saveSignedDeviceID(
   did: number,
@@ -18,14 +20,31 @@ export async function saveSignedDeviceID(
 
 export async function loadSignedDeviceID(
   cookies: Cookies,
-  key: CryptoKey
-): Promise<number> {
-  const did = cookies.get("did");
+  key: CryptoKey,
+  db: Database
+): Promise<{ did: number; uid: number | null }> {
+  const did_s = cookies.get("did");
   const signature = cookies.get("did_sig");
-  if (!did || !signature) throw error(401, "Not authenticated");
-  if (!(await verify(did, signature, key)))
+  if (!did_s || !signature) throw error(401, "Not authenticated");
+  if (!(await verify(did_s, signature, key)))
     throw error(401, "Wrong authentication signature");
-  return parseInt(did);
+  const did_i = parseInt(did_s);
+  const now = dayjs().unix();
+  const res1 = await db
+    .updateTable("devices")
+    .set({ lastSeenAt: now })
+    .where("did", "=", did_i)
+    .returning(["did", "uid"])
+    .executeTakeFirst();
+  if (!res1) throw error(401, "Device not found");
+  const res2 = await db
+    .updateTable("users")
+    .set({ lastSeenAt: now })
+    .where("uid", "=", res1.uid)
+    .returning("uid")
+    .executeTakeFirst();
+
+  return { did: res1.did, uid: res2?.uid ?? null };
 }
 
 export async function sign(data: string, key: CryptoKey): Promise<string> {

@@ -1,6 +1,7 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, saveSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
+import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ({ platform, request, cookies }) => {
@@ -14,7 +15,8 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .insertInto("devices")
     .values({ displayName, type, encryptionPublicKey })
     .returning("did")
-    .executeTakeFirstOrThrow();
+    .executeTakeFirst();
+  if (!res) throw error(500, "Failed to create new device");
 
   // save device id in hmac signed cookie
   const key = await loadKey(COOKIE_SIGNING_SECRET);

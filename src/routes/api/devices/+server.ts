@@ -4,29 +4,16 @@ import { createKysely } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async (request) => {
+export const GET: RequestHandler = async ({ cookies, platform }) => {
   // get all devices linked to this account (requires cookie auth)
-  const db = createKysely(request.platform);
+  const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const did = await loadSignedDeviceID(request.cookies, key);
+  const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
   const devices = await db
     .selectFrom("devices")
-    .innerJoin("devicesToUsers", "devices.did", "devicesToUsers.did")
-    .select([
-      "devices.did",
-      "devices.type",
-      "devices.displayName",
-      "devices.isOnline",
-      "devices.createdAt",
-      "devices.lastSeenAt",
-      "devicesToUsers.createdAt as linkedAt",
-    ])
-    .where(
-      "devicesToUsers.uid",
-      "=",
-      db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
-    )
+    .select(["did", "type", "displayName", "createdAt", "lastSeenAt"])
+    .where(({ or, cmpr }) => or([cmpr("did", "=", did), cmpr("uid", "=", uid)]))
     .orderBy("displayName")
     .execute();
 
@@ -43,7 +30,7 @@ export const POST: RequestHandler = async ({
   // device id in query params
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const own_did = await loadSignedDeviceID(cookies, key);
+  const { did: own_did, uid } = await loadSignedDeviceID(cookies, key, db);
 
   const did_s = url.searchParams.get("did");
   let did: number;
@@ -57,25 +44,16 @@ export const POST: RequestHandler = async ({
   const res = await db
     .updateTable("devices")
     .set(updateObject)
-    .where("did", "=", did)
-    .where(
-      "did",
-      "in",
-      db
-        .selectFrom("devicesToUsers")
-        .select("did")
-        .where(
-          "uid",
-          "=",
-          db
-            .selectFrom("devicesToUsers")
-            .select("uid")
-            .where("did", "=", own_did)
-        )
+    .where(({ and, or, cmpr }) =>
+      and([
+        cmpr("did", "=", did),
+        or([cmpr("did", "=", own_did), cmpr("uid", "=", uid)]),
+      ])
     )
+    .returning("did")
     .executeTakeFirst();
 
-  if (!res) throw error(403, "You do not own this device");
+  if (!res) throw error(500, "Failed to update device info");
 
   return new Response(null, { status: 204 });
 };
@@ -85,7 +63,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
   // device id in query params
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const own_did = await loadSignedDeviceID(cookies, key);
+  const { did: own_did, uid } = await loadSignedDeviceID(cookies, key, db);
 
   const did_s = url.searchParams.get("did");
   let did: number;
@@ -94,48 +72,21 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
 
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
-  if (did == own_did) {
-    // get uid
-    const { uid } = await db
-      .selectFrom("devicesToUsers")
-      .select("uid")
-      .where("did", "=", own_did)
-      .executeTakeFirstOrThrow();
+  // delete device mapping
+  const res1 = await db
+    .deleteFrom("devices")
+    .where(({ and, or, cmpr }) =>
+      and([
+        cmpr("did", "=", did),
+        or([cmpr("did", "=", own_did), cmpr("uid", "=", uid)]),
+      ])
+    )
+    .returning("did")
+    .executeTakeFirst();
 
-    // delete deviceToUser mapping
-    const res1 = await db
-      .deleteFrom("devicesToUsers")
-      .where("did", "=", did)
-      .where("uid", "=", uid)
-      .executeTakeFirst();
-    if (!res1) throw error(403, "You do not own this device");
+  if (!res1) throw error(500, "Failed to delete device");
 
-    await db
-      .deleteFrom("devices")
-      .where("did", "=", did)
-      .executeTakeFirstOrThrow();
-    
-    cookies.delete("did");
-    cookies.delete("did_sig");
-  } else {
-    // delete deviceToUser mapping
-    const res1 = await db
-      .deleteFrom("devicesToUsers")
-      .where("did", "=", did)
-      .where(
-        "uid",
-        "=",
-        db.selectFrom("devicesToUsers").select("uid").where("did", "=", own_did)
-      )
-      .executeTakeFirst();
-    if (!res1) throw error(403, "You do not own this device");
+  // inform the device that it has been deleted via push
 
-    // delete device
-    await db
-      .deleteFrom("devices")
-      .where("did", "=", did)
-      .executeTakeFirstOrThrow();
-  }
-
-  return new Response("", { status: 204 });
+  return new Response(null, { status: 204 });
 };

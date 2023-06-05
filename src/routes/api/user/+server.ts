@@ -8,16 +8,17 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   // get all info about the user (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const did = await loadSignedDeviceID(cookies, key);
+  const { uid } = await loadSignedDeviceID(cookies, key, db);
 
   const userInfo = await db
     .selectFrom("users")
-    .selectAll()
-    .where(
+    .select([
       "uid",
-      "=",
-      db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
-    )
+      "displayName",
+      "avatarSeed",
+      "createdAt",
+    ])
+    .where('uid', '=', uid)
     .executeTakeFirstOrThrow();
 
   return json(userInfo);
@@ -27,17 +28,13 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   // change user info (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const did = await loadSignedDeviceID(cookies, key);
+  const { uid } = await loadSignedDeviceID(cookies, key, db);
   const updateValues = await request.json();
 
   const res1 = await db
     .updateTable("users")
     .set(updateValues)
-    .where(
-      "uid",
-      "=",
-      db.selectFrom("devicesToUsers").select("uid").where("did", "=", did)
-    )
+    .where("uid", "=", uid)
     .returning("uid")
     .executeTakeFirst();
 

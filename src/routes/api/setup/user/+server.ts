@@ -10,25 +10,29 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   // create a new user, link to current device (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const did = await loadSignedDeviceID(cookies, key);
+  const { did, uid: already_uid } = await loadSignedDeviceID(cookies, key, db);
+  if (already_uid) throw error(403, "Device already linked to user");
 
   const { displayName, avatarSeed } = await request.json();
 
   if (isProfane(displayName)) throw error(418, "Display name is profane"); // 418 I'm a teapot since this can only be triggered if someone manually f'ed with the api
 
-  const now = dayjs().unix();
-
   // insert new user into db
-  const { uid } = await db
+  const res1 = await db
     .insertInto("users")
     .values({ displayName, avatarSeed })
     .returning("uid")
-    .executeTakeFirstOrThrow();
+    .executeTakeFirst();
+
+  if (!res1) throw error(500, "Failed to create user");
+
+  const { uid } = res1;
 
   // link user to device
   await db
-    .insertInto("devicesToUsers")
-    .values({ did, uid })
+    .updateTable("devices")
+    .set({ uid, linkedAt: dayjs().unix() })
+    .where("did", "=", did)
     .returning("did")
     .executeTakeFirstOrThrow();
 
