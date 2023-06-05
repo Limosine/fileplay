@@ -66,14 +66,9 @@
   }
 
   async function deleteDevice(did: number) {
-
     const res = await fetch(`/api/devices?${did}`, {
       method: 'DELETE'
     });
-
-    const result = await res.json();
-
-    return result;
   }
 
   async function generateCode(): Promise<{code: string, expires: number, refresh: number}> {
