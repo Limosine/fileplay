@@ -19,7 +19,7 @@ export const POST: RequestHandler = async ({ platform, request }) => {
           JSON.parse(deviceSubscription),
           JSON.stringify({
             title: "Öffne Fileplay!",
-            body: `Datei(en) von ${senderName} annehmen?`,
+            body: `${senderName} versucht dir Datei(en) zu senden!`,
           })
         );
 
