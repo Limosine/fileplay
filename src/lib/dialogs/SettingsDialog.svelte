@@ -10,20 +10,24 @@
   import Tab, { Label as Tab_Label } from '@smui/tab';
   import TabBar from '@smui/tab-bar';
   import Username from "$lib/components/Username.svelte";
-  import { userParams, profaneUsername, updateIsProfaneUsername, setupLoading, original_username, original_avatarSeed } from "$lib/stores/Dialogs";
+  import { userParams, profaneUsername, original_username, original_avatarSeed } from "$lib/stores/Dialogs";
 
   let active = "Account"
   let generated_code = false;
 
+  let different: boolean;
   let actionDisabled: boolean;
   $: {
+    different =
+      $userParams.displayName != $original_username ||
+      $userParams.avatarSeed != $original_avatarSeed;
+
     actionDisabled =
       !$userParams.displayName ||
       !$userParams.avatarSeed ||
       $profaneUsername.profane ||
       $profaneUsername.loading ||
-      $userParams.displayName == $original_username ||
-      $userParams.avatarSeed == $original_avatarSeed;
+      !different;
   }
 
   function convertUnixtoDate(unix_timestamp: number) {
@@ -55,24 +59,16 @@
 
     switch (action) {
       case "confirm":
-        console.log("Settings dialog closed");
         if (!actionDisabled) {
           updateUserInfo();
-        } else {
-          console.log("Username, AvatarSeed empty or username profane");
         }
     }
   }
 
   async function deleteDevice(did: number) {
-
     const res = await fetch(`/api/devices?${did}`, {
       method: 'DELETE'
     });
-
-    const result = await res.json();
-
-    return result;
   }
 
   async function generateCode(): Promise<{code: string, expires: number, refresh: number}> {

@@ -35,9 +35,7 @@ export async function encryptFile(files: FileList, publicKeys_armored: string[])
       const reader = new FileReader;
       reader.onload = async () => {
         try {
-          console.log(reader.result)
           if (reader.result instanceof ArrayBuffer) {
-            console.log(true);
             const encrypted = await openpgp.encrypt({
               message: await openpgp.createMessage({ binary: new Uint8Array(reader.result), format: "binary" }),
               encryptionKeys: publicKeys
@@ -67,9 +65,7 @@ export async function encryptFileWithPassword(files: FileList, password: string)
       const reader = new FileReader;
       reader.onload = async () => {
         try {
-          console.log(reader.result)
           if (reader.result instanceof ArrayBuffer) {
-            console.log(true);
             const encrypted = await openpgp.encrypt({
               message: await openpgp.createMessage({ binary: new Uint8Array(reader.result), format: "binary" }),
               passwords: [password]

@@ -15,7 +15,6 @@
     if ($codehostname.includes("@")) {
       hostname = $codehostname.slice($codehostname.search("@")+1);
       code = $codehostname.slice(0, $codehostname.search("@"));
-      console.log(code, hostname);
     } else {
       code = $codehostname;
     }
@@ -51,7 +50,7 @@
     switch (action) {
       case "confirm":
         setHostname();
-        console.log(redeemCode());
+        redeemCode();
     }
   }
 
