@@ -33,6 +33,8 @@
     "@smui/paper": "^7.0.0-beta.8",
     "@smui/segmented-button": "^7.0.0-beta.8",
     "@smui/select": "^7.0.0-beta.8",
+    "@smui/tab": "^7.0.0-beta.8",
+    "@smui/tab-bar": "^7.0.0-beta.8",
     "@smui/textfield": "^7.0.0-beta.8",
     "@smui/tooltip": "^7.0.0-beta.8",
     "@smui/top-app-bar": "^7.0.0-beta.8",

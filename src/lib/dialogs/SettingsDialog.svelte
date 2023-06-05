@@ -1,13 +1,17 @@
 <script lang="ts">
   import Dialog, { Title, Content, Actions } from "@smui/dialog";
-  import Button, { Label, Group } from "@smui/button";
+  import Button, { Label } from "@smui/button";
+  import Card from '@smui/card';
   import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
   import dayjs from "dayjs";
   import { devices, devices_loaded, getDevices } from "$lib/personal";
   import IconButton from "@smui/icon-button/src/IconButton.svelte";
   import { settings_open } from "$lib/stores/Dialogs";
+  import Tab, { Label as Tab_Label } from '@smui/tab';
+  import TabBar from '@smui/tab-bar';
 
-  let devices_section = true;
+  let active = "Account"
+  let generated_code = false;
 
   function convertUnixtoDate(unix_timestamp: number) {
     const dayjs_object = dayjs.unix(unix_timestamp);
@@ -42,16 +46,30 @@
     }
   }
 
+  async function deleteDevice(did: number) {
+
+    const res = await fetch(`/api/devices?${did}`, {
+      method: 'DELETE'
+    });
+
+    const result = await res.json();
+
+    return result;
+  }
+
   async function generateCode(): Promise<{code: string, expires: number, refresh: number}> {
 
-      const res = await fetch('/api/contacts/link', {
-          method: 'GET'
-      });
+	  const res = await fetch('/api/devices/link', {
+		  method: 'GET'
+	  });
 
-      const codeproperties = await res.json();
+	  const codeproperties = await res.json();
+
+    generated_code = true;
 
     return codeproperties;
   }
+
 </script>
 
 <svelte:window on:keydown={handleKeyDown}/>
@@ -64,39 +82,45 @@
 >
   <Title id="title">Settings</Title>
   <Content>
-    <div id="content">
-      <div id="buttons">
-        <Group variant="outlined">
-          {#if devices_section}
-            <Button variant="unelevated">
-              <Label>Devices</Label>
-            </Button>
-            <Button
-              on:click={() => {
-                devices_section = false;
-                generateCode();
-              }}
-              variant="outlined"
-            >
-              <Label>User</Label>
-            </Button>
-          {:else}
-            <Button
-              on:click={() => {
-                devices_section = true;
-              }}
-              variant="outlined"
-            >
-              <Label>Devices</Label>
-            </Button>
-            <Button variant="unelevated">
-              <Label>User</Label>
-            </Button>
-          {/if}
-        </Group>
+      <div id="tab_bar">
+        <TabBar tabs={['Account', 'Devices']} let:tab bind:active>
+          <Tab {tab}>
+            <Tab_Label>{tab}</Tab_Label>
+          </Tab>
+        </TabBar>
       </div>
 
-      {#if devices_section}
+    <div id="content">
+      {#if active === 'Devices'}
+        <div class="button-box">
+          <Button
+            variant="outlined"
+            color="primary"
+            style="width: 100%;"
+            on:click={() => generateCode()}
+          >
+            Generate code
+          </Button>
+          <Button class="material-icons" variant="outlined" on:click={() => getDevices()}>
+            refresh
+          </Button>
+        </div>
+
+        {#if generated_code}
+          <div class="codes-box">
+            <Card padded variant="outlined">
+              {#await generateCode()}
+                <p>Generating code...</p>
+              {:then codeproperties} 
+                <p>Code: {codeproperties.code}<br/>
+                Expires on {convertUnixtoDate(codeproperties.expires)}</p>
+              {:catch}
+                <p>Failed to generate code.</p>
+              {/await}
+            </Card>
+          </div>
+        {/if}
+
         <DataTable table$aria-label="Devices list" style="max-width: 100%;">
           <Head>
             <Row>
@@ -116,7 +140,7 @@
                     <Cell>{device.displayName}</Cell>
                     <Cell>{device.type}</Cell>
                     <Cell>{convertUnixtoDate(device.lastSeenAt)}</Cell>
-                    <Cell><IconButton class="material-icons">delete</IconButton></Cell>
+                    <Cell><IconButton on:click={() => deleteDevice(device.did)} class="material-icons">delete</IconButton></Cell>
                   </Row>
                 </Body>
               {/each}
@@ -125,6 +149,8 @@
             {/await}
           {/if}
         </DataTable>
+      {:else}
+        <p>Edit user properities.</p>
       {/if}
     </div>
   </Content>
@@ -139,12 +165,16 @@
   #content {
     display: flex;
     flex-flow: column;
+    gap: 7px;
   }
 
-  #buttons {
+  .button-box {
     display: flex;
-    flex-flow: column;
-    align-items: center;
-    padding-bottom: 15px;
+    flex-flow: row;
+    gap: 5px;
+  }
+
+  #tab_bar {
+    padding-bottom: 8px;
   }
 </style>
