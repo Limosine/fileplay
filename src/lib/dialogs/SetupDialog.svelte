@@ -146,7 +146,7 @@
   aria-describedby="content"
   on:SMUIDialog:closed={() => console.log("closed")}
 >
-  {#if setupLoading}
+  {#if $setupLoading}
     <LinearProgress indeterminate />
   {/if}
   <Title id="title">Setup</Title>
