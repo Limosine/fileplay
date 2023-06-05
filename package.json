@@ -44,6 +44,7 @@
     "@types/jsonwebtoken": "^9.0.2",
     "@types/sharp": "^0.31.1",
     "@types/uuid": "^9.0.1",
+    "@types/web-push": "^3.3.2",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
     "@urql/core": "^4.0.7",

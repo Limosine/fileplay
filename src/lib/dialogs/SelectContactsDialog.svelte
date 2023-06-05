@@ -59,6 +59,13 @@
         addPendingFile($files);
       case "confirm":
         multiSend($files, reciever_uuids, [publicKey_armored]);
+        fetch("/api/sharing/selection", {
+          method: "POST",
+          body: JSON.stringify({
+            senderName: "unknown",
+            reciever_uuids
+          })
+        })
     }
     $open = false;
   }

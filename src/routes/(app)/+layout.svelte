@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from "$app/stores";
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
   import { registerSW } from "virtual:pwa-register";
@@ -9,8 +9,15 @@
   import Drawer from "$lib/components/ContactDrawer.svelte";
   import N_Drawer from "$lib/components/NotificationDrawer.svelte";
 
-  import '$lib/../theme/typography.scss'
-  
+  import "$lib/../theme/typography.scss";
+  import webpush from "web-push";
+
+  webpush.setVapidDetails(
+    "https://app.fileplay.me",
+    import.meta.env.PUBLIC_VAPID_KEY,
+    import.meta.env.PRIVATE_VAPID_KEY
+  );
+
   onMount(async () => {
     // update service worker
     if (pwaInfo) {
@@ -36,6 +43,26 @@
 
               if (resp.status === 200) {
                 await registration.update();
+                if (Notification.permission !== "granted") {
+                  Notification.requestPermission(async (perm) => {
+                    if (perm === "granted") {
+                      const subscription =
+                        await registration.pushManager.subscribe({
+                          userVisibleOnly: true,
+                          applicationServerKey: import.meta.env
+                            .PUBLIC_VAPID_KEY,
+                        });
+
+                      await fetch("api/notifications/updateSubscription", {
+                        method: "POST",
+                        body: JSON.stringify(subscription),
+                        headers: {
+                          "content-type": "application/json",
+                        },
+                      });
+                    }
+                  });
+                }
               }
             }, 1000 * 60 * 60);
         },
@@ -52,7 +79,7 @@
     if ($page.url.pathname == "/") {
       e.preventDefault();
     }
-  }
+  };
 </script>
 
 <svelte:head>

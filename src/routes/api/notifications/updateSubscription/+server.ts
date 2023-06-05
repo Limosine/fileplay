@@ -2,7 +2,7 @@ import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import { error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
+import type { RequestHandler } from "../../contacts/$types";
 
 export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   const db = createKysely(platform);
