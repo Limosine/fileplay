@@ -2,7 +2,7 @@
   import { Icon } from "@smui/common";
   import Card, { PrimaryAction } from "@smui/card";
   import Input, { input, files } from "$lib/components/Input.svelte";
-  import SetupDialog from '$lib/dialogs/SetupDialog.svelte';
+  import SetupDialog from "$lib/dialogs/SetupDialog.svelte";
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
 
@@ -13,6 +13,7 @@
   import { setup as pgp_setup } from "$lib/openpgp";
 
   import SettingsDialog from "$lib/dialogs/SettingsDialog.svelte";
+  import { notifications } from "$lib/stores/Dialogs";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -23,19 +24,26 @@
   };
 
   let sender_uuid = writable<string>();
-  let recieved_files = writable<{ url: string, name: string }[]>([]);
+  let recieved_files = writable<{ url: string; name: string }[]>([]);
 
   let link = writable("");
 
   onMount(async () => {
-    const { setup } = await import('$lib/peerjs');
-    sender_uuid = (await import('$lib/peerjs')).sender_uuid;
-    recieved_files = (await import('$lib/peerjs')).recieved_files;
+    const { setup } = await import("$lib/peerjs");
+    sender_uuid = (await import("$lib/peerjs")).sender_uuid;
+    recieved_files = (await import("$lib/peerjs")).recieved_files;
 
-    link = (await import('$lib/peerjs')).link;
+    link = (await import("$lib/peerjs")).link;
 
     pgp_setup();
     setup("");
+
+    if ($notifications) {
+      $notifications.push({
+        title: "Huhu",
+        content: "Contentanasfanlkfsan ajbfs askjfb",
+      });
+    }
   });
 </script>
 
@@ -45,13 +53,12 @@
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
-
-<SetupDialog/>
+<SetupDialog />
 
 <Input />
-<SelectContactsDialog/>
-<AddContactDialog/>
-<SettingsDialog/>
+<SelectContactsDialog />
+<AddContactDialog />
+<SettingsDialog />
 
 <div class="center">
   {#if $sender_uuid}
@@ -82,7 +89,7 @@
 
   {#if $link}
     <Card padded>
-      Link:<br/>
+      Link:<br />
       <a href={$link}>{$link}</a>
     </Card>
   {/if}
@@ -104,7 +111,9 @@
       <p class="small"><br /></p>
 
       {#each $recieved_files as recieved_file}
-        <a href={recieved_file.url} download={recieved_file.name}>{recieved_file.name}</a><br/>
+        <a href={recieved_file.url} download={recieved_file.name}
+          >{recieved_file.name}</a
+        ><br />
       {/each}
     </Card>
   {/if}

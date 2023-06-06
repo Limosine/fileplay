@@ -1,10 +1,16 @@
 <script lang="ts" context="module">
-  import Drawer, { AppContent, Content, Header, Subtitle, Title } from "@smui/drawer";
+  import Drawer, {
+    AppContent,
+    Content,
+    Header,
+    Subtitle,
+    Title,
+  } from "@smui/drawer";
   import { AutoAdjust } from "@smui/top-app-bar";
-  import { writable } from 'svelte/store';
-  import { page } from '$app/stores';
+  import { writable } from "svelte/store";
+  import { page } from "$app/stores";
 
-  import { topAppBar } from './TopAppBar.svelte';
+  import { topAppBar } from "./TopAppBar.svelte";
   import Tooltip, { Wrapper } from "@smui/tooltip";
   import IconButton from "@smui/icon-button";
   import Card, { PrimaryAction } from "@smui/card";
@@ -18,7 +24,12 @@
 </script>
 
 <div dir="rtl">
-  <Drawer class="mdc-top-app-bar--fixed-adjust" dir="ltr" variant="dismissible" bind:open={$open}>
+  <Drawer
+    class="mdc-top-app-bar--fixed-adjust"
+    dir="ltr"
+    variant="dismissible"
+    bind:open={$open}
+  >
     <Header dir="ltr">
       <Title>Contacts</Title>
       <Subtitle>Manage your contacts</Subtitle>
@@ -27,11 +38,15 @@
           variant="unelevated"
           color="primary"
           style="width: 100%;"
-          on:click={() => add_open.update(open => (open = !open))}
+          on:click={() => add_open.update((open) => (open = !open))}
         >
           Add contact
         </Button>
-        <Button class="material-icons" variant="unelevated" on:click={() => getContacts()}>
+        <Button
+          class="material-icons"
+          variant="unelevated"
+          on:click={() => getContacts()}
+        >
           refresh
         </Button>
       </div>
@@ -39,28 +54,31 @@
     <Content>
       <div class="list-box">
         {#if $contacts_loaded}
-        {#await $contacts}
-          <p>Contacts are loading...</p>
-        {:then contacts}
-          {#each contacts as contact}
-            <Card>
-              <PrimaryAction class="items-box">
-                <div class="box">
-                  <div class="left">{contact.displayName}</div>
-                  <div class="right">
-                    <Wrapper>
-                      <IconButton class="material-icons" aria-label="Delete contact"
-                        >more_vert</IconButton>
-                      <Tooltip>Manage contacts</Tooltip>
-                    </Wrapper>
-                  </div>
-                </div>
-              </PrimaryAction>
-            </Card>
-          {/each}
-        {:catch}
-          <p>Failed to load contacts.</p>
-        {/await}
+          {#if $contacts}
+            {#await $contacts}
+              <p>Contacts are loading...</p>
+            {:then contacts}
+              {#each contacts as contact}
+                <Card>
+                  <PrimaryAction class="items-box">
+                    <div class="box">
+                      <div class="left">{contact.displayName}</div>
+                      <div class="right">
+                        <Wrapper>
+                          <IconButton
+                            class="material-icons"
+                            aria-label="Delete contact">more_vert</IconButton
+                          >
+                          <Tooltip>Manage contacts</Tooltip>
+                        </Wrapper>
+                      </div>
+                    </div>
+                  </PrimaryAction>
+                </Card>
+              {/each}
+            {:catch}
+              <p>Failed to load contacts.</p>
+            {/await}{/if}
         {/if}
       </div>
     </Content>

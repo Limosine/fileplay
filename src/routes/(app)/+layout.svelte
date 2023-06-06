@@ -10,19 +10,8 @@
   import N_Drawer from "$lib/components/NotificationDrawer.svelte";
 
   import "$lib/../theme/typography.scss";
-  import webpush from "web-push";
-  import { notifications } from "$lib/stores/Dialogs";
 
   onMount(async () => {
-    webpush.setVapidDetails(
-      "https://app.fileplay.me",
-      import.meta.env.PUBLIC_VAPID_KEY,
-      import.meta.env.PRIVATE_VAPID_KEY
-    );
-    $notifications.push({
-      title: "Huhu",
-      content: "Contentanasfanlkfsan ajbfs askjfb",
-    });
     // update service worker
     if (pwaInfo) {
       registerSW({

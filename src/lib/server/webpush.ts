@@ -1,4 +1,4 @@
-import webpush from "web-push";
+import webpush from "node:web-push";
 
 export const notifyFileRequest = async (
   pushSub: webpush.PushSubscription,
