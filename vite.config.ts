@@ -34,8 +34,6 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
       }),
     ],
     build: {
-      rollupOptions: {
-      },
     },
   };
 }
