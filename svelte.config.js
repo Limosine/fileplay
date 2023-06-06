@@ -20,9 +20,6 @@ const config = {
     csrf: {
       checkOrigin: false,
     },
-    external: [
-      'web-push'
-    ],
   },
 };
 

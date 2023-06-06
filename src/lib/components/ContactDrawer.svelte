@@ -54,31 +54,30 @@
     <Content>
       <div class="list-box">
         {#if $contacts_loaded}
-          {#if $contacts}
-            {#await $contacts}
-              <p>Contacts are loading...</p>
-            {:then contacts}
-              {#each contacts as contact}
-                <Card>
-                  <PrimaryAction class="items-box">
-                    <div class="box">
-                      <div class="left">{contact.displayName}</div>
-                      <div class="right">
-                        <Wrapper>
-                          <IconButton
-                            class="material-icons"
-                            aria-label="Delete contact">more_vert</IconButton
-                          >
-                          <Tooltip>Manage contacts</Tooltip>
-                        </Wrapper>
-                      </div>
+          {#await $contacts}
+            <p>Contacts are loading...</p>
+          {:then contacts}
+            {#each contacts as contact}
+              <Card>
+                <PrimaryAction class="items-box">
+                  <div class="box">
+                    <div class="left">{contact.displayName}</div>
+                    <div class="right">
+                      <Wrapper>
+                        <IconButton
+                          class="material-icons"
+                          aria-label="Delete contact">more_vert</IconButton
+                        >
+                        <Tooltip>Manage contacts</Tooltip>
+                      </Wrapper>
                     </div>
-                  </PrimaryAction>
-                </Card>
-              {/each}
-            {:catch}
-              <p>Failed to load contacts.</p>
-            {/await}{/if}
+                  </div>
+                </PrimaryAction>
+              </Card>
+            {/each}
+          {:catch}
+            <p>Failed to load contacts.</p>
+          {/await}
         {/if}
       </div>
     </Content>

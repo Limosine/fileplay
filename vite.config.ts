@@ -3,12 +3,13 @@ import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
 import { config } from "dotenv";
 import PWAAssets, { getManifestIcons } from "./scripts";
-
+import nodeExternals from 'rollup-plugin-node-externals'
 config();
 
 export default async function (config: ConfigEnv): Promise<UserConfig> {
   return {
     plugins: [
+      nodeExternals(),
       sveltekit(),
       PWAAssets({
         publicPath: "/pwa-assets",
@@ -34,8 +35,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
     ],
     build: {
       rollupOptions: {
-        external: ['react']   // mark as external because it is imported somewhere but not used
-      }
-    }, 
+      },
+    },
   };
 }

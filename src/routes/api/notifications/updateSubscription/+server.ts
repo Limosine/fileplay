@@ -3,7 +3,7 @@ import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "../../contacts/$types";
-import webpush from "node:web-push";
+import webpush from "web-push";
 
 export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   const db = createKysely(platform);
