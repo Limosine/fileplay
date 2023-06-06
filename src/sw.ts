@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
-
+import { notifications } from "$lib/stores/Dialogs";
 declare let self: ServiceWorkerGlobalScope;
 
 // handle prompt update
@@ -36,7 +36,11 @@ self.addEventListener("fetch", async (event) => {
 
 self.addEventListener("push", e => {
   const data = e.data?.json();
-  self.registration.showNotification(data.title, {
+  notifications.update((val) => {
+    val = [...val, {title: data.title, content: data.body}]
+    return val;
+  })
+    self.registration.showNotification(data.title, {
     body: data.body,
     // icon: "http://image.ibb.co/frYOFd/tmlogo.png"
   });
