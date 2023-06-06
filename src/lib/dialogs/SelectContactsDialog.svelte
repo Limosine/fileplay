@@ -10,25 +10,13 @@
   import { open } from "$lib/stores/SelectContactStore";
   import { publicKey_armored } from "$lib/openpgp";
 
+  import { contacts, contacts_loaded, getContacts } from "$lib/personal";
+
   let addPendingFile: (files: FileList) => void;
   let multiSend = (files: FileList, reciever_uuids: string[], publicKeys: string[]) => {};
 
   let reciever_uuid = "";
   let reciever_uuids: string[] = [];
-
-  var names: string[] = [
-    "Computer",
-    "Smartphone",
-    "Tablet",
-    "Laptop",
-    "Smartwatch",
-  ];
-
-  for (let i = 0; i < 100; i++) {
-    names.push(String(i));
-  }
-
-  var ghost_items = new Array(4 - (names.length % 4));
 
   onMount(async () => {
     addPendingFile = (await import('$lib/peerjs')).addPendingFile;
@@ -36,6 +24,17 @@
   });
 
   const selected = writable<{ [name: string]: string }>({});
+
+  let ghost_items: any[];
+  function setGhostItems(contacts: {
+    cid: number;
+    displayName: string;
+    avatarSeed: string;
+    linkedAt: number;
+    isOnline: number;
+  }[]) {
+    ghost_items = new Array(4 - (contacts.length % 4));
+  }
 
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
     event = event as KeyboardEvent;
@@ -111,19 +110,27 @@
           {/each}
         </div>
         <div id="content">
-          {#each names as name}
-            <Card class={$selected[name]}>
-              <PrimaryAction
-                on:click={() => select(name)}
-                class="content-items"
-              >
-                {name}
-              </PrimaryAction>
-            </Card>
-          {/each}
-          {#each ghost_items as ghost_item}
-          <div class="content-items" />
-          {/each}
+          {#if $contacts_loaded}
+            {#await $contacts}
+              <p>Contacts are loading...</p>
+            {:then contacts}
+              <div style="display: none">
+                {setGhostItems(contacts)}
+              </div>
+              {#each contacts as contact}
+                <Card class={$selected[contact.displayName]}>
+                  <PrimaryAction
+                    on:click={() => select(contact.displayName)}
+                    class="content-items"
+                  >
+                    {contact.displayName}
+                  </PrimaryAction>
+                </Card>
+              {/each}
+            {:catch}
+              <p>Failed to load contacts.</p>
+            {/await}
+          {/if}
         </div>
       </P_Content>
     </Paper>
