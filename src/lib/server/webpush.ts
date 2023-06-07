@@ -1,8 +1,61 @@
-import webpush from "web-push";
+import { PRIVATE_VAPID_KEY } from "$env/static/private";
+import { PUBLIC_VAPID_KEY } from "$env/static/public";
+import { SHARING_TIMEOUT } from "$lib/common";
+import type { Database } from "$lib/db";
+import {
+  generatePushHTTPRequest,
+  ApplicationServerKeys,
+} from "webpush-webcrypto";
 
-export const notifyFileRequest = async (
-  pushSub: webpush.PushSubscription,
-  payLoad: string
-) => {
-  return webpush.sendNotification(pushSub, payLoad);
-};
+/**
+ * Sends a push notfications to a device with the given device ID.
+ */
+export async function sendPushNotification(
+  db: Database,
+  fetch: typeof window.fetch,
+  did: number,
+  payload: string,
+  topic?: string
+) {
+  const res1 = await db
+    .selectFrom("devices")
+    .select("pushSubscription")
+    .where("did", "=", did)
+    .executeTakeFirst();
+
+  const subscription = res1?.pushSubscription;
+
+  if (!subscription) return;
+  // todo check if subscription is already expired
+
+  const options = {
+    applicationServerKeys: await ApplicationServerKeys.fromJSON({
+      publicKey: PUBLIC_VAPID_KEY,
+      privateKey: PRIVATE_VAPID_KEY,
+    }),
+    payload,
+    target: JSON.parse(subscription),
+    adminContact: "mailto:web-push@fileplay.me",
+    ttl: SHARING_TIMEOUT,
+    urgency: "high",
+  };
+
+  if (topic) {
+    // @ts-ignore sadly webpush-webcrypto doesn't have ts support
+    options.topic = topic;
+  }
+
+  const { headers, body, endpoint } = await generatePushHTTPRequest(options);
+
+  const res2 = await fetch(endpoint, {
+    method: "POST",
+    headers,
+    body,
+  });
+
+  if (!res2.ok) {
+    throw new Error(
+      `Failed to send request to push server: ${res2.statusText}`
+    );
+  }
+}

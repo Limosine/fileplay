@@ -19,7 +19,8 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
       "users.displayName",
       "users.avatarSeed",
       "contacts.createdAt as linkedAt",
-      "users.lastSeenAt"
+      "users.lastSeenAt",
+      "users.uid"
     ])
     .where("contacts.b", "=", uid)
     .union(
@@ -31,7 +32,8 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
           "users.displayName",
           "users.avatarSeed",
           "contacts.createdAt as linkedAt",
-          "users.lastSeenAt"
+          "users.lastSeenAt",
+          "users.uid"
         ])
         .where("contacts.a", "=", uid)
     )
