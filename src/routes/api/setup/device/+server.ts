@@ -8,12 +8,12 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // post device info here, create a new device (sets cookie auth)
   const db = createKysely(platform);
 
-  const { displayName, type, encryptionPublicKey } = await request.json();
+  const { displayName, type } = await request.json();
 
   // insert new device into db
   const res = await db
     .insertInto("devices")
-    .values({ displayName, type, encryptionPublicKey })
+    .values({ displayName, type })
     .returning("did")
     .executeTakeFirst();
   if (!res) throw error(500, "Failed to create new device");

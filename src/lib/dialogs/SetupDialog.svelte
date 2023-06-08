@@ -8,7 +8,6 @@
   import { get, writable } from "svelte/store";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
-  import { publicKey_armored } from "$lib/openpgp";
   import { getContent } from "$lib/personal";
   import { DeviceType } from "$lib/common";
 
@@ -78,11 +77,7 @@
     if (!storedDeviceParams) {
       const res = await fetch("/api/setup/device", {
         method: "POST",
-        body: JSON.stringify(
-          Object.assign({}, $deviceParams, {
-            encryptionPublicKey: publicKey_armored,
-          })
-        ),
+        body: JSON.stringify($deviceParams),
       });
       if (String(res.status).charAt(0) !== "2") {
         handleResponseError(res);
