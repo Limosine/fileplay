@@ -1,7 +1,6 @@
 vite.config.ts.timestamp*
 src/lib/gql.ts
 *.key
-static/pwa-assets
 tmp*
 static/smui*
 .wrangler

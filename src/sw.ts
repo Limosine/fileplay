@@ -3,16 +3,18 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-
 import { PUBLIC_VAPID_KEY } from "$env/static/public";
 import { ONLINE_STATUS_REFRESH_TIME } from "$lib/common";
-import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
+import { build, files, version } from "$service-worker";
 declare let self: ServiceWorkerGlobalScope;
 
-// precache all assets
-precacheAndRoute(self.__WB_MANIFEST);
-// clean old assets
-cleanupOutdatedCaches();
+// Create a unique cache name for this deployment
+const CACHE = `cache-${version}`;
+
+const ASSETS = [
+  ...build, // the app itself
+  ...files, // everything in `static`
+];
 
 let keepaliveInterval: any;
 
@@ -69,7 +71,7 @@ self.addEventListener("push", (event) => {
   }
 });
 
-// web share target handler
+// fetch handler
 self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
 
@@ -86,15 +88,63 @@ self.addEventListener("fetch", async (event) => {
       })()
     );
   }
+  // ignore POST requests etc
+  if (event.request.method !== "GET") return;
+
+  async function respond() {
+    const cache = await caches.open(CACHE);
+
+    // `build`/`files` can always be served from the cache
+    if (ASSETS.includes(url.pathname)) {
+      const cached = await cache.match(url.pathname);
+      if (cached) return cached;
+    }
+
+    // for everything else, try the network first, but
+    // fall back to the cache if we're offline
+    try {
+      const response = await fetch(event.request);
+
+      if (response.status === 200) {
+        cache.put(event.request, response.clone());
+      }
+
+      return response;
+    } catch {
+      const cached = await cache.match(event.request);
+      if (!cached) throw new Error("No cached response");
+      return cached;
+    }
+  }
+
+  event.respondWith(respond());
 });
 
-// main function
-(async () => {
-  // setup push notifications
-  await registerPushSubscription().catch((err) => {
-    console.error(err);
-  });
-})();
+self.addEventListener("install", (event) => {
+  // Create a new cache and add all files to it
+  async function addFilesToCache() {
+    const cache = await caches.open(CACHE);
+    await cache.addAll(ASSETS);
+  }
+
+  event.waitUntil(addFilesToCache());
+});
+
+self.addEventListener("activate", (event) => {
+  // Remove previous cached data from disk
+  async function deleteOldCaches() {
+    for (const key of await caches.keys()) {
+      if (key !== CACHE) await caches.delete(key);
+    }
+  }
+
+  event.waitUntil(deleteOldCaches());
+});
+
+// try to register push notifications
+registerPushSubscription().catch((err) => {
+  console.error(err);
+});
 
 // TODO
 // - handle web share target requests

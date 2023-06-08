@@ -7,3 +7,4 @@
 - [ ] implement /api/contacts after largely the same schema as /api/devices
 - [ ] move into monorepo (nx, turborepo, bazel, ...?)
 - [ ] check for browser compatibility and redirect 
+- [ ] periodically scheck for sw updates
