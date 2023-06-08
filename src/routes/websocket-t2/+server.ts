@@ -19,9 +19,26 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
 
   server.accept();
   server.addEventListener('message', async (event) => {
-    server.send("Message recieved.")
+    if (event.data == "isOnline") {
+      server.send("Message recieved.")
 
-    const update = {isOnline: 1};
+      const update = {isOnline: 1};
+
+      const res = await db
+        .updateTable("devices")
+        .set(update)
+        .where(({ cmpr }) =>
+          cmpr("did", "=", did)
+        )
+        .returning("did")
+        .executeTakeFirst();
+
+      if (!res) server.send("ERROR: 'Failed to update device info'")
+      else server.send(res);
+    }
+  });
+  server.addEventListener('close', async (event) => {
+    const update = {isOnline: 0};
 
     const res = await db
       .updateTable("devices")
@@ -31,8 +48,6 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
       )
       .returning("did")
       .executeTakeFirst();
-
-    if (!res) server.send("ERROR: 'Failed to update device info'");
   });
 
   return new Response(null, {

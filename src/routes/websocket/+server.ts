@@ -18,8 +18,24 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   const [client, server] = Object.values(webSocketPair);
 
   server.accept();
-  server.addEventListener('message', event => {
-    server.send("Message recieved.")
+  server.addEventListener('message', async (event) => {
+    if (event.data == "isOnline") {
+      server.send("Message recieved.")
+
+      const update = {isOnline: 1};
+
+      const res = await db
+        .updateTable("devices")
+        .set(update)
+        .where(({ cmpr }) =>
+          cmpr("did", "=", did)
+        )
+        .returning("did")
+        .executeTakeFirst();
+
+      if (!res) server.send("ERROR: 'Failed to update device info'");
+      else server.send(res);
+    }
   });
 
   return new Response(null, {
