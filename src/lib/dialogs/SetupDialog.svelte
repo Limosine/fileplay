@@ -114,12 +114,6 @@
         }
         break;
     }
-  }
-
-  function withDeviceType(name: string): { type: string; name: string } {
-      // @ts-ignore
-      return { name, type: DeviceType[type] as string };
-    }
 
     localStorage.removeItem("deviceParams");
     localStorage.setItem("loggedIn", "true");
@@ -127,6 +121,12 @@
     setupLoading.set(false);
 
     getContent();
+  }
+
+  function withDeviceType(name: string): { type: string; name: string } {
+    // @ts-ignore
+    return { name, type: DeviceType[name] as string };
+  }
 
   onMount(() => {
     if (!browser) return;
