@@ -108,7 +108,7 @@
 
   function updateExpiresIn() {
     if (expires_at)
-      expires_in = Math.round((expires_at - Date.now()) / 1000 / 60);
+      expires_in = Math.round((expires_at - dayjs().unix()) / 1000 / 60);
   }
 
   onMount(() => (updateInterval = setInterval(updateExpiresIn, 1000)));
@@ -189,7 +189,7 @@
                     <Cell>{device.displayName}</Cell>
                     <Cell>{device.type}</Cell>
                     <Cell
-                      >{dayjs(device.lastSeenAt).format(
+                      >{dayjs.unix(device.lastSeenAt).format(
                         TimeFormat.MinuteDate
                       )}</Cell
                     >

@@ -5,6 +5,7 @@
 
   import { add_open, codehostname } from "$lib/stores/Dialogs";
   import { onDestroy, onMount } from "svelte";
+  import dayjs from "dayjs";
 
   let hostname: string;
   let code = "";
@@ -77,7 +78,7 @@
   let updateInterval: any;
 
   function updateExpiresIn() {
-    if(expires_at) expires_in = Math.round((expires_at - Date.now()) / 1000 / 60);
+    if(expires_at) expires_in = Math.round((expires_at - dayjs().unix()) / 60);
   }
 
   onMount(() => updateInterval = setInterval(updateExpiresIn, 1000));
