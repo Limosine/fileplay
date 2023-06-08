@@ -10,81 +10,92 @@
   import { open } from "$lib/stores/SelectContactStore";
   import { publicKey_armored } from "$lib/openpgp";
 
-  import { contacts, contacts_loaded, getContacts } from "$lib/personal";
+  import { contacts_loaded, getContacts, type IContact } from "$lib/personal";
+  import { onDestroy } from "svelte";
+  import { getDicebearUrl } from "$lib/common";
 
-  let addPendingFile: (files: FileList) => void;
-  let multiSend = (files: FileList, reciever_uuids: string[], publicKeys: string[]) => {};
+  let contacts: Promise<IContact[]> | IContact[] | undefined;
 
-  let reciever_uuid = "";
-  let reciever_uuids: string[] = [];
-
-  onMount(async () => {
-    addPendingFile = (await import('$lib/peerjs')).addPendingFile;
-    multiSend = (await import('$lib/peerjs')).multiSend;
-  });
-
-  const selected = writable<{ [name: string]: string }>({});
-
-  let ghost_items: any[];
-  function setGhostItems(contacts: {
-    cid: number;
-    displayName: string;
-    avatarSeed: string;
-    linkedAt: number;
-    isOnline: number;
-  }[]) {
-    ghost_items = new Array(4 - (contacts.length % 4));
-  }
+  const selected: number[] = [];
 
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
     event = event as KeyboardEvent;
 
     if (event.key === "Escape") {
       closeHandler("cancel");
-    } else if (event.key === "Enter" && !$selected) {
+    } else if (event.key === "Enter") {
       closeHandler("confirm");
     }
   }
 
   function closeHandler(e: CustomEvent<{ action: string }> | string) {
-    let action: string;
-    if (typeof e === "string") {
-      action = e;
-    } else {
-      action = e.detail.action;
-    }
-    switch (action) {
-      case "link":
-        addPendingFile($files);
-      case "confirm":
-        multiSend($files, reciever_uuids, [publicKey_armored]);
-        fetch("/api/sharing/selection", {
-          method: "POST",
-          body: JSON.stringify({
-            senderName: "unknown",
-            reciever_uuids
-          })
-        })
-    }
-    $open = false;
+    // let action: string;
+    // if (typeof e === "string") {
+    //   action = e;
+    // } else {
+    //   action = e.detail.action;
+    // }
+    // switch (action) {
+    //   case "link":
+    //     addPendingFile($files);
+    //   case "confirm":
+    //     multiSend($files, reciever_uuids, [publicKey_armored]);
+    //     fetch("/api/sharing/selection", {
+    //       method: "POST",
+    //       body: JSON.stringify({
+    //         senderName: "unknown",
+    //         reciever_uuids
+    //       })
+    //     })
+    // }
+    // $open = false;
   }
 
-  function add2array() {
-    reciever_uuids[reciever_uuids.length] = reciever_uuid;
-    reciever_uuid = "";
+  async function select(contact: IContact) {
+    if (selected.includes(contact.cid)) return; // already selected
+
+    selected.push(contact.cid);
+    const res = await fetch(`/api/share/request?cid=${contact.cid}`, {
+      method: "GET",
+    });
+
+    if (!res.ok) {
+      // remove selected state
+      selected.splice(selected.indexOf(contact.cid), 1);
+      // maybe failed animation
+    }
+
+    // maybe use sent/failed for some fancy animations
   }
 
-  function select(name: string) {
-    if ($selected[name] == "selected") {
-      delete $selected[name];
-      reciever_uuids.splice(reciever_uuids.indexOf(name), 1);
-      $selected = $selected;
-      reciever_uuids = reciever_uuids;
-    } else {
-      $selected[name] = "selected";
-      reciever_uuids[reciever_uuids.length] = name;
-    }
+  async function deselect(contact: IContact) {
+    if (!selected.includes(contact.cid)) return; // already deselected
+
+    selected.splice(selected.indexOf(contact.cid), 1);
+    await fetch(`/api/share/request?cid=${contact.cid}`, {
+      method: "DELETE",
+    });
+    // fail silently, since a rogue sharing accept can just be ignored
   }
+
+  let contacts_interval: any;
+
+  function startRefresh() {
+    contacts_interval = setInterval(async () => {
+      if ($open) contacts = await getContacts();
+    }, 5000);
+  }
+
+  function stopRefresh() {
+    clearInterval(contacts_interval);
+  }
+
+  onMount(async () => {
+    contacts = getContacts();
+    startRefresh();
+  });
+
+  onDestroy(stopRefresh);
 </script>
 
 <svelte:window on:keydown={handleKeyDown} />
@@ -99,30 +110,27 @@
   <Content>
     <Paper variant="unelevated">
       <P_Content>
-        <div id="content-uuid">
-          <div id="row">
-            <Textfield bind:value={reciever_uuid} label="Reciever UUID" />
-            <Button variant="unelevated" on:click={add2array}>Add</Button>
-          </div>
-          <p>Selected contact(s):</p>
-          {#each reciever_uuids as uuid}
-            <p>{uuid}</p>
-          {/each}
-        </div>
         <div id="content">
-          {#if $contacts_loaded}
-            {#await $contacts}
-              <p>Contacts are loading...</p>
+          {#if contacts}
+            {#await contacts}
+              <p>Loading contacts...</p>
             {:then contacts}
-              <div style="display: none">
-                {setGhostItems(contacts)}
-              </div>
               {#each contacts as contact}
-                <Card class={$selected[contact.displayName]}>
+                <Card class={selected.includes(contact.cid) ? "selected" : ""}>
                   <PrimaryAction
-                    on:click={() => select(contact.displayName)}
+                    on:click={() => {
+                      if (selected.includes(contact.cid)) {
+                        deselect(contact);
+                      } else {
+                        select(contact);
+                      }
+                    }}
                     class="content-items"
                   >
+                    <img
+                      src={getDicebearUrl(contact.avatarSeed, 70)}
+                      alt={`${contact.displayName}'s avatar image`}
+                    />
                     {contact.displayName}
                   </PrimaryAction>
                 </Card>
@@ -139,12 +147,6 @@
     <Button action="cancel">
       <Label>Cancel</Label>
     </Button>
-    <Button action="link">
-      <Label>Via Link</Label>
-    </Button>
-    <Button action="confirm">
-      <Label>Send</Label>
-    </Button>
   </Actions>
 </Dialog>
 
@@ -156,7 +158,7 @@
     justify-content: center;
     gap: 5px;
   }
-  
+
   #content-uuid {
     display: flex;
     flex-direction: column;

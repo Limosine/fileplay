@@ -4,8 +4,16 @@
   import Fab from "@smui/fab";
   import Textfield from "@smui/textfield";
 
-  import { userParams, profaneUsername, updateIsProfaneUsername, setupLoading, original_username, original_avatarSeed } from "$lib/stores/Dialogs";
+  import {
+    userParams,
+    profaneUsername,
+    updateIsProfaneUsername,
+    setupLoading,
+    original_username,
+    original_avatarSeed,
+  } from "$lib/stores/Dialogs";
   import { user_loaded, user } from "$lib/personal";
+  import { getDicebearUrl } from "$lib/common";
 
   const loadInfos = (user: {
     uid: number;
@@ -19,11 +27,11 @@
     $userParams.avatarSeed = user.avatarSeed;
     $original_username = user.displayName;
     $original_avatarSeed = user.avatarSeed;
-  }
+  };
 
   const generateAvatar = () => {
     $userParams.avatarSeed = nanoid(8);
-  }
+  };
 </script>
 
 <div style="display: none">
@@ -49,7 +57,7 @@
     <h6>Avatar</h6>
     <div class="avatar">
       <img
-        src="https://api.dicebear.com/6.x/adventurer/svg?seed={$userParams.avatarSeed}&radius=50&backgroundColor=b6e3f4"
+        src={getDicebearUrl($userParams.avatarSeed, 150)}
         alt="Your Avatar"
       />
       <div class="fab">
