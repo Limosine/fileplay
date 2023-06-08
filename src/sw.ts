@@ -92,10 +92,14 @@ self.addEventListener("fetch", async (event) => {
   }
 });
 
-// try to register push notifications
-registerPushSubscription().then((success) => {
-  if (success) console.log("registered subscription");
-  else console.log("Failed to register push notifications");
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    // try to register push notifications
+    registerPushSubscription().then((success) => {
+      if (success) console.log("registered subscription");
+      else console.log("Failed to register push notifications");
+    })
+  );
 });
 
 // TODO
