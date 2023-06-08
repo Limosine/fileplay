@@ -39,11 +39,13 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
     .execute();
 
   // insert the code into the devicesLinkCodes table
-  await db
+  const res1 = await db
     .insertInto("contactsLinkCodes")
     .values({ code, uid, expires, created_did: did })
     .returning("code")
-    .execute();
+    .executeTakeFirst();
+  
+  if(!res1) throw error(500, "Could not create code");
 
   return json({ code, expires, refresh: LINKING_REFRESH_TIME });
 };
@@ -89,6 +91,10 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .returning("cid")
     .executeTakeFirst();
   if (!res2) throw error(500, "Could not create contact");
+
+  console.log(`Linked ${a} and ${b} using cid ${res2.cid}`)
+
+  // TODO send push to other device that someone linked to them
 
   return new Response(null, { status: 204 });
 };
