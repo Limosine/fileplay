@@ -2,20 +2,25 @@
 /// <reference no-default-lib="true"/>
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
-const sw = self as unknown as ServiceWorkerGlobalScope;
+
 
 import { PUBLIC_VAPID_KEY } from "$env/static/public";
 import { ONLINE_STATUS_REFRESH_TIME } from "$lib/common";
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
+declare let self: ServiceWorkerGlobalScope;
 
+// precache all assets
+precacheAndRoute(self.__WB_MANIFEST);
+// clean old assets
+cleanupOutdatedCaches();
 
-let keepaliveInterval: any
+let keepaliveInterval: any;
 
 async function registerPushSubscription() {
-  if(keepaliveInterval) clearInterval(keepaliveInterval)
+  if (keepaliveInterval) clearInterval(keepaliveInterval);
   if (Notification.permission !== "granted")
     throw new Error("No permission", { cause: "no permission" });
-  const subscription = await sw.registration.pushManager.subscribe({
+  const subscription = await self.registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: PUBLIC_VAPID_KEY,
   });
@@ -27,22 +32,22 @@ async function registerPushSubscription() {
     throw new Error("Failed to subscribe to push notifications", {
       cause: res.status,
     });
-  
+
   keepaliveInterval = setInterval(async () => {
-    await fetch("/api/push/keepalive")
-  }, ONLINE_STATUS_REFRESH_TIME)
+    await fetch("/api/push/keepalive");
+  }, ONLINE_STATUS_REFRESH_TIME);
 
   console.log("Subscribed to push notifications");
 }
 
 // handle messages from client
-sw.addEventListener("message", (event) => {
+self.addEventListener("message", (event) => {
   if (event.data) {
-    console.log("Message from client", event.data)
+    console.log("Message from client", event.data);
     switch (event.data.type) {
       // skip waiting to activate new service worker
       case "SKIP_WAITING":
-        sw.skipWaiting();
+        self.skipWaiting();
         break;
       // register push notifications (called after setup, otherwise already initialized)
       case "REGISTER_PUSH":
@@ -56,16 +61,16 @@ sw.addEventListener("message", (event) => {
 });
 
 // handle push notifications
-sw.addEventListener("push", (event) => {
-  if(event.data) {
-    const data = event.data.json()
-    console.log("Push notification", data)
+self.addEventListener("push", (event) => {
+  if (event.data) {
+    const data = event.data.json();
+    console.log("Push notification", data);
     // todo handle single notifications
   }
 });
 
 // web share target handler
-sw.addEventListener("fetch", async (event) => {
+self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
 
   if (event.request.method === "POST" && url.pathname === "/webtarget") {
@@ -83,15 +88,13 @@ sw.addEventListener("fetch", async (event) => {
   }
 });
 
-// precache all assets
-precacheAndRoute(sw.__WB_MANIFEST);
-// clean old assets
-cleanupOutdatedCaches();
-
-// setup push notifications
-await registerPushSubscription().catch((err) => {
-  console.error(err);
-});
+// main function
+(async () => {
+  // setup push notifications
+  await registerPushSubscription().catch((err) => {
+    console.error(err);
+  });
+})();
 
 // TODO
 // - handle web share target requests
