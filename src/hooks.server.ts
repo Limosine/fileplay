@@ -12,7 +12,6 @@ export async function handle({ event, resolve }) {
   
     server.accept();
     server.addEventListener('message', event => {
-      console.log(event.data);
       server.send("Message recieved.")
     });
 
