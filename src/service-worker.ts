@@ -8,7 +8,7 @@ declare let self: ServiceWorkerGlobalScope;
 
 let keepaliveInterval: any;
 
-async function registerPushSubscription(): boolean {
+async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
   if (Notification.permission !== "granted")
     return false;
@@ -80,7 +80,9 @@ self.addEventListener("fetch", async (event) => {
 });
 
 self.addEventListener("install", (event) => {
-  precacheAndRoute(self.__WB_MANIFEST);
+  const manifest = self.__WB_MANIFEST;
+  console.log('precache manifest: ', manifest)
+  precacheAndRoute(manifest);
 });
 
 self.addEventListener("activate", (event) => {
