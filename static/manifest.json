@@ -4,7 +4,7 @@
   "short_name": "FilePlay",
   "start_url": "/",
   "scope": "/",
-  "theme_color": "white",
+  "theme_color": "#1a1a1a",
   "display": "standalone",
   "background_color": "#fff",
   "description": "A P2P filesharing app.",
