@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts">
   import Drawer, {
     AppContent,
     Content,
@@ -7,8 +7,6 @@
     Title,
   } from "@smui/drawer";
   import { AutoAdjust } from "@smui/top-app-bar";
-  import { writable } from "svelte/store";
-  import { page } from "$app/stores";
 
   import { topAppBar } from "./TopAppBar.svelte";
   import Tooltip, { Wrapper } from "@smui/tooltip";
@@ -18,9 +16,30 @@
 
   import { add_open } from "$lib/stores/Dialogs";
 
-  import { contacts, contacts_loaded, getContacts } from "$lib/personal";
+  import { getContacts, type IContact } from "$lib/personal";
+  import { onMount, onDestroy } from "svelte";
 
-  export const open = writable(false);
+  import { contacts_drawer_open as open } from "$lib/stores/Dialogs";
+
+  let contacts: Promise<IContact[]> | IContact[] | undefined;
+  let contacts_interval: any;
+
+  function startRefresh() {
+    contacts_interval = setInterval(async () => {
+      if ($open) contacts = await getContacts();
+    }, 5000);
+  }
+
+  function stopRefresh() {
+    clearInterval(contacts_interval);
+  }
+
+  onMount(async () => {
+    contacts = getContacts();
+    startRefresh();
+  });
+
+  onDestroy(stopRefresh);
 </script>
 
 <div dir="rtl">
@@ -38,14 +57,14 @@
           variant="unelevated"
           color="primary"
           style="width: 100%;"
-          on:click={() => add_open.update((open) => (open = !open))}
+          on:click={() => ($add_open = !$add_open)}
         >
           Add contact
         </Button>
         <Button
           class="material-icons"
           variant="unelevated"
-          on:click={() => getContacts()}
+          on:click={() => (contacts = getContacts())}
         >
           refresh
         </Button>
@@ -53,8 +72,8 @@
     </Header>
     <Content>
       <div class="list-box">
-        {#if $contacts_loaded}
-          {#await $contacts}
+        {#if contacts}
+          {#await contacts}
             <p>Contacts are loading...</p>
           {:then contacts}
             {#each contacts as contact}

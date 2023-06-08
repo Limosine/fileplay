@@ -10,7 +10,7 @@
   import { writable } from 'svelte/store';
   import { goto } from '$app/navigation';
 
-  import { open as drawer_open } from './ContactDrawer.svelte';
+  import { contacts_drawer_open as drawer_open } from '$lib/stores/Dialogs';
   import { notifications, notification_open, settings_open } from '$lib/stores/Dialogs';
 
   const open = (drawer: string) => {

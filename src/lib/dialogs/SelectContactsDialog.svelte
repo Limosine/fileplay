@@ -14,7 +14,6 @@
   import { onDestroy } from "svelte";
   import { getDicebearUrl } from "$lib/common";
 
-  let contacts: Promise<IContact[]> | IContact[] | undefined;
 
   const selected: number[] = [];
 
@@ -77,7 +76,8 @@
     });
     // fail silently, since a rogue sharing accept can just be ignored
   }
-
+  
+  let contacts: Promise<IContact[]> | IContact[] | undefined;
   let contacts_interval: any;
 
   function startRefresh() {
