@@ -22,12 +22,13 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         registerType: "prompt",
         strategies: "injectManifest",
         injectManifest: {
-          injectionPoint: undefined
+          injectionPoint: undefined,
         },
         useCredentials: true,
         devOptions: {
           enabled: false,
         },
+        manifest: await import("./static/manifest.json"),
       }),
     ],
   };
