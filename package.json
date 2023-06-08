@@ -80,6 +80,7 @@
     "webpush-webcrypto": "^1.0.3",
     "workbox-precaching": "^6.5.4",
     "workbox-routing": "^6.5.4",
+    "workbox-window": "^7.0.0",
     "wrangler": "^3.0.1"
   },
   "type": "module"
