@@ -18,7 +18,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
       sveltekit(),
       SvelteKitPWA({
         srcDir: "src",
-        filename: "service-worker.ts",
+        filename: "sw.ts",
         registerType: "prompt",
         strategies: "injectManifest",
         injectManifest: {

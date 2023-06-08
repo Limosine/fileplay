@@ -57,6 +57,7 @@ self.addEventListener("message", (event) => {
         registerPushSubscription().catch((err) => {
           console.error(err);
         });
+        break;
       default:
         console.log("Unknown message type", event.data.type);
     }
@@ -92,8 +93,9 @@ self.addEventListener("fetch", async (event) => {
 });
 
 // try to register push notifications
-registerPushSubscription().catch((err) => {
-  console.error(err);
+registerPushSubscription().then((success) => {
+  if (success) console.log("registered subscription");
+  else console.log("Failed to register push notifications");
 });
 
 // TODO
