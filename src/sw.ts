@@ -1,25 +1,74 @@
+/// <reference types="@sveltejs/kit" />
+/// <reference no-default-lib="true"/>
+/// <reference lib="esnext" />
 /// <reference lib="webworker" />
+const sw = self as unknown as ServiceWorkerGlobalScope;
 
+import { PUBLIC_VAPID_KEY } from "$env/static/public";
+import { ONLINE_STATUS_REFRESH_TIME } from "$lib/common";
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
-import { notifications } from "$lib/stores/Dialogs";
-declare let self: ServiceWorkerGlobalScope;
 
-// handle prompt update
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+
+let keepaliveInterval: any
+
+async function registerPushSubscription() {
+  if(keepaliveInterval) clearInterval(keepaliveInterval)
+  if (Notification.permission !== "granted")
+    throw new Error("No permission", { cause: "no permission" });
+  const subscription = await sw.registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: PUBLIC_VAPID_KEY,
+  });
+  const res = await fetch("/api/push/subscribe", {
+    method: "POST",
+    body: JSON.stringify(subscription),
+  });
+  if (!res.ok)
+    throw new Error("Failed to subscribe to push notifications", {
+      cause: res.status,
+    });
+  
+  keepaliveInterval = setInterval(async () => {
+    await fetch("/api/push/keepalive")
+  }, ONLINE_STATUS_REFRESH_TIME)
+
+  console.log("Subscribed to push notifications");
+}
+
+// handle messages from client
+sw.addEventListener("message", (event) => {
+  if (event.data) {
+    console.log("Message from client", event.data)
+    switch (event.data.type) {
+      // skip waiting to activate new service worker
+      case "SKIP_WAITING":
+        sw.skipWaiting();
+        break;
+      // register push notifications (called after setup, otherwise already initialized)
+      case "REGISTER_PUSH":
+        registerPushSubscription().catch((err) => {
+          console.error(err);
+        });
+      default:
+        console.log("Unknown message type", event.data.type);
+    }
+  }
 });
 
-// precache all assets
-precacheAndRoute(self.__WB_MANIFEST);
+// handle push notifications
+sw.addEventListener("push", (event) => {
+  if(event.data) {
+    const data = event.data.json()
+    console.log("Push notification", data)
+    // todo handle single notifications
+  }
+});
 
-// clean old assets
-cleanupOutdatedCaches();
-
-// web share target POSTs to /handle
-self.addEventListener("fetch", async (event) => {
+// web share target handler
+sw.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
 
-  if (event.request.method === "POST" && url.pathname === "/handle") {
+  if (event.request.method === "POST" && url.pathname === "/webtarget") {
     event.respondWith(
       (async () => {
         const formData = await event.request.formData();
@@ -34,23 +83,22 @@ self.addEventListener("fetch", async (event) => {
   }
 });
 
-self.addEventListener("push", (e) => {
-  const data = e.data?.json();
-  notifications.update((val) => {
-    val = [...val, { title: data.title, content: data.body }];
-    return val;
-  });
-  self.registration.showNotification(data.title, {
-    body: data.body,
-    // icon: "http://image.ibb.co/frYOFd/tmlogo.png"
-  });
+// precache all assets
+precacheAndRoute(sw.__WB_MANIFEST);
+// clean old assets
+cleanupOutdatedCaches();
+
+// setup push notifications
+await registerPushSubscription().catch((err) => {
+  console.error(err);
 });
 
 // TODO
 // - handle web share target requests
-// - register push notifications
-// - send push notifications subscription to server
-// - send keepalive requests to server
-// - handle push messages
+// - handle file management
+// - register push notifications                          DONE
+// - send push notifications subscription to server       DONE
+// - send keepalive requests to server                    DONE
+// - handle push messages, show notifications
 // - handle push notification clicks (accept, reject)
 // - handle file sending

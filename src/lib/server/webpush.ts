@@ -23,7 +23,11 @@ export async function sendPushNotification(
     .where("did", "=", did)
     .executeTakeFirst();
 
-  const subscription = res1?.pushSubscription;
+  if (!res1) throw new Error("Device not found");
+  if (!res1.pushSubscription)
+    throw new Error("Device has no push subscription");
+
+  const subscription = res1.pushSubscription;
 
   if (!subscription) return;
   // todo check if subscription is already expired

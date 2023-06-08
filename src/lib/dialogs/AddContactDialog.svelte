@@ -62,6 +62,7 @@
   }
 
   async function generateCode(): Promise<{code: string, expires: number, refresh: number}> {
+    // todo refresh this code after specified interval
 
 	  const res = await fetch('/api/contacts/link', {
 		  method: 'GET'

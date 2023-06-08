@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
         type: "sharing_cancel",
         sid: sid,
       }),
-      `S_REQ:${sid}`
+      `SHARE:${sid}`
     ).catch(() => {});
   }
 
@@ -66,7 +66,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     })
   );
 
-  return new Response(null, { status: 200 });
+  return new Response(null, { status: 204 });
 };
 
-// todo DELETE for rejecting a sharing request
+// todo DELETE for rejecting a sharing request on all devices

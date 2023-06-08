@@ -6,3 +6,4 @@
 - [ ] validation function for Linking Code field in SetupDialog. Only allow [a-zA-Z0-9]{6} be entered
 - [ ] implement /api/contacts after largely the same schema as /api/devices
 - [ ] move into monorepo (nx, turborepo, bazel, ...?)
+- [ ] check for browser compatibility and redirect 

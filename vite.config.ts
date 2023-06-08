@@ -21,6 +21,9 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         filename: "sw.ts",
         registerType: "prompt",
         strategies: "injectManifest",
+        injectManifest: {
+          rollupFormat: "es",
+        },
         useCredentials: !process.env.CF_PROD, // disabled in production
         devOptions: {
           enabled: false,

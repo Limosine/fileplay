@@ -113,6 +113,7 @@
 
   onMount(() => (updateInterval = setInterval(updateExpiresIn, 1000)));
   onDestroy(() => clearInterval(updateInterval));
+  // TODO button 'regenerate encryption keys'
 </script>
 
 <svelte:window on:keydown={handleKeyDown} />
