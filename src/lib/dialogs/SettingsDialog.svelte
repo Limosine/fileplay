@@ -1,18 +1,28 @@
 <script lang="ts">
   import Dialog, { Title, Content, Actions } from "@smui/dialog";
   import Button, { Label } from "@smui/button";
-  import Card from '@smui/card';
-  import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
+  import Card from "@smui/card";
+  import DataTable, { Head, Body, Row, Cell } from "@smui/data-table";
   import dayjs from "dayjs";
+  import localizedFormat from "dayjs/plugin/localizedFormat";
   import { devices, devices_loaded, getDevices } from "$lib/personal";
   import IconButton from "@smui/icon-button/src/IconButton.svelte";
   import { settings_open } from "$lib/stores/Dialogs";
-  import Tab, { Label as Tab_Label } from '@smui/tab';
-  import TabBar from '@smui/tab-bar';
+  import Tab, { Label as Tab_Label } from "@smui/tab";
+  import TabBar from "@smui/tab-bar";
   import Username from "$lib/components/Username.svelte";
-  import { userParams, profaneUsername, original_username, original_avatarSeed } from "$lib/stores/Dialogs";
+  import {
+    userParams,
+    profaneUsername,
+    original_username,
+    original_avatarSeed,
+  } from "$lib/stores/Dialogs";
+  import { TimeFormat } from "$lib/common";
+  import { onMount, onDestroy } from "svelte";
 
-  let active = "Account"
+  dayjs.extend(localizedFormat);
+
+  let active = "Account";
   let generated_code = false;
 
   let different: boolean;
@@ -30,12 +40,6 @@
       !different;
   }
 
-  function convertUnixtoDate(unix_timestamp: number) {
-    const dayjs_object = dayjs.unix(unix_timestamp);
-    const date = dayjs_object.format("D.M.YYYY, H:mm");
-    return date;
-  }
-
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
     event = event as KeyboardEvent;
 
@@ -47,7 +51,7 @@
       closeHandler("confirm");
     }
   }
-  
+
   function closeHandler(e: CustomEvent<{ action: string }> | string) {
     let action: string;
 
@@ -67,26 +71,30 @@
 
   async function deleteDevice(did: number) {
     const res = await fetch(`/api/devices?${did}`, {
-      method: 'DELETE'
+      method: "DELETE",
     });
   }
 
-  async function generateCode(): Promise<{code: string, expires: number, refresh: number}> {
+  async function generateCode(): Promise<{
+    code: string;
+    expires: number;
+    refresh: number;
+  }> {
+    const res = await fetch("/api/devices/link", {
+      method: "GET",
+    });
 
-	  const res = await fetch('/api/devices/link', {
-		  method: 'GET'
-	  });
-
-	  const codeproperties = await res.json();
+    const codeproperties = await res.json();
 
     generated_code = true;
+    expires_at = codeproperties.expires;
 
     return codeproperties;
   }
 
   async function updateUserInfo() {
-    const res = await fetch('/api/user', {
-      method: 'POST',
+    const res = await fetch("/api/user", {
+      method: "POST",
       body: JSON.stringify({
         displayName: $userParams.displayName,
         avatarSeed: $userParams.avatarSeed,
@@ -94,9 +102,20 @@
     });
   }
 
+  let expires_in: number;
+  let expires_at: number;
+  let updateInterval: any;
+
+  function updateExpiresIn() {
+    if (expires_at)
+      expires_in = Math.round((expires_at - Date.now()) / 1000 / 60);
+  }
+
+  onMount(() => (updateInterval = setInterval(updateExpiresIn, 1000)));
+  onDestroy(() => clearInterval(updateInterval));
 </script>
 
-<svelte:window on:keydown={handleKeyDown}/>
+<svelte:window on:keydown={handleKeyDown} />
 
 <Dialog
   bind:open={$settings_open}
@@ -106,16 +125,16 @@
 >
   <Title id="title">Settings</Title>
   <Content>
-      <div id="tab_bar">
-        <TabBar tabs={['Account', 'Devices']} let:tab bind:active>
-          <Tab {tab}>
-            <Tab_Label>{tab}</Tab_Label>
-          </Tab>
-        </TabBar>
-      </div>
+    <div id="tab_bar">
+      <TabBar tabs={["Account", "Devices"]} let:tab bind:active>
+        <Tab {tab}>
+          <Tab_Label>{tab}</Tab_Label>
+        </Tab>
+      </TabBar>
+    </div>
 
     <div id="content">
-      {#if active === 'Devices'}
+      {#if active === "Devices"}
         <div class="button-box">
           <Button
             variant="outlined"
@@ -125,7 +144,11 @@
           >
             Generate code
           </Button>
-          <Button class="material-icons" variant="outlined" on:click={() => getDevices()}>
+          <Button
+            class="material-icons"
+            variant="outlined"
+            on:click={() => getDevices()}
+          >
             refresh
           </Button>
         </div>
@@ -135,9 +158,11 @@
             <Card padded variant="outlined">
               {#await generateCode()}
                 <p>Generating code...</p>
-              {:then codeproperties} 
-                <p>Code: {codeproperties.code}<br/>
-                Expires on {convertUnixtoDate(codeproperties.expires)}</p>
+              {:then codeproperties}
+                <p>
+                  Code: {codeproperties.code}<br />
+                  Expires in {expires_in} minutes
+                </p>
               {:catch}
                 <p>Failed to generate code.</p>
               {/await}
@@ -151,7 +176,7 @@
               <Cell>Display Name</Cell>
               <Cell>Type</Cell>
               <Cell>Last seen</Cell>
-              <Cell/>
+              <Cell />
             </Row>
           </Head>
           {#if $devices_loaded}
@@ -163,8 +188,17 @@
                   <Row>
                     <Cell>{device.displayName}</Cell>
                     <Cell>{device.type}</Cell>
-                    <Cell>{convertUnixtoDate(device.lastSeenAt)}</Cell>
-                    <Cell><IconButton on:click={() => deleteDevice(device.did)} class="material-icons">delete</IconButton></Cell>
+                    <Cell
+                      >{dayjs(device.lastSeenAt).format(
+                        TimeFormat.MinuteDate
+                      )}</Cell
+                    >
+                    <Cell
+                      ><IconButton
+                        on:click={() => deleteDevice(device.did)}
+                        class="material-icons">delete</IconButton
+                      ></Cell
+                    >
                   </Row>
                 </Body>
               {/each}
@@ -174,7 +208,7 @@
           {/if}
         </DataTable>
       {:else}
-        <Username/>
+        <Username />
       {/if}
     </div>
   </Content>

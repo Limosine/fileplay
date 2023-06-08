@@ -36,26 +36,26 @@
 
               if (resp.status === 200) {
                 await registration.update();
-                if (Notification.permission !== "granted") {
-                  Notification.requestPermission(async (perm) => {
-                    if (perm === "granted") {
-                      const subscription =
-                        await registration.pushManager.subscribe({
-                          userVisibleOnly: true,
-                          applicationServerKey: import.meta.env
-                            .PUBLIC_VAPID_KEY,
-                        });
+                // if (Notification.permission !== "granted") {
+                //   Notification.requestPermission(async (perm) => {
+                //     if (perm === "granted") {
+                //       const subscription =
+                //         await registration.pushManager.subscribe({
+                //           userVisibleOnly: true,
+                //           applicationServerKey: import.meta.env
+                //             .PUBLIC_VAPID_KEY,
+                //         });
 
-                      await fetch("api/notifications/updateSubscription", {
-                        method: "POST",
-                        body: JSON.stringify(subscription),
-                        headers: {
-                          "content-type": "application/json",
-                        },
-                      });
-                    }
-                  });
-                }
+                //       await fetch("api/notifications/updateSubscription", {
+                //         method: "POST",
+                //         body: JSON.stringify(subscription),
+                //         headers: {
+                //           "content-type": "application/json",
+                //         },
+                //       });
+                //     }
+                //   });
+                // }
               }
             }, 1000 * 60 * 60);
         },

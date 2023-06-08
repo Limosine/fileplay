@@ -84,15 +84,11 @@
   </Drawer>
 </div>
 
-{#if $page.url.pathname == "/"}
-  <slot />
-{:else}
-  <div class="app-content">
-    <AutoAdjust topAppBar={$topAppBar}>
-      <slot />
-    </AutoAdjust>
-  </div>
-{/if}
+<div class="app-content">
+  <AutoAdjust topAppBar={$topAppBar}>
+    <slot />
+  </AutoAdjust>
+</div>
 
 <style>
   * :global(.app-content) {

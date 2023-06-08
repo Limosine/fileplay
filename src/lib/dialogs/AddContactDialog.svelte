@@ -4,7 +4,7 @@
   import Textfield from '@smui/textfield';
 
   import { add_open, codehostname } from "$lib/stores/Dialogs";
-  import dayjs from "dayjs";
+  import { onDestroy, onMount } from "svelte";
 
   let hostname: string;
   let code = "";
@@ -18,12 +18,6 @@
     } else {
       code = $codehostname;
     }
-  }
-
-  function convertUnixtoDate(unix_timestamp: number) {
-    const dayjs_object = dayjs.unix(unix_timestamp);
-    const date = dayjs_object.format("D.M.YYYY, H:mm");
-    return date;
   }
 
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
@@ -73,9 +67,21 @@
 	  });
 
 	  const codeproperties = await res.json();
+    expires_at = codeproperties.expires;
 
     return codeproperties;
   }
+
+  let expires_in: number;
+  let expires_at: number;
+  let updateInterval: any;
+
+  function updateExpiresIn() {
+    if(expires_at) expires_in = Math.round((expires_at - Date.now()) / 1000 / 60);
+  }
+
+  onMount(() => updateInterval = setInterval(updateExpiresIn, 1000));
+  onDestroy(() => clearInterval(updateInterval));
 </script>
 
 <svelte:window on:keydown={handleKeyDown}/>
@@ -125,7 +131,7 @@
           <p>Generating code...</p>
         {:then codeproperties} 
           <p>Code: {codeproperties.code}<br/>
-          Expires on {convertUnixtoDate(codeproperties.expires)}</p>
+          Expires in {expires_in} m</p>
         {:catch}
           <p>Failed to generate code.</p>
         {/await}
