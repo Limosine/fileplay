@@ -8,10 +8,10 @@ declare let self: ServiceWorkerGlobalScope;
 
 let keepaliveInterval: any;
 
-async function registerPushSubscription() {
+async function registerPushSubscription(): boolean {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
   if (Notification.permission !== "granted")
-    throw new Error("No permission", { cause: "no permission" });
+    return false;
   const subscription = await self.registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: ">PUBLIC_VAPID_KEY<",
@@ -21,15 +21,14 @@ async function registerPushSubscription() {
     body: JSON.stringify(subscription),
   });
   if (!res.ok)
-    throw new Error("Failed to subscribe to push notifications", {
-      cause: res.status,
-    });
+    return false
 
   keepaliveInterval = setInterval(async () => {
     await fetch("/api/push/keepalive");
   }, JSON.parse(">ONLINE_STATUS_REFRESH_TIME<"));
 
   console.log("Subscribed to push notifications");
+  return true;
 }
 
 // handle messages from client
