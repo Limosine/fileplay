@@ -3,15 +3,28 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
+import {
+  pageCache,
+  imageCache,
+  staticResourceCache,
+  googleFontsCache,
+} from "workbox-recipes";
+
+pageCache();
+
+googleFontsCache();
+
+staticResourceCache();
+
+imageCache();
+
 declare let self: ServiceWorkerGlobalScope;
 
 let keepaliveInterval: any;
 
 async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
-  if (Notification.permission !== "granted")
-    return false;
+  if (Notification.permission !== "granted") return false;
   const subscription = await self.registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: ">PUBLIC_VAPID_KEY<",
@@ -20,8 +33,7 @@ async function registerPushSubscription(): Promise<boolean> {
     method: "POST",
     body: JSON.stringify(subscription),
   });
-  if (!res.ok)
-    return false
+  if (!res.ok) return false;
 
   keepaliveInterval = setInterval(async () => {
     await fetch("/api/push/keepalive");
@@ -77,17 +89,6 @@ self.addEventListener("fetch", async (event) => {
       })()
     );
   }
-});
-
-self.addEventListener("install", (event) => {
-  const manifest = self.__WB_MANIFEST;
-  console.log('precache manifest: ', manifest)
-  precacheAndRoute(manifest);
-});
-
-self.addEventListener("activate", (event) => {
-  // Remove previous cached data from disk
-  cleanupOutdatedCaches();
 });
 
 // try to register push notifications

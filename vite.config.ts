@@ -21,6 +21,9 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         filename: "service-worker.ts",
         registerType: "prompt",
         strategies: "injectManifest",
+        injectManifest: {
+          injectionPoint: undefined
+        },
         useCredentials: true,
         devOptions: {
           enabled: false,
