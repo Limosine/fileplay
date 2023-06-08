@@ -20,11 +20,11 @@ export async function handle({ event, resolve }) {
     const [client, server] = Object.values(webSocketPair);
   
     server.accept();
-    server.addEventListener('message', event => {
+    server.addEventListener('message', async (event) => {
       server.send("Message recieved.")
       if (event.data == "isOnline") {
         server.send("Got request.");
-        
+
         const update = {isOnline: 1};
 
         const res = await db
