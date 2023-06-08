@@ -1,22 +1,6 @@
 import { COOKIE_SIGNING_SECRET } from '$env/static/private';
 import { loadKey, loadSignedDeviceID } from '$lib/server/crypto';
 import { createKysely } from '$lib/server/db';
-import type { Database } from '$lib/db';
-
-async function onlineStatus(status: number, db: Database, server: any, did: number)  {
-  const update = {isOnline: status};
-
-  const res = await db
-    .updateTable("devices")
-    .set(update)
-    .where(({ cmpr }) =>
-      cmpr("did", "=", did)
-    )
-    .returning("did")
-    .executeTakeFirst();
-
-  if (!res) server.send("ERROR: 'Failed to update device info'");
-}
 
 
 /** @type {import('@sveltejs/kit').Handle} */
@@ -40,12 +24,37 @@ export async function handle({ event, resolve }) {
       server.send("Message recieved.")
       if (event.data == "isOnline") {
         server.send("Got request.");
-        onlineStatus(1, db, server, did);
+        
+        const update = {isOnline: 1};
+
+        const res = await db
+          .updateTable("devices")
+          .set(update)
+          .where(({ cmpr }) =>
+            cmpr("did", "=", did)
+          )
+          .returning("did")
+          .executeTakeFirst();
+
+        if (!res) server.send("ERROR: 'Failed to update device info'");
       }
     });
-    server.addEventListener('close', () => {
-      onlineStatus(0, db, server, did);
-    });
+
+    // server.addEventListener('close', () => {
+    //   onlineStatus(0, db, server, did);
+    //   const update = {isOnline: 0};
+
+    //   const res = await db
+    //     .updateTable("devices")
+    //     .set(update)
+    //     .where(({ cmpr }) =>
+    //       cmpr("did", "=", did)
+    //     )
+    //     .returning("did")
+    //     .executeTakeFirst();
+
+    //   if (!res) server.send("ERROR: 'Failed to update device info'");
+    // });
 
     return new Response(null, {
       status: 101,
