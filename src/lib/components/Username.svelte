@@ -43,7 +43,7 @@
     bind:disabled={$setupLoading}
     on:focusout={() => updateIsProfaneUsername()}
     label="Username"
-    input$maxlength={18}
+    input$maxlength={32}
   />
   <div class="vflex">
     <h6>Avatar</h6>

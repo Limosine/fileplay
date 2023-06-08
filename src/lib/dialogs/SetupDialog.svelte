@@ -10,8 +10,14 @@
   import { onMount } from "svelte";
   import { publicKey_armored } from "$lib/openpgp";
   import { getContent } from "$lib/personal";
+  import { DeviceType } from "$lib/common";
 
-  import { deviceParams, userParams, profaneUsername, setupLoading } from "$lib/stores/Dialogs";
+  import {
+    deviceParams,
+    userParams,
+    profaneUsername,
+    setupLoading,
+  } from "$lib/stores/Dialogs";
   import Username from "$lib/components/Username.svelte";
 
   let open: boolean;
@@ -19,8 +25,6 @@
   let newUser = true;
 
   let linkingCode = "";
-
-  const deviceTypes = ["Computer", "Smartphone", "Smartwatch"];
 
   let actionDisabled: boolean;
   $: {
@@ -110,6 +114,12 @@
         }
         break;
     }
+  }
+
+  function withDeviceType(name: string): { type: string; name: string } {
+      // @ts-ignore
+      return { name, type: DeviceType[type] as string };
+    }
 
     localStorage.removeItem("deviceParams");
     localStorage.setItem("loggedIn", "true");
@@ -117,13 +127,11 @@
     setupLoading.set(false);
 
     getContent();
-  }
 
   onMount(() => {
     if (!browser) return;
     // if device is not set up, open dialog
     if (!localStorage.getItem("loggedIn")) {
-      
       open = true;
       // if setup was partially completed, load values
       const storedDeviceParams = localStorage.getItem("deviceParams");
@@ -156,16 +164,15 @@
         bind:value={$deviceParams.displayName}
         label="Device Name"
         bind:disabled={$setupLoading}
-        input$maxlength={18}
+        input$maxlength={32}
       />
       <Select
         bind:value={$deviceParams.type}
         label="Device Type"
         bind:disabled={$setupLoading}
-        input$maxlength={18}
       >
-        {#each deviceTypes as type}
-          <Option value={type}>{type}</Option>
+        {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+          <Option value={type}>{name}</Option>
         {/each}
       </Select>
     </div>
@@ -205,7 +212,7 @@
       </Group>
     </div>
     {#if newUser}
-      <Username/>
+      <Username />
     {:else}
       <div>
         <p>

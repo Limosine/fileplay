@@ -118,7 +118,7 @@
         {/if}
       </Group>
       {#if redeemCode_section}
-        <Textfield bind:value={$codehostname} on:input={() => setHostname()} label="Linking code" input$maxlength={24}/>
+        <Textfield bind:value={$codehostname} on:input={() => setHostname()} label="Linking code" input$maxlength={6}/>
       {:else}
         <br/>
         {#await generateCode()}
