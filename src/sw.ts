@@ -17,31 +17,40 @@ cleanupOutdatedCaches();
 
 // web share target POSTs to /handle
 self.addEventListener("fetch", async (event) => {
-  if (event.request.method === "POST") {
-    const url = new URL(event.request.url);
-    if (url.pathname === "/handle") {
-      event.respondWith(
-        (async () => {
-          const formData = await event.request.formData();
-          const files = formData.getAll("files") as File[];
+  const url = new URL(event.request.url);
 
-          // TODO handle files for sending here
+  if (event.request.method === "POST" && url.pathname === "/handle") {
+    event.respondWith(
+      (async () => {
+        const formData = await event.request.formData();
+        const files = formData.getAll("files") as File[];
 
-          return Response.redirect("/", 303);
-        })()
-      );
-    }
+        // TODO handle files for sending here
+        // store files, redirect to contact selection dialog
+
+        return Response.redirect("/", 303);
+      })()
+    );
   }
 });
 
-self.addEventListener("push", e => {
+self.addEventListener("push", (e) => {
   const data = e.data?.json();
   notifications.update((val) => {
-    val = [...val, {title: data.title, content: data.body}]
+    val = [...val, { title: data.title, content: data.body }];
     return val;
-  })
-    self.registration.showNotification(data.title, {
+  });
+  self.registration.showNotification(data.title, {
     body: data.body,
     // icon: "http://image.ibb.co/frYOFd/tmlogo.png"
   });
 });
+
+// TODO
+// - handle web share target requests
+// - register push notifications
+// - send push notifications subscription to server
+// - send keepalive requests to server
+// - handle push messages
+// - handle push notification clicks (accept, reject)
+// - handle file sending

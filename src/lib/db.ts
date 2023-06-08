@@ -14,6 +14,7 @@ interface DecivesTable {
   uid: number | null; // indexed, foreign key users.id
   linkedAt: number | null;
   displayName: string;
+  isOnline: ColumnType<number, undefined, number>;
   type: DeviceType;
   createdAt: ColumnType<number, undefined, undefined>;
   lastSeenAt: ColumnType<number, undefined, number>;

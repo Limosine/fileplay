@@ -14,6 +14,7 @@ create table devices (
     linkedAt integer,
     createdAt integer not null default (unixepoch('now')),
     lastSeenAt integer not null default (unixepoch('now')),
+    isOnline integer not null default 0,
     pushSubscription text,
     foreign key (uid) references users(uid)
 );

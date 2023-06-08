@@ -68,3 +68,5 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   return new Response(null, { status: 200 });
 };
+
+// todo DELETE for rejecting a sharing request
