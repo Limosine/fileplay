@@ -2,14 +2,28 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
 import { config } from "dotenv";
-import PWAAssets, { getManifestIcons } from "./scripts";
+import { ONLINE_STATUS_REFRESH_TIME } from "./src/lib/common";
 
 config();
 
 export default async function (config: ConfigEnv): Promise<UserConfig> {
   return {
+    define: {
+      '>PUBLIC_VAPID_KEY<': process.env.PUBLIC_VAPID_KEY,
+      '>ONLINE_STATUS_REFRESH_TIME<': ONLINE_STATUS_REFRESH_TIME
+    },
     plugins: [
       sveltekit(),
+      SvelteKitPWA({
+        srcDir: "src",
+        filename: "sw.ts",
+        registerType: "prompt",
+        strategies: "injectManifest",
+        useCredentials: true,
+        devOptions: {
+          enabled: false,
+        },
+      }),
     ],
   };
 }
