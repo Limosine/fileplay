@@ -189,7 +189,7 @@ self.addEventListener("notificationclick", async (event) => {
       const { privateKey, publicKey } = await generateKey({
         type: "ecc",
         curve: "p384",
-        userIDs: [], // what is this?
+        userIDs: [{name: 'kjshdfkljsd'}], // what is this?
         format: "armored",
       });
       console.log("Generated key pair", privateKey, publicKey);
