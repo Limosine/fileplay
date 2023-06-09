@@ -68,6 +68,22 @@ peer.on("connection", (conn) => {
   });
 });
 
+let websocket = createWebSocket();
+function createWebSocket() {
+  const websocket_variable = new WebSocket('wss://dev.fileplay.pages.dev/websocket');
+  websocket.onmessage = (event) => {
+    console.log(event.data);
+  };
+  websocket.onopen = (event) => {
+    websocket.send("isOnline");
+  };
+  websocket.onclose = (event) => {
+    console.log("WebSocket connection closed.");
+    websocket = createWebSocket();
+  };
+  return websocket_variable;
+};
+
 async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
   if (Notification.permission !== "granted") return false;
