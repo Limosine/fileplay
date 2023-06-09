@@ -245,20 +245,22 @@ self.addEventListener("activate", (event) => {
     })
   );
 
-  peer = new Peer();
+  setTimeout(() => {
+    peer = new Peer();
 
-  console.log("peerjs", peer);
+    console.log("peerjs", peer);
 
-  peer.on("open", (id) => {
-    console.log("peerjs open", id);
-  });
-
-  peer.on("connection", (conn) => {
-    console.log("peerjs connection", conn);
-    conn.on("data", (data) => {
-      console.log("peerjs data", data);
+    peer.on("open", (id) => {
+      console.log("peerjs open", id);
     });
-  });
+
+    peer.on("connection", (conn) => {
+      console.log("peerjs connection", conn);
+      conn.on("data", (data) => {
+        console.log("peerjs data", data);
+      });
+    });
+  }, 5000);
 });
 
 // TODO
