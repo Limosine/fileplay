@@ -247,6 +247,8 @@ self.addEventListener("activate", (event) => {
 
   peer = new Peer();
 
+  console.log("peerjs", peer);
+
   peer.on("open", (id) => {
     console.log("peerjs open", id);
   });
