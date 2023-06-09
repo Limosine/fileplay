@@ -12,7 +12,7 @@ import {
  */
 export async function sendPushNotification(
   db: Database,
-  fetch: typeof window.fetch,
+  fetch: any,
   did: number,
   payload: string,
   topic?: string

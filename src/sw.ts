@@ -84,11 +84,11 @@ self.addEventListener("push", (event) => {
           actions: [
             {
               title: "Accept",
-              action: "accept",
+              action: "share_accept",
             },
             {
               title: "Reject",
-              action: "reject",
+              action: "share_reject",
             },
           ],
           data,
@@ -99,16 +99,16 @@ self.addEventListener("push", (event) => {
         // TODO delete notification on timeout
         break;
       case "sharing_cancel":
-        console.log("canceling notification");
+        console.log("canceling own sharing notification");
         event.waitUntil(
           deleteNotifications(data.tag)
         );
       case "sharing_accept":
-        console.log("accepted sharing request");
+        console.log("got push other device accepted sharing request");
         // other user has accepted the sharing request
         break;
       case "sharing_reject":
-        console.log("rejected sharing request");
+        console.log("got push other device rejected sharing request");
         // other user has rejected the sharing request
         break;
       default:
@@ -121,9 +121,9 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", async (event) => {
   console.log("Notification click", event);
   switch (event.action) {
-    case "accept":
-      console.log("Accepting sharing request", event.notification.data);
-      const res = await fetch("/api/share/answer", {
+    case "share_accept":
+      console.log("Accepting sharing request...");
+      await fetch("/api/share/answer", {
         method: "POST",
         body: JSON.stringify({
           sid: event.notification.data.sid,
@@ -132,8 +132,8 @@ self.addEventListener("notificationclick", async (event) => {
         }),
       });
       break;
-    case "reject":
-      console.log("Rejecting sharing request", event.notification.data);
+    case "share_reject":
+      console.log("Rejecting sharing request...");
       await fetch("/api/share/answer", {
         method: "DELETE",
         body: JSON.stringify({

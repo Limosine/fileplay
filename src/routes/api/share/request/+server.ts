@@ -164,7 +164,6 @@ export const DELETE: RequestHandler = async ({
       did_to,
       JSON.stringify({
         type: "sharing_cancel",
-        sid: res2.sid,
         tag: `SHARE:${res2.sid}`,
       }),
       `SHARE:${res2.sid}`
