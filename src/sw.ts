@@ -54,8 +54,9 @@ self.addEventListener("message", (event) => {
         break;
       // register push notifications (called after setup, otherwise already initialized)
       case "REGISTER_PUSH":
-        registerPushSubscription().catch((err) => {
-          console.error(err);
+        registerPushSubscription().then((success) => {
+          if (success) console.log("registered subscription");
+          else console.log("Failed to register push notifications");
         });
         break;
       default:
