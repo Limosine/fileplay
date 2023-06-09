@@ -2,7 +2,6 @@ import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import type { RequestHandler } from "./$types";
-import { WebSocketPair } from "@cloudflare/workers-types";
 
 export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   // get all devices linked to this account (requires cookie auth)
