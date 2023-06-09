@@ -5,16 +5,24 @@
 
   let websocket: WebSocket;
   onMount(() => {
-    websocket = new WebSocket('wss://dev.fileplay.pages.dev/websocket-t2');
+    websocket = new WebSocket('wss://dev.fileplay.pages.dev/websocket');
     websocket.addEventListener('message', event => {
-    console.log('Message received from server');
-    console.log(event.data);
+      console.log(event.data);
     });
   });
 
   const message = () => {
     websocket.send("isOnline");
   }
+
+//   const websocket = new WebSocket('wss://dev.fileplay.pages.dev/websocket');
+// websocket.addEventListener('message', event => {
+//   console.log(event.data);
+// });
+// websocket.addEventListener('open', event => {
+//   websocket.send("isOnline");
+// })
+
 
 </script>
 <Button on:click={message}>
