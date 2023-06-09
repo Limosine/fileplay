@@ -3,14 +3,16 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-import { getDicebearUrl } from "$lib/common";
+import { getDicebearUrl, ONLINE_STATUS_REFRESH_TIME } from "$lib/common";
 import dayjs from "dayjs";
+import Peer from "peerjs";
 import {
   pageCache,
   imageCache,
   staticResourceCache,
   googleFontsCache,
 } from "workbox-recipes";
+import { generateKey } from "openpgp/lightweight";
 
 pageCache();
 
@@ -23,6 +25,14 @@ imageCache();
 declare let self: ServiceWorkerGlobalScope;
 
 let keepaliveInterval: any;
+let files: File[] = [];
+const peer = new Peer();
+const { privateKey, publicKey } = await generateKey({
+  type: "ecc",
+  curve: "p384",
+  userIDs: [],  // what is this?
+  format: "armored",
+});
 
 async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
@@ -39,7 +49,7 @@ async function registerPushSubscription(): Promise<boolean> {
 
   keepaliveInterval = setInterval(async () => {
     await fetch("/api/push/keepalive");
-  }, JSON.parse(">ONLINE_STATUS_REFRESH_TIME<"));
+  }, ONLINE_STATUS_REFRESH_TIME);
 
   console.log("Subscribed to push notifications");
   return true;
@@ -47,7 +57,7 @@ async function registerPushSubscription(): Promise<boolean> {
 
 // handle messages from client
 const broadcast = new BroadcastChannel("sw");
-broadcast.addEventListener("message", (event) => {
+broadcast.addEventListener("message", async (event) => {
   if (event.data) {
     console.log("Message from client", event.data);
     switch (event.data.type) {
@@ -62,8 +72,20 @@ broadcast.addEventListener("message", (event) => {
           else console.log("Failed to register push notifications");
         });
         break;
-      case "FILE_SHARE":
-        // TODO: Add file sharing stuff
+      case "load_files":
+        const filesPromises = [];
+        for (const fileHandle of event.data.handles as FileSystemFileHandle[]) {
+          filesPromises.push(fileHandle.getFile());
+        }
+        files = await Promise.all(filesPromises);
+        break;
+      case "send_files":
+        // TODO send request for sending files
+        // sent from select_contacts
+        break;
+      case "stop_sending_files":
+        // TODO send request for stopping sending files or cancel sending if in progress
+        // sent from select_contacts
         break;
       default:
         console.log("Unknown message type", event.data.type);
@@ -77,6 +99,7 @@ async function deleteNotifications(tag: string) {
     notifications.forEach((notification) => notification.close());
   });
 }
+
 // handle push notifications
 self.addEventListener("push", (event) => {
   if (event.data) {
@@ -115,6 +138,11 @@ self.addEventListener("push", (event) => {
         // other user has accepted the sharing request
         // TODO work with the data and start sending files
         // display as accepted / currently sending
+        const conn = peer.connect(data.peerJsId);
+        conn.on("open", () => {
+          conn.send("hi!");
+          console.log("sent peerjs hi!");
+        });
         break;
       case "sharing_reject":
         console.log("got push other device rejected sharing request");
@@ -132,13 +160,21 @@ self.addEventListener("notificationclick", async (event) => {
   switch (event.action) {
     case "share_accept":
       console.log("Accepting sharing request...");
+
       await fetch("/api/share/answer", {
         method: "POST",
         body: JSON.stringify({
           sid: event.notification.data.sid,
-          peerJsId: "akljsflaks",
-          encryptionPublicKey: "aklsjflaksjflkajslkfj",
+          peerJsId: peer.id,
+          encryptionPublicKey: publicKey,
         }),
+      });
+
+      peer.on("connection", (conn) => {
+        conn.on("data", (data) => {
+          console.log("Received peerjs", data);
+          // handle file receiving
+        });
       });
       break;
     case "share_reject":
@@ -155,6 +191,7 @@ self.addEventListener("notificationclick", async (event) => {
   }
 });
 
+
 // fetch handler
 self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
@@ -163,12 +200,12 @@ self.addEventListener("fetch", async (event) => {
     event.respondWith(
       (async () => {
         const formData = await event.request.formData();
-        const files = formData.getAll("files") as File[];
+        files = formData.getAll("files") as File[];
 
         // TODO handle files for sending here
         // store files, redirect to contact selection dialog
 
-        return Response.redirect("/", 303);
+        return Response.redirect("/?from=share", 303);
       })()
     );
   }
