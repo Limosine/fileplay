@@ -58,9 +58,9 @@ export const GET: RequestHandler = async ({
   if (!res2) throw error(500, "Failed to insert sharing request");
 
   // get user displayName
-  const { displayName: sender } = await db
+  const { displayName: sender, avatarSeed } = await db
     .selectFrom("users")
-    .select("displayName")
+    .select(["displayName", "avatarSeed"])
     .where("uid", "=", uid)
     .executeTakeFirstOrThrow();
 
@@ -86,6 +86,7 @@ export const GET: RequestHandler = async ({
         sid: res2.sid,
         expires,
         sender,
+        avatarSeed,
         tag: `SHARE:${res2.sid}`,
       }),
       `SHARE:${res2.sid}`

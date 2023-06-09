@@ -3,6 +3,7 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
+import { getDicebearUrl } from "$lib/common";
 import dayjs from "dayjs";
 import {
   pageCache,
@@ -95,7 +96,7 @@ self.addEventListener("push", (event) => {
           ],
           data,
           body: `${data.sender} wants to share files with you. Click to accept.`,
-          icon: "/favicon.png",
+          icon: getDicebearUrl(data.avatarSeed, 64),
           tag: data.tag,
         });
         // delete notification on timeout
