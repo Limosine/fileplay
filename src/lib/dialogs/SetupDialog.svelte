@@ -114,8 +114,7 @@
     localStorage.setItem("loggedIn", "true");
     open = false;
     setupLoading.set(false);
-    if(!navigator.serviceWorker.controller) throw new Error("No service worker controller");
-    navigator.serviceWorker.controller.postMessage({
+    navigator.serviceWorker.controller?.postMessage({
       type: "REGISTER_PUSH",
     });
   }

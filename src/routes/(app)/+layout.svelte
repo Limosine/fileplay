@@ -45,6 +45,13 @@
   });
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
 
+  navigator.permissions.query({name: 'notifications'}).then(function(permission) {  
+  // Initial status is available at permission.state
+    permission.onchange = function() {  
+      navigator.serviceWorker.controller?.postMessage({type: "REGISTER_PUSH"});
+    };
+});
+
 </script>
 
 <svelte:head>
