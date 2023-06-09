@@ -49,11 +49,11 @@ self.addEventListener("message", (event) => {
     console.log("Message from client", event.data);
     switch (event.data.type) {
       // skip waiting to activate new service worker
-      case "SKIP_WAITING":
+      case "skip_waiting":
         self.skipWaiting();
         break;
       // register push notifications (called after setup, otherwise already initialized)
-      case "REGISTER_PUSH":
+      case "register_push":
         registerPushSubscription().then((success) => {
           if (success) console.log("registered subscription");
           else console.log("Failed to register push notifications");
@@ -71,6 +71,39 @@ self.addEventListener("push", (event) => {
     const data = event.data.json();
     console.log("Push notification", data);
     // todo handle single notifications
+    switch (data.type) {
+      case "sharing_request":
+        console.log('displaying sharing request notification')
+        self.registration.showNotification("Sharing request", {
+          actions: [
+            {
+              title: "Accept",
+              action: "accept",
+            }
+          ],
+          data,
+          body: `${data.sender} wants to share files with you. Click to accept.`,
+          icon: "/icon.png",
+          tag: data.tag,
+        })
+        // TODO delete notification on timeout
+    }
+  }
+});
+
+// handle push notification clicks
+self.addEventListener("notificationclick", async (event) => {
+  console.log("Notification click", event);
+  if (event.action === "accept") {
+    console.log("Accepting sharing request", event.notification.data);
+    const res = await fetch('/api/share/answer', {
+      method: 'POST',
+      body: JSON.stringify({
+        sid: event.notification.data.sid,
+        peerJsId: 'akljsflaks',
+        encryptionPublicKey: 'aklsjflaksjflkajslkfj'
+      })
+    })
   }
 });
 

@@ -115,7 +115,7 @@
     open = false;
     setupLoading.set(false);
     navigator.serviceWorker.controller?.postMessage({
-      type: "REGISTER_PUSH",
+      type: "register_push",
     });
   }
 

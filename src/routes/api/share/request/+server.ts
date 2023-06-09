@@ -57,6 +57,13 @@ export const GET: RequestHandler = async ({
     .executeTakeFirst();
   if (!res2) throw error(500, "Failed to insert sharing request");
 
+  // get user displayName
+  const { displayName: sender } = await db
+    .selectFrom("users")
+    .select("displayName")
+    .where("uid", "=", uid)
+    .executeTakeFirstOrThrow();
+
   // send notification to all of contact's devices
   const dids = await db
     .selectFrom("devices")
@@ -77,6 +84,8 @@ export const GET: RequestHandler = async ({
         type: "sharing_request",
         sid: res2.sid,
         expires,
+        sender,
+        tag: `SHARE:${res2.sid}`,
       }),
       `SHARE:${res2.sid}`
     )
@@ -151,6 +160,7 @@ export const DELETE: RequestHandler = async ({
       JSON.stringify({
         type: "sharing_cancel",
         sid: res2.sid,
+        tag: `SHARE:${res2.sid}`,
       }),
       `SHARE:${res2.sid}`
     ).catch(() => {});

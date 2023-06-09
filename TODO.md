@@ -9,3 +9,4 @@
 - [ ] check for browser compatibility and redirect
 - [ ] periodically scheck for sw updates
 - [ ] fix pwa asset images transparency
+- [ ] on new sw version available send notification (which sends skip_waiting) / reinstall on refresh
