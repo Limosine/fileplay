@@ -26,9 +26,38 @@ declare let self: ServiceWorkerGlobalScope;
 
 let keepaliveInterval: any;
 let files: File[] = [];
-const peer = new Peer();
-let privateKey: string, publicKey: string;
-
+const peer_config = {
+  config: {
+    iceServers: [
+      { url: "stun:stun.l.google.com:19302" },
+      { url: "stun:stun1.l.google.com:19302" },
+      { url: "stun:stun2.l.google.com:19302" },
+      { url: "stun:stun3.l.google.com:19302" },
+      { url: "stun:stun4.l.google.com:19302" },
+      { urls: "stun:a.relay.metered.ca:80" },
+      {
+        urls: "turn:a.relay.metered.ca:80",
+        username: "cff5ad6e88d74c2223ea8d2a",
+        credential: "Tf0V4fz9DEdbbAkf",
+      },
+      {
+        urls: "turn:a.relay.metered.ca:80?transport=tcp",
+        username: "cff5ad6e88d74c2223ea8d2a",
+        credential: "Tf0V4fz9DEdbbAkf",
+      },
+      {
+        urls: "turn:a.relay.metered.ca:443",
+        username: "cff5ad6e88d74c2223ea8d2a",
+        credential: "Tf0V4fz9DEdbbAkf",
+      },
+      {
+        urls: "turn:a.relay.metered.ca:443?transport=tcp",
+        username: "cff5ad6e88d74c2223ea8d2a",
+        credential: "Tf0V4fz9DEdbbAkf",
+      },
+    ],
+  },
+}
 
 async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
@@ -90,7 +119,6 @@ broadcast.addEventListener("message", async (event) => {
 });
 
 async function deleteNotifications(tag: string) {
-  console.log("deleting notifications with tag", tag);
   await self.registration.getNotifications({ tag }).then((notifications) => {
     notifications.forEach((notification) => notification.close());
   });
@@ -117,7 +145,7 @@ self.addEventListener("push", (event) => {
           ],
           data,
           body: `${data.sender} wants to share files with you. Click to accept.`,
-          icon: getDicebearUrl(data.avatarSeed, 64),
+          icon: getDicebearUrl(data.avatarSeed, 192),
           tag: data.tag,
         });
         // delete notification on timeout
@@ -134,6 +162,7 @@ self.addEventListener("push", (event) => {
         // other user has accepted the sharing request
         // TODO work with the data and start sending files
         // display as accepted / currently sending
+        const peer = new Peer(peer_config);
         const conn = peer.connect(data.peerJsId);
         conn.on("open", () => {
           conn.send("hi!");
@@ -157,13 +186,24 @@ self.addEventListener("notificationclick", async (event) => {
     case "share_accept":
       console.log("Accepting sharing request...");
 
-      await fetch("/api/share/answer", {
-        method: "POST",
-        body: JSON.stringify({
-          sid: event.notification.data.sid,
-          peerJsId: peer.id,
-          encryptionPublicKey: publicKey,
-        }),
+      const { privateKey, publicKey } = await generateKey({
+        type: "ecc",
+        curve: "p384",
+        userIDs: [], // what is this?
+        format: "armored",
+      });
+      console.log("Generated key pair", privateKey, publicKey);
+      const peer = new Peer(peer_config);
+
+      peer.on("open", async (id) => {
+        await fetch("/api/share/answer", {
+          method: "POST",
+          body: JSON.stringify({
+            sid: event.notification.data.sid,
+            peerJsId: id,
+            encryptionPublicKey: publicKey,
+          }),
+        });
       });
 
       peer.on("connection", (conn) => {
@@ -215,16 +255,6 @@ self.addEventListener("activate", (event) => {
       else console.log("Failed to register push notifications");
     })
   );
-  event.waitUntil(
-    generateKey({
-      type: "ecc",
-      curve: "p384",
-      userIDs: [], // what is this?
-      format: "armored",
-    }).then(({ privateKey: pk, publicKey: pbk }) => {
-      privateKey = pk;
-      publicKey = pbk;
-    }))
 });
 
 // TODO
