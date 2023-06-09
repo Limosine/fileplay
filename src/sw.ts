@@ -94,6 +94,7 @@ self.addEventListener("fetch", async (event) => {
 });
 
 self.addEventListener("activate", (event) => {
+  self.clients.claim();
   event.waitUntil(
     // try to register push notifications
     registerPushSubscription().then((success) => {
