@@ -12,7 +12,6 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
     define: {
       ">PUBLIC_VAPID_KEY<": process.env.PUBLIC_VAPID_KEY,
       ">ONLINE_STATUS_REFRESH_TIME<": JSON.stringify(ONLINE_STATUS_REFRESH_TIME),
-      ">SHARING_TIMEOUT<": JSON.stringify(SHARING_TIMEOUT),
     },
     plugins: [
       EnvironmentPlugin(["NODE_ENV"]),
