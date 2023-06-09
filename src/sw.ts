@@ -73,13 +73,13 @@ function createWebSocket() {
   const websocket_variable = new WebSocket(
     "wss://dev.fileplay.pages.dev/websocket"
   );
-  websocket.onmessage = (event) => {
+  websocket_variable.onmessage = (event) => {
     console.log(event.data);
   };
-  websocket.onopen = (event) => {
-    websocket.send("isOnline");
+  websocket_variable.onopen = (event) => {
+    websocket_variable.send("isOnline");
   };
-  websocket.onclose = (event) => {
+  websocket_variable.onclose = (event) => {
     console.log("WebSocket connection closed.");
     websocket = createWebSocket();
   };
