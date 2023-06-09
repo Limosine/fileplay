@@ -27,12 +27,8 @@ declare let self: ServiceWorkerGlobalScope;
 let keepaliveInterval: any;
 let files: File[] = [];
 const peer = new Peer();
-const { privateKey, publicKey } = await generateKey({
-  type: "ecc",
-  curve: "p384",
-  userIDs: [],  // what is this?
-  format: "armored",
-});
+let privateKey: string, publicKey: string;
+
 
 async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
@@ -83,7 +79,7 @@ broadcast.addEventListener("message", async (event) => {
         // TODO send request for sending files
         // sent from select_contacts
         break;
-      case "stop_sending_files":
+      case "cancel_send_files":
         // TODO send request for stopping sending files or cancel sending if in progress
         // sent from select_contacts
         break;
@@ -191,7 +187,6 @@ self.addEventListener("notificationclick", async (event) => {
   }
 });
 
-
 // fetch handler
 self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
@@ -220,6 +215,16 @@ self.addEventListener("activate", (event) => {
       else console.log("Failed to register push notifications");
     })
   );
+  event.waitUntil(
+    generateKey({
+      type: "ecc",
+      curve: "p384",
+      userIDs: [], // what is this?
+      format: "armored",
+    }).then(({ privateKey: pk, publicKey: pbk }) => {
+      privateKey = pk;
+      publicKey = pbk;
+    }))
 });
 
 // TODO
