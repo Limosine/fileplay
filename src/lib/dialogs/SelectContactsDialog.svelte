@@ -129,7 +129,7 @@
                     class="content-items"
                   >
                     <img
-                      src={getDicebearUrl(contact.avatarSeed, 70)}
+                      src={getDicebearUrl(contact.avatarSeed, 50)}
                       alt={`${contact.displayName}'s avatar image`}
                     />
                     {contact.displayName}
