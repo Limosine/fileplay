@@ -29,11 +29,6 @@ let files: File[] = [];
 const peer_config = {
   config: {
     iceServers: [
-      { url: "stun:stun.l.google.com:19302" },
-      { url: "stun:stun1.l.google.com:19302" },
-      { url: "stun:stun2.l.google.com:19302" },
-      { url: "stun:stun3.l.google.com:19302" },
-      { url: "stun:stun4.l.google.com:19302" },
       { urls: "stun:a.relay.metered.ca:80" },
       {
         urls: "turn:a.relay.metered.ca:80",
@@ -57,7 +52,21 @@ const peer_config = {
       },
     ],
   },
-}
+};
+const peer = new Peer();
+
+let publicKey: string, privateKey: string;
+
+peer.on("open", (id) => {
+  console.log("peerjs open", id);
+});
+
+peer.on("connection", (conn) => {
+  console.log("peerjs connection", conn);
+  conn.on("data", (data) => {
+    console.log("peerjs data", data);
+  });
+});
 
 async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
@@ -162,7 +171,6 @@ self.addEventListener("push", (event) => {
         // other user has accepted the sharing request
         // TODO work with the data and start sending files
         // display as accepted / currently sending
-        const peer = new Peer(peer_config);
         const conn = peer.connect(data.peerJsId);
         conn.on("open", () => {
           conn.send("hi!");
@@ -186,32 +194,16 @@ self.addEventListener("notificationclick", async (event) => {
     case "share_accept":
       console.log("Accepting sharing request...");
 
-      const { privateKey, publicKey } = await generateKey({
-        type: "ecc",
-        curve: "p384",
-        userIDs: [{name: 'kjshdfkljsd'}], // what is this?
-        format: "armored",
+      await fetch("/api/share/answer", {
+        method: "POST",
+        body: JSON.stringify({
+          sid: event.notification.data.sid,
+          peerJsId: peer.id,
+          encryptionPublicKey: publicKey,
+        }),
       });
-      console.log("Generated key pair", privateKey, publicKey);
-      const peer = new Peer(peer_config);
+      console.log();
 
-      peer.on("open", async (id) => {
-        await fetch("/api/share/answer", {
-          method: "POST",
-          body: JSON.stringify({
-            sid: event.notification.data.sid,
-            peerJsId: id,
-            encryptionPublicKey: publicKey,
-          }),
-        });
-      });
-
-      peer.on("connection", (conn) => {
-        conn.on("data", (data) => {
-          console.log("Received peerjs", data);
-          // handle file receiving
-        });
-      });
       break;
     case "share_reject":
       console.log("Rejecting sharing request...");
@@ -253,6 +245,18 @@ self.addEventListener("activate", (event) => {
     registerPushSubscription().then((success) => {
       if (success) console.log("registered subscription");
       else console.log("Failed to register push notifications");
+    })
+  );
+  event.waitUntil(
+    generateKey({
+      type: "ecc",
+      curve: "p384",
+      userIDs: [{ name: "kjshdfkljsd" }], // what is this?
+      format: "armored",
+    }).then(({ publicKey: pubk, privateKey: pk }) => {
+      publicKey = pubk;
+      privateKey = pk;
+      console.log("generated key pair");
     })
   );
 });

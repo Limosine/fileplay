@@ -16,7 +16,7 @@ export const link = writable("");
 
 export const recieved_files = writable<{ url: string, name: string }[]>([]);
 
-const openPeer = (uuid: string) => {
+const openPeer = (uuid?: string) => {
   if (uuid){
     peer = new Peer(uuid);
   } else peer = new Peer();
