@@ -26,47 +26,12 @@ declare let self: ServiceWorkerGlobalScope;
 
 let keepaliveInterval: any;
 let files: File[] = [];
-const peer_config = {
-  config: {
-    iceServers: [
-      { urls: "stun:a.relay.metered.ca:80" },
-      {
-        urls: "turn:a.relay.metered.ca:80",
-        username: "cff5ad6e88d74c2223ea8d2a",
-        credential: "Tf0V4fz9DEdbbAkf",
-      },
-      {
-        urls: "turn:a.relay.metered.ca:80?transport=tcp",
-        username: "cff5ad6e88d74c2223ea8d2a",
-        credential: "Tf0V4fz9DEdbbAkf",
-      },
-      {
-        urls: "turn:a.relay.metered.ca:443",
-        username: "cff5ad6e88d74c2223ea8d2a",
-        credential: "Tf0V4fz9DEdbbAkf",
-      },
-      {
-        urls: "turn:a.relay.metered.ca:443?transport=tcp",
-        username: "cff5ad6e88d74c2223ea8d2a",
-        credential: "Tf0V4fz9DEdbbAkf",
-      },
-    ],
-  },
-};
-const peer = new Peer();
+
+let peer: Peer;
 
 let publicKey: string, privateKey: string;
 
-peer.on("open", (id) => {
-  console.log("peerjs open", id);
-});
 
-peer.on("connection", (conn) => {
-  console.log("peerjs connection", conn);
-  conn.on("data", (data) => {
-    console.log("peerjs data", data);
-  });
-});
 
 // fails with "WebSocket connection to 'wss://dev.fileplay.pages.dev/websocket' failed: HTTP Authentication failed; no valid credentials available"
 // let websocket = createWebSocket();
@@ -234,7 +199,7 @@ self.addEventListener("notificationclick", async (event) => {
           encryptionPublicKey: publicKey,
         }),
       });
-      console.log();
+      console.log('made fetch request');
 
       break;
     case "share_reject":
@@ -279,6 +244,19 @@ self.addEventListener("activate", (event) => {
       else console.log("Failed to register push notifications");
     })
   );
+
+  peer = new Peer();
+
+  peer.on("open", (id) => {
+    console.log("peerjs open", id);
+  });
+
+  peer.on("connection", (conn) => {
+    console.log("peerjs connection", conn);
+    conn.on("data", (data) => {
+      console.log("peerjs data", data);
+    });
+  });
 });
 
 // TODO
