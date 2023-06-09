@@ -70,7 +70,9 @@ peer.on("connection", (conn) => {
 
 let websocket = createWebSocket();
 function createWebSocket() {
-  const websocket_variable = new WebSocket('wss://dev.fileplay.pages.dev/websocket');
+  const websocket_variable = new WebSocket(
+    "wss://dev.fileplay.pages.dev/websocket"
+  );
   websocket.onmessage = (event) => {
     console.log(event.data);
   };
@@ -82,7 +84,7 @@ function createWebSocket() {
     websocket = createWebSocket();
   };
   return websocket_variable;
-};
+}
 
 async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
@@ -210,6 +212,19 @@ self.addEventListener("notificationclick", async (event) => {
     case "share_accept":
       console.log("Accepting sharing request...");
 
+      if (!publicKey) {
+        await generateKey({
+          type: "ecc",
+          curve: "p384",
+          userIDs: [{ name: "kjshdfkljsd" }], // what is this?
+          format: "armored",
+        }).then(({ publicKey: pubk, privateKey: pk }) => {
+          publicKey = pubk;
+          privateKey = pk;
+          console.log("Generated key pair");
+        });
+      }
+
       await fetch("/api/share/answer", {
         method: "POST",
         body: JSON.stringify({
@@ -261,18 +276,6 @@ self.addEventListener("activate", (event) => {
     registerPushSubscription().then((success) => {
       if (success) console.log("registered subscription");
       else console.log("Failed to register push notifications");
-    })
-  );
-  event.waitUntil(
-    generateKey({
-      type: "ecc",
-      curve: "p384",
-      userIDs: [{ name: "kjshdfkljsd" }], // what is this?
-      format: "armored",
-    }).then(({ publicKey: pubk, privateKey: pk }) => {
-      publicKey = pubk;
-      privateKey = pk;
-      console.log("generated key pair");
     })
   );
 });
