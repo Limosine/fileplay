@@ -32,7 +32,6 @@
     else if (newUser) {
       actionDisabled =
         !$userParams.displayName ||
-        !$userParams.avatarSeed ||
         get(profaneUsername).profane ||
         get(profaneUsername).loading;
     } else {

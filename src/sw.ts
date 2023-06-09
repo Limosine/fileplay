@@ -96,20 +96,27 @@ self.addEventListener("push", (event) => {
           icon: "/favicon.png",
           tag: data.tag,
         });
-        // TODO delete notification on timeout
+        // delete notification on timeout
+        setTimeout(async () => {
+          await deleteNotifications(data.tag);
+        }, JSON.parse(">SHARING_TIMEOUT<"));
         break;
       case "sharing_cancel":
         console.log("canceling own sharing notification");
         event.waitUntil(
           deleteNotifications(data.tag)
         );
+        break;
       case "sharing_accept":
         console.log("got push other device accepted sharing request");
         // other user has accepted the sharing request
+        // TODO work with the data and start sending files
+        // display as accepted / currently sending
         break;
       case "sharing_reject":
         console.log("got push other device rejected sharing request");
         // other user has rejected the sharing request
+        // display as unselected / rejected
         break;
       default:
         console.log("Unknown notification type", data.type);
@@ -119,7 +126,6 @@ self.addEventListener("push", (event) => {
 
 // handle push notification clicks
 self.addEventListener("notificationclick", async (event) => {
-  console.log("Notification click", event);
   switch (event.action) {
     case "share_accept":
       console.log("Accepting sharing request...");
@@ -182,6 +188,8 @@ self.addEventListener("activate", (event) => {
 // - register push notifications                          DONE
 // - send push notifications subscription to server       DONE
 // - send keepalive requests to server                    DONE
-// - handle push messages, show notifications
-// - handle push notification clicks (accept, reject)
+// - handle push messages, show notifications             DONE
+// - handle push notification clicks (accept, reject)     DONE
 // - handle file sending
+// - after files are received, show a notification if app is closed or in app list -> open in web share api
+// - show in app notifications

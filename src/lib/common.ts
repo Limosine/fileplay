@@ -12,7 +12,7 @@ export enum TimeFormat {
 
 export const LINKING_EXPIRY_TIME = 15 * 60 * 1000; // 15 minutes
 export const LINKING_REFRESH_TIME = 10 * 60 * 1000; // 10 minutes
-export const SHARING_TIMEOUT = 3 * 60 * 1000; // 5 minutes
+export const SHARING_TIMEOUT = 3 * 60 * 1000; // 3 minutes
 export const ONLINE_STATUS_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 export const ONLINE_STATUS_REFRESH_TIME = 3 * 60 * 1000; // 3 minutes
 

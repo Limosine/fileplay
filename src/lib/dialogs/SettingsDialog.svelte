@@ -31,13 +31,13 @@
     different =
       $userParams.displayName != $original_username ||
       $userParams.avatarSeed != $original_avatarSeed;
+  }
 
+  $: {
     actionDisabled =
       !$userParams.displayName ||
-      !$userParams.avatarSeed ||
       $profaneUsername.profane ||
-      $profaneUsername.loading ||
-      !different;
+      $profaneUsername.loading
   }
 
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
@@ -52,7 +52,7 @@
     }
   }
 
-  function closeHandler(e: CustomEvent<{ action: string }> | string) {
+  async function closeHandler(e: CustomEvent<{ action: string }> | string) {
     let action: string;
 
     if (typeof e === "string") {
@@ -63,8 +63,8 @@
 
     switch (action) {
       case "confirm":
-        if (!actionDisabled) {
-          updateUserInfo();
+        if (!actionDisabled && different) {
+          await updateUserInfo();
         }
     }
   }
@@ -93,7 +93,7 @@
   }
 
   async function updateUserInfo() {
-    const res = await fetch("/api/user", {
+    await fetch("/api/user", {
       method: "POST",
       body: JSON.stringify({
         displayName: $userParams.displayName,
