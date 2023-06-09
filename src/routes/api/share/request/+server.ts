@@ -72,11 +72,12 @@ export const GET: RequestHandler = async ({
     .execute();
 
   let sent = 0;
-  let failed = 0;
+
+  const promises = [];
 
   for (const { did: did_to } of dids) {
     // todo send notification
-    await sendPushNotification(
+    promises.push(sendPushNotification(
       db,
       fetch,
       did_to,
@@ -85,17 +86,18 @@ export const GET: RequestHandler = async ({
         sid: res2.sid,
         expires,
         sender,
-        tag: `SHARE:${res2.sid}`,
       }),
       `SHARE:${res2.sid}`
     )
       .then(() => sent++)
-      .catch(() => failed++);
+      .catch(() => { }));
   }
+
+  await Promise.all(promises);
 
   if (sent === 0) throw error(500, "Failed to send push notifications");
 
-  return json({ sent, failed });
+  return json({ sid: res2.sid });
 };
 
 // revoke sharing request to contact id. this sends a dummy notification with the same topic as the sharing message to all the same devices
@@ -151,20 +153,23 @@ export const DELETE: RequestHandler = async ({
     .where("uid", "=", uid_to)
     .execute();
 
+  const promises = [];
+
   for (const { did: did_to } of dids) {
     // todo send notification
-    await sendPushNotification(
+    promises.push(sendPushNotification(
       db,
       fetch,
       did_to,
       JSON.stringify({
         type: "sharing_cancel",
         sid: res2.sid,
-        tag: `SHARE:${res2.sid}`,
       }),
       `SHARE:${res2.sid}`
-    ).catch(() => {});
+    ).catch(() => { }));
   }
+
+  await Promise.all(promises);
 
   return new Response(null, { status: 204 });
 };

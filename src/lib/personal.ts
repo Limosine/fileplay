@@ -16,7 +16,6 @@ export const contacts_loaded = writable(false);
 
 export interface IContact {
   cid: number;
-  uid: number;
   displayName: string;
   avatarSeed: string;
   linkedAt: number;

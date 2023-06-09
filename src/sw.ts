@@ -65,28 +65,51 @@ self.addEventListener("message", (event) => {
   }
 });
 
+
+const notifications: Map<string, Notification> = new Map();
+
 // handle push notifications
 self.addEventListener("push", (event) => {
   if (event.data) {
     const data = event.data.json();
-    console.log("Push notification", data);
     // todo handle single notifications
     switch (data.type) {
       case "sharing_request":
-        console.log('displaying sharing request notification')
-        self.registration.showNotification("Sharing request", {
-          actions: [
-            {
-              title: "Accept",
-              action: "accept",
-            }
-          ],
-          data,
-          body: `${data.sender} wants to share files with you. Click to accept.`,
-          icon: "/icon.png",
-          tag: data.tag,
-        })
+        console.log("displaying sharing request notification");
+        notifications.set(
+          data.sid,
+          new Notification("Sharing request", {
+            actions: [
+              {
+                title: "Accept",
+                action: "accept",
+              },
+              {
+                title: "Reject",
+                action: "reject",
+              }
+            ],
+            data,
+            body: `${data.sender} wants to share files with you. Click to accept.`,
+            icon: "/favicon.png",
+            tag: data.tag,
+          })
+        );
         // TODO delete notification on timeout
+        break;
+      case 'sharing_cancel':
+        console.log('canceling notification');
+        notifications.get(data.sid)?.close();
+      case 'sharing_accept':
+        console.log('accepted sharing request');
+        // other user has accepted the sharing request
+        break;
+      case 'sharing_reject':
+        console.log('rejected sharing request');
+        // other user has rejected the sharing request
+        break;
+      default:
+        console.log("Unknown notification type", data.type);
     }
   }
 });
@@ -94,16 +117,29 @@ self.addEventListener("push", (event) => {
 // handle push notification clicks
 self.addEventListener("notificationclick", async (event) => {
   console.log("Notification click", event);
-  if (event.action === "accept") {
-    console.log("Accepting sharing request", event.notification.data);
-    const res = await fetch('/api/share/answer', {
-      method: 'POST',
-      body: JSON.stringify({
-        sid: event.notification.data.sid,
-        peerJsId: 'akljsflaks',
-        encryptionPublicKey: 'aklsjflaksjflkajslkfj'
-      })
-    })
+  switch (event.action) {
+    case "accept":
+      console.log("Accepting sharing request", event.notification.data);
+      const res = await fetch("/api/share/answer", {
+        method: "POST",
+        body: JSON.stringify({
+          sid: event.notification.data.sid,
+          peerJsId: "akljsflaks",
+          encryptionPublicKey: "aklsjflaksjflkajslkfj",
+        }),
+      });
+      break;
+    case "reject":
+      console.log("Rejecting sharing request", event.notification.data);
+      await fetch("/api/share/answer", {
+        method: "DELETE",
+        body: JSON.stringify({
+          sid: event.notification.data.sid,
+        }),
+      });
+      break;
+    default:
+      console.log("Unknown notification action", event.action);
   }
 });
 

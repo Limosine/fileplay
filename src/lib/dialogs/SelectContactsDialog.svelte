@@ -120,6 +120,7 @@
                   <PrimaryAction
                     on:click={() => {
                       if (selected.includes(contact.cid)) {
+                        // TODO if sharing started do not send deselect but cancel sharing
                         deselect(contact);
                       } else {
                         select(contact);

@@ -20,7 +20,6 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
       "users.avatarSeed",
       "contacts.createdAt as linkedAt",
       "users.lastSeenAt",
-      "users.uid"
     ])
     .where("contacts.b", "=", uid)
     .union(
