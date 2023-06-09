@@ -52,6 +52,8 @@
       .then(function (permission) {
         // Initial status is available at permission.state
         permission.onchange = function () {
+          console.log("Permission changed to " + this.state)
+          if (this.state === "granted")
           navigator.serviceWorker.controller?.postMessage({
             type: "REGISTER_PUSH",
           });
