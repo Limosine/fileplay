@@ -10,7 +10,6 @@
 
   import "$lib/../theme/typography.scss";
   import { browser } from "$app/environment";
-  import messagePort from '$lib/stores/messagePort';
 
   onMount(async () => {
     // update service worker

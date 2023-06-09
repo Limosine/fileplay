@@ -48,6 +48,12 @@
     //     })
     // }
     // $open = false;
+    navigator.serviceWorker.controller?.postMessage({
+      type: 'FILE_SHARE',
+      // receivers,
+      // sender,
+      $files
+    });
   }
 
   async function select(contact: IContact) {

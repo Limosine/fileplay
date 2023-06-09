@@ -60,6 +60,9 @@ self.addEventListener("message", (event) => {
           else console.log("Failed to register push notifications");
         });
         break;
+      case "FILE_SHARE":
+        // TODO: Add file sharing stuff
+        break;
       default:
         console.log("Unknown message type", event.data.type);
     }
