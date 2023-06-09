@@ -245,14 +245,17 @@ self.addEventListener("activate", (event) => {
     })
   );
 
-  setTimeout(() => {
+  setTimeout(async () => {
     peer = new Peer();
 
     console.log("peerjs", peer);
 
-    peer.on("open", (id) => {
-      console.log("peerjs open", id);
-    });
+    await new Promise<void>((resolve, reject) =>
+      peer.on("open", (id) => {
+        console.log("My peer ID is: " + id);
+        resolve();
+      })
+    );
 
     peer.on("connection", (conn) => {
       console.log("peerjs connection", conn);
