@@ -49,13 +49,14 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
       JSON.stringify({
         type: "sharing_cancel",
         sid: sid,
+        tag: `SHARE:${sid}`,
       }),
       `SHARE:${sid}`
     ).catch(() => { }));
   }
 
   await Promise.all(promises);
-  
+
   // send accept notification to did_return
   await sendPushNotification(
     db,
@@ -119,6 +120,7 @@ export const DELETE: RequestHandler = async ({ cookies, platform, request, fetch
       JSON.stringify({
         type: "sharing_cancel",
         sid: sid,
+        tag: `SHARE:${sid}`,
       }),
       `SHARE:${sid}`
     ).catch(() => {}));

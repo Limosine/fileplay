@@ -86,6 +86,7 @@ export const GET: RequestHandler = async ({
         sid: res2.sid,
         expires,
         sender,
+        tag: `SHARE:${res2.sid}`,
       }),
       `SHARE:${res2.sid}`
     )
@@ -164,6 +165,7 @@ export const DELETE: RequestHandler = async ({
       JSON.stringify({
         type: "sharing_cancel",
         sid: res2.sid,
+        tag: `SHARE:${res2.sid}`,
       }),
       `SHARE:${res2.sid}`
     ).catch(() => { }));

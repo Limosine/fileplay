@@ -65,9 +65,13 @@ self.addEventListener("message", (event) => {
   }
 });
 
-
-const notifications: Map<string, Notification> = new Map();
-
+async function deleteNotifications(tag: string) {
+  await self.registration
+    .getNotifications({ tag })
+    .then((notifications) => {
+      notifications.forEach((notification) => notification.close());
+    });
+}
 // handle push notifications
 self.addEventListener("push", (event) => {
   if (event.data) {
@@ -76,36 +80,35 @@ self.addEventListener("push", (event) => {
     switch (data.type) {
       case "sharing_request":
         console.log("displaying sharing request notification");
-        notifications.set(
-          data.sid,
-          new Notification("Sharing request", {
-            actions: [
-              {
-                title: "Accept",
-                action: "accept",
-              },
-              {
-                title: "Reject",
-                action: "reject",
-              }
-            ],
-            data,
-            body: `${data.sender} wants to share files with you. Click to accept.`,
-            icon: "/favicon.png",
-            tag: data.tag,
-          })
-        );
+        self.registration.showNotification("Sharing request", {
+          actions: [
+            {
+              title: "Accept",
+              action: "accept",
+            },
+            {
+              title: "Reject",
+              action: "reject",
+            },
+          ],
+          data,
+          body: `${data.sender} wants to share files with you. Click to accept.`,
+          icon: "/favicon.png",
+          tag: data.tag,
+        });
         // TODO delete notification on timeout
         break;
-      case 'sharing_cancel':
-        console.log('canceling notification');
-        notifications.get(data.sid)?.close();
-      case 'sharing_accept':
-        console.log('accepted sharing request');
+      case "sharing_cancel":
+        console.log("canceling notification");
+        event.waitUntil(
+          deleteNotifications(data.tag)
+        );
+      case "sharing_accept":
+        console.log("accepted sharing request");
         // other user has accepted the sharing request
         break;
-      case 'sharing_reject':
-        console.log('rejected sharing request');
+      case "sharing_reject":
+        console.log("rejected sharing request");
         // other user has rejected the sharing request
         break;
       default:
