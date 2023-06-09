@@ -3,6 +3,7 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
+import dayjs from "dayjs";
 import {
   pageCache,
   imageCache,
@@ -66,6 +67,7 @@ self.addEventListener("message", (event) => {
 });
 
 async function deleteNotifications(tag: string) {
+  console.log("deleting notifications with tag", tag);
   await self.registration
     .getNotifications({ tag })
     .then((notifications) => {
@@ -99,7 +101,7 @@ self.addEventListener("push", (event) => {
         // delete notification on timeout
         setTimeout(async () => {
           await deleteNotifications(data.tag);
-        }, JSON.parse(">SHARING_TIMEOUT<"));
+        }, dayjs.unix(data.expires).diff(dayjs(), "millisecond"));
         break;
       case "sharing_cancel":
         console.log("canceling own sharing notification");

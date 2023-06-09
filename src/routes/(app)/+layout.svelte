@@ -10,6 +10,7 @@
 
   import "$lib/../theme/typography.scss";
   import { browser } from "$app/environment";
+  import messagePort from '$lib/stores/messagePort';
 
   onMount(async () => {
     // update service worker
@@ -47,6 +48,7 @@
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
 
   if (browser) {
+    // resubscribe push notifications on permission change
     navigator.permissions
       .query({ name: "notifications" })
       .then(function (permission) {
@@ -59,6 +61,13 @@
             });
         };
       });
+
+    // resubscribe push notifications on service worker change
+    navigator.serviceWorker.oncontrollerchange = function () {
+      navigator.serviceWorker.controller?.postMessage({
+        type: "register_push",
+      });
+    };
   }
 </script>
 
