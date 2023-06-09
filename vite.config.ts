@@ -2,7 +2,7 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
 import { config } from "dotenv";
-import { ONLINE_STATUS_REFRESH_TIME, SHARING_TIMEOUT } from "./src/lib/common";
+import { ONLINE_STATUS_REFRESH_TIME } from "./src/lib/common";
 import EnvironmentPlugin from "vite-plugin-environment";
 
 config();

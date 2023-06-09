@@ -46,7 +46,8 @@ async function registerPushSubscription(): Promise<boolean> {
 }
 
 // handle messages from client
-self.addEventListener("message", (event) => {
+const broadcast = new BroadcastChannel("sw");
+broadcast.addEventListener("message", (event) => {
   if (event.data) {
     console.log("Message from client", event.data);
     switch (event.data.type) {
@@ -69,11 +70,9 @@ self.addEventListener("message", (event) => {
 
 async function deleteNotifications(tag: string) {
   console.log("deleting notifications with tag", tag);
-  await self.registration
-    .getNotifications({ tag })
-    .then((notifications) => {
-      notifications.forEach((notification) => notification.close());
-    });
+  await self.registration.getNotifications({ tag }).then((notifications) => {
+    notifications.forEach((notification) => notification.close());
+  });
 }
 // handle push notifications
 self.addEventListener("push", (event) => {
@@ -106,9 +105,7 @@ self.addEventListener("push", (event) => {
         break;
       case "sharing_cancel":
         console.log("canceling own sharing notification");
-        event.waitUntil(
-          deleteNotifications(data.tag)
-        );
+        event.waitUntil(deleteNotifications(data.tag));
         break;
       case "sharing_accept":
         console.log("got push other device accepted sharing request");

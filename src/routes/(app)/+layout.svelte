@@ -55,17 +55,13 @@
         permission.onchange = function () {
           console.log("Permission changed to " + this.state);
           if (this.state === "granted")
-            navigator.serviceWorker.controller?.postMessage({
-              type: "register_push",
-            });
+            new BroadcastChannel("sw").postMessage({type: 'register_push'});
         };
       });
 
     // resubscribe push notifications on service worker change
     navigator.serviceWorker.oncontrollerchange = function () {
-      navigator.serviceWorker.controller?.postMessage({
-        type: "register_push",
-      });
+      new BroadcastChannel("sw").postMessage({type: 'register_push'});
     };
   }
 </script>

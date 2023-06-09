@@ -113,9 +113,7 @@
     localStorage.setItem("loggedIn", "true");
     open = false;
     setupLoading.set(false);
-    navigator.serviceWorker.controller?.postMessage({
-      type: "register_push",
-    });
+    new BroadcastChannel("sw").postMessage({type: 'register_push'});
   }
 
   function withDeviceType(name: string): { type: string; name: string } {
