@@ -5,6 +5,7 @@ import { get, writable } from "svelte/store";
 import { page } from '$app/stores';
 import { notifications } from "./stores/Dialogs";
 import { decryptFiles, decryptFilesWithPassword, encryptFiles, encryptFilesWithPassword } from "./openpgp";
+import { updatePeerJS_ID } from "./personal";
 
 let peer: Peer;
 export const sender_uuid = writable<string>();
@@ -23,6 +24,10 @@ const openPeer = (uuid?: string) => {
 
   peer.on("open", (id) => {
     sender_uuid.set(id);
+
+    if (localStorage.getItem("loggedIn")) {
+      updatePeerJS_ID();
+    };
   });
 };
 

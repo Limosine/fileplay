@@ -145,7 +145,6 @@
       }
     } else {
       getContent();
-      updatePeerJS_ID();
       socketStore = (await import("$lib/websocket")).socketStore;
       unsubscribeSocketStore = socketStore.subscribe(() => {});
     }

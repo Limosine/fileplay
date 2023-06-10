@@ -6,14 +6,19 @@
   import { writable } from "svelte/store";
   import { onMount } from "svelte";
   import { files } from "$lib/components/Input.svelte";
-  import Textfield from "@smui/textfield";
   import { open } from "$lib/stores/SelectContactStore";
-  import { publicKey_armored } from "$lib/openpgp";
-
-  import { contacts, contacts_loaded, getContacts, type Contact } from "$lib/personal";
+  import { contacts_loaded, getContacts } from "$lib/personal";
   import { onDestroy } from "svelte";
-  import { getDicebearUrl } from "$lib/common";
-  import { addPendingFile, send } from "$lib/peerjs";
+  // import { getDicebearUrl } from "$lib/common";
+
+  let addPendingFile: (files: FileList) => void;
+  let send: (files: FileList, peerID: string, password?: string, publicKey?: string) => void
+
+  onMount(async () => {
+    addPendingFile = (await import('$lib/peerjs')).addPendingFile;
+    send = (await import('$lib/peerjs')).send;
+  });
+
 
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
     event = event as KeyboardEvent;

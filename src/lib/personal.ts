@@ -35,8 +35,13 @@ export async function getContacts(): Promise<{
   });
 
   if (!res.ok) throw new Error("Failed to fetch contacts");
+
+  const contacts_new = await res.json();
+
+  contacts.set(contacts_new);
+  if (!get(contacts_loaded)) contacts_loaded.set(true);
   
-  return await res.json();
+  return contacts_new;
 }
 
 export const devices = writable<
@@ -110,7 +115,6 @@ export async function updatePeerJS_ID() {
 }
 
 export function getContent() {
-  console.log('getting content')
   getUserInfo();
   getContacts();
   getDevices();
