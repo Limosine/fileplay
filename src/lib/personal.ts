@@ -110,7 +110,7 @@ export async function updatePeerJS_ID() {
   await fetch("/api/devices", {
     method: "POST",
     body: JSON.stringify({
-      peerJsId: sender_uuid,
+      peerJsId: get(sender_uuid),
     }),
   });
 }
