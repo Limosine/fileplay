@@ -1,5 +1,4 @@
 import { get, writable } from "svelte/store";
-import { publicKey_armored } from "./openpgp";
 
 export interface Contact {
   cid: number;
@@ -106,10 +105,12 @@ export async function getUserInfo(): Promise<{
 }
 
 export async function updatePeerJS_ID() {
+  const sender_uuid = (await import("./peerjs")).sender_uuid;
+
   await fetch("/api/devices", {
     method: "POST",
     body: JSON.stringify({
-      peerJsId: publicKey_armored,
+      peerJsId: sender_uuid,
     }),
   });
 }
