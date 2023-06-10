@@ -34,22 +34,26 @@ let publicKey: string, privateKey: string;
 async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
   if (Notification.permission !== "granted") return false;
-  const subscription = await self.registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: ">PUBLIC_VAPID_KEY<",
-  });
-  const res = await fetch("/api/push/subscribe", {
-    method: "POST",
-    body: JSON.stringify(subscription),
-  });
-  if (!res.ok) return false;
+  try {
+    const subscription = await self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: ">PUBLIC_VAPID_KEY<",
+    });
+    const res = await fetch("/api/push/subscribe", {
+      method: "POST",
+      body: JSON.stringify(subscription),
+    });
+    if (!res.ok) return false;
 
-  keepaliveInterval = setInterval(async () => {
-    await fetch("/api/push/keepalive");
-  }, ONLINE_STATUS_REFRESH_TIME);
+    keepaliveInterval = setInterval(async () => {
+      await fetch("/api/push/keepalive");
+    }, ONLINE_STATUS_REFRESH_TIME);
 
-  console.log("Subscribed to push notifications");
-  return true;
+    console.log("Subscribed to push notifications");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // handle messages from client
@@ -178,7 +182,7 @@ self.addEventListener("notificationclick", async (event) => {
           encryptionPublicKey: publicKey,
         }),
       });
-      console.log('made fetch request');
+      console.log("made fetch request");
 
       break;
     case "share_reject":

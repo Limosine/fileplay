@@ -88,7 +88,7 @@
 
   function startRefresh() {
     contacts_interval = setInterval(async () => {
-      if ($open) contacts = await getContacts();
+      if ($open) console.log('getting contacts on refresh'); contacts = await getContacts();
     }, 5000);
   }
 

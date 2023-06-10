@@ -23,6 +23,7 @@ export interface IContact {
 }
 
 export async function getContacts(): Promise<IContact[]> {
+  console.log('fetching contacts')
   const res = await fetch("/api/contacts", {
     method: "GET",
     headers: {
@@ -106,6 +107,7 @@ export async function getUserInfo(): Promise<{
 }
 
 export function getContent() {
+  console.log('getting content')
   getUserInfo();
   getContacts();
   getDevices();
