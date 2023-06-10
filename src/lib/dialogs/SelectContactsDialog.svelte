@@ -79,20 +79,12 @@
   }
 
   let ghost_items: any[];
-  function setGhostItems(contacts: {
-    did: number;
-    type: string;
-    displayName: string;
-    peerJsId: string;
-    encryptionPublicKey: string;
-  }[]) {
+  function setGhostItems(contacts: any[]) {
     ghost_items = new Array(4 - (contacts.length % 4));
   }
 
   const sent = writable<{ [did: number]: string }>({});
-  
-  let peerJS_ID = ""; // todo
-  let encryptionPublicKey = "" // todo
+
   const send_front = (device: {
     did: number;
     type: string;
@@ -118,7 +110,7 @@
     <Paper variant="unelevated">
       <P_Content>
         <div id="content">
-          {#if $contacts_loaded}
+          {#if $open}
             {#await getDeviceInfos()}
               <p>Contacts are loading...</p>
             {:then devices}
