@@ -84,6 +84,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   if (res3) throw error(400, "Contacts already linked");
 
+  console.log(`Linking ${a} and ${b}`)
   // insert new linking
   const res2 = await db
     .insertInto("contacts")
