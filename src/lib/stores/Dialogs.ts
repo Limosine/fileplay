@@ -19,6 +19,7 @@ export const notifications = writable<{title: string, content: string}[]>([]);
 export const deviceParams = writable({
   displayName: "",
   type: "",
+  encryptionPublicKey: "",
 });
 
 export const userParams = writable({

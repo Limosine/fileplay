@@ -18,6 +18,7 @@
     setupLoading,
   } from "$lib/stores/Dialogs";
   import Username from "$lib/components/Username.svelte";
+  import { publicKey_armored } from "$lib/openpgp";
 
   let socketStore: Readable<any>;
   let unsubscribeSocketStore = () => {};
@@ -77,6 +78,8 @@
       });
     }
     if (!storedDeviceParams) {
+      $deviceParams.encryptionPublicKey = publicKey_armored;
+
       const res = await fetch("/api/setup/device", {
         method: "POST",
         body: JSON.stringify($deviceParams),
