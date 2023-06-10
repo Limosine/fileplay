@@ -2,6 +2,7 @@ import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import { json } from "@sveltejs/kit";
+import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ cookies, platform }) => {
@@ -31,7 +32,7 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const devices = await db
     .selectFrom("devices")
     .select(["did", "type", "displayName", "peerJsId", "encryptionPublicKey"])
-    .where(({ and, cmpr }) => and([cmpr("uid", "in", contacts.map(contact => contact.uid)), cmpr("devices.isOnline", "=", 1)]))
+    .where(({ and, cmpr }) => and([cmpr("uid", "in", contacts.map(contact => contact.uid)), cmpr("devices.isOnline", "=", 1), cmpr("devices.lastSeenAt", ">", (dayjs().unix() - 30))]))
     .orderBy("displayName")
     .execute();
 

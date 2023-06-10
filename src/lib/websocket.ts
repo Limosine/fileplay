@@ -24,6 +24,10 @@ export const socketStore = readable<"0" | "1" | "2">("0", set => {
     }
   };
 
+  setInterval(() => {
+    store.send("ping");
+  }, 25000)
+
   return () => store.close();
 });
 

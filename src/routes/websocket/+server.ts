@@ -1,6 +1,7 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
+import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ request, cookies, platform }) => {
@@ -32,6 +33,20 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
     }
   };
 
+  const lastSeen = async () => {
+    const res = await db
+      .updateTable("devices")
+      .set({lastSeenAt: dayjs().unix()})
+      .where(({ cmpr }) =>
+        cmpr("did", "=", did)
+      )
+      .returning("lastSeenAt")
+      .executeTakeFirst();
+
+    if (!res) server.send("2");
+    else server.send("1");
+  };
+
   const webSocketPair = new WebSocketPair();
   const [client, server] = Object.values(webSocketPair);
 
@@ -44,6 +59,12 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
 
   server.addEventListener('error', async () => {
     onlineStatus(0);
+  });
+
+  server.addEventListener('message', async (event) => {
+    if (event.data == "ping") {
+      lastSeen();
+    }
   });
 
   return new Response(null, {
