@@ -18,7 +18,6 @@
   const loadInfos = (user: {
     uid: number;
     displayName: string;
-    isOnline: number;
     avatarSeed: string;
     createdAt: number;
     lastSeenAt: number;

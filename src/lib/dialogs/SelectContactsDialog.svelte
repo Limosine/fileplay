@@ -1,15 +1,16 @@
 <script lang="ts">
   import Dialog, { Title, Content, Actions } from "@smui/dialog";
-  import Card, { PrimaryAction } from "@smui/card";
+  import Card, { PrimaryAction, Media, MediaContent } from "@smui/card";
   import Paper, { Content as P_Content } from "@smui/paper";
   import Button, { Label } from "@smui/button";
   import { writable } from "svelte/store";
   import { onMount } from "svelte";
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
-  import { contacts_loaded, getContacts } from "$lib/personal";
+  import { getContacts } from "$lib/personal";
   import { onDestroy } from "svelte";
-  // import { getDicebearUrl } from "$lib/common";
+  import { getDicebearUrl } from "$lib/common";
+  import { userParams } from "$lib/stores/Dialogs";
 
   let addPendingFile: (files: FileList) => void;
   let send: (files: FileList, peerID: string, password?: string, publicKey?: string) => void
@@ -119,12 +120,10 @@
                 {setGhostItems(devices)}
               </div>
               {#each devices as device}
-                <Card class={$sent[device.did]}>
-                  <PrimaryAction
-                    on:click={() => send_front(device)}
-                    class="content-items"
-                  >
-                    {device.displayName}
+                <Card class={$sent[device.did]} on:click={() => send_front(device)}>
+                  <PrimaryAction style="padding-top: 20px;">
+                    <Media style="background-image: url({getDicebearUrl($userParams.avatarSeed, 150)}); background-size: contain;" aspectRatio="16x9"/>
+                    <Content>{device.displayName}</Content>
                   </PrimaryAction>
                 </Card>
               {/each}
