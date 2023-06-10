@@ -24,14 +24,14 @@
   };
 
   let sender_uuid = writable<string>();
-  let recieved_files = writable<{ url: string; name: string }[]>([]);
+  let received_files = writable<{ url: string; name: string }[]>([]);
 
   let link = writable("");
 
   onMount(async () => {
     const { setup } = await import("$lib/peerjs");
     sender_uuid = (await import("$lib/peerjs")).sender_uuid;
-    recieved_files = (await import("$lib/peerjs")).recieved_files;
+    received_files = (await import("$lib/peerjs")).received_files;
 
     link = (await import("$lib/peerjs")).link;
 
@@ -54,11 +54,6 @@
 <SettingsDialog />
 
 <div class="center">
-  {#if $sender_uuid}
-    <Card padded>
-      <h6>My uuid: {$sender_uuid}</h6>
-    </Card>
-  {/if}
   <div class="beside">
     <Card>
       <PrimaryAction on:click={() => $input.click()} style="padding: 64px">
@@ -98,14 +93,14 @@
     </Card>
   {/if}
 
-  {#if $recieved_files.length != 0}
+  {#if $received_files.length != 0}
     <Card padded>
-      <h6>Recieved file(s):</h6>
+      <h6>Received file(s):</h6>
       <p class="small"><br /></p>
 
-      {#each $recieved_files as recieved_file}
-        <a href={recieved_file.url} download={recieved_file.name}
-          >{recieved_file.name}</a
+      {#each $received_files as received_file}
+        <a href={received_file.url} download={received_file.name}
+          >{received_file.name}</a
         ><br />
       {/each}
     </Card>

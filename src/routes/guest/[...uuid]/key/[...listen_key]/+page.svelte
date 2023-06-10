@@ -2,14 +2,14 @@
   import Card from "@smui/card";
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
-  import { page } from '$app/stores';
+  import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/openpgp";
 
-  let recieved_files = writable<{ url: string, name: string }[]>([]);
+  let received_files = writable<{ url: string; name: string }[]>([]);
 
   onMount(async () => {
-    const { setup, connectAsListener } = await import('$lib/peerjs');
-    recieved_files = (await import('$lib/peerjs')).recieved_files;
+    const { setup, connectAsListener } = await import("$lib/peerjs");
+    received_files = (await import("$lib/peerjs")).received_files;
 
     pgp_setup();
     setup("");
@@ -21,13 +21,15 @@
 </script>
 
 <div class="center">
-  {#if $recieved_files.length != 0}
+  {#if $received_files.length != 0}
     <Card padded>
-      <h6>Recieved file(s):</h6>
+      <h6>Received file(s):</h6>
       <p class="small"><br /></p>
 
-      {#each $recieved_files as recieved_file}
-        <a href={recieved_file.url} download={recieved_file.name}>{recieved_file.name}</a><br/>
+      {#each $received_files as received_file}
+        <a href={received_file.url} download={received_file.name}
+          >{received_file.name}</a
+        ><br />
       {/each}
     </Card>
   {:else}

@@ -2,9 +2,14 @@ import { nanoid } from "nanoid";
 import type { DataConnection } from "peerjs";
 import Peer from "peerjs";
 import { get, writable } from "svelte/store";
-import { page } from '$app/stores';
+import { page } from "$app/stores";
 import { notifications } from "./stores/Dialogs";
-import { decryptFiles, decryptFilesWithPassword, encryptFiles, encryptFilesWithPassword } from "./openpgp";
+import {
+  decryptFiles,
+  decryptFilesWithPassword,
+  encryptFiles,
+  encryptFilesWithPassword,
+} from "./openpgp";
 import { updatePeerJS_ID } from "./personal";
 
 let peer: Peer;
@@ -12,13 +17,13 @@ export const sender_uuid = writable<string>();
 
 let connections: DataConnection[] = [];
 
-let pending_files: { listen_key: string, files: FileList }[] = [];
+let pending_files: { listen_key: string; files: FileList }[] = [];
 export const link = writable("");
 
-export const recieved_files = writable<{ url: string, name: string }[]>([]);
+export const received_files = writable<{ url: string; name: string }[]>([]);
 
 const openPeer = (uuid?: string) => {
-  if (uuid){
+  if (uuid) {
     peer = new Peer(uuid);
   } else peer = new Peer();
 
@@ -27,11 +32,11 @@ const openPeer = (uuid?: string) => {
 
     if (localStorage.getItem("loggedIn")) {
       updatePeerJS_ID();
-    };
+    }
   });
 };
 
-export const disconnectPeer = () =>{
+export const disconnectPeer = () => {
   peer.disconnect();
 };
 
@@ -39,7 +44,7 @@ const listen = () => {
   peer.on("connection", (conn) => {
     connections.push(conn);
 
-    conn.on("data", function(received_data) {
+    conn.on("data", function (received_data) {
       handleData(received_data, conn);
     });
   });
@@ -47,7 +52,7 @@ const listen = () => {
 
 const handleData = (data: any, conn: DataConnection) => {
   if (data.listen_key) {
-    let pending: { listen_key: string, files: FileList };
+    let pending: { listen_key: string; files: FileList };
     for (pending of pending_files) {
       if (pending.listen_key == data.listen_key) {
         send(pending.files, conn.peer, pending.listen_key);
@@ -56,44 +61,45 @@ const handleData = (data: any, conn: DataConnection) => {
         if (pending.files.length == 1) {
           notification = {
             title: "File downloaded",
-            content: `The file "${Array.from(pending.files)[0].name}" was downloaded.`
-          }
+            content: `The file "${
+              Array.from(pending.files)[0].name
+            }" was received.`,
+          };
         } else {
           notification = {
             title: "Files downloaded",
-            content: `The files "${Array.from(pending.files)[0].name}", ... were downloaded.`
-          }
+            content: `The files "${
+              Array.from(pending.files)[0].name
+            }", ... were received.`,
+          };
         }
 
-        notifications.set([
-          ...get(notifications),
-          notification,
-        ]);
+        notifications.set([...get(notifications), notification]);
         pending_files.splice(pending_files.indexOf(pending), 1);
       }
     }
-  } else if (Array.isArray(data.file) && Array.isArray(data.filename)){
-    let decrypted_files
+  } else if (Array.isArray(data.file) && Array.isArray(data.filename)) {
+    let decrypted_files;
     if (data.encrypted == "publicKey") {
       decrypted_files = decryptFiles(data.file);
     } else {
-      decrypted_files = decryptFilesWithPassword(data.file, get(page).params.listen_key);
+      decrypted_files = decryptFilesWithPassword(
+        data.file,
+        get(page).params.listen_key
+      );
     }
-    
+
     decrypted_files.then((decrypted_files) => {
-      for (let i = 0; i < decrypted_files.length; i++){
+      for (let i = 0; i < decrypted_files.length; i++) {
         let url = createFileURL(decrypted_files[i]);
         let info = {
           url: url,
-          name: data.filename[i]
+          name: data.filename[i],
         };
-  
-        recieved_files.set([
-          ...get(recieved_files),
-          info,
-        ]);
-      };
-    })
+
+        received_files.set([...get(received_files), info]);
+      }
+    });
   }
 };
 
@@ -108,23 +114,35 @@ export const addPendingFile = (files: FileList) => {
   let pending = {
     listen_key: listen_key,
     files: files,
-  }
+  };
   pending_files.push(pending);
 
-  link.set("http://" + location.hostname + ":" + location.port + "/guest/" + get(sender_uuid) + "/key/" + listen_key);
+  link.set(
+    "http://" +
+      location.hostname +
+      ":" +
+      location.port +
+      "/guest/" +
+      get(sender_uuid) +
+      "/key/" +
+      listen_key
+  );
 };
 
-export const connectAsListener = (reciever_uuid: string, listen_key: string) => {
+export const connectAsListener = (
+  reciever_uuid: string,
+  listen_key: string
+) => {
   peer.on("open", (id) => {
     let conn = peer.connect(reciever_uuid);
 
-    conn.on("open", function() {
+    conn.on("open", function () {
       conn.send({
         listen_key: listen_key,
       });
     });
 
-    conn.on("data", function(received_data) {
+    conn.on("data", function (received_data) {
       handleData(received_data, conn);
     });
 
@@ -132,14 +150,14 @@ export const connectAsListener = (reciever_uuid: string, listen_key: string) => 
   });
 };
 
-export function connected(reciever_uuid: string): (DataConnection | false) {
+export function connected(reciever_uuid: string): DataConnection | false {
   let conn: DataConnection;
   for (conn of connections) {
     if (conn.peer == reciever_uuid) return conn;
-  };
+  }
 
   return false;
-};
+}
 
 /**
  * Send files to a peer. Either a password or a public key has to be defined.
@@ -148,69 +166,71 @@ export function connected(reciever_uuid: string): (DataConnection | false) {
  * @param password a password to encrypt the files with (optional)
  * @param publicKey a public key to encrypt the files with (optional)
  */
-export const send = (files: FileList, peerID: string, password?: string, publicKey?: string) => {
+export const send = (
+  files: FileList,
+  peerID: string,
+  password?: string,
+  publicKey?: string
+) => {
   if (files) {
-
     let filenames: string[] = [];
     let file: File;
     for (file of Array.from(files)) {
       filenames.push(file.name);
-    };
+    }
 
     let encrypted_files;
-    if (publicKey !== undefined){
+    if (publicKey !== undefined) {
       encrypted_files = encryptFiles(files, publicKey);
-    } else if (password !== undefined){
+    } else if (password !== undefined) {
       encrypted_files = encryptFilesWithPassword(files, password);
     } else {
       throw new Error("A password or public key has to be defined.");
     }
-    
+
     encrypted_files.then((encrypted_files) => {
       let connect_return = connected(peerID);
       if (connect_return == false) {
-    
         let conn = peer.connect(peerID);
 
-        conn.on("open", function() {
-  
-          if (publicKey !== undefined){
+        conn.on("open", function () {
+          if (publicKey !== undefined) {
             conn.send({
               file: Array.from(encrypted_files),
               filename: filenames,
-              encrypted: "publicKey"
+              encrypted: "publicKey",
             });
           } else {
             conn.send({
               file: Array.from(encrypted_files),
               filename: filenames,
-              encrypted: "password"
+              encrypted: "password",
             });
           }
         });
 
-        conn.on("data", function(received_data) {
+        conn.on("data", function (received_data) {
           handleData(received_data, conn);
         });
 
         connections.push(conn);
       } else {
-        if (publicKey !== undefined){
+        if (publicKey !== undefined) {
           connect_return.send({
             file: Array.from(encrypted_files),
             filename: filenames,
-            encrypted: "publicKey"
+            encrypted: "publicKey",
           });
         } else {
           connect_return.send({
             file: Array.from(encrypted_files),
             filename: filenames,
-            encrypted: "password"
+            encrypted: "password",
           });
         }
       }
     });
-  };
+  }
 };
 
 // not needed this will be handled by the service worker
