@@ -23,7 +23,7 @@ export interface IContact {
 }
 
 export async function getContacts(): Promise<IContact[]> {
-  console.log('fetching contacts')
+  if (!localStorage.get("loggedIn")) return [];
   const res = await fetch("/api/contacts", {
     method: "GET",
     headers: {

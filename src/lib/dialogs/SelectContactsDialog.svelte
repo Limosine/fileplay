@@ -13,6 +13,7 @@
   import { contacts_loaded, getContacts, type IContact } from "$lib/personal";
   import { onDestroy } from "svelte";
   import { getDicebearUrl } from "$lib/common";
+  import { browser } from "$app/environment";
 
 
   const selected: number[] = [];
@@ -88,7 +89,7 @@
 
   function startRefresh() {
     contacts_interval = setInterval(async () => {
-      if ($open) {console.log('getting contacts on refresh'); contacts = await getContacts()};
+      if ($open) contacts = await getContacts();
     }, 5000);
   }
 
@@ -97,6 +98,7 @@
   }
 
   onMount(async () => {
+    if(!browser) return;
     contacts = getContacts();
     startRefresh();
   });

@@ -20,6 +20,7 @@
   import { onMount, onDestroy } from "svelte";
 
   import { contacts_drawer_open as open } from "$lib/stores/Dialogs";
+  import { browser } from "$app/environment";
 
   let contacts: Promise<IContact[]> | IContact[] | undefined;
   let contacts_interval: any;
@@ -35,6 +36,7 @@
   }
 
   onMount(async () => {
+    if(!browser) return;
     contacts = getContacts();
     startRefresh();
   });
