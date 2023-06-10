@@ -40,7 +40,8 @@
       $profaneUsername.loading
   }
 
-  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
+  function handleSettingsKeyDown(event: CustomEvent | KeyboardEvent) {
+    if (!$settings_open) return;
     event = event as KeyboardEvent;
 
     if (event.key === "Escape") {
@@ -116,7 +117,7 @@
   // TODO button 'regenerate encryption keys'
 </script>
 
-<svelte:window on:keydown={handleKeyDown} />
+<svelte:window on:keydown={handleSettingsKeyDown} />
 
 <Dialog
   bind:open={$settings_open}

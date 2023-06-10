@@ -45,7 +45,8 @@
 
   let setupError: string;
 
-  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
+  function handleSetupKeyDown(event: CustomEvent | KeyboardEvent) {
+    if (!open) return;
     event = event as KeyboardEvent;
     if (event.key === "Enter" && !actionDisabled) {
       handleConfirm();
@@ -155,7 +156,7 @@
   });
 </script>
 
-<svelte:window on:keydown={handleKeyDown} />
+<svelte:window on:keydown={handleSetupKeyDown} />
 
 <Dialog
   bind:open

@@ -20,7 +20,8 @@
   });
 
 
-  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
+  function handleSelectContactKeyDown(event: CustomEvent | KeyboardEvent) {
+    if (!$open) return;
     event = event as KeyboardEvent;
 
     if (event.key === "Escape" || event.key === "Enter") {
@@ -97,7 +98,7 @@
   }
 </script>
 
-<svelte:window on:keydown={handleKeyDown} />
+<svelte:window on:keydown={handleSelectContactKeyDown} />
 
 <Dialog
   bind:open={$open}

@@ -21,7 +21,8 @@
     }
   }
 
-  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
+  function handleContactAddKeyDown(event: CustomEvent | KeyboardEvent) {
+    if (!$add_open) return;
     event = event as KeyboardEvent;
 
     if (event.key === "Escape") {
@@ -86,7 +87,7 @@
   onDestroy(() => clearInterval(updateInterval));
 </script>
 
-<svelte:window on:keydown={handleKeyDown}/>
+<svelte:window on:keydown={handleContactAddKeyDown}/>
 
 <Dialog
   bind:open={$add_open}
