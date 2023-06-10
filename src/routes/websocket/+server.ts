@@ -14,31 +14,8 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
     return new Response('Expected Upgrade: websocket', { status: 426 });
   }
 
-  const webSocketPair = new WebSocketPair();
-  const [client, server] = Object.values(webSocketPair);
-
-  server.accept();
-  server.addEventListener('message', async (event) => {
-    if (event.data == "isOnline") {
-      server.send("Processing request...");
-
-      const update = {isOnline: 1};
-
-      const res = await db
-        .updateTable("devices")
-        .set(update)
-        .where(({ cmpr }) =>
-          cmpr("did", "=", did)
-        )
-        .returning("isOnline")
-        .executeTakeFirst();
-
-      if (!res) server.send("2");
-      else server.send(res.isOnline.toString());
-    }
-  });
-  server.addEventListener('close', async (event) => {
-    const update = {isOnline: 0};
+  const onlineStatus = async (status: number) => {
+    const update = {isOnline: status};
 
     const res = await db
       .updateTable("devices")
@@ -46,8 +23,27 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
       .where(({ cmpr }) =>
         cmpr("did", "=", did)
       )
-      .returning("did")
+      .returning("isOnline")
       .executeTakeFirst();
+
+    if (status != 0) {
+      if (!res) server.send("2");
+      else server.send(res.isOnline.toString());
+    }
+  };
+
+  const webSocketPair = new WebSocketPair();
+  const [client, server] = Object.values(webSocketPair);
+
+  server.accept();
+  onlineStatus(1);
+
+  server.addEventListener('close', async () => {
+    onlineStatus(0);
+  });
+
+  server.addEventListener('error', async () => {
+    onlineStatus(0);
   });
 
   return new Response(null, {
