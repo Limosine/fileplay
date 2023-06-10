@@ -43,6 +43,7 @@
         title: "Huhu",
         content: "Contentanasfanlkfsan ajbfs askjfb",
       });
+      $notifications = $notifications;
     }
   });
 </script>

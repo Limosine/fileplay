@@ -5,9 +5,9 @@
   import Select, { Option } from "@smui/select";
   import LinearProgress from "@smui/linear-progress";
 
-  import { get, writable } from "svelte/store";
+  import { get, type Readable } from "svelte/store";
   import { browser } from "$app/environment";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { getContent } from "$lib/personal";
   import { DeviceType } from "$lib/common";
 
@@ -18,6 +18,9 @@
     setupLoading,
   } from "$lib/stores/Dialogs";
   import Username from "$lib/components/Username.svelte";
+
+  let socketStore: Readable<any>;
+  let unsubscribeSocketStore = () => {};
 
   let open: boolean;
 
@@ -113,6 +116,12 @@
     localStorage.setItem("loggedIn", "true");
     open = false;
     setupLoading.set(false);
+  
+    getContent();
+    setTimeout(() => {$socketStore}, 2000);
+    socketStore = (await import("$lib/websocket")).socketStore;
+    unsubscribeSocketStore = socketStore.subscribe(() => {});
+
     new BroadcastChannel("sw").postMessage({type: 'register_push'});
   }
 
@@ -121,7 +130,7 @@
     return { name, type: DeviceType[name] as string };
   }
 
-  onMount(() => {
+  onMount(async () => {
     if (!browser) return;
     // if device is not set up, open dialog
     if (!localStorage.getItem("loggedIn")) {
@@ -133,7 +142,13 @@
       }
     } else {
       getContent();
+      socketStore = (await import("$lib/websocket")).socketStore;
+      unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
+  });
+
+  onDestroy(() => {
+    if (socketStore) unsubscribeSocketStore();
   });
 </script>
 

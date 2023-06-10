@@ -31,27 +31,6 @@ let peer: Peer;
 
 let publicKey: string, privateKey: string;
 
-
-
-// fails with "WebSocket connection to 'wss://dev.fileplay.pages.dev/websocket' failed: HTTP Authentication failed; no valid credentials available"
-// let websocket = createWebSocket();
-// function createWebSocket() {
-//   const websocket_variable = new WebSocket(
-//     "wss://dev.fileplay.pages.dev/websocket"
-//   );
-//   websocket_variable.onmessage = (event) => {
-//     console.log(event.data);
-//   };
-//   websocket_variable.onopen = (event) => {
-//     websocket_variable.send("isOnline");
-//   };
-//   websocket_variable.onclose = (event) => {
-//     console.log("WebSocket connection closed.");
-//     websocket = createWebSocket();
-//   };
-//   return websocket_variable;
-// }
-
 async function registerPushSubscription(): Promise<boolean> {
   if (keepaliveInterval) clearInterval(keepaliveInterval);
   if (Notification.permission !== "granted") return false;
