@@ -1,4 +1,4 @@
-import { readable } from "svelte/store";
+import { readable, writable } from "svelte/store";
 
 function createWebSocket() {
   let websocket = new WebSocket("wss://dev.fileplay.pages.dev/websocket");
@@ -6,18 +6,25 @@ function createWebSocket() {
     websocket.send("isOnline");
   };
   websocket.onclose = (event) => {
-    console.log("WebSocket connection closed.");
-    websocket = createWebSocket();
+    status.set("0");
+    console.log("WebSocket connection closed, retrying in 5 seconds.");
+    setTimeout(() => {websocket = createWebSocket()}, 5000);
   };
   return websocket;
 };
 
-export const socketStore = readable({}, set => {
+export const socketStore = readable<"0" | "1" | "2">("0", set => {
   const store = createWebSocket();
   store.onmessage = (event) => {
-    console.log(event.data);
-    set(event.data);
+    if (event.data == "1" || event.data == "2") {
+      status.set(event.data);
+      set(event.data);
+    } else {
+      console.log(event.data);
+    }
   };
 
   return () => store.close();
 });
+
+export const status = writable<"0" | "1" | "2">("0");

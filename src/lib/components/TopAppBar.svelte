@@ -8,7 +8,7 @@
   import IconButton, { Icon } from "@smui/icon-button";
   import Tooltip, { Wrapper } from '@smui/tooltip';
   import { writable } from 'svelte/store';
-  import { goto } from '$app/navigation';
+  import { status as current_status } from "$lib/websocket";
 
   import { contacts_drawer_open as drawer_open } from '$lib/stores/Dialogs';
   import { notifications, notification_open, settings_open } from '$lib/stores/Dialogs';
@@ -27,9 +27,8 @@
 
   export const topAppBar = writable<TopAppBar>();
 
-  const colors = ["green", "yellow", "red"];
-  const status = ["Online", "Connecting", "Offline"];
-  let current_status = 0;
+  const colors = ["yellow", "green", "red"];
+  const status = ["Connecting", "Online", "Error"];
 </script>
 
 <header class="mdc-top-app-bar">
@@ -37,8 +36,8 @@
     <Row>
       <Section align="end" toolbar>
         <Wrapper>
-          <div><div class="connection-status" style="background-color: {colors[current_status]}"></div></div>
-          <Tooltip>Connection status: {status[current_status]}</Tooltip>
+          <div><div class="connection-status" style="background-color: {colors[$current_status]}"></div></div>
+          <Tooltip>Connection status: {status[$current_status]}</Tooltip>
         </Wrapper>
 
         <Wrapper>

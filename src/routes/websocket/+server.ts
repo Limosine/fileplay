@@ -33,7 +33,7 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
         .returning("isOnline")
         .executeTakeFirst();
 
-      if (!res) server.send("ERROR: 'Failed to update device info'")
+      if (!res) server.send("2");
       else server.send(res.isOnline.toString());
     }
   });

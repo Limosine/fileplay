@@ -37,14 +37,6 @@
 
     pgp_setup();
     setup("");
-
-    if ($notifications) {
-      $notifications.push({
-        title: "Huhu",
-        content: "Contentanasfanlkfsan ajbfs askjfb",
-      });
-      $notifications = $notifications;
-    }
   });
 </script>
 
