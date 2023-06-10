@@ -18,6 +18,8 @@ interface DecivesTable {
   type: DeviceType;
   createdAt: ColumnType<number, undefined, undefined>;
   lastSeenAt: ColumnType<number, undefined, number>;
+  peerJsId: string | null;
+  encryptionPublicKey: string;
   pushSubscription: string | null; // foreign key pushSubcriptions.pid
 }
 
