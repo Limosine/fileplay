@@ -10,86 +10,40 @@
   import { open } from "$lib/stores/SelectContactStore";
   import { publicKey_armored } from "$lib/openpgp";
 
-  import { contacts_loaded, getContacts, type IContact } from "$lib/personal";
+  import { contacts, contacts_loaded, getContacts, type Contact } from "$lib/personal";
   import { onDestroy } from "svelte";
   import { getDicebearUrl } from "$lib/common";
-  import { browser } from "$app/environment";
-
-
-  const selected: number[] = [];
+  import { addPendingFile, send } from "$lib/peerjs";
 
   function handleKeyDown(event: CustomEvent | KeyboardEvent) {
     event = event as KeyboardEvent;
 
-    if (event.key === "Escape") {
+    if (event.key === "Escape" || event.key === "Enter") {
       closeHandler("cancel");
-    } else if (event.key === "Enter") {
-      closeHandler("confirm");
     }
   }
 
   function closeHandler(e: CustomEvent<{ action: string }> | string) {
-    // let action: string;
-    // if (typeof e === "string") {
-    //   action = e;
-    // } else {
-    //   action = e.detail.action;
-    // }
-    // switch (action) {
-    //   case "link":
-    //     addPendingFile($files);
-    //   case "confirm":
-    //     multiSend($files, reciever_uuids, [publicKey_armored]);
-    //     fetch("/api/sharing/selection", {
-    //       method: "POST",
-    //       body: JSON.stringify({
-    //         senderName: "unknown",
-    //         reciever_uuids
-    //       })
-    //     })
-    // }
-    // $open = false;
-    navigator.serviceWorker.controller?.postMessage({
-      type: 'FILE_SHARE',
-      // receivers,
-      // sender,
-      $files
-    });
-  }
-
-  async function select(contact: IContact) {
-    if (selected.includes(contact.cid)) return; // already selected
-
-    selected.push(contact.cid);
-    const res = await fetch(`/api/share/request?cid=${contact.cid}`, {
-      method: "GET",
-    });
-
-    if (!res.ok) {
-      // remove selected state
-      selected.splice(selected.indexOf(contact.cid), 1);
-      // maybe failed animation
+    let action: string;
+    if (typeof e === "string") {
+      action = e;
+    } else {
+      action = e.detail.action;
     }
 
-    // maybe use sent/failed for some fancy animations
+    switch (action) {
+      case "link":
+        addPendingFile($files);
+    }
+
+    $open = false;
   }
 
-  async function deselect(contact: IContact) {
-    if (!selected.includes(contact.cid)) return; // already deselected
-
-    selected.splice(selected.indexOf(contact.cid), 1);
-    await fetch(`/api/share/request?cid=${contact.cid}`, {
-      method: "DELETE",
-    });
-    // fail silently, since a rogue sharing accept can just be ignored
-  }
-  
-  let contacts: Promise<IContact[]> | IContact[] | undefined;
   let contacts_interval: any;
 
   function startRefresh() {
     contacts_interval = setInterval(async () => {
-      if ($open) contacts = await getContacts();
+      if ($open) getContacts();
     }, 5000);
   }
 
@@ -98,12 +52,52 @@
   }
 
   onMount(async () => {
-    if(!browser) return;
-    contacts = getContacts();
     startRefresh();
   });
 
   onDestroy(stopRefresh);
+
+  async function getDeviceInfos(): Promise<{
+    did: number;
+    type: string;
+    displayName: string;
+    peerJsId: string;
+    encryptionPublicKey: string;
+  }[]> {
+    const res = await fetch("/api/contacts/devices", {
+      method: "GET",
+    });
+
+    const devices = await res.json();
+
+    return devices;
+  }
+
+  let ghost_items: any[];
+  function setGhostItems(contacts: {
+    did: number;
+    type: string;
+    displayName: string;
+    peerJsId: string;
+    encryptionPublicKey: string;
+  }[]) {
+    ghost_items = new Array(4 - (contacts.length % 4));
+  }
+
+  const sent = writable<{ [did: number]: string }>({});
+  
+  let peerJS_ID = ""; // todo
+  let encryptionPublicKey = "" // todo
+  const send_front = (device: {
+    did: number;
+    type: string;
+    displayName: string;
+    peerJsId: string;
+    encryptionPublicKey: string;
+  }) => {
+    $sent[device.did] = "selected";
+    send($files, device.peerJsId, undefined, device.encryptionPublicKey);
+  }
 </script>
 
 <svelte:window on:keydown={handleKeyDown} />
@@ -119,28 +113,20 @@
     <Paper variant="unelevated">
       <P_Content>
         <div id="content">
-          {#if contacts}
-            {#await contacts}
-              <p>Loading contacts...</p>
-            {:then contacts}
-              {#each contacts as contact}
-                <Card class={selected.includes(contact.cid) ? "selected" : ""}>
+          {#if $contacts_loaded}
+            {#await getDeviceInfos()}
+              <p>Contacts are loading...</p>
+            {:then devices}
+              <div style="display: none">
+                {setGhostItems(devices)}
+              </div>
+              {#each devices as device}
+                <Card class={$sent[device.did]}>
                   <PrimaryAction
-                    on:click={() => {
-                      if (selected.includes(contact.cid)) {
-                        // TODO if sharing started do not send deselect but cancel sharing
-                        deselect(contact);
-                      } else {
-                        select(contact);
-                      }
-                    }}
+                    on:click={() => send_front(device)}
                     class="content-items"
                   >
-                    <img
-                      src={getDicebearUrl(contact.avatarSeed, 50)}
-                      alt={`${contact.displayName}'s avatar image`}
-                    />
-                    {contact.displayName}
+                    {device.displayName}
                   </PrimaryAction>
                 </Card>
               {/each}
@@ -156,6 +142,9 @@
     <Button action="cancel">
       <Label>Cancel</Label>
     </Button>
+    <Button action="link">
+      <Label>Via Link</Label>
+    </Button>
   </Actions>
 </Dialog>
 
@@ -166,21 +155,6 @@
     flex-flow: row wrap;
     justify-content: center;
     gap: 5px;
-  }
-
-  #content-uuid {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  #row {
-    display: flex;
-    flex-flow: row;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
   }
 
   * :global(.content-items) {

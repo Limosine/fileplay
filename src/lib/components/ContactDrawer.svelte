@@ -1,6 +1,5 @@
 <script lang="ts">
   import Drawer, {
-    AppContent,
     Content,
     Header,
     Subtitle,
@@ -16,18 +15,17 @@
 
   import { add_open } from "$lib/stores/Dialogs";
 
-  import { getContacts, type IContact } from "$lib/personal";
+  import { contacts, contacts_loaded, getContacts } from "$lib/personal";
   import { onMount, onDestroy } from "svelte";
 
   import { contacts_drawer_open as open } from "$lib/stores/Dialogs";
-  import { browser } from "$app/environment";
+  import { page } from "$app/stores";
 
-  let contacts: Promise<IContact[]> | IContact[] | undefined;
   let contacts_interval: any;
 
   function startRefresh() {
     contacts_interval = setInterval(async () => {
-      if ($open) contacts = await getContacts();
+      if ($open) getContacts();
     }, 5000);
   }
 
@@ -36,8 +34,6 @@
   }
 
   onMount(async () => {
-    if(!browser) return;
-    contacts = getContacts();
     startRefresh();
   });
 
@@ -66,7 +62,7 @@
         <Button
           class="material-icons"
           variant="unelevated"
-          on:click={() => (contacts = getContacts())}
+          on:click={() => (getContacts())}
         >
           refresh
         </Button>
@@ -74,8 +70,8 @@
     </Header>
     <Content>
       <div class="list-box">
-        {#if contacts}
-          {#await contacts}
+        {#if $contacts_loaded}
+          {#await $contacts}
             <p>Contacts are loading...</p>
           {:then contacts}
             {#each contacts as contact}
@@ -105,11 +101,15 @@
   </Drawer>
 </div>
 
-<div class="app-content">
-  <AutoAdjust topAppBar={$topAppBar}>
-    <slot />
-  </AutoAdjust>
-</div>
+{#if $page.url.pathname == "/"}
+  <slot />
+{:else}
+  <div class="app-content">
+    <AutoAdjust topAppBar={$topAppBar}>
+      <slot />
+    </AutoAdjust>
+  </div>
+{/if}
 
 <style>
   * :global(.app-content) {

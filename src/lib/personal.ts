@@ -1,29 +1,32 @@
 import { get, writable } from "svelte/store";
+import { publicKey_armored } from "./openpgp";
 
-export const contacts = writable<
-  Promise<
-    {
-      cid: number;
-      uid: number;
-      displayName: string;
-      avatarSeed: string;
-      linkedAt: number;
-      isOnline: number;
-    }[]
-  >
->();
-export const contacts_loaded = writable(false);
-
-export interface IContact {
+export interface Contact {
   cid: number;
   displayName: string;
   avatarSeed: string;
   linkedAt: number;
-  lastSeenAt: number;
-}
+  isOnline: number;
+};
 
-export async function getContacts(): Promise<IContact[]> {
-  if (!localStorage.getItem("loggedIn")) return [];
+export const contacts = writable<
+  Promise<{
+    cid: number;
+    displayName: string;
+    avatarSeed: string;
+    linkedAt: number;
+    isOnline: number;
+  }[]>>();
+
+export const contacts_loaded = writable(false);
+
+export async function getContacts(): Promise<{
+  cid: number;
+  displayName: string;
+  avatarSeed: string;
+  linkedAt: number;
+  isOnline: number;
+}[]> {
   const res = await fetch("/api/contacts", {
     method: "GET",
     headers: {
@@ -37,18 +40,13 @@ export async function getContacts(): Promise<IContact[]> {
 }
 
 export const devices = writable<
-  Promise<
-    {
-      did: number;
-      type: string;
-      displayName: string;
-      isOnline: number;
-      createdAt: number;
-      lastSeenAt: number;
-      linkedAt: number;
-    }[]
-  >
->();
+  Promise<{
+    did: number;
+    type: string;
+    displayName: string;
+    createdAt: number;
+    lastSeenAt: number;
+    }[]>>();
 export const devices_loaded = writable(false);
 
 export async function getDevices(): Promise<
@@ -56,10 +54,8 @@ export async function getDevices(): Promise<
     did: number;
     type: string;
     displayName: string;
-    isOnline: number;
     createdAt: number;
     lastSeenAt: number;
-    linkedAt: number;
   }[]
 > {
   const res = await fetch("/api/devices", {
@@ -78,7 +74,6 @@ export const user = writable<
   Promise<{
     uid: number;
     displayName: string;
-    isOnline: number;
     avatarSeed: string;
     createdAt: number;
     lastSeenAt: number;
@@ -89,7 +84,6 @@ export const user_loaded = writable(false);
 export async function getUserInfo(): Promise<{
   uid: number;
   displayName: string;
-  isOnline: number;
   avatarSeed: string;
   createdAt: number;
   lastSeenAt: number;
@@ -104,6 +98,15 @@ export async function getUserInfo(): Promise<{
   if (!get(user_loaded)) user_loaded.set(true);
 
   return user_new;
+}
+
+export async function updatePeerJS_ID() {
+  await fetch("/api/devices", {
+    method: "POST",
+    body: JSON.stringify({
+      peerJsId: publicKey_armored,
+    }),
+  });
 }
 
 export function getContent() {

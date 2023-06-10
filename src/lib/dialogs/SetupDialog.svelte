@@ -8,7 +8,7 @@
   import { get, type Readable } from "svelte/store";
   import { browser } from "$app/environment";
   import { onDestroy, onMount } from "svelte";
-  import { getContent } from "$lib/personal";
+  import { getContent, updatePeerJS_ID } from "$lib/personal";
   import { DeviceType } from "$lib/common";
 
   import {
@@ -121,7 +121,7 @@
     setupLoading.set(false);
   
     getContent();
-    setTimeout(() => {$socketStore}, 2000);
+    updatePeerJS_ID();
     socketStore = (await import("$lib/websocket")).socketStore;
     unsubscribeSocketStore = socketStore.subscribe(() => {});
 
@@ -145,6 +145,7 @@
       }
     } else {
       getContent();
+      updatePeerJS_ID();
       socketStore = (await import("$lib/websocket")).socketStore;
       unsubscribeSocketStore = socketStore.subscribe(() => {});
     }

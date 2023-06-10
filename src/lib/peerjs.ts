@@ -11,7 +11,7 @@ export const sender_uuid = writable<string>();
 
 let connections: DataConnection[] = [];
 
-let pending_files: { listen_key: string, files: File[] }[] = [];
+let pending_files: { listen_key: string, files: FileList }[] = [];
 export const link = writable("");
 
 export const recieved_files = writable<{ url: string, name: string }[]>([]);
@@ -42,7 +42,7 @@ const listen = () => {
 
 const handleData = (data: any, conn: DataConnection) => {
   if (data.listen_key) {
-    let pending: { listen_key: string, files: File[] };
+    let pending: { listen_key: string, files: FileList };
     for (pending of pending_files) {
       if (pending.listen_key == data.listen_key) {
         send(pending.files, conn.peer, pending.listen_key);
@@ -98,7 +98,7 @@ const createFileURL = (file: any) => {
   return url;
 };
 
-export const addPendingFile = (files: File[]) => {
+export const addPendingFile = (files: FileList) => {
   let listen_key = nanoid(16);
   let pending = {
     listen_key: listen_key,
@@ -138,12 +138,12 @@ export function connected(reciever_uuid: string): (DataConnection | false) {
 
 /**
  * Send files to a peer. Either a password or a public key has to be defined.
- * @param files Array of files to send
+ * @param files FileList to send
  * @param peerID The id of the peer to send the files to
  * @param password a password to encrypt the files with (optional)
  * @param publicKey a public key to encrypt the files with (optional)
  */
-export const send = (files: File[], peerID: string, password?: string, publicKey?: string) => {
+export const send = (files: FileList, peerID: string, password?: string, publicKey?: string) => {
   if (files) {
 
     let filenames: string[] = [];
