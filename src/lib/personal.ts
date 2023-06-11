@@ -104,6 +104,36 @@ export async function getUserInfo(): Promise<{
   return user_new;
 }
 
+export const deviceInfos = writable<
+  Promise<{
+    did: number;
+    type: string;
+    displayName: string;
+    peerJsId: string;
+    encryptionPublicKey: string;
+  }[]>
+>();
+export const deviceInfos_loaded = writable(false);
+
+export async function getDeviceInfos(): Promise<{
+  did: number;
+  type: string;
+  displayName: string;
+  peerJsId: string;
+  encryptionPublicKey: string;
+}[]> {
+  const res = await fetch("/api/contacts/devices", {
+    method: "GET",
+  });
+
+  const deviceInfos_new = await res.json();
+
+  deviceInfos.set(deviceInfos_new);
+  if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
+
+  return deviceInfos_new;
+}
+
 export async function updatePeerJS_ID() {
   const sender_uuid = (await import("./peerjs")).sender_uuid;
 

@@ -7,7 +7,7 @@
   import { onMount } from "svelte";
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
-  import { getContacts } from "$lib/personal";
+  import { deviceInfos_loaded, deviceInfos, getDeviceInfos } from "$lib/personal";
   import { onDestroy } from "svelte";
   import { getDicebearUrl } from "$lib/common";
   import { userParams } from "$lib/stores/Dialogs";
@@ -46,16 +46,16 @@
     $open = false;
   }
 
-  let contacts_interval: any;
+  let refresh_interval: any;
 
   function startRefresh() {
-    contacts_interval = setInterval(async () => {
-      if ($open) getContacts();
+    refresh_interval = setInterval(async () => {
+      if ($open) getDeviceInfos();
     }, 5000);
   }
 
   function stopRefresh() {
-    clearInterval(contacts_interval);
+    clearInterval(refresh_interval);
   }
 
   onMount(async () => {
@@ -64,28 +64,12 @@
 
   onDestroy(stopRefresh);
 
-  async function getDeviceInfos(): Promise<{
-    did: number;
-    type: string;
-    displayName: string;
-    peerJsId: string;
-    encryptionPublicKey: string;
-  }[]> {
-    const res = await fetch("/api/contacts/devices", {
-      method: "GET",
-    });
-
-    const devices = await res.json();
-
-    return devices;
+  let ghost_items;
+  function setGhostItems(devices: any[]) {
+    ghost_items = new Array(4 - (devices.length % 4));
   }
 
-  let ghost_items: any[];
-  function setGhostItems(contacts: any[]) {
-    ghost_items = new Array(4 - (contacts.length % 4));
-  }
-
-  const sent = writable<{ [did: number]: string }>({});
+  const sent = writable<{ [did: number]: boolean }>({});
 
   const send_front = (device: {
     did: number;
@@ -94,7 +78,7 @@
     peerJsId: string;
     encryptionPublicKey: string;
   }) => {
-    $sent[device.did] = "selected";
+    $sent[device.did] = true;
     send($files, device.peerJsId, undefined, device.encryptionPublicKey);
   }
 </script>
@@ -112,20 +96,27 @@
     <Paper variant="unelevated">
       <P_Content>
         <div id="content">
-          {#if $open}
-            {#await getDeviceInfos()}
+          {#if $deviceInfos_loaded}
+            {#await $deviceInfos}
               <p>Contacts are loading...</p>
             {:then devices}
               <div style="display: none">
                 {setGhostItems(devices)}
               </div>
               {#each devices as device}
-                <Card class={$sent[device.did]} on:click={() => send_front(device)}>
-                  <PrimaryAction style="padding-top: 20px;">
+                {#if $sent[device.did]}
+                  <Card class="selected" style="padding-top: 20px;">
                     <Media style="background-image: url({getDicebearUrl($userParams.avatarSeed, 150)}); background-size: contain;" aspectRatio="16x9"/>
                     <Content>{device.displayName}</Content>
+                  </Card>
+                {:else}
+                  <Card on:click={() => send_front(device)}>
+                    <PrimaryAction style="padding-top: 20px;">
+                      <Media style="background-image: url({getDicebearUrl($userParams.avatarSeed, 150)}); background-size: contain;" aspectRatio="16x9"/>
+                      <Content>{device.displayName}</Content>
                   </PrimaryAction>
                 </Card>
+                {/if}
               {/each}
             {:catch}
               <p>Failed to load contacts.</p>
