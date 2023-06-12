@@ -4,7 +4,7 @@ import { createKysely } from "$lib/server/db";
 import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit";
-import { sendPushNotification } from "$lib/server/webpush";
+import { sendNotification } from "$lib/server/notifications";
 
 // accept a sharing request
 export const POST: RequestHandler = async ({ platform, request, cookies }) => {
@@ -15,9 +15,10 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   const { sid, peerJsId, encryptionPublicKey } = await request.json();
 
-  // get and delete sharing request
+  // get sharing request
   const res1 = await db
-    .deleteFrom("sharing")
+    .selectFrom("sharing")
+    .select("did")
     .where(({ and, cmpr }) =>
       and([
         cmpr("sid", "=", sid),
@@ -25,7 +26,6 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
         cmpr("expires", ">", dayjs().unix()),
       ])
     )
-    .returning("did")
     .executeTakeFirst();
 
   if (!res1) throw error(404, "Sharing request not found");
@@ -33,39 +33,42 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const { did: did_return } = res1;
 
   // revoke all other devices' requests
-  const dids = await db
-    .selectFrom("devices")
-    .select("did")
-    .where("uid", "=", uid)
-    .execute();
+  // disabled
+  // const dids = await db
+  //   .selectFrom("devices")
+  //   .select("did")
+  //   .where("uid", "=", uid)
+  //   .execute();
 
-  const promises = [];
-  for (const { did: did_to } of dids) {
-    // todo send notification
-    promises.push(sendPushNotification(
-      db,
-      fetch,
-      did_to,
-      JSON.stringify({
-        type: "sharing_cancel",
-        tag: `SHARE:${sid}`,
-      }),
-      `SHARE:${sid}`
-    ).catch(() => { }));
-  }
+  // const promises = [];
+  // for (const { did: did_to } of dids) {
+  //   // todo send notification
+  //   promises.push(
+  //     sendPushNotification(
+  //       db,
+  //       fetch,
+  //       did_to,
+  //       JSON.stringify({
+  //         type: "sharing_cancel",
+  //         tag: `SHARE:${sid}`,
+  //       }),
+  //       `SHARE:${sid}`
+  //     ).catch(() => {})
+  //   );
+  // }
 
-  await Promise.all(promises);
+  // await Promise.all(promises);
 
   // send accept notification to did_return
-  await sendPushNotification(
+  await sendNotification(
     db,
     fetch,
     did_return,
     JSON.stringify({
-      type: "sharing_accept",
+      type: "share_accepted",
       peerJsId,
       encryptionPublicKey,
-      sid
+      sid,
     })
   );
 
@@ -73,7 +76,12 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 };
 
 // todo DELETE for rejecting a sharing request on all devices
-export const DELETE: RequestHandler = async ({ cookies, platform, request, fetch }) => {
+export const DELETE: RequestHandler = async ({
+  cookies,
+  platform,
+  request,
+  fetch,
+}) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
@@ -97,10 +105,15 @@ export const DELETE: RequestHandler = async ({ cookies, platform, request, fetch
 
   const { did: did_return } = res1;
 
-  await sendPushNotification(db, fetch, did_return, JSON.stringify({
-    type: "sharing_reject",
-    sid
-  }))
+  await sendNotification(
+    db,
+    fetch,
+    did_return,
+    JSON.stringify({
+      type: "share_rejected",
+      sid,
+    })
+  );
 
   // revoke all other devices' requests
   const dids = await db
@@ -112,16 +125,18 @@ export const DELETE: RequestHandler = async ({ cookies, platform, request, fetch
   const promises = [];
   for (const { did: did_to } of dids) {
     // todo send notification
-    promises.push(sendPushNotification(
-      db,
-      fetch,
-      did_to,
-      JSON.stringify({
-        type: "sharing_cancel",
-        tag: `SHARE:${sid}`,
-      }),
-      `SHARE:${sid}`
-    ).catch(() => {}));
+    promises.push(
+      sendNotification(
+        db,
+        fetch,
+        did_to,
+        JSON.stringify({
+          type: "sharing_cancel",
+          tag: `SHARE:${sid}`,
+        }),
+        `SHARE:${sid}`
+      ).catch(() => {})
+    );
   }
   await Promise.all(promises);
 

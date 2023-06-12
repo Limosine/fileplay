@@ -7,6 +7,7 @@
     original_displayName,
     original_type,
     deviceID,
+    device_edit_loaded
   } from "$lib/stores/Dialogs";
   import { devices_loaded, devices } from "$lib/personal";
   import Select, { Option } from "@smui/select";
@@ -31,11 +32,13 @@
     $deviceParams.type = device.type;
     $original_displayName = device.displayName;
     $original_type = device.type;
+
+    $device_edit_loaded = true;
   };
 </script>
 
 <div style="display: none">
-  {#if $devices_loaded && $deviceID}
+  {#if $devices_loaded && $deviceID && !$device_edit_loaded}
     {#await $devices then devices}
       {loadInfos(devices, $deviceID)}
     {/await}

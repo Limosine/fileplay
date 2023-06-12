@@ -5,7 +5,7 @@ import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import dayjs from "dayjs";
 import { SHARING_TIMEOUT } from "$lib/common";
-import { sendPushNotification } from "$lib/server/webpush";
+import { sendNotification } from "$lib/server/notifications";
 
 // request sharing via contact id
 export const GET: RequestHandler = async ({
@@ -77,22 +77,24 @@ export const GET: RequestHandler = async ({
 
   for (const { did: did_to } of dids) {
     // todo send notification
-    promises.push(sendPushNotification(
-      db,
-      fetch,
-      did_to,
-      JSON.stringify({
-        type: "sharing_request",
-        sid: res2.sid,
-        expires,
-        sender,
-        avatarSeed,
-        tag: `SHARE:${res2.sid}`,
-      }),
-      `SHARE:${res2.sid}`
-    )
-      .then(() => sent++)
-      .catch(() => { }));
+    promises.push(
+      sendNotification(
+        db,
+        fetch,
+        did_to,
+        JSON.stringify({
+          type: "sharing_request",
+          sid: res2.sid,
+          expires,
+          sender,
+          avatarSeed,
+          tag: `SHARE:${res2.sid}`,
+        }),
+        `SHARE:${res2.sid}`
+      )
+        .then(() => sent++)
+        .catch(() => {})
+    );
   }
 
   await Promise.all(promises);
@@ -159,16 +161,18 @@ export const DELETE: RequestHandler = async ({
 
   for (const { did: did_to } of dids) {
     // todo send notification
-    promises.push(sendPushNotification(
-      db,
-      fetch,
-      did_to,
-      JSON.stringify({
-        type: "sharing_cancel",
-        tag: `SHARE:${res2.sid}`,
-      }),
-      `SHARE:${res2.sid}`
-    ).catch(() => { }));
+    promises.push(
+      sendNotification(
+        db,
+        fetch,
+        did_to,
+        JSON.stringify({
+          type: "sharing_cancel",
+          tag: `SHARE:${res2.sid}`,
+        }),
+        `SHARE:${res2.sid}`
+      ).catch(() => {})
+    );
   }
 
   await Promise.all(promises);

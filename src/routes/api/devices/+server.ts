@@ -10,14 +10,22 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const devices = await db
+  const d_self = await db
     .selectFrom("devices")
     .select(["did", "type", "displayName", "createdAt", "lastSeenAt"])
-    .where(({ or, cmpr }) => or([cmpr("did", "=", did), cmpr("uid", "=", uid)]))
+    .where("did", "=", did)
+    .executeTakeFirstOrThrow();
+
+  const d_others = await db
+    .selectFrom("devices")
+    .select(["did", "type", "displayName", "createdAt", "lastSeenAt"])
+    .where(({ and, cmpr }) =>
+      and([cmpr("did", "!=", did), cmpr("uid", "=", uid)])
+    )
     .orderBy("displayName")
     .execute();
 
-  return json(devices, { status: 200 });
+  return json({ self: d_self, others: d_others }, { status: 200 });
 };
 
 export const POST: RequestHandler = async ({
