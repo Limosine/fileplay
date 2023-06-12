@@ -7,7 +7,7 @@
   import localizedFormat from "dayjs/plugin/localizedFormat";
   import { devices, devices_loaded, getDevices } from "$lib/personal";
   import IconButton from "@smui/icon-button/src/IconButton.svelte";
-  import { deviceParams, settings_open, editDevice_open, original_displayName, original_type, deviceID } from "$lib/stores/Dialogs";
+  import { deviceParams, settings_open, editDevice_open, original_displayName, original_type, deviceID, device_edit_loaded } from "$lib/stores/Dialogs";
   import Tab, { Label as Tab_Label } from "@smui/tab";
   import TabBar from "@smui/tab-bar";
   import Username from "$lib/components/Username.svelte";
@@ -92,6 +92,7 @@
         if (!actionDisabled && different) {
           await updateUserInfo();
         }
+        break;
     }
   }
 
@@ -109,8 +110,10 @@
         if (!actionDisabledDevice && differentDevice) {
           await updateDeviceInfo($deviceID);
         }
+        break;
       case "delete":
         deleteDevice($deviceID);
+        break;
     }
   }
 
@@ -252,7 +255,7 @@
                     >
                     <Cell
                       ><IconButton
-                        on:click={() => {$deviceID = device.did; $editDevice_open = true}}
+                        on:click={() => {$deviceID = device.did; $device_edit_loaded = false; $editDevice_open = true}}
                         class="material-icons">more</IconButton
                       ></Cell
                     >

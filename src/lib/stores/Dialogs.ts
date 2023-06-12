@@ -11,6 +11,7 @@ export const select_open = writable(false);
 export const add_open = writable(false);
 
 export const settings_open = writable(false);
+export const device_edit_loaded = writable(false);
 export const active = writable("Account");
 export const editDevice_open = writable(false);
 
