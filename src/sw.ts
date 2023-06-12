@@ -5,7 +5,7 @@
 
 import { getDicebearUrl, ONLINE_STATUS_REFRESH_TIME } from "$lib/common";
 import dayjs from "dayjs";
-import Peer from "peerjs";
+// import Peer from "peerjs";
 import {
   pageCache,
   imageCache,

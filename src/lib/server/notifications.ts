@@ -2,7 +2,7 @@ import { PRIVATE_VAPID_KEY } from "$env/static/private";
 import { PUBLIC_VAPID_KEY } from "$env/static/public";
 import { SHARING_TIMEOUT } from "$lib/common";
 import type { Database } from "$lib/db";
-import Peer from "peerjs";
+// import Peer from "peerjs";
 import {
   generatePushHTTPRequest,
   ApplicationServerKeys,
@@ -63,22 +63,22 @@ export async function sendNotification(
   } else if (peerJsId) {
     
     
-    await new Promise<void>((resolve, reject) => {
-      const peer = new Peer();
+    // await new Promise<void>((resolve, reject) => {
+    //   const peer = new Peer();
 
-      peer.on("error", (err) => { reject(err) });
+    //   peer.on("error", (err) => { reject(err) });
 
-      peer.on("open", (id) => {
-        console.log(`opened as peerjs ${id}`)
-        const conn = peer.connect(peerJsId);
+    //   peer.on("open", (id) => {
+    //     console.log(`opened as peerjs ${id}`)
+    //     const conn = peer.connect(peerJsId);
 
-        conn.on("error", (err) => { throw err });
-        conn.on("open", () => {
-          conn.send(payload)
-          resolve()
-        })
-      })
-    })
+    //     conn.on("error", (err) => { throw err });
+    //     conn.on("open", () => {
+    //       conn.send(payload)
+    //       resolve()
+    //     })
+    //   })
+    // })
   } else
     throw new Error("Device has no subscription");
 }
