@@ -24,15 +24,9 @@ imageCache();
 
 declare let self: ServiceWorkerGlobalScope;
 
-let keepaliveInterval: any;
-let files: File[] = [];
-
-let peer: Peer;
-
-let publicKey: string, privateKey: string;
+const broadcast = new BroadcastChannel("sw");
 
 async function registerPushSubscription(): Promise<boolean> {
-  if (keepaliveInterval) clearInterval(keepaliveInterval);
   if (Notification.permission !== "granted") return false;
   try {
     const subscription = await self.registration.pushManager.subscribe({
@@ -41,13 +35,9 @@ async function registerPushSubscription(): Promise<boolean> {
     });
     const res = await fetch("/api/push/subscribe", {
       method: "POST",
-      body: JSON.stringify(subscription),
+      body: JSON.stringify({ pushSubscription: subscription }),
     });
     if (!res.ok) return false;
-
-    keepaliveInterval = setInterval(async () => {
-      await fetch("/api/push/keepalive");
-    }, ONLINE_STATUS_REFRESH_TIME);
 
     console.log("Subscribed to push notifications");
     return true;
@@ -57,7 +47,6 @@ async function registerPushSubscription(): Promise<boolean> {
 }
 
 // handle messages from client
-const broadcast = new BroadcastChannel("sw");
 broadcast.addEventListener("message", async (event) => {
   if (event.data) {
     console.log("Message from client", event.data);
@@ -72,21 +61,6 @@ broadcast.addEventListener("message", async (event) => {
           if (success) console.log("registered subscription");
           else console.log("Failed to register push notifications");
         });
-        break;
-      case "load_files":
-        const filesPromises = [];
-        for (const fileHandle of event.data.handles as FileSystemFileHandle[]) {
-          filesPromises.push(fileHandle.getFile());
-        }
-        files = await Promise.all(filesPromises);
-        break;
-      case "send_files":
-        // TODO send request for sending files
-        // sent from select_contacts
-        break;
-      case "cancel_send_files":
-        // TODO send request for stopping sending files or cancel sending if in progress
-        // sent from select_contacts
         break;
       default:
         console.log("Unknown message type", event.data.type);
@@ -112,11 +86,11 @@ self.addEventListener("push", (event) => {
           actions: [
             {
               title: "Accept",
-              action: "share_accept",
+              action: "send_share_accept",
             },
             {
               title: "Reject",
-              action: "share_reject",
+              action: "send_share_reject",
             },
           ],
           data,
@@ -133,23 +107,16 @@ self.addEventListener("push", (event) => {
         console.log("canceling own sharing notification");
         event.waitUntil(deleteNotifications(data.tag));
         break;
-      case "sharing_accept":
+      case "share_accepted":
         console.log("got push other device accepted sharing request");
-        // other user has accepted the sharing request
-        // TODO work with the data and start sending files
-        // display as accepted / currently sending
-        const conn = peer.connect(data.peerJsId);
-        conn.on("open", () => {
-          conn.send("hi!");
-          console.log("sent peerjs hi!");
-        });
+        // TODO forward to client
         break;
-      case "sharing_reject":
+      case "share_rejected":
         console.log("got push other device rejected sharing request");
-        // other user has rejected the sharing request
-        // display as unselected / rejected
+        // TODO forward to client
         break;
       default:
+        // maybe foward all other messages to client
         console.log("Unknown notification type", data.type);
     }
   }
@@ -158,34 +125,12 @@ self.addEventListener("push", (event) => {
 // handle push notification clicks
 self.addEventListener("notificationclick", async (event) => {
   switch (event.action) {
-    case "share_accept":
+    case "send_share_accept":
       console.log("Accepting sharing request...");
-
-      if (!publicKey) {
-        await generateKey({
-          type: "ecc",
-          curve: "p384",
-          userIDs: [{ name: "kjshdfkljsd" }], // what is this?
-          format: "armored",
-        }).then(({ publicKey: pubk, privateKey: pk }) => {
-          publicKey = pubk;
-          privateKey = pk;
-          console.log("Generated key pair");
-        });
-      }
-
-      await fetch("/api/share/answer", {
-        method: "POST",
-        body: JSON.stringify({
-          sid: event.notification.data.sid,
-          peerJsId: peer.id,
-          encryptionPublicKey: publicKey,
-        }),
-      });
-      console.log("made fetch request");
+      // TODO forward to client, post to /share/accept
 
       break;
-    case "share_reject":
+    case "send_share_reject":
       console.log("Rejecting sharing request...");
       await fetch("/api/share/answer", {
         method: "DELETE",
@@ -199,25 +144,6 @@ self.addEventListener("notificationclick", async (event) => {
   }
 });
 
-// fetch handler
-self.addEventListener("fetch", async (event) => {
-  const url = new URL(event.request.url);
-
-  if (event.request.method === "POST" && url.pathname === "/webtarget") {
-    event.respondWith(
-      (async () => {
-        const formData = await event.request.formData();
-        files = formData.getAll("files") as File[];
-
-        // TODO handle files for sending here
-        // store files, redirect to contact selection dialog
-
-        return Response.redirect("/?from=share", 303);
-      })()
-    );
-  }
-});
-
 self.addEventListener("activate", (event) => {
   self.clients.claim();
   event.waitUntil(
@@ -227,26 +153,6 @@ self.addEventListener("activate", (event) => {
       else console.log("Failed to register push notifications");
     })
   );
-
-  setTimeout(async () => {
-    peer = new Peer();
-
-    console.log("peerjs", peer);
-
-    await new Promise<void>((resolve, reject) =>
-      peer.on("open", (id) => {
-        console.log("My peer ID is: " + id);
-        resolve();
-      })
-    );
-
-    peer.on("connection", (conn) => {
-      console.log("peerjs connection", conn);
-      conn.on("data", (data) => {
-        console.log("peerjs data", data);
-      });
-    });
-  }, 5000);
 });
 
 // TODO
