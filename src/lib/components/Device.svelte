@@ -59,18 +59,28 @@
   {/if}
 </div>
 
-<Textfield
-  bind:value={$deviceParams.displayName}
-  label="Device Name"
-  bind:disabled={$setupLoading}
-  input$maxlength={32}
-/>
-<Select
-  bind:value={$deviceParams .type}
-  label="Device Type"
-  bind:disabled={$setupLoading}
->
-  {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-    <Option value={type}>{name}</Option>
-  {/each}
-</Select>
+<div id="content">
+  <Textfield
+    bind:value={$deviceParams.displayName}
+    label="Device Name"
+    bind:disabled={$setupLoading}
+    input$maxlength={32}
+  />
+  <Select
+    bind:value={$deviceParams .type}
+    label="Device Type"
+    bind:disabled={$setupLoading}
+  >
+    {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+      <Option value={type}>{name}</Option>
+    {/each}
+  </Select>
+</div>
+
+<style>
+  #content {
+    display: flex;
+    flex-flow: column;
+    gap: 7px;
+  }
+</style>
