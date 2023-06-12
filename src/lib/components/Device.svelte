@@ -18,14 +18,28 @@
     return { name, type: DeviceType[name] as string };
   }
 
-  const loadInfos = (devices: {
+  const loadInfos = (devices: { self: {
     did: number;
     type: string;
     displayName: string;
     createdAt: number;
     lastSeenAt: number;
-  }[], did: number) => {
-    const device = devices.find(device => device.did === did);
+  };
+  others: {
+    did: number;
+    type: string;
+    displayName: string;
+    createdAt: number;
+    lastSeenAt: number;
+  }[]; }, did: number) => {
+    let device: {did: number; type: string; displayName: string; createdAt: number; lastSeenAt: number } | undefined;
+
+    if (devices.self.did == did) {
+      device = devices.self;
+    } else {
+      device = devices.others.find(device => device.did === did);
+    }
+
     if (!device) throw new Error("No device with this deviceID is linked to this account.");
 
     $deviceParams.displayName = device.displayName;
