@@ -20,6 +20,10 @@
     } else if (drawer == "notification") {
       drawer_open.set(false);
       notification_open.update(open => (open = !open));
+      notifications.update((val) => {
+        val = [...val, {content: "af", title: "afnalk"}]
+        return val;
+      })
     } else {
       settings_open.set(true);
     }
@@ -44,7 +48,7 @@
           <IconButton class="material-icons" aria-label="Show notifications" on:click={() => open("notification")}>
             <Icon class="material-icons">notifications</Icon>
             {#if $notifications.length != 0}
-              <Badge aria-label="notification count" color="secondary">{$notifications.length}</Badge>
+              <Badge aria-label="notification count" color="secondary" style="margin-top: 7px; margin-right: 3px;">{$notifications.length}</Badge>
             {/if}
           </IconButton>
 

@@ -50,6 +50,8 @@ const listen = () => {
   });
 };
 
+let fileSizes: {uuid: string, fileSizes: number[]}[];
+
 const handleData = (data: any, conn: DataConnection) => {
   if (data.listen_key) {
     let pending: { listen_key: string; files: FileList };
@@ -78,28 +80,30 @@ const handleData = (data: any, conn: DataConnection) => {
         pending_files.splice(pending_files.indexOf(pending), 1);
       }
     }
-  } else if (Array.isArray(data.file) && Array.isArray(data.filename)) {
-    let decrypted_files;
-    if (data.encrypted == "publicKey") {
-      decrypted_files = decryptFiles(data.file);
-    } else {
-      decrypted_files = decryptFilesWithPassword(
-        data.file,
-        get(page).params.listen_key
-      );
-    }
+  } else if (data.fileSizes) {
+    fileSizes.push(data.fileSizes);
+    // } else if (Array.isArray(data.file) && Array.isArray(data.filename)) {
+    //   let decrypted_files;
+    //   if (data.encrypted == "publicKey") {
+    //     decrypted_files = decryptFiles(data.file);
+    //   } else {
+    //     decrypted_files = decryptFilesWithPassword(
+    //       data.file,
+    //       get(page).params.listen_key
+    //     );
+    //   }
+    //   decrypted_files.then((decrypted_files) => {
+    //     for (let i = 0; i < decrypted_files.length; i++) {
+    //       let url = createFileURL(decrypted_files[i]);
+    //       let info = {
+    //         url: url,
+    //         name: data.filename[i],
+    //       };
+    //       received_files.set([...get(received_files), info]);
+    //     }
+    //   });
+  }else if(data.file) {
 
-    decrypted_files.then((decrypted_files) => {
-      for (let i = 0; i < decrypted_files.length; i++) {
-        let url = createFileURL(decrypted_files[i]);
-        let info = {
-          url: url,
-          name: data.filename[i],
-        };
-
-        received_files.set([...get(received_files), info]);
-      }
-    });
   }
 };
 
@@ -194,19 +198,63 @@ export const send = (
         let conn = peer.connect(peerID);
 
         conn.on("open", function () {
-          if (publicKey !== undefined) {
-            conn.send({
-              file: Array.from(encrypted_files),
-              filename: filenames,
-              encrypted: "publicKey",
-            });
-          } else {
-            conn.send({
-              file: Array.from(encrypted_files),
-              filename: filenames,
-              encrypted: "password",
-            });
+          // Sending file sizes inside an array to show different progress sizes for bar
+          conn.send({
+            fileSizes: encryptFiles.prototype.map((val: string) => {
+              val.length;
+            }),
+          });
+
+          // Spicing encrypted file content into ten equal parts since peerjs api doesn't chunk properly
+          // Each part has a property identifying its order inside the file
+          for (let i = 0; i < encryptFiles.length; i++) {
+            const enc_file = encryptFiles.prototype.at(i);
+            if (publicKey !== undefined) {
+              let lastIndex = 0;
+              conn.send({
+                length: enc_file.length,
+              });
+              for (let i = 0; i < enc_file.length; i += enc_file.length / 10) {
+                const spliced = enc_file.substring(lastIndex, i);
+                lastIndex = i;
+                conn.send({
+                  file: spliced,
+                  filename: filenames[i],
+                  encrypted: "publicKey",
+                  part: `${i}/10`,
+                });
+              }
+            } else {
+              let lastIndex = 0;
+              conn.send({
+                length: enc_file.length,
+              });
+              for (let i = 0; i < enc_file.length; i += enc_file.length / 10) {
+                const spliced = enc_file.substring(lastIndex, i);
+                lastIndex = i;
+                conn.send({
+                  file: spliced,
+                  filename: filenames[i],
+                  encrypted: "password",
+                  length: enc_file.length,
+                  part: `${i}/10`,
+                });
+              }
+            }
           }
+          // if (publicKey !== undefined) {
+          //   conn.send({
+          //     file: Array.from(encrypted_files),
+          //     filename: filenames,
+          //     encrypted: "publicKey",
+          //   });
+          // } else {
+          //   conn.send({
+          //     file: Array.from(encrypted_files),
+          //     filename: filenames,
+          //     encrypted: "password",
+          //   });
+          // }
         });
 
         conn.on("data", function (received_data) {

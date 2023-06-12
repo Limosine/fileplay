@@ -137,12 +137,12 @@ export async function getDeviceInfos(): Promise<{
 export async function updatePeerJS_ID() {
   const sender_uuid = (await import("./peerjs")).sender_uuid;
 
-  await fetch("/api/devices", {
-    method: "POST",
-    body: JSON.stringify({
-      peerJsId: get(sender_uuid),
-    }),
-  });
+  // await fetch("/api/devices", {
+  //   method: "POST",
+  //   body: JSON.stringify({
+  //     peerJsId: get(sender_uuid),
+  //   }),
+  // });
 }
 
 export function getContent() {

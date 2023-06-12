@@ -18,6 +18,21 @@
     let listen_key = $page.params.listen_key;
     connectAsListener(reciever_uuid, listen_key);
   });
+
+  const pending_string_template = "Waiting for files";
+  let waiting: string;
+  let index = -1;
+  const interval = setInterval(() => {
+    if ($received_files.length == 0) {
+      if (index >= 3) {
+        index = 0;
+      } else index++;
+    } else if (interval) {
+      clearInterval(interval);
+    }
+
+    waiting = pending_string_template.padEnd(pending_string_template.length + index, '.');
+  }, 500);
 </script>
 
 <div class="center">
@@ -34,7 +49,7 @@
     </Card>
   {:else}
     <Card padded>
-      <h6>Waiting for files...</h6>
+      <h6>{waiting}</h6>
     </Card>
   {/if}
 </div>
