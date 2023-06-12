@@ -35,7 +35,7 @@
 </script>
 
 <div style="display: none">
-  {#if $devices_loaded}
+  {#if $devices_loaded && $deviceID}
     {#await $devices then devices}
       {loadInfos(devices, $deviceID)}
     {/await}
