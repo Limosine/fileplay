@@ -44,23 +44,39 @@ export async function getContacts(): Promise<{
 }
 
 export const devices = writable<
-  Promise<{
+  Promise<{ self: {
     did: number;
     type: string;
     displayName: string;
     createdAt: number;
     lastSeenAt: number;
-    }[]>>();
+  };
+  others: {
+    did: number;
+    type: string;
+    displayName: string;
+    createdAt: number;
+    lastSeenAt: number;
+  }[];
+}>>();
 export const devices_loaded = writable(false);
 
 export async function getDevices(): Promise<
-  {
-    did: number;
-    type: string;
-    displayName: string;
-    createdAt: number;
-    lastSeenAt: number;
-  }[]
+  { self: {
+      did: number;
+      type: string;
+      displayName: string;
+      createdAt: number;
+      lastSeenAt: number;
+    };
+    others: {
+      did: number;
+      type: string;
+      displayName: string;
+      createdAt: number;
+      lastSeenAt: number;
+    }[];
+  }
 > {
   const res = await fetch("/api/devices", {
     method: "GET",

@@ -243,7 +243,24 @@
             {#await $devices}
               <p>Contacts are loading...</p>
             {:then devices}
-              {#each devices as device}
+            <Body>
+              <Row>
+                <Cell>{devices.self.displayName}</Cell>
+                <Cell>{devices.self.type}</Cell>
+                <Cell
+                  >{dayjs.unix(devices.self.lastSeenAt).format(
+                    TimeFormat.MinuteDate
+                  )}</Cell
+                >
+                <Cell
+                  ><IconButton
+                    on:click={() => {$deviceID = devices.self.did; $device_edit_loaded = false; $editDevice_open = true}}
+                    class="material-icons">more</IconButton
+                  ></Cell
+                >
+              </Row>
+            </Body>
+              {#each devices.others as device}
                 <Body>
                   <Row>
                     <Cell>{device.displayName}</Cell>
