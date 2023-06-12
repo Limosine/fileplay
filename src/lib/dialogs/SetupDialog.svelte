@@ -19,6 +19,7 @@
   } from "$lib/stores/Dialogs";
   import Username from "$lib/components/Username.svelte";
   import { publicKey_armored } from "$lib/openpgp";
+  import Device from "$lib/components/Device.svelte";
 
   let socketStore: Readable<any>;
   let unsubscribeSocketStore = () => {};
@@ -129,11 +130,6 @@
     new BroadcastChannel("sw").postMessage({type: 'register_push'});
   }
 
-  function withDeviceType(name: string): { type: string; name: string } {
-    // @ts-ignore
-    return { name, type: DeviceType[name] as string };
-  }
-
   onMount(async () => {
     if (!browser) return;
     // if device is not set up, open dialog
@@ -172,21 +168,7 @@
   <Content>
     <h6>Device</h6>
     <div id="content">
-      <Textfield
-        bind:value={$deviceParams.displayName}
-        label="Device Name"
-        bind:disabled={$setupLoading}
-        input$maxlength={32}
-      />
-      <Select
-        bind:value={$deviceParams.type}
-        label="Device Type"
-        bind:disabled={$setupLoading}
-      >
-        {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-          <Option value={type}>{name}</Option>
-        {/each}
-      </Select>
+      <Device />
     </div>
     <br />
     <h6>User</h6>

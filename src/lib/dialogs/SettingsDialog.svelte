@@ -7,7 +7,7 @@
   import localizedFormat from "dayjs/plugin/localizedFormat";
   import { devices, devices_loaded, getDevices } from "$lib/personal";
   import IconButton from "@smui/icon-button/src/IconButton.svelte";
-  import { settings_open } from "$lib/stores/Dialogs";
+  import { deviceParams, settings_open, editDevice_open, original_displayName, original_type, deviceID } from "$lib/stores/Dialogs";
   import Tab, { Label as Tab_Label } from "@smui/tab";
   import TabBar from "@smui/tab-bar";
   import Username from "$lib/components/Username.svelte";
@@ -20,17 +20,26 @@
   } from "$lib/stores/Dialogs";
   import { TimeFormat } from "$lib/common";
   import { onMount, onDestroy } from "svelte";
+  import Device from "$lib/components/Device.svelte";
 
   dayjs.extend(localizedFormat);
 
   let generated_code = false;
 
   let different: boolean;
+  let differentDevice: boolean;
   let actionDisabled: boolean;
+  let actionDisabledDevice: boolean;
   $: {
     different =
       $userParams.displayName != $original_username ||
       $userParams.avatarSeed != $original_avatarSeed;
+  }
+
+  $: {
+    differentDevice =
+      $deviceParams.displayName != $original_displayName ||
+      $deviceParams.type != $original_type;
   }
 
   $: {
@@ -40,16 +49,32 @@
       $profaneUsername.loading
   }
 
+  $: {
+    actionDisabledDevice =
+      !$deviceParams.displayName ||
+      !$deviceParams.type
+  }
+
   function handleSettingsKeyDown(event: CustomEvent | KeyboardEvent) {
     if (!$settings_open) return;
     event = event as KeyboardEvent;
 
-    if (event.key === "Escape") {
-      settings_open.set(false);
-      closeHandler("cancel");
-    } else if (event.key === "Enter") {
-      settings_open.set(false);
-      closeHandler("confirm");
+    if ($editDevice_open) {
+      if (event.key === "Escape") {
+        editDevice_open.set(false);
+        closeHandlerDevice("cancel");
+      } else if (event.key === "Enter") {
+        editDevice_open.set(false);
+        closeHandlerDevice("confirm");
+      }
+    } else {
+      if (event.key === "Escape") {
+        settings_open.set(false);
+        closeHandler("cancel");
+      } else if (event.key === "Enter") {
+        settings_open.set(false);
+        closeHandler("confirm");
+      }
     }
   }
 
@@ -70,9 +95,39 @@
     }
   }
 
+  async function closeHandlerDevice(e: CustomEvent<{ action: string }> | string) {
+    let action: string;
+
+    if (typeof e === "string") {
+      action = e;
+    } else {
+      action = e.detail.action;
+    }
+
+    switch (action) {
+      case "confirm":
+        if (!actionDisabledDevice && differentDevice) {
+          await updateDeviceInfo($deviceID);
+        }
+      case "delete":
+        deleteDevice($deviceID);
+    }
+  }
+
   async function deleteDevice(did: number) {
     const res = await fetch(`/api/devices?${did}`, {
       method: "DELETE",
+    });
+  }
+
+  async function updateDeviceInfo(did: number) {
+    await fetch(`/api/devices?${did}`, {
+      method: "POST",
+      body: JSON.stringify({
+        displayName: $deviceParams.displayName,
+        type: $deviceParams.type,
+        encryptionPublicKey: $deviceParams.encryptionPublicKey,
+      }),
     });
   }
 
@@ -197,8 +252,8 @@
                     >
                     <Cell
                       ><IconButton
-                        on:click={() => deleteDevice(device.did)}
-                        class="material-icons">delete</IconButton
+                        on:click={() => {$deviceID = device.did; $editDevice_open = true}}
+                        class="material-icons">more</IconButton
                       ></Cell
                     >
                   </Row>
@@ -216,6 +271,30 @@
   </Content>
   <Actions>
     <Button bind:disabled={actionDisabled} action="confirm">
+      <Label>Close</Label>
+    </Button>
+  </Actions>
+</Dialog>
+
+<Dialog
+  bind:open={$editDevice_open}
+  aria-labelledby="title"
+  aria-describedby="content"
+  on:SMUIDialog:closed={closeHandlerDevice}
+>
+  <Title id="title">Settings</Title>
+  <Content>
+    <div id="content">
+      {#if $editDevice_open}
+        <Device />
+      {/if}
+    </div>
+  </Content>
+  <Actions>
+    <Button action="delete">
+      <Label>Delete</Label>
+    </Button>
+    <Button bind:disabled={actionDisabledDevice} action="confirm">
       <Label>Close</Label>
     </Button>
   </Actions>

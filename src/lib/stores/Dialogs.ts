@@ -12,6 +12,7 @@ export const add_open = writable(false);
 
 export const settings_open = writable(false);
 export const active = writable("Account");
+export const editDevice_open = writable(false);
 
 export const codehostname = writable("");
 
@@ -30,6 +31,9 @@ export const userParams = writable({
 
 export const original_username = writable<string>("");
 export const original_avatarSeed = writable<string>("");
+export const original_displayName = writable<string>("");
+export const original_type = writable<string>("");
+export const deviceID = writable<number>();
 
 export const profaneUsername = writable<{ loading: boolean; profane: boolean }>({
   loading: false,
