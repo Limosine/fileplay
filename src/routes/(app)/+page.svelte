@@ -3,7 +3,7 @@
   import Card, { PrimaryAction } from "@smui/card";
   import Input, { input, files } from "$lib/components/Input.svelte";
   import SetupDialog from "$lib/dialogs/SetupDialog.svelte";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { writable } from "svelte/store";
 
   import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
@@ -13,7 +13,9 @@
   import { setup as pgp_setup } from "$lib/openpgp";
 
   import SettingsDialog from "$lib/dialogs/SettingsDialog.svelte";
-  import { notifications } from "$lib/stores/Dialogs";
+
+  import { settings_open, active, contacts_drawer_open } from "$lib/stores/Dialogs";
+  import { getContacts, getDeviceInfos, getDevices } from "$lib/personal";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -23,14 +25,32 @@
     $files = e.dataTransfer.files;
   };
 
-  let sender_uuid = writable<string>();
   let received_files = writable<{ url: string; name: string }[]>([]);
 
   let link = writable("");
 
+  let refresh_interval: any;
+
+  function startRefresh() {
+    refresh_interval = setInterval(async () => {
+      if ($select_open) getDeviceInfos();
+      if ($settings_open && $active == "Devices") getDevices();
+      if ($contacts_drawer_open) getContacts();
+    }, 5000);
+  }
+
+  function stopRefresh() {
+    clearInterval(refresh_interval);
+  }
+
+  onMount(async () => {
+    startRefresh();
+  });
+
+  onDestroy(stopRefresh);
+
   onMount(async () => {
     const { setup } = await import("$lib/peerjs");
-    sender_uuid = (await import("$lib/peerjs")).sender_uuid;
     received_files = (await import("$lib/peerjs")).received_files;
 
     link = (await import("$lib/peerjs")).link;

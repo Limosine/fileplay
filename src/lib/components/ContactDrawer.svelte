@@ -16,28 +16,9 @@
   import { add_open } from "$lib/stores/Dialogs";
 
   import { contacts, contacts_loaded, getContacts } from "$lib/personal";
-  import { onMount, onDestroy } from "svelte";
 
   import { contacts_drawer_open as open } from "$lib/stores/Dialogs";
   import { page } from "$app/stores";
-
-  let contacts_interval: any;
-
-  function startRefresh() {
-    contacts_interval = setInterval(async () => {
-      if ($open) getContacts();
-    }, 5000);
-  }
-
-  function stopRefresh() {
-    clearInterval(contacts_interval);
-  }
-
-  onMount(async () => {
-    startRefresh();
-  });
-
-  onDestroy(stopRefresh);
 </script>
 
 <div dir="rtl">

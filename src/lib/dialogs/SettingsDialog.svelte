@@ -12,6 +12,7 @@
   import TabBar from "@smui/tab-bar";
   import Username from "$lib/components/Username.svelte";
   import {
+    active,
     userParams,
     profaneUsername,
     original_username,
@@ -22,7 +23,6 @@
 
   dayjs.extend(localizedFormat);
 
-  let active = "Account";
   let generated_code = false;
 
   let different: boolean;
@@ -128,7 +128,7 @@
   <Title id="title">Settings</Title>
   <Content>
     <div id="tab_bar">
-      <TabBar tabs={["Account", "Devices"]} let:tab bind:active>
+      <TabBar tabs={["Account", "Devices"]} let:tab bind:active={$active}>
         <Tab {tab}>
           <Tab_Label>{tab}</Tab_Label>
         </Tab>
@@ -136,7 +136,7 @@
     </div>
 
     <div id="content">
-      {#if active === "Devices"}
+      {#if $active === "Devices"}
         <div class="button-box">
           <Button
             variant="outlined"

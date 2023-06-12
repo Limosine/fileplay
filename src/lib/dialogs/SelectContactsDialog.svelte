@@ -8,7 +8,6 @@
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
   import { deviceInfos_loaded, deviceInfos, getDeviceInfos } from "$lib/personal";
-  import { onDestroy } from "svelte";
   import { getDicebearUrl } from "$lib/common";
   import { userParams } from "$lib/stores/Dialogs";
 
@@ -45,24 +44,6 @@
 
     $open = false;
   }
-
-  let refresh_interval: any;
-
-  function startRefresh() {
-    refresh_interval = setInterval(async () => {
-      if ($open) getDeviceInfos();
-    }, 5000);
-  }
-
-  function stopRefresh() {
-    clearInterval(refresh_interval);
-  }
-
-  onMount(async () => {
-    startRefresh();
-  });
-
-  onDestroy(stopRefresh);
 
   let ghost_items;
   function setGhostItems(devices: any[]) {
