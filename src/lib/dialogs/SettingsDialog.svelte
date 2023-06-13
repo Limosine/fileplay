@@ -308,9 +308,9 @@
 >
   <Title id="title">Edit device</Title>
   <Content>
-      {#if $editDevice_open}
-        <Device />
-      {/if}
+    {#if $editDevice_open}
+      <Device />
+    {/if}
   </Content>
   <Actions>
     <Button action="delete">

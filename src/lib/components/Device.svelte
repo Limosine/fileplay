@@ -7,11 +7,16 @@
     original_displayName,
     original_type,
     deviceID,
-    device_edit_loaded
+    device_edit_loaded,
+
+    editDevice_open
+
   } from "$lib/stores/Dialogs";
   import { devices_loaded, devices } from "$lib/personal";
   import Select, { Option } from "@smui/select";
   import { DeviceType } from "$lib/common";
+  import Radio from '@smui/radio';
+  import FormField from '@smui/form-field';
 
   function withDeviceType(name: string): { type: string; name: string } {
     // @ts-ignore
@@ -59,6 +64,7 @@
   {/if}
 </div>
 
+{#if !$editDevice_open}
 <div id="content">
   <Textfield
     bind:value={$deviceParams.displayName}
@@ -67,7 +73,7 @@
     input$maxlength={32}
   />
   <Select
-    bind:value={$deviceParams .type}
+    bind:value={$deviceParams.type}
     label="Device Type"
     bind:disabled={$setupLoading}
   >
@@ -76,9 +82,39 @@
     {/each}
   </Select>
 </div>
+{:else}
+<div id="content-column">
+  <Textfield
+    bind:value={$deviceParams.displayName}
+    label="Device Name"
+    bind:disabled={$setupLoading}
+    input$maxlength={32}
+  />
+  <h6>Device Type</h6>
+  {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+    <FormField>
+      <Radio
+        bind:group={$deviceParams.type}
+        bind:value={type}
+        bind:disabled={$setupLoading}
+      />
+      <span slot="label">
+        {name}
+      </span>
+    </FormField>
+  {/each}
+</div>
+{/if}
+
 
 <style>
   #content {
+    display: flex;
+    flex-flow: row;
+    gap: 7px;
+  }
+
+  #content-column {
     display: flex;
     flex-flow: column;
     gap: 7px;
