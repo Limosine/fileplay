@@ -6,13 +6,19 @@
   import dayjs from "dayjs";
   import localizedFormat from "dayjs/plugin/localizedFormat";
   import { devices, devices_loaded, getDevices } from "$lib/personal";
-  import IconButton from "@smui/icon-button/src/IconButton.svelte";
-  import { deviceParams, settings_open, editDevice_open, original_displayName, original_type, deviceID, device_edit_loaded } from "$lib/stores/Dialogs";
+  import IconButton from "@smui/icon-button";
   import Tab, { Label as Tab_Label } from "@smui/tab";
   import TabBar from "@smui/tab-bar";
   import Username from "$lib/components/Username.svelte";
   import {
+    settings_open,
+    editDevice_open,
+    original_displayName,
+    original_type,
+    deviceID,
+    device_edit_loaded,
     active,
+    deviceParams,
     userParams,
     profaneUsername,
     original_username,
@@ -243,22 +249,37 @@
             {#await $devices}
               <p>Contacts are loading...</p>
             {:then devices}
-              {#each devices as device}
+            <Body>
+              <Row>
+                <Cell>{devices.self.displayName}</Cell>
+                <Cell>{devices.self.type}</Cell>
+                <Cell
+                  >{dayjs.unix(devices.self.lastSeenAt).format(
+                    TimeFormat.MinuteDate
+                  )}</Cell>
+                <Cell>
+                  <IconButton
+                    on:click={() => {$deviceID = devices.self.did; $device_edit_loaded = false; $editDevice_open = true}}
+                    class="material-icons">more
+                  </IconButton>
+                </Cell>
+              </Row>
+            </Body>
+              {#each devices.others as device}
                 <Body>
                   <Row>
                     <Cell>{device.displayName}</Cell>
                     <Cell>{device.type}</Cell>
-                    <Cell
-                      >{dayjs.unix(device.lastSeenAt).format(
+                    <Cell>
+                      {dayjs.unix(device.lastSeenAt).format(
                         TimeFormat.MinuteDate
-                      )}</Cell
-                    >
-                    <Cell
-                      ><IconButton
+                      )}</Cell>
+                    <Cell>
+                      <IconButton
                         on:click={() => {$deviceID = device.did; $device_edit_loaded = false; $editDevice_open = true}}
-                        class="material-icons">more</IconButton
-                      ></Cell
-                    >
+                        class="material-icons">more_vert
+                      </IconButton>
+                    </Cell>
                   </Row>
                 </Body>
               {/each}
@@ -285,13 +306,11 @@
   aria-describedby="content"
   on:SMUIDialog:closed={closeHandlerDevice}
 >
-  <Title id="title">Settings</Title>
+  <Title id="title">Edit device</Title>
   <Content>
-    <div id="content">
-      {#if $editDevice_open}
-        <Device />
-      {/if}
-    </div>
+    {#if $editDevice_open}
+      <Device />
+    {/if}
   </Content>
   <Actions>
     <Button action="delete">
