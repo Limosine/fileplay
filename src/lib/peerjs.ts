@@ -4,6 +4,7 @@ import Peer from "peerjs";
 import { get, writable } from "svelte/store";
 import { page } from "$app/stores";
 import { notifications } from "./stores/Dialogs";
+import { v4 as uuidv4 } from "uuid";
 import {
   decryptFiles,
   decryptFilesWithPassword,
@@ -50,7 +51,7 @@ const listen = () => {
   });
 };
 
-let fileSizes: {uuid: string, fileSizes: number[]}[];
+let fileInfos: { uuid: string; fileSizes: number[]; files: any[][] }[];
 
 const handleData = (data: any, conn: DataConnection) => {
   if (data.listen_key) {
@@ -75,13 +76,16 @@ const handleData = (data: any, conn: DataConnection) => {
             }", ... were received.`,
           };
         }
-
         notifications.set([...get(notifications), notification]);
         pending_files.splice(pending_files.indexOf(pending), 1);
       }
     }
   } else if (data.fileSizes) {
-    fileSizes.push(data.fileSizes);
+    fileInfos.push({
+      files: [],
+      fileSizes: data.fileSizes,
+      uuid: data.uuid,
+    });
     // } else if (Array.isArray(data.file) && Array.isArray(data.filename)) {
     //   let decrypted_files;
     //   if (data.encrypted == "publicKey") {
@@ -102,8 +106,37 @@ const handleData = (data: any, conn: DataConnection) => {
     //       received_files.set([...get(received_files), info]);
     //     }
     //   });
-  }else if(data.file) {
+  } else if (data.file) {
+    fileInfos.forEach((val, index, arr) => {
+      if (val.uuid === data.uuid) {
+        val.files.forEach((val2, index2, arr2) => {
+          if (val2.length < 10) {
+            arr2[index2] = [...val2, data.file];
+          }
+        });
+      }
+    });
 
+    let finished = true;
+    fileInfos.forEach((val) => {
+      if (val.files.length != 10) {
+        finished = false;
+        return;
+      }
+    });
+
+    if(finished) {
+      fileInfos.forEach((val) => {
+        if (val.uuid === data.uuid) {
+          val.files.forEach((val2, index2, arr2) => {
+            arr2[index2] = val2.sort((a, b) => {
+              return b.part - a.part;
+            })
+          });
+        }
+      });
+      // TODO: Send info to store
+    }
   }
 };
 
@@ -203,25 +236,28 @@ export const send = (
             fileSizes: encryptFiles.prototype.map((val: string) => {
               val.length;
             }),
+            uuid: uuidv4(),
           });
 
           // Spicing encrypted file content into ten equal parts since peerjs api doesn't chunk properly
           // Each part has a property identifying its order inside the file
-          for (let i = 0; i < encryptFiles.length; i++) {
-            const enc_file = encryptFiles.prototype.at(i);
+          for (let index = 0; index < encryptFiles.length; index++) {
+            const enc_file = encryptFiles.prototype.at(index);
             if (publicKey !== undefined) {
               let lastIndex = 0;
               conn.send({
                 length: enc_file.length,
+                uuid: uuidv4(),
               });
               for (let i = 0; i < enc_file.length; i += enc_file.length / 10) {
                 const spliced = enc_file.substring(lastIndex, i);
                 lastIndex = i;
                 conn.send({
                   file: spliced,
-                  filename: filenames[i],
+                  filename: filenames[index],
                   encrypted: "publicKey",
-                  part: `${i}/10`,
+                  part: i,
+                  uuid: uuidv4(),
                 });
               }
             } else {
@@ -237,7 +273,8 @@ export const send = (
                   filename: filenames[i],
                   encrypted: "password",
                   length: enc_file.length,
-                  part: `${i}/10`,
+                  part: i,
+                  uuid: uuidv4(),
                 });
               }
             }
