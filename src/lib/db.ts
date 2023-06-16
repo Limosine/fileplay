@@ -14,13 +14,11 @@ interface DecivesTable {
   uid: number | null; // indexed, foreign key users.id
   linkedAt: number | null;
   displayName: string;
-  isOnline: ColumnType<number, undefined, number>;
   type: DeviceType;
   createdAt: ColumnType<number, undefined, undefined>;
   lastSeenAt: ColumnType<number, undefined, number>;
-  peerJsId: string | null;
-  encryptionPublicKey: string;
-  pushSubscription: string | null; // foreign key pushSubcriptions.pid
+  websocketId: string | null;
+  pushSubscription: string | null;
 }
 
 interface ContactsTable {

@@ -3,6 +3,7 @@ import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
+import { error } from "@sveltejs/kit";
 
 export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   // get all devices linked to this account (requires cookie auth)
@@ -10,65 +11,36 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const upgradeHeader = request.headers.get('Upgrade');
-  if (!upgradeHeader || upgradeHeader !== 'websocket') {
-    return new Response('Expected Upgrade: websocket', { status: 426 });
+  if (!platform || !platform.env) {
+    return new Response("Expected platform", { status: 500 });
   }
 
-  const onlineStatus = async (status: number) => {
-    const update = {isOnline: status};
+  if (!uid) {
+    return new Response("Expected uid", { status: 401 });
+  }
 
-    const res = await db
-      .updateTable("devices")
-      .set(update)
-      .where(({ cmpr }) =>
-        cmpr("did", "=", did)
-      )
-      .returning("isOnline")
-      .executeTakeFirst();
+  const upgradeHeader = request.headers.get("Upgrade");
+  if (!upgradeHeader || upgradeHeader !== "websocket") {
+    return new Response("Expected Upgrade: websocket", { status: 426 });
+  }
 
-    if (status != 0) {
-      if (!res) server.send("2");
-      else server.send(res.isOnline.toString());
-    }
-  };
+  // edit request to include device id
+  const url = new URL(request.url);
+  url.searchParams.append("did", did.toString());
+  url.searchParams.append("uid", uid.toString());
+  const new_request = new Request(url.toString(), request);
 
-  const lastSeen = async () => {
-    const res = await db
-      .updateTable("devices")
-      .set({lastSeenAt: dayjs().unix()})
-      .where(({ cmpr }) =>
-        cmpr("did", "=", did)
-      )
-      .returning("lastSeenAt")
-      .executeTakeFirst();
+  const id = platform.env.MESSAGE_WS.newUniqueId();
+  const message_ws_do = platform.env.MESSAGE_WS.get(id);
 
-    if (!res) server.send("2");
-    else server.send("1");
-  };
+  const res1 = await db
+    .updateTable("devices")
+    .set({ websocketId: id.toString() })
+    .where("did", "=", did)
+    .returning('did')
+    .executeTakeFirst();
+  
+  if (!res1) throw error(500, "Failed to create websocket id")
 
-  const webSocketPair = new WebSocketPair();
-  const [client, server] = Object.values(webSocketPair);
-
-  server.accept();
-  onlineStatus(1);
-
-  server.addEventListener('close', async () => {
-    onlineStatus(0);
-  });
-
-  server.addEventListener('error', async () => {
-    onlineStatus(0);
-  });
-
-  server.addEventListener('message', async (event) => {
-    if (event.data == "ping") {
-      lastSeen();
-    }
-  });
-
-  return new Response(null, {
-    status: 101,
-    webSocket: client,
-  });
+  return await message_ws_do.fetch(new_request);
 };

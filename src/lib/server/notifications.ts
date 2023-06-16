@@ -7,25 +7,29 @@ import {
   generatePushHTTPRequest,
   ApplicationServerKeys,
 } from "webpush-webcrypto";
+import { createKysely } from "./db";
 
 /**
  * Sends a push notfications to a device with the given device ID.
  */
 export async function sendNotification(
-  db: Database,
+  platform: App.Platform,
   fetch: any,
   did: number,
   payload: string,
   topic?: string
 ) {
+  if (!platform.env?.MESSAGE_WS) throw new Error("Message WS not configured");
+
+  const db = createKysely(platform);
   const res1 = await db
     .selectFrom("devices")
-    .select(["pushSubscription", "peerJsId"])
+    .select(["pushSubscription", "websocketId"])
     .where("did", "=", did)
     .executeTakeFirst();
 
   if (!res1) throw new Error("Device not found");
-  const { pushSubscription, peerJsId } = res1;
+  const { pushSubscription, websocketId } = res1;
 
   if (pushSubscription) {
     // todo check if subscription is already expired
@@ -60,25 +64,14 @@ export async function sendNotification(
         `Failed to send request to push server: ${res2.statusText}`
       );
     }
-  } else if (peerJsId) {
-    
-    
-    // await new Promise<void>((resolve, reject) => {
-    //   const peer = new Peer();
-
-    //   peer.on("error", (err) => { reject(err) });
-
-    //   peer.on("open", (id) => {
-    //     console.log(`opened as peerjs ${id}`)
-    //     const conn = peer.connect(peerJsId);
-
-    //     conn.on("error", (err) => { throw err });
-    //     conn.on("open", () => {
-    //       conn.send(payload)
-    //       resolve()
-    //     })
-    //   })
-    // })
-  } else
-    throw new Error("Device has no subscription");
+  } else if (websocketId) {
+    const id = platform.env.MESSAGE_WS.idFromString(websocketId);
+    const stub = platform.env.MESSAGE_WS.get(id);
+    const response = await stub.fetch("", {
+      method: "POST",
+      body: payload
+    });
+    if (!response.ok)
+      throw new Error(`Failed to send message: ${response.statusText}`);
+  } else throw new Error("Device has no subscription");
 }

@@ -24,8 +24,6 @@ imageCache();
 
 declare let self: ServiceWorkerGlobalScope;
 
-const broadcast = new BroadcastChannel("sw");
-
 async function registerPushSubscription(): Promise<boolean> {
   if (Notification.permission !== "granted") return false;
   try {
@@ -42,12 +40,13 @@ async function registerPushSubscription(): Promise<boolean> {
     console.log("Subscribed to push notifications");
     return true;
   } catch {
+    console.log('Failed to subscribe to push notifications')
     return false;
   }
 }
 
 // handle messages from client
-broadcast.addEventListener("message", async (event) => {
+self.addEventListener("message", async (event) => {
   if (event.data) {
     console.log("Message from client", event.data);
     switch (event.data.type) {
@@ -57,10 +56,8 @@ broadcast.addEventListener("message", async (event) => {
         break;
       // register push notifications (called after setup, otherwise already initialized)
       case "register_push":
-        registerPushSubscription().then((success) => {
-          if (success) console.log("registered subscription");
-          else console.log("Failed to register push notifications");
-        });
+        const success = await registerPushSubscription()
+        event.source?.postMessage({ type: "push_registered", success })
         break;
       default:
         console.log("Unknown message type", event.data.type);

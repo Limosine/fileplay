@@ -12,6 +12,7 @@ declare global {
     interface Platform {
       env?: {
         DATABASE: D1Database;
+        MESSAGE_WS: DurableObjectNamespace;
       };
     }
   }

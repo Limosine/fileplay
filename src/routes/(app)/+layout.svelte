@@ -54,14 +54,19 @@
         // Initial status is available at permission.state
         permission.onchange = function () {
           console.log("Permission changed to " + this.state);
-          if (this.state === "granted")
-            new BroadcastChannel("sw").postMessage({type: 'register_push'});
+          if (this.state === "granted" && localStorage.getItem("loggedIn"))
+            navigator.serviceWorker.ready.then((registration) => {
+              registration.active?.postMessage({ type: "register_push" });
+            });
         };
       });
 
     // resubscribe push notifications on service worker change
     navigator.serviceWorker.oncontrollerchange = function () {
-      new BroadcastChannel("sw").postMessage({type: 'register_push'});
+      if (localStorage.getItem("loggedIn"))
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.active?.postMessage({ type: "register_push" });
+        });
     };
   }
 </script>

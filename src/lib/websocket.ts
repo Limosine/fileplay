@@ -1,5 +1,7 @@
 import { readable, writable } from "svelte/store";
 
+// messages are currently not handled by the endpoint
+// the keepalive functionality should be moved to a http GET endpoint to allow requests via service worker
 function createWebSocket() {
   let websocket = new WebSocket("wss://dev.fileplay.pages.dev/websocket");
   websocket.onopen = (event) => {

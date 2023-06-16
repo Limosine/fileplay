@@ -127,7 +127,9 @@
     socketStore = (await import("$lib/websocket")).socketStore;
     unsubscribeSocketStore = socketStore.subscribe(() => {});
 
-    new BroadcastChannel("sw").postMessage({type: 'register_push'});
+    navigator.serviceWorker.ready.then(registration => {
+      registration.active?.postMessage({type: 'register_push'});
+    })
   }
 
   onMount(async () => {
