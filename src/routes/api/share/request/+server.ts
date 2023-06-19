@@ -79,7 +79,7 @@ export const GET: RequestHandler = async ({
     // todo send notification
     promises.push(
       sendNotification(
-        db,
+        platform as App.Platform,
         fetch,
         did_to,
         JSON.stringify({
@@ -163,7 +163,7 @@ export const DELETE: RequestHandler = async ({
     // todo send notification
     promises.push(
       sendNotification(
-        db,
+        platform as App.Platform,
         fetch,
         did_to,
         JSON.stringify({

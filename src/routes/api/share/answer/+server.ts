@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const { sid, peerJsId, encryptionPublicKey } = await request.json();
+  const { sid, peerJsId, encryptionPublicKey } = await request.json() as any;
 
   // get sharing request
   const res1 = await db
@@ -61,7 +61,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   // send accept notification to did_return
   await sendNotification(
-    db,
+    platform as App.Platform,
     fetch,
     did_return,
     JSON.stringify({
@@ -86,7 +86,7 @@ export const DELETE: RequestHandler = async ({
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const { sid } = await request.json();
+  const { sid } = await request.json() as any;
 
   // get and delete sharing request
   const res1 = await db
@@ -106,7 +106,7 @@ export const DELETE: RequestHandler = async ({
   const { did: did_return } = res1;
 
   await sendNotification(
-    db,
+    platform as App.Platform,
     fetch,
     did_return,
     JSON.stringify({
@@ -127,7 +127,7 @@ export const DELETE: RequestHandler = async ({
     // todo send notification
     promises.push(
       sendNotification(
-        db,
+        platform as App.Platform,
         fetch,
         did_to,
         JSON.stringify({

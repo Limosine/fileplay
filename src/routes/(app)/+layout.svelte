@@ -68,6 +68,10 @@
           registration.active?.postMessage({ type: "register_push" });
         });
     };
+
+    // check if service worker is running and handling push
+    // yes --> assume it is handling push notifications and the keepalive
+    // no --> register websocket, send keepalive
   }
 </script>
 
