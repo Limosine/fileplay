@@ -10,6 +10,7 @@
   import { deviceInfos_loaded, deviceInfos, getDeviceInfos } from "$lib/personal";
   import { getDicebearUrl } from "$lib/common";
   import { userParams } from "$lib/stores/Dialogs";
+  import { publicKey_armored } from "$lib/openpgp";
 
   let addPendingFile: (files: FileList) => void;
   let send: (files: FileList, peerID: string, password?: string, publicKey?: string) => void
@@ -60,7 +61,7 @@
     encryptionPublicKey: string;
   }) => {
     $sent[device.did] = true;
-    send($files, device.peerJsId, undefined, device.encryptionPublicKey);
+    send($files, device.peerJsId, undefined, publicKey_armored);
   }
 </script>
 

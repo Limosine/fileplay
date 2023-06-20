@@ -12,6 +12,8 @@ import {
   encryptFilesWithPassword,
 } from "./openpgp";
 import { updatePeerJS_ID } from "./personal";
+import { transferHandler } from "./stores/ReceivedFiles";
+import { chunkString, sortArrayByOrder } from "./utils";
 
 let peer: Peer;
 export const sender_uuid = writable<string>();
@@ -20,8 +22,10 @@ let connections: DataConnection[] = [];
 
 let pending_files: { listen_key: string; files: FileList }[] = [];
 export const link = writable("");
-
 export const received_files = writable<{ url: string; name: string }[]>([]);
+
+const cachedChunks: { transferID: string; chunks: string[] }[] = [];
+const chunkIDs: { transferID: string; chunkIDs: string[] }[] = [];
 
 const openPeer = (uuid?: string) => {
   if (uuid) {
@@ -51,8 +55,6 @@ const listen = () => {
   });
 };
 
-let fileInfos: { uuid: string; fileSizes: number[]; files: any[][] }[];
-
 const handleData = (data: any, conn: DataConnection) => {
   if (data.listen_key) {
     let pending: { listen_key: string; files: FileList };
@@ -80,65 +82,312 @@ const handleData = (data: any, conn: DataConnection) => {
         pending_files.splice(pending_files.indexOf(pending), 1);
       }
     }
-  } else if (data.fileSizes) {
-    fileInfos.push({
-      files: [],
-      fileSizes: data.fileSizes,
-      uuid: data.uuid,
+  } else if (Array.isArray(data.file) && Array.isArray(data.filename)) {
+    let decrypted_files;
+    if (data.encrypted == "publicKey") {
+      decrypted_files = decryptFiles(data.file);
+    } else {
+      decrypted_files = decryptFilesWithPassword(
+        data.file,
+        get(page).params.listen_key
+      );
+    }
+    decrypted_files.then((decrypted_files) => {
+      for (let i = 0; i < decrypted_files.length; i++) {
+        let url = createFileURL(decrypted_files[i]);
+        let info = {
+          url: url,
+          name: data.filename[i],
+        };
+        received_files.set([...get(received_files), info]);
+      }
     });
-    // } else if (Array.isArray(data.file) && Array.isArray(data.filename)) {
-    //   let decrypted_files;
-    //   if (data.encrypted == "publicKey") {
-    //     decrypted_files = decryptFiles(data.file);
-    //   } else {
-    //     decrypted_files = decryptFilesWithPassword(
-    //       data.file,
-    //       get(page).params.listen_key
-    //     );
-    //   }
-    //   decrypted_files.then((decrypted_files) => {
-    //     for (let i = 0; i < decrypted_files.length; i++) {
-    //       let url = createFileURL(decrypted_files[i]);
-    //       let info = {
-    //         url: url,
-    //         name: data.filename[i],
-    //       };
-    //       received_files.set([...get(received_files), info]);
-    //     }
-    //   });
-  } else if (data.file) {
-    fileInfos.forEach((val, index, arr) => {
-      if (val.uuid === data.uuid) {
-        val.files.forEach((val2, index2, arr2) => {
-          if (val2.length < 10) {
-            arr2[index2] = [...val2, data.file];
-          }
+  } else if (data.type) {
+    switch (data.type) {
+      case "TransferFile": {
+        const casted = data as FileSharing.TransferFileMessage;
+        if (!transferHandler.isTransferRunning(casted)) {
+          transferHandler.addTransferProcess(casted);
+        }
+        let info: FileSharing.AcceptTransferMessage = {
+          type: "AcceptTransfer",
+          data: casted.data.transferID,
+        };
+        conn.send(info);
+        break;
+      }
+      case "AcceptTransfer": {
+        const casted = data as FileSharing.AcceptTransferMessage;
+        transferHandler.receivedTransferAccept.push(casted.data);
+        break;
+      }
+      case "TransferChunk": {
+        const casted = data as FileSharing.TransferChunkMessage;
+        const entry = transferHandler.receivedChunks.find((value) => {
+          value.transferID == casted.data.transferID;
         });
-      }
-    });
-
-    let finished = true;
-    fileInfos.forEach((val) => {
-      if (val.files.length != 10) {
-        finished = false;
-        return;
-      }
-    });
-
-    if(finished) {
-      fileInfos.forEach((val) => {
-        if (val.uuid === data.uuid) {
-          val.files.forEach((val2, index2, arr2) => {
-            arr2[index2] = val2.sort((a, b) => {
-              return b.part - a.part;
-            })
+        if (entry) {
+          transferHandler.receivedChunks.forEach((value, index, array) => {
+            if (value.transferID == casted.data.transferID) {
+              array[index] = {
+                transferID: value.transferID,
+                info: [
+                  ...value.info,
+                  {
+                    chunkID: casted.data.chunkID,
+                    fileChunk: casted.data.fileChunk,
+                  },
+                ],
+              };
+            }
+          });
+        } else {
+          transferHandler.receivedChunks.push({
+            transferID: casted.data.transferID,
+            info: [
+              {
+                chunkID: casted.data.chunkID,
+                fileChunk: casted.data.fileChunk,
+              },
+            ],
           });
         }
-      });
-      // TODO: Send info to store
+
+        transferHandler.waitForChunks(casted.data.transferID, () => {
+          //TODO: Abort...
+          console.log("ERROR: Timed out waiting for file chunks");
+        });
+        break;
+      }
+      case "RequestChunk": {
+        const casted = data as FileSharing.RequestChunk;
+        transferHandler.receivedRChunks.push(casted.data);
+
+        const requestedChunks = transferHandler.receivedRChunks.find(
+          (value) => {
+            value.transferID == casted.data.transferID;
+          }
+        );
+
+        for (let i = 0; i < cachedChunks.length; i++) {
+          const cachedChunkIDs = chunkIDs.find((value) => {
+            value.transferID == casted.data.transferID;
+          });
+          const extractedChunks = cachedChunks.find((value) => {
+            value.transferID == casted.data.transferID;
+          });
+          if (cachedChunkIDs && requestedChunks && extractedChunks) {
+            if (cachedChunkIDs.chunkIDs.includes(requestedChunks.chunkIDs[i])) {
+              const info: FileSharing.TransferChunkMessage = {
+                data: {
+                  chunkID: cachedChunkIDs.chunkIDs[i],
+                  fileChunk: extractedChunks.chunks[i],
+                  transferID: casted.data.transferID,
+                },
+                type: "TransferChunk",
+              };
+              conn.send(info);
+            }
+          }
+        }
+
+        break;
+      }
+      case "SendComplete": {
+        const casted = data as FileSharing.SendComplete;
+        transferHandler.sentComplete.push(casted.data);
+        transferHandler.checkChunksComplete(
+          casted.data,
+          () => {
+            const info: FileSharing.ReceiveComplete = {
+              data: casted.data,
+              type: "ReceiveComplete",
+            };
+            conn.send(info);
+            const receivedChunks = transferHandler.receivedChunks.find(
+              (value) => {
+                value.transferID == casted.data;
+              }
+            );
+
+            const process = transferHandler.getProcess(casted.data);
+            if (receivedChunks && process) {
+              const sortedChunks = sortArrayByOrder(
+                receivedChunks.info,
+                process.data.chunkIDs
+              );
+              const extractedChunks = sortedChunks.map((value) => {
+                return value.fileChunk;
+              });
+              const joinedString = sortedChunks.join();
+
+              let decrypted_files;
+
+              if (transferHandler.isPasswordProtected(casted.data)) {
+                decrypted_files = decryptFilesWithPassword(
+                  [...joinedString],
+                  get(page).params.listen_key
+                );
+              } else {
+                decrypted_files = decryptFiles([...joinedString]);
+              }
+
+              decrypted_files.then((decrypted_files) => {
+                for (let i = 0; i < decrypted_files.length; i++) {
+                  let url = createFileURL(decrypted_files[i]);
+                  let info = {
+                    url: url,
+                    name: process.data.fileName,
+                  };
+                  received_files.set([...get(received_files), info]);
+                }
+              });
+            }
+
+            transferHandler.receivedChunks =
+              transferHandler.receivedChunks.filter((value) => {
+                value.transferID != casted.data;
+              });
+            transferHandler.lastChunk = transferHandler.lastChunk.filter(
+              (value) => {
+                value.transferID != casted.data;
+              }
+            );
+            transferHandler.sentComplete = transferHandler.sentComplete.filter(
+              (value) => {
+                value != casted.data;
+              }
+            );
+            transferHandler.receivedTransferAccept =
+              transferHandler.receivedTransferAccept.filter((value) => {
+                value != casted.data;
+              });
+          },
+          (missingChunks) => {
+            const indexes: number[] = [];
+            const foundIDs = chunkIDs.find((value) => {
+              value.transferID == casted.data;
+            });
+
+            if (!foundIDs) {
+              console.log("ERROR");
+              return;
+            }
+            missingChunks.forEach((chunkID) => {
+              const foundID = foundIDs.chunkIDs.findIndex((value) => {
+                value == chunkID;
+              });
+              if (foundID) indexes.push(foundID);
+            });
+
+            const cachedChunk = cachedChunks.find((value) => {
+              value.transferID == casted.data;
+            });
+
+            indexes.forEach((value) => {
+              if (cachedChunk) {
+                const fileChunk = cachedChunk.chunks[value];
+                const chunkID = foundIDs.chunkIDs[value];
+                const info: FileSharing.TransferChunkMessage = {
+                  data: {
+                    chunkID,
+                    fileChunk,
+                    transferID: casted.data,
+                  },
+                  type: "TransferChunk",
+                };
+                conn.send(info);
+              }
+            });
+          }
+        );
+        break;
+      }
+      case "ReceiveComplete":
+        const casted = data as FileSharing.ReceiveComplete;
+        transferHandler.removeFails(casted.data);
+        transferHandler.receivedRChunks =
+          transferHandler.receivedRChunks.filter((value) => {
+            value.transferID != casted.data;
+          });
+        transferHandler.receivedTransferAccept =
+          transferHandler.receivedTransferAccept.filter((value) => {
+            value != casted.data;
+          });
+        transferHandler.receivedComplete =
+          transferHandler.receivedComplete.filter((value) => {
+            value != casted.data;
+          });
     }
   }
 };
+// } else if (typeof data.file) {
+//   fileInfos.forEach((val, index, arr) => {
+//     if (val.uuid === data.uuid) {
+//       val.files.forEach((val2, index2, arr2) => {
+//         if (val2.length < 10) {
+//           arr2[index2] = [...val2, data.file];
+//         }
+//       });
+//     }
+//   });
+
+//   let finished = true;
+//   let total = 0;
+//   let downloadedFiles = 0;
+//   fileInfos.forEach((val) => {
+//     val.files.forEach((f) => {
+//       if (f.length != 10) {
+//         finished = false;
+//         return;
+//       }
+
+//       total++;
+//     });
+//   });
+
+//   let count = 0;
+//   fileInfos.forEach((val) => {
+//     val.files.forEach((f) => {
+//       if (f.length == 10) {
+//         downloadedFiles++;
+//       } else {
+//         count = f.length;
+//       }
+//     });
+//   });
+//   files.update(() => {
+//     return {
+//       total,
+//       done: downloadedFiles,
+//       partialProgress: count,
+//     };
+//   });
+
+//   if (finished) {
+//     fileInfos.forEach((val) => {
+//       if (val.uuid === data.uuid) {
+//         val.files.forEach((val2, index2, arr2) => {
+//           arr2[index2] = val2.sort((a, b) => {
+//             return b.part - a.part;
+//           });
+//         });
+//       }
+//     });
+
+//     let files = [];
+
+//     fileInfos.forEach((info) => {
+//       info.files.forEach((val) => {
+//         files.push(val.join());
+//       });
+//     });
+
+//     decryptFilesWithPassword()
+
+//   }
+// }
+// };
 
 const createFileURL = (file: any) => {
   var blob = new Blob([file]);
@@ -230,68 +479,107 @@ export const send = (
       if (connect_return == false) {
         let conn = peer.connect(peerID);
 
-        conn.on("open", function () {
-          // Sending file sizes inside an array to show different progress sizes for bar
-          conn.send({
-            fileSizes: encryptFiles.prototype.map((val: string) => {
-              val.length;
-            }),
-            uuid: uuidv4(),
-          });
-
+        conn.on("open", async function () {
+          // Sending file sizes inside an array to show different progress sizes for
           // Spicing encrypted file content into ten equal parts since peerjs api doesn't chunk properly
           // Each part has a property identifying its order inside the file
           for (let index = 0; index < encryptFiles.length; index++) {
+            const transferID = uuidv4();
             const enc_file = encryptFiles.prototype.at(index);
-            if (publicKey !== undefined) {
-              let lastIndex = 0;
-              conn.send({
-                length: enc_file.length,
-                uuid: uuidv4(),
-              });
-              for (let i = 0; i < enc_file.length; i += enc_file.length / 10) {
-                const spliced = enc_file.substring(lastIndex, i);
-                lastIndex = i;
-                conn.send({
-                  file: spliced,
-                  filename: filenames[index],
-                  encrypted: "publicKey",
-                  part: i,
-                  uuid: uuidv4(),
-                });
-              }
-            } else {
-              let lastIndex = 0;
-              conn.send({
-                length: enc_file.length,
-              });
-              for (let i = 0; i < enc_file.length; i += enc_file.length / 10) {
-                const spliced = enc_file.substring(lastIndex, i);
-                lastIndex = i;
-                conn.send({
-                  file: spliced,
-                  filename: filenames[i],
-                  encrypted: "password",
-                  length: enc_file.length,
-                  part: i,
-                  uuid: uuidv4(),
-                });
-              }
+
+            const tempChunkIDs: string[] = [];
+            const tempCachedChunks = chunkString(enc_file, 10);
+            for (let i = 0; i < cachedChunks.length; i++) {
+              tempChunkIDs.push(uuidv4());
             }
+            chunkIDs.push({
+              transferID,
+              chunkIDs: tempChunkIDs,
+            });
+
+            cachedChunks.push({
+              transferID,
+              chunks: tempCachedChunks,
+            });
+
+            const info: FileSharing.TransferFileMessage = {
+              type: "TransferFile",
+              data: {
+                chunkIDs: tempChunkIDs,
+                fileName: filenames[index],
+                transferID: transferID,
+                encrypted: publicKey !== undefined ? "publickey" : "password",
+              },
+            };
+
+            conn.send(info);
+
+            transferHandler.confirmAcceptTransfer(
+              transferID,
+              () => {
+                for (let i = 0; i < cachedChunks.length; i++) {
+                  const info: FileSharing.TransferChunkMessage = {
+                    data: {
+                      chunkID: tempChunkIDs[i],
+                      fileChunk: tempCachedChunks[i],
+                      transferID,
+                    },
+                    type: "TransferChunk",
+                  };
+
+                  conn.send(info);
+                }
+                const info: FileSharing.SendComplete = {
+                  data: transferID,
+                  type: "SendComplete",
+                };
+
+                conn.send(info);
+                transferHandler.confirmComplete(
+                  transferID,
+                  () => {
+                    // TODO: Complete
+                    console.log("Transfer complete...");
+                  },
+                  () => {
+                    // TODO: Cancel
+                    console.log(
+                      "Aborting file share due to unexpected error..."
+                    );
+                  },
+                  () => {
+                    const requestedChunks =
+                      transferHandler.receivedRChunks.find((value) => {
+                        value.transferID == transferID;
+                      });
+
+                    for (let i = 0; i < cachedChunks.length; i++) {
+                      if (requestedChunks?.chunkIDs.includes(tempChunkIDs[i])) {
+                        const info: FileSharing.TransferChunkMessage = {
+                          data: {
+                            chunkID: tempChunkIDs[i],
+                            fileChunk: tempCachedChunks[i],
+                            transferID,
+                          },
+                          type: "TransferChunk",
+                        };
+                      }
+                    }
+                  },
+                  () => {
+                    conn.send(info);
+                  }
+                );
+              },
+              () => {
+                // TODO: Cancel
+                console.log("Aborting file share due to unexpected error...");
+              },
+              () => {
+                conn.send(info);
+              }
+            );
           }
-          // if (publicKey !== undefined) {
-          //   conn.send({
-          //     file: Array.from(encrypted_files),
-          //     filename: filenames,
-          //     encrypted: "publicKey",
-          //   });
-          // } else {
-          //   conn.send({
-          //     file: Array.from(encrypted_files),
-          //     filename: filenames,
-          //     encrypted: "password",
-          //   });
-          // }
         });
 
         conn.on("data", function (received_data) {

@@ -17,6 +17,59 @@ declare global {
     }
   }
 
+  namespace FileSharing {
+    interface Message {
+      type: string;
+      data: {};
+    }
+
+    interface TransferFileMessage extends Message {
+      type: "TransferFile";
+      data: {
+        chunkIDs: string[];
+        transferID: string;
+        fileName: string;
+        encrypted: "publickey" | "password"
+      };
+    }
+
+    interface TransferChunkMessage implements Message{
+      type: "TransferChunk";
+      /**This is the chunk ID. */
+      data: {
+        fileChunk: string,
+        chunkID: string,
+        transferID: string,
+      };
+    }
+
+    interface AcceptTransferMessage implements Message{
+      type: "AcceptTransfer";
+      /**This is the transfer ID. */
+      data: string;
+    }
+
+    interface RequestChunk implements Message{
+      type: "RequestChunk";
+      /**This is the chunk ID. */
+      data: {
+        transferID: string,
+        chunkIDs: string[]
+      };
+    }
+
+    interface SendComplete implements Message{
+      type: "SendComplete";
+      /**This is the transfer ID. */
+      data: string;
+    }
+
+    interface ReceiveComplete implements Message{
+      type: "ReceiveComplete";
+      /**This is the transfer ID. */
+      data: string;
+    }
+  }
   interface Contact {
     id: string;
     name: string;

@@ -4,9 +4,19 @@
   import { writable } from "svelte/store";
   import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/openpgp";
+  import { files } from "$lib/stores/ReceivedFiles";
 
   let received_files = writable<{ url: string; name: string }[]>([]);
+  let fileInfos = $files;
+  console.log(fileInfos);
+  let length = 0;
+  $: {
+    length = 0;
 
+    // fileInfos.forEach((val) => {
+    //   length += val.fileSizes.length;
+    // });
+  }
   onMount(async () => {
     const { setup, connectAsListener } = await import("$lib/peerjs");
     received_files = (await import("$lib/peerjs")).received_files;
@@ -31,7 +41,10 @@
       clearInterval(interval);
     }
 
-    waiting = pending_string_template.padEnd(pending_string_template.length + index, '.');
+    waiting = pending_string_template.padEnd(
+      pending_string_template.length + index,
+      "."
+    );
   }, 500);
 </script>
 
