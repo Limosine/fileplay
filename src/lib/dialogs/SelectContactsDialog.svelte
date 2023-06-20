@@ -7,19 +7,27 @@
   import { onMount } from "svelte";
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
-  import { deviceInfos_loaded, deviceInfos, getDeviceInfos } from "$lib/personal";
+  import {
+    deviceInfos_loaded,
+    deviceInfos,
+    getDeviceInfos,
+  } from "$lib/personal";
   import { getDicebearUrl } from "$lib/common";
   import { userParams } from "$lib/stores/Dialogs";
   import { publicKey_armored } from "$lib/openpgp";
 
   let addPendingFile: (files: FileList) => void;
-  let send: (files: FileList, peerID: string, password?: string, publicKey?: string) => void
+  let send: (
+    files: FileList,
+    peerID: string,
+    password?: string,
+    publicKey?: string
+  ) => void;
 
   onMount(async () => {
-    addPendingFile = (await import('$lib/peerjs')).addPendingFile;
-    send = (await import('$lib/peerjs')).send;
+    addPendingFile = (await import("$lib/peerjs")).addPendingFile;
+    send = (await import("$lib/peerjs")).send;
   });
-
 
   function handleSelectContactKeyDown(event: CustomEvent | KeyboardEvent) {
     if (!$open) return;
@@ -61,8 +69,8 @@
     encryptionPublicKey: string;
   }) => {
     $sent[device.did] = true;
-    send($files, device.peerJsId, undefined, publicKey_armored);
-  }
+    send($files, device.peerJsId, undefined, device.encryptionPublicKey);
+  };
 </script>
 
 <svelte:window on:keydown={handleSelectContactKeyDown} />
@@ -88,16 +96,28 @@
               {#each devices as device}
                 {#if $sent[device.did]}
                   <Card class="selected" style="padding-top: 20px;">
-                    <Media style="background-image: url({getDicebearUrl($userParams.avatarSeed, 150)}); background-size: contain;" aspectRatio="16x9"/>
+                    <Media
+                      style="background-image: url({getDicebearUrl(
+                        $userParams.avatarSeed,
+                        150
+                      )}); background-size: contain;"
+                      aspectRatio="16x9"
+                    />
                     <Content>{device.displayName}</Content>
                   </Card>
                 {:else}
                   <Card on:click={() => send_front(device)}>
                     <PrimaryAction style="padding-top: 20px;">
-                      <Media style="background-image: url({getDicebearUrl($userParams.avatarSeed, 150)}); background-size: contain;" aspectRatio="16x9"/>
+                      <Media
+                        style="background-image: url({getDicebearUrl(
+                          $userParams.avatarSeed,
+                          150
+                        )}); background-size: contain;"
+                        aspectRatio="16x9"
+                      />
                       <Content>{device.displayName}</Content>
-                  </PrimaryAction>
-                </Card>
+                    </PrimaryAction>
+                  </Card>
                 {/if}
               {/each}
             {:catch}

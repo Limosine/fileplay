@@ -6,7 +6,7 @@ compatibility_date = "2023-05-18"
 command = "npm run build"
 
 [build.upload]
-main = "src/do.ts"
+main = "src/ws_do.ts"
 
 [durable_objects]
 bindings = [
