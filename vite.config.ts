@@ -1,41 +1,33 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
-import { config } from "dotenv-vault-core";
-import PWAAssets, { getManifestIcons } from "./scripts";
+import { config } from "dotenv";
+import EnvironmentPlugin from "vite-plugin-environment";
 
 config();
 
 export default async function (config: ConfigEnv): Promise<UserConfig> {
   return {
+    define: {
+      "\">PUBLIC_VAPID_KEY<\"": JSON.stringify(process.env.PUBLIC_VAPID_KEY),
+    },
     plugins: [
+      EnvironmentPlugin(["NODE_ENV"]),
       sveltekit(),
-      PWAAssets({
-        publicPath: "/pwa-assets",
-        src: "static/favicon.png",
-        mode: "fit",
-        background: "#f00",
-      }),
       SvelteKitPWA({
         srcDir: "src",
         filename: "sw.ts",
         registerType: "prompt",
         strategies: "injectManifest",
-        useCredentials: !process.env.CF_PROD, // disabled in production
+        injectManifest: {
+          injectionPoint: undefined,
+        },
+        useCredentials: true,
         devOptions: {
           enabled: false,
-          type: "module",
-          navigateFallback: "/",
         },
-        manifest: Object.assign((await import("./src/manifest.json")).default, {
-          icons: getManifestIcons(),
-        }), // enable sourcemap in dev
+        manifest: await import("./static/manifest.json"),
       }),
     ],
-    build: {
-      rollupOptions: {
-        external: ['react']   // mark as external because it is imported somewhere but not used
-      }
-    }, 
   };
 }

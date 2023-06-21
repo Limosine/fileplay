@@ -4,48 +4,61 @@
     Section,
     Title,
   } from "@smui/top-app-bar";
-  import IconButton from "@smui/icon-button";
+  import Badge from '@smui-extra/badge';
+  import IconButton, { Icon } from "@smui/icon-button";
   import Tooltip, { Wrapper } from '@smui/tooltip';
   import { writable } from 'svelte/store';
+  import { status as current_status } from "$lib/websocket";
 
-  import { open as drawer_open } from './Drawer.svelte';
+  import { contacts_drawer_open as drawer_open } from '$lib/stores/Dialogs';
+  import { notifications, notification_open, settings_open } from '$lib/stores/Dialogs';
+
+  const open = (drawer: string) => {
+    if (drawer == "contact") {
+      notification_open.set(false);
+      drawer_open.update(open => (open = !open));
+    } else if (drawer == "notification") {
+      drawer_open.set(false);
+      notification_open.update(open => (open = !open));
+    } else {
+      settings_open.set(true);
+    }
+  }
 
   export const topAppBar = writable<TopAppBar>();
 
-  const colors = ["green", "yellow", "red"];
-  const status = ["Online", "Connecting", "Offline"];
-  let current_status = 0;
+  const colors = ["yellow", "green", "red"];
+  const status = ["Connecting", "Online", "Error"];
 </script>
 
 <header class="mdc-top-app-bar">
   <TopAppBar bind:this={$topAppBar} variant="fixed">
     <Row>
-      <Section>
-        <!-- <IconButton class="material-icons" on:click={() => drawer_open.update(open => (open = !open))}
-          >menu</IconButton
-        > -->
-        <Title>Fileplay</Title>
-      </Section>
       <Section align="end" toolbar>
         <Wrapper>
-          <div><div class="connection-status" style="background-color: {colors[current_status]}"></div></div>
-          <Tooltip>Connection status: {status[current_status]}</Tooltip>
+          <div><div class="connection-status" style="background-color: {colors[$current_status]}"></div></div>
+          <Tooltip>Connection status: {status[$current_status]}</Tooltip>
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Show notifications"
-            >notifications</IconButton>
+          <IconButton class="material-icons" aria-label="Show notifications" on:click={() => open("notification")}>
+            <Icon class="material-icons">notifications</Icon>
+            {#if $notifications.length != 0}
+              <Badge aria-label="notification count" color="secondary">{$notifications.length}</Badge>
+            {/if}
+          </IconButton>
+
           <Tooltip>Show notifications</Tooltip>
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Account page"
-            >account_circle</IconButton>
-          <Tooltip>Account page</Tooltip>
+          <IconButton class="material-icons" aria-label="Manage contacts" on:click={() => open("contact")}
+            >contacts</IconButton>
+          <Tooltip>Manage contacts</Tooltip>
         </Wrapper>
 
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Settings Page"
+          <IconButton class="material-icons" aria-label="Settings Page" on:click={() => open("settings")}
             >settings</IconButton>
           <Tooltip>Settings Page</Tooltip>
         </Wrapper>

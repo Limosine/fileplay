@@ -1,9 +1,9 @@
 vite.config.ts.timestamp*
 src/lib/gql.ts
 *.key
-static/pwa-assets
 tmp*
 static/smui*
+.wrangler
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/svelte,yarn,git,node

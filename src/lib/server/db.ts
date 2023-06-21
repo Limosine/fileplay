@@ -1,15 +1,13 @@
-import { Client, fetchExchange } from "@urql/core";
-import { PUBLIC_DGRAPH_HTTP } from "$env/static/public";
-import { SERVER_JWT } from "$env/static/private";
+import type { DB, Database } from "$lib/db";
+import { error } from "@sveltejs/kit";
+import { Kysely } from "kysely";
+import { D1Dialect } from "kysely-d1";
 
-export async function createUrqlClient() {
-  return new Client({
-    url: new URL("/graphql", PUBLIC_DGRAPH_HTTP).href,
-    exchanges: [fetchExchange],
-    fetchOptions: {
-      headers: {
-        Authorization: `Bearer ${SERVER_JWT}`,
-      },
-    },
+export function createKysely(platform: App.Platform | undefined): Database {
+  if (!platform?.env?.DATABASE) throw error(500, "Database not configured");
+  const kys = new Kysely<DB>({
+    dialect: new D1Dialect({ database: platform.env.DATABASE }),
   });
+  if (!kys) throw error(500, "Database could not be accessed");
+  return kys;
 }

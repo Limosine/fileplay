@@ -1,110 +1,162 @@
 <script lang="ts">
-  import Dialog, { Title, Content, Actions } from "@smui/dialog";
+  import Dialog, { Title, Content } from "@smui/dialog";
   import Button, { Group, Label } from "@smui/button";
   import Textfield from "@smui/textfield";
   import Select, { Option } from "@smui/select";
-  import { nanoid } from "nanoid";
-  import Fab from "@smui/fab";
-  import { Icon, Label as Icon_Label } from "@smui/common";
+  import LinearProgress from "@smui/linear-progress";
 
-  import { writable } from "svelte/store";
+  import { get, type Readable } from "svelte/store";
   import { browser } from "$app/environment";
+  import { onDestroy, onMount } from "svelte";
+  import { getContent, updatePeerJS_ID } from "$lib/personal";
+  import { DeviceType } from "$lib/common";
 
-  export let open: boolean;
+  import {
+    deviceParams,
+    userParams,
+    profaneUsername,
+    setupLoading,
+  } from "$lib/stores/Dialogs";
+  import Username from "$lib/components/Username.svelte";
+  import { publicKey_armored } from "$lib/openpgp";
+
+  let socketStore: Readable<any>;
+  let unsubscribeSocketStore = () => {};
+
+  let open: boolean;
 
   let newUser = true;
 
   let linkingCode = "";
 
-  const deviceTypes = ["Computer", "Smartphone", "Smartwatch"];
-  const deviceParams = writable({
-    name: "",
-    type: "",
-  });
-
-  const userParams = writable({
-    name: "",
-    avatarSeed: nanoid(8),
-  });
-
-  function handleKeyDown(event: CustomEvent | KeyboardEvent) {
-    event = event as KeyboardEvent;
-
-    if (event.key === "Enter" && !disabled) {
-      closeHandler("confirm");
-    }
-  }
-
-  function closeHandler(e: CustomEvent<{ action: string }> | string) {
-    let action: string;
-
-    if (typeof e === "string") {
-      action = e;
+  let actionDisabled: boolean;
+  $: {
+    if (!$deviceParams.displayName || !$deviceParams.type)
+      actionDisabled = true;
+    else if (newUser) {
+      actionDisabled =
+        !$userParams.displayName ||
+        get(profaneUsername).profane ||
+        get(profaneUsername).loading;
     } else {
-      action = e.detail.action;
+      actionDisabled = !linkingCode;
     }
-
-    switch (action) {
-      case "confirm":
-        console.log(addDevice());
-    }
-    open = false;
   }
 
-  async function addDevice() {
-    const res = await fetch("/api/user/contacts/add", {
-      method: "POST",
-      body: JSON.stringify({
-        deviceId: $deviceParams.name,
-        deviceSecret: "test secret",
-      }),
-    });
+  let setupError: string;
 
-    const json = await res.json();
-    const result = JSON.stringify(json);
-
-    return result;
+  function handleSetupKeyDown(event: CustomEvent | KeyboardEvent) {
+    if (!open) return;
+    event = event as KeyboardEvent;
+    if (event.key === "Enter" && !actionDisabled) {
+      handleConfirm();
+    }
   }
 
-  let disabled: boolean;
-  $: disabled =
-    !$deviceParams.name ||
-    !$deviceParams.type ||
-    (newUser
-      ? !$userParams.name ||
-        !$userParams.avatarSeed ||
-        profaneUsername.profane ||
-        profaneUsername.loading
-      : !linkingCode);
+  async function handleResponseError(res: Response) {
+    setupLoading.set(false);
+    const json_ = await res.json();
+    if (json_) {
+      setupError = json_.message;
+    } else {
+      setupError = res.statusText;
+    }
+  }
 
-  let profaneUsername: { loading: boolean; profane: boolean } = {
-    loading: false,
-    profane: false,
-  };
-
-  function updateIsProfaneUsername() {
-    if (!browser || !$userParams.name) return;
-    profaneUsername.loading = true;
-    fetch("/api/checkIsUsernameProfane", {
-      method: "POST",
-      body: JSON.stringify({
-        username: $userParams.name,
-      }),
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        profaneUsername.profane = json.isProfane;
-        profaneUsername.loading = false;
-      })
-      .catch((e) => {
-        console.error(e);
-        profaneUsername.profane = false;
-        profaneUsername.loading = false;
+  async function handleConfirm() {
+    if (actionDisabled) return;
+    setupLoading.set(true);
+    // setup device if not already done so
+    let storedDeviceParams = localStorage.getItem("deviceParams");
+    if (
+      storedDeviceParams &&
+      storedDeviceParams !== JSON.stringify($deviceParams)
+    ) {
+      storedDeviceParams = null;
+      // delete old user with still present cookie auth
+      await fetch("/api/devices", {
+        method: "DELETE",
       });
+    }
+    if (!storedDeviceParams) {
+      $deviceParams.encryptionPublicKey = publicKey_armored;
+
+      const res = await fetch("/api/setup/device", {
+        method: "POST",
+        body: JSON.stringify($deviceParams),
+      });
+      if (String(res.status).charAt(0) !== "2") {
+        handleResponseError(res);
+        return;
+      }
+      localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
+    }
+    switch (newUser) {
+      case true:
+        // create new user
+        const res = await fetch("/api/setup/user", {
+          method: "POST",
+          body: JSON.stringify($userParams),
+        });
+        if (String(res.status).charAt(0) !== "2") {
+          handleResponseError(res);
+          return;
+        }
+        break;
+      case false:
+        // link to existing user
+        const res2 = await fetch("/api/devices/link", {
+          method: "POST",
+          body: JSON.stringify({ code: linkingCode }),
+        });
+        if (String(res2.status).charAt(0) !== "2") {
+          handleResponseError(res2);
+          return;
+        }
+        break;
+    }
+
+    localStorage.removeItem("deviceParams");
+    localStorage.setItem("loggedIn", "true");
+    open = false;
+    setupLoading.set(false);
+  
+    getContent();
+    updatePeerJS_ID();
+    socketStore = (await import("$lib/websocket")).socketStore;
+    unsubscribeSocketStore = socketStore.subscribe(() => {});
+
+    new BroadcastChannel("sw").postMessage({type: 'register_push'});
   }
+
+  function withDeviceType(name: string): { type: string; name: string } {
+    // @ts-ignore
+    return { name, type: DeviceType[name] as string };
+  }
+
+  onMount(async () => {
+    if (!browser) return;
+    // if device is not set up, open dialog
+    if (!localStorage.getItem("loggedIn")) {
+      open = true;
+      // if setup was partially completed, load values
+      const storedDeviceParams = localStorage.getItem("deviceParams");
+      if (storedDeviceParams) {
+        $deviceParams = JSON.parse(storedDeviceParams);
+      }
+    } else {
+      getContent();
+      socketStore = (await import("$lib/websocket")).socketStore;
+      unsubscribeSocketStore = socketStore.subscribe(() => {});
+    }
+  });
+
+  onDestroy(() => {
+    if (socketStore) unsubscribeSocketStore();
+  });
 </script>
 
-<svelte:window on:keydown={handleKeyDown} />
+<svelte:window on:keydown={handleSetupKeyDown} />
 
 <Dialog
   bind:open
@@ -112,133 +164,107 @@
   escapeKeyAction=""
   aria-labelledby="title"
   aria-describedby="content"
-  on:SMUIDialog:closed={closeHandler}
 >
+  {#if $setupLoading}
+    <LinearProgress indeterminate />
+  {/if}
   <Title id="title">Setup</Title>
   <Content>
-    <h4>Device</h4>
+    <h6>Device</h6>
     <div id="content">
       <Textfield
-        bind:value={$deviceParams.name}
+        bind:value={$deviceParams.displayName}
         label="Device Name"
-        input$maxlength={18}
+        bind:disabled={$setupLoading}
+        input$maxlength={32}
       />
       <Select
         bind:value={$deviceParams.type}
         label="Device Type"
-        input$maxlength={18}
+        bind:disabled={$setupLoading}
       >
-        {#each deviceTypes as type}
-          <Option value={type}>{type}</Option>
+        {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+          <Option value={type}>{name}</Option>
         {/each}
       </Select>
     </div>
     <br />
-    <h4>User</h4>
+    <h6>User</h6>
     <div id="content">
       <Group variant="outlined">
         {#if newUser}
-          <Button variant="unelevated">
+          <Button variant="unelevated" bind:disabled={$setupLoading}>
             <Label>New</Label>
           </Button>
-          <Button on:click={() => (newUser = false)} variant="outlined">
+          <Button
+            bind:disabled={$setupLoading}
+            on:click={() => {
+              newUser = false;
+              setupError = "";
+            }}
+            variant="outlined"
+          >
             <Label>Connect to existing</Label>
           </Button>
         {:else}
-          <Button on:click={() => (newUser = true)} variant="outlined">
+          <Button
+            bind:disabled={$setupLoading}
+            on:click={() => {
+              newUser = true;
+              setupError = "";
+            }}
+            variant="outlined"
+          >
             <Label>New</Label>
           </Button>
-          <Button variant="unelevated">
+          <Button variant="unelevated" bind:disabled={$setupLoading}>
             <Label>Connect to existing</Label>
           </Button>
         {/if}
       </Group>
     </div>
     {#if newUser}
-      <div class="user">
-        <Textfield
-          bind:value={$userParams.name}
-          bind:invalid={profaneUsername.profane}
-          on:focusout={updateIsProfaneUsername}
-          label="Username"
-          input$maxlength={18}
-        />
-        <div class="vflex">
-          <h4>Avatar</h4>
-          <div class="avatar">
-            <img
-              src="https://api.dicebear.com/6.x/adventurer/svg?seed={$userParams.avatarSeed}&radius=50&backgroundColor=b6e3f4"
-              alt="Your Avatar"
-            />
-            <div class="fab">
-              <Fab
-                color="primary"
-                on:click={() => ($userParams.avatarSeed = nanoid(8))}
-                mini
-              >
-                <Icon class="material-icons">refresh</Icon>
-              </Fab>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Username />
     {:else}
       <div>
         <p>
           Please generate a linking code on a device already <br />
-          connected to the user by going to Settings > Devices ><br />
-          Generate linking code.
+          connected to the user by going to <br />
+          <strong>Settings</strong> > <strong>Devices</strong> >
+          <strong>Generate linking code</strong>.
         </p>
         <Textfield
           label="Linking Code"
           input$maxlength={6}
           bind:value={linkingCode}
-          input$placeholder="XXXXXX"
-          type="number"
+          bind:disabled={$setupLoading}
+          input$placeholder="6-digit code"
         />
       </div>
     {/if}
+    <div class="actions">
+      <Button bind:disabled={actionDisabled} on:click={handleConfirm}>
+        <Label>Finish</Label>
+      </Button>
+      {#if setupError}
+        <p style="color:red">{setupError}</p>
+      {/if}
+    </div>
   </Content>
-  <Actions>
-    <Button action="confirm" bind:disabled on:click={() => {if(browser) localStorage.setItem('setupDone', 'true')}}>
-      <Label>Finish</Label>
-    </Button>
-  </Actions>
 </Dialog>
 
 <style>
+  .actions {
+    display: flex;
+    flex-flow: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+  }
   #content {
+    margin-bottom: 1.6em;
     display: flex;
     flex-flow: row;
     justify-content: center;
     gap: 10px;
-  }
-
-  .user {
-    margin-top: 1em;
-    display: grid;
-    grid-template-columns: auto auto;
-    grid-gap: 1rem;
-  }
-
-  img {
-    width: 7em;
-  }
-
-  .vflex {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .avatar {
-    margin-top: 0.7em;
-    position: relative;
-  }
-
-  .fab {
-    position: absolute;
-    bottom: 0;
-    right: 0;
   }
 </style>

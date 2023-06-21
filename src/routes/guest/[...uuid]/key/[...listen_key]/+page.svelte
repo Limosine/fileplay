@@ -1,0 +1,55 @@
+<script lang="ts">
+  import Card from "@smui/card";
+  import { onMount } from "svelte";
+  import { writable } from "svelte/store";
+  import { page } from "$app/stores";
+  import { setup as pgp_setup } from "$lib/openpgp";
+
+  let received_files = writable<{ url: string; name: string }[]>([]);
+
+  onMount(async () => {
+    const { setup, connectAsListener } = await import("$lib/peerjs");
+    received_files = (await import("$lib/peerjs")).received_files;
+
+    pgp_setup();
+    setup("");
+
+    let reciever_uuid = $page.params.uuid;
+    let listen_key = $page.params.listen_key;
+    connectAsListener(reciever_uuid, listen_key);
+  });
+</script>
+
+<div class="center">
+  {#if $received_files.length != 0}
+    <Card padded>
+      <h6>Received file(s):</h6>
+      <p class="small"><br /></p>
+
+      {#each $received_files as received_file}
+        <a href={received_file.url} download={received_file.name}
+          >{received_file.name}</a
+        ><br />
+      {/each}
+    </Card>
+  {:else}
+    <Card padded>
+      <h6>Waiting for files...</h6>
+    </Card>
+  {/if}
+</div>
+
+<style>
+  p.small {
+    line-height: 0.2;
+  }
+  .center {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+  }
+</style>
