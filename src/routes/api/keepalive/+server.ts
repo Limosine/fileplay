@@ -19,19 +19,19 @@ export const GET: RequestHandler = async ({ platform, url }) => {
     .select("did")
     .where("code", "=", keepAliveCode)
     .executeTakeFirstOrThrow();
-  
+
   const { uid } = await db
     .updateTable("devices")
-    .set({ "lastSeenAt": dayjs().unix() })
+    .set({ lastSeenAt: dayjs().unix() })
     .where("did", "=", did)
     .returning("uid")
     .executeTakeFirstOrThrow();
-  
+
   await db
     .updateTable("users")
-    .set({ "lastSeenAt": dayjs().unix() })
+    .set({ lastSeenAt: dayjs().unix() })
     .where("uid", "=", uid)
     .execute();
-  
-  return new Response(null, { status: 204 });
+
+  return new Response(null, { status: 200 });
 };

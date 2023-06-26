@@ -9,12 +9,15 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did } = await loadSignedDeviceID(cookies, key, db);
 
-  const { pushSubscription, websocketId } = await request.json() as any; // todo validation using ajv / joi
+  const { pushSubscription, websocketId } = (await request.json()) as any; // todo validation using ajv / joi
 
   if (pushSubscription) {
     const res = await db
       .updateTable("devices")
-      .set({ pushSubscription: JSON.stringify(pushSubscription), websocketId: null })
+      .set({
+        pushSubscription: JSON.stringify(pushSubscription),
+        websocketId: null,
+      })
       .where("did", "=", did)
       .returning("did")
       .executeTakeFirst();
@@ -27,10 +30,9 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
       .where("did", "=", did)
       .returning("did")
       .executeTakeFirst();
-    
-    if (!res) throw error(500, "Failed to update peerjs id");
-  } else
-    throw error(400, "Missing push subscription or peerjs id");
 
-  return new Response(null, { status: 204 });
+    if (!res) throw error(500, "Failed to update peerjs id");
+  } else throw error(400, "Missing push subscription or peerjs id");
+
+  return new Response(null, { status: 200 });
 };

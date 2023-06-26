@@ -177,5 +177,5 @@ export const DELETE: RequestHandler = async ({
 
   await Promise.all(promises);
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };

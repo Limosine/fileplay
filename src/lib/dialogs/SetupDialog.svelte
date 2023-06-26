@@ -22,8 +22,8 @@
   import { publicKey_armored } from "$lib/openpgp";
   import Device from "$lib/components/Device.svelte";
 
-  let socketStore: Readable<any>;
-  let unsubscribeSocketStore = () => {};
+  // let socketStore: Readable<any>;
+  // let unsubscribeSocketStore = () => {};
 
   let open: boolean;
 
@@ -126,9 +126,9 @@
     setupLoading.set(false);
 
     getContent();
-    updatePeerJS_ID();
-    socketStore = (await import("$lib/websocket")).socketStore;
-    unsubscribeSocketStore = socketStore.subscribe(() => {});
+    // updatePeerJS_ID();
+    // socketStore = (await import("$lib/websocket")).socketStore;
+    // unsubscribeSocketStore = socketStore.subscribe(() => {});
 
     navigator.serviceWorker.ready.then((registration) => {
       registration.active?.postMessage({ type: "register_push", keepAliveCode });
@@ -147,14 +147,14 @@
       }
     } else {
       getContent();
-      socketStore = (await import("$lib/websocket")).socketStore;
-      unsubscribeSocketStore = socketStore.subscribe(() => {});
+      // socketStore = (await import("$lib/websocket")).socketStore;
+      // unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
   });
 
-  onDestroy(() => {
-    if (socketStore) unsubscribeSocketStore();
-  });
+  // onDestroy(() => {
+  //   if (socketStore) unsubscribeSocketStore();
+  // });
 </script>
 
 <svelte:window on:keydown={handleSetupKeyDown} />

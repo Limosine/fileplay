@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const { sid, peerJsId, encryptionPublicKey } = await request.json() as any;
+  const { sid, peerJsId, encryptionPublicKey } = (await request.json()) as any;
 
   // get sharing request
   const res1 = await db
@@ -72,7 +72,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     })
   );
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };
 
 export const DELETE: RequestHandler = async ({
@@ -85,7 +85,7 @@ export const DELETE: RequestHandler = async ({
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const { sid } = await request.json() as any;
+  const { sid } = (await request.json()) as any;
 
   // get and delete sharing request
   const res1 = await db
@@ -139,5 +139,5 @@ export const DELETE: RequestHandler = async ({
   }
   await Promise.all(promises);
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };

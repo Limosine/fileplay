@@ -12,14 +12,8 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
 
   const userInfo = await db
     .selectFrom("users")
-    .select([
-      "uid",
-      "displayName",
-      "avatarSeed",
-      "createdAt",
-      "lastSeenAt"
-    ])
-    .where('uid', '=', uid)
+    .select(["uid", "displayName", "avatarSeed", "createdAt", "lastSeenAt"])
+    .where("uid", "=", uid)
     .executeTakeFirstOrThrow();
 
   return json(userInfo);
@@ -41,7 +35,7 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
 
   if (!res1) throw error(500, "Failed to update user info");
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };
 
 export const DELETE: RequestHandler = async () => {
