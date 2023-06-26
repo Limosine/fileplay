@@ -26,7 +26,7 @@ imageCache();
 declare let self: ServiceWorkerGlobalScope;
 
 async function registerPushSubscription(): Promise<boolean> {
-  if (Notification.permission !== "granted") return false;
+  if (Notification.permission !== "granted" || !get('keepAliveCode')) return false;
   try {
     const subscription = await self.registration.pushManager.subscribe({
       userVisibleOnly: true,
@@ -71,7 +71,7 @@ self.addEventListener("message", async (event) => {
         event.source?.postMessage({ type: "push_registered", success });
         break;
       case "save_keep_alive_code":
-        await set('keepAliveCode', event.data.code)
+        await set('keepAliveCode', event.data.keepAliveCode)
       default:
         console.log("Unknown message type", event.data.type);
     }

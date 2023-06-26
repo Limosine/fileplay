@@ -131,6 +131,9 @@
     // socketStore = (await import("$lib/websocket")).socketStore;
     // unsubscribeSocketStore = socketStore.subscribe(() => {});
 
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.active?.postMessage({ type: "save_keep_alive_code", keepAliveCode });
+    });
     messages.init()
   }
 
