@@ -1,10 +1,5 @@
 <script lang="ts">
-  import Drawer, {
-    Content,
-    Header,
-    Subtitle,
-    Title,
-  } from "@smui/drawer";
+  import Drawer, { Content, Header, Subtitle, Title } from "@smui/drawer";
   import { AutoAdjust } from "@smui/top-app-bar";
 
   import { topAppBar } from "./TopAppBar.svelte";
@@ -15,7 +10,7 @@
 
   import { add_open } from "$lib/stores/Dialogs";
 
-  import { contacts, contacts_loaded, getContacts } from "$lib/personal";
+  import { contacts, contacts_loaded, updateContacts } from "$lib/personal";
 
   import { contacts_drawer_open as open } from "$lib/stores/Dialogs";
   import { page } from "$app/stores";
@@ -43,7 +38,7 @@
         <Button
           class="material-icons"
           variant="unelevated"
-          on:click={() => (getContacts())}
+          on:click={() => updateContacts()}
         >
           refresh
         </Button>

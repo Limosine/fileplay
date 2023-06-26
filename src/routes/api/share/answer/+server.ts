@@ -75,7 +75,6 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   return new Response(null, { status: 204 });
 };
 
-// todo DELETE for rejecting a sharing request on all devices
 export const DELETE: RequestHandler = async ({
   cookies,
   platform,

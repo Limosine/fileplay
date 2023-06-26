@@ -19,7 +19,7 @@
     active,
     contacts_drawer_open,
   } from "$lib/stores/Dialogs";
-  import { getContacts, getDeviceInfos, getDevices } from "$lib/personal";
+  import { updateContacts, getDeviceInfos, getDevices } from "$lib/personal";
   import { default_messages as messages } from "$lib/messages";
 
   const handleDrop = (e: DragEvent) => {
@@ -40,7 +40,7 @@
     refresh_interval = setInterval(async () => {
       if ($select_open) getDeviceInfos();
       if ($settings_open && $active == "Devices") getDevices();
-      if ($contacts_drawer_open) getContacts();
+      if ($contacts_drawer_open) updateContacts();
     }, 5000);
   }
 
