@@ -27,7 +27,8 @@
 
   if ("serviceWorker" in navigator) {
     // @ts-ignore
-    navigator.serviceWorkeronmessage = (event) => {
+    navigator.serviceWorker.onmessage = (event) => {
+      console.log('received return_share_details from service worker')
       if (event.data.type == "return_share_details") {
         return_share_details = true;
       }
@@ -74,7 +75,9 @@
 
     pgp_setup();
     setup().then(() => {
+      console.log('completed peerjs initialization')
       if (return_share_details) {
+        console.log('sending return_share_details to service worker')
         // @ts-ignore
         navigator.serviceWorker.controller.postMessage({
           type: "send_share_details",
