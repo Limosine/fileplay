@@ -73,6 +73,7 @@ self.addEventListener("message", async (event) => {
         break;
       case "save_keep_alive_code":
         await set("keepAliveCode", event.data.keepAliveCode);
+        break;
       default:
         console.log("Unknown message type", event.data.type);
     }

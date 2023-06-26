@@ -93,7 +93,7 @@ export const GET: RequestHandler = async ({
         `SHARE:${res2.sid}`
       )
         .then(() => sent++)
-        .catch(() => {})
+        .catch((e) => {console.error(e)})
     );
   }
 
