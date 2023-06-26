@@ -28,7 +28,7 @@
   if ("serviceWorker" in navigator) {
     // @ts-ignore
     navigator.serviceWorker.onmessage = (event) => {
-      console.log('received return_share_details from service worker')
+      console.log("received return_share_details from service worker");
       if (event.data.type == "return_share_details") {
         active_sid = event.data.sid;
       }
@@ -73,19 +73,22 @@
 
     link = (await import("$lib/peerjs")).link;
 
-    pgp_setup();
-    setup().then(() => {
-      console.log('completed peerjs initialization')
-      if (active_sid) {
-        console.log('sending return_share_details to service worker')
-        // @ts-ignore
-        navigator.serviceWorker.controller.postMessage({
-          type: "send_share_details",
-          sid: active_sid,
-          peerJsId: $sender_uuid,
-          encryptionPublicKey: publicKey_armored,
-        });
-      }
+    await messages.init();
+
+    pgp_setup()
+    const peerjs_setup = setup();
+
+    messages.on("return_share_details", async (data) => {
+      console.log("received return_share_details from peer");
+      active_sid = data.sid;
+      await peerjs_setup;
+      // @ts-ignore
+      navigator.serviceWorker.controller.postMessage({
+        type: "send_share_details",
+        sid: active_sid,
+        peerJsId: $sender_uuid,
+        encryptionPublicKey: publicKey_armored,
+      });
     });
 
     messages.init();
