@@ -1,3 +1,4 @@
+import type { MaybePromise } from "@sveltejs/kit";
 import { get, writable } from "svelte/store";
 
 export interface IContact {
@@ -8,15 +9,22 @@ export interface IContact {
   isOnline: number;
 }
 
-export const contacts = writable<Promise<IContact[]>>();
-
-export async function updateContacts(): Promise<void> {
-  await fetch("/api/contacts", {
+// contacts
+async function getContacts(): Promise<IContact[]> {
+  return fetch("/api/contacts", {
     method: "GET",
     headers: {
       accept: "application/json",
     },
-  }).then(async (res) => contacts.set(await res.json() as any))
+  })
+    .then(async (res) => (await res.json()) as IContact[])
+    .catch(() => [] as IContact[]);
+}
+
+export const contacts = writable<MaybePromise<IContact[]>>([]);
+
+export async function updateContacts(): Promise<void> {
+  contacts.set(await getContacts());
 }
 
 export const devices = writable<{
@@ -142,6 +150,6 @@ export async function updatePeerJS_ID() {
 
 export function getContent() {
   getUserInfo();
-  updateContacts();
+  contacts.set(getContacts());
   getDevices();
 }

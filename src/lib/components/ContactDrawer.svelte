@@ -14,6 +14,7 @@
 
   import { contacts_drawer_open as open } from "$lib/stores/Dialogs";
   import { page } from "$app/stores";
+  import { onMount } from "svelte";
 </script>
 
 <div dir="rtl">
@@ -38,7 +39,7 @@
         <Button
           class="material-icons"
           variant="unelevated"
-          on:click={() => updateContacts()}
+          on:click={updateContacts}
         >
           refresh
         </Button>
@@ -48,8 +49,8 @@
       <div class="list-box">
         {#await $contacts}
           <p>Contacts are loading...</p>
-        {:then contacts}
-          {#each contacts as contact}
+        {:then contacts_}
+          {#each contacts_ as contact}
             <Card>
               <PrimaryAction class="items-box">
                 <div class="box">
