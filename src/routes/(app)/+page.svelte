@@ -10,7 +10,7 @@
   import { open as select_open } from "$lib/stores/SelectContactStore";
 
   import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
-  import { setup as pgp_setup } from "$lib/openpgp";
+  import { setup as pgp_setup, publicKey_armored } from "$lib/openpgp";
 
   import SettingsDialog from "$lib/dialogs/SettingsDialog.svelte";
 
@@ -21,6 +21,18 @@
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDeviceInfos, getDevices } from "$lib/personal";
   import { default_messages as messages } from "$lib/messages";
+  import { sender_uuid } from "$lib/peerjs";
+
+  let return_share_details = false;
+
+  if ("serviceWorker" in navigator) {
+    // @ts-ignore
+    navigator.serviceWorkeronmessage = (event) => {
+      if (event.data.type == "return_share_details") {
+        return_share_details = true;
+      }
+    };
+  }
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -61,7 +73,16 @@
     link = (await import("$lib/peerjs")).link;
 
     pgp_setup();
-    setup("");
+    setup().then(() => {
+      if (return_share_details) {
+        // @ts-ignore
+        navigator.serviceWorker.controller.postMessage({
+          type: "send_share_details",
+          peerJsId: $sender_uuid,
+          encryptionPublicKey: publicKey_armored,
+        });
+      }
+    });
 
     messages.init();
   });

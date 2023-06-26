@@ -74,6 +74,15 @@ self.addEventListener("message", async (event) => {
       case "save_keep_alive_code":
         await set("keepAliveCode", event.data.keepAliveCode);
         break;
+      case "send_share_details":
+        await fetch("/api/share/answer", {
+          method: "POST",
+          body: JSON.stringify({
+            peerJsId: event.data.peerJsId,
+            encryptionPublicKey: event.data.encryptionPublicKey,
+          }),
+        });
+        break;
       default:
         console.log("Unknown message type", event.data.type);
     }
@@ -155,11 +164,36 @@ self.addEventListener("notificationclick", async (event) => {
   switch (event.action) {
     case "send_share_accept":
       console.log("Accepting sharing request...");
+      await deleteNotifications(event.notification.data.tag);
       // TODO forward to client, post to /share/accept
+      // pull client into focus or open window
+      const clients = (await self.clients.matchAll()) as WindowClient[];
+      // prefer an already focused client, else the first one, else a new one
+      let focusedclient;
+      for (const client of clients) {
+        if (client.focused) {
+          focusedclient = client;
+          break;
+        }
+      }
+      let client: WindowClient | null;
+      if (focusedclient) client = focusedclient;
+      else if (clients.length > 0) client = clients[0];
+      else client = await self.clients.openWindow("/");
 
+      if (client) {
+        await Promise.all([client.navigate("/"), client.focus()]);
+        setTimeout(() => {
+          client?.postMessage({
+            type: "return_share_details",
+            sid: event.notification.data.sid,
+          });
+        }, 500);
+      }
       break;
     case "send_share_reject":
       console.log("Rejecting sharing request...");
+      await deleteNotifications(event.notification.data.tag);
       await fetch("/api/share/answer", {
         method: "DELETE",
         body: JSON.stringify({

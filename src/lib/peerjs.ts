@@ -15,6 +15,17 @@ import { updatePeerJS_ID } from "./personal";
 import { files, transferHandler } from "./stores/ReceivedFiles";
 import { chunkString, sortArrayByOrder } from "./utils";
 
+let return_share_details = false
+
+if ("serviceWorker" in navigator) {
+  // @ts-ignore
+  navigator.serviceWorker.ready.then((registration) => {
+    registration.addEventListener("message", (event: MessageEvent) => {
+      if (event.data.type === 'return_share_details') return_share_details = true
+    });
+  });
+}
+
 let peer: Peer;
 export const sender_uuid = writable<string>();
 
@@ -27,18 +38,22 @@ export const received_files = writable<{ url: string; name: string }[]>([]);
 const cachedChunks: { transferID: string; chunks: string[] }[] = [];
 const chunkIDs: { transferID: string; chunkIDs: string[] }[] = [];
 
-const openPeer = (uuid?: string) => {
+const openPeer = async (uuid?: string) => {
   if (uuid) {
     peer = new Peer(uuid);
   } else peer = new Peer();
 
-  peer.on("open", (id) => {
-    sender_uuid.set(id);
+  await new Promise<void>((resolve) => {
+    peer.on("open", (id) => {
+      sender_uuid.set(id);
 
-    if (localStorage.getItem("loggedIn")) {
-      updatePeerJS_ID();
-    }
-  });
+      if (localStorage.getItem("loggedIn")) {
+        updatePeerJS_ID();
+      }
+      resolve()
+    });
+  })
+  
 };
 
 export const disconnectPeer = () => {
@@ -466,7 +481,7 @@ export const send = (
                   };
 
                   conn.send(info);
-                  console.log()
+                  console.log();
                 }
                 const info: FileSharing.SendComplete = {
                   data: transferID,
@@ -502,7 +517,7 @@ export const send = (
                           },
                           type: "TransferChunk",
                         };
-                        conn.send(info)
+                        conn.send(info);
                       }
                     }
                   },
@@ -546,7 +561,7 @@ export const send = (
   }
 };
 
-// not needed this will be handled by the service worker
+// not needed
 // export const multiSend = (files: FileList, reciever_uuids: string[], publicKeys: string[]) => {
 //   let reciever_uuid: string;
 //   for (reciever_uuid of reciever_uuids) {
@@ -554,7 +569,7 @@ export const send = (
 //   };
 // };
 
-export const setup = (uuid?: string) => {
-  openPeer(uuid);
+export const setup = async (uuid?: string) => {
+  await openPeer(uuid);
   listen();
 };
