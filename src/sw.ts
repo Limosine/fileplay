@@ -26,7 +26,8 @@ imageCache();
 declare let self: ServiceWorkerGlobalScope;
 
 async function registerPushSubscription(): Promise<boolean> {
-  if (Notification.permission !== "granted" || !get('keepAliveCode')) return false;
+  if (Notification.permission !== "granted" || !get("keepAliveCode"))
+    return false;
   try {
     const subscription = await self.registration.pushManager.subscribe({
       userVisibleOnly: true,
@@ -37,17 +38,17 @@ async function registerPushSubscription(): Promise<boolean> {
       body: JSON.stringify({ pushSubscription: subscription }),
     });
     if (!res.ok) {
-      console.log('res is not ok')
+      console.log("res is not ok");
       return false;
     }
 
     // start keepalive
     setInterval(async () => {
-      await fetch(`/api/keepalive?code=${await get('keepAliveCode')}`, {
+      await fetch(`/api/keepalive?code=${await get("keepAliveCode")}`, {
         method: "GET",
       });
     }, JSON.parse(">ONLINE_STATUS_REFRESH_TIME<"));
-    console.log('keepalive started')
+    console.log("keepalive started");
 
     return true;
   } catch {
@@ -71,7 +72,7 @@ self.addEventListener("message", async (event) => {
         event.source?.postMessage({ type: "push_registered", success });
         break;
       case "save_keep_alive_code":
-        await set('keepAliveCode', event.data.keepAliveCode)
+        await set("keepAliveCode", event.data.keepAliveCode);
       default:
         console.log("Unknown message type", event.data.type);
     }
@@ -126,9 +127,9 @@ self.addEventListener("push", (event) => {
               sid: data.sid,
               peerJsId: data.peerJsId,
               encryptionPublicKey: data.encryptionPublicKey,
-            })
-          })
-        })
+            });
+          });
+        });
         break;
       case "share_rejected":
         console.log("got push other device rejected sharing request");
@@ -137,9 +138,9 @@ self.addEventListener("push", (event) => {
             client.postMessage({
               type: "share_rejected",
               sid: data.sid,
-            })
-          })
-        })
+            });
+          });
+        });
         break;
       default:
         // maybe foward all other messages to client
@@ -173,9 +174,10 @@ self.addEventListener("notificationclick", async (event) => {
 self.addEventListener("activate", async () => {
   self.clients.claim();
   // try to register push notifications
-    await registerPushSubscription().then((success) => {
-      if (success) console.log("registered subscription");
-      else console.log("Failed to register push notifications");
+  await registerPushSubscription().then((success) => {
+    if (success) console.log("registered subscription");
+    else console.log("Failed to register push notifications");
+  });
 });
 
 // TODO
