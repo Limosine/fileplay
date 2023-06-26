@@ -14,8 +14,13 @@
 
   import SettingsDialog from "$lib/dialogs/SettingsDialog.svelte";
 
-  import { settings_open, active, contacts_drawer_open } from "$lib/stores/Dialogs";
+  import {
+    settings_open,
+    active,
+    contacts_drawer_open,
+  } from "$lib/stores/Dialogs";
   import { getContacts, getDeviceInfos, getDevices } from "$lib/personal";
+  import { default_messages as messages } from "$lib/messages";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -57,6 +62,8 @@
 
     pgp_setup();
     setup("");
+
+    messages.init();
   });
 </script>
 

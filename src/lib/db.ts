@@ -49,6 +49,11 @@ interface SharingTable {
   expires: ColumnType<number, number, undefined>;
 }
 
+interface keepAliveCodesTable {
+  code: string; // indexed, primary
+  did: number; // foreign key devices.id
+}
+
 export interface DB {
   users: UsersTable;
   devices: DecivesTable;
@@ -56,6 +61,7 @@ export interface DB {
   devicesLinkCodes: DevicesLinkCodesTable;
   contactsLinkCodes: ContactsLinkCodesTable;
   sharing: SharingTable;
+  keepAliveCodes: keepAliveCodesTable;
 }
 
 export type Database = Kysely<DB>;

@@ -57,3 +57,9 @@ create table sharing (
 
 create index idx_contacts_a on contacts(a);
 create index idx_contacts_b on contacts(b);
+
+create table keepAliveCodes (
+    code text primary key not null,  -- the keep alive code
+    did integer not null,  -- the device id to keep alive
+    foreign key (did) references devices(did)
+);

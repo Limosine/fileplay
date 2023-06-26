@@ -11,7 +11,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // todo revoke offer for this user and clear all notifications
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const { did, uid } = await loadSignedDeviceID(cookies, key, db);
+  const { uid } = await loadSignedDeviceID(cookies, key, db);
 
   const { sid, peerJsId, encryptionPublicKey } = await request.json() as any;
 

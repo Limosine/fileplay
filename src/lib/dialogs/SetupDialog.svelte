@@ -10,6 +10,7 @@
   import { onDestroy, onMount } from "svelte";
   import { getContent, updatePeerJS_ID } from "$lib/personal";
   import { DeviceType } from "$lib/common";
+  import { set } from "idb-keyval";
 
   import {
     deviceParams,
@@ -56,7 +57,7 @@
 
   async function handleResponseError(res: Response) {
     setupLoading.set(false);
-    const json_ = await res.json();
+    const json_ = (await res.json()) as any;
     if (json_) {
       setupError = json_.message;
     } else {
@@ -91,6 +92,8 @@
         return;
       }
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
+      const { code } = (await res.json()) as any;
+      await set("keepAliveCode", code);
     }
     switch (newUser) {
       case true:
@@ -121,15 +124,15 @@
     localStorage.setItem("loggedIn", "true");
     open = false;
     setupLoading.set(false);
-  
+
     getContent();
     updatePeerJS_ID();
     socketStore = (await import("$lib/websocket")).socketStore;
     unsubscribeSocketStore = socketStore.subscribe(() => {});
 
-    navigator.serviceWorker.ready.then(registration => {
-      registration.active?.postMessage({type: 'register_push'});
-    })
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.active?.postMessage({ type: "register_push" });
+    });
   }
 
   onMount(async () => {

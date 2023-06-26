@@ -13,6 +13,7 @@ import {
   googleFontsCache,
 } from "workbox-recipes";
 import { generateKey } from "openpgp/lightweight";
+import { get } from "idb-keyval";
 
 pageCache();
 
@@ -31,16 +32,23 @@ async function registerPushSubscription(): Promise<boolean> {
       userVisibleOnly: true,
       applicationServerKey: ">PUBLIC_VAPID_KEY<",
     });
-    const res = await fetch("/api/push/subscribe", {
+    const res = await fetch("/api/notifications/subscribe", {
       method: "POST",
       body: JSON.stringify({ pushSubscription: subscription }),
     });
     if (!res.ok) return false;
 
+    // start keepalive
+    setInterval(async () => {
+      await fetch(`/api/keepalive?code=${await get("keepAliveCode")}`, {
+        method: "GET",
+      });
+    }, JSON.parse(">KEEPALIVE_INTERVAL<"));
+
     console.log("Subscribed to push notifications");
     return true;
   } catch {
-    console.log('Failed to subscribe to push notifications')
+    console.log("Failed to subscribe to push notifications");
     return false;
   }
 }
@@ -56,8 +64,8 @@ self.addEventListener("message", async (event) => {
         break;
       // register push notifications (called after setup, otherwise already initialized)
       case "register_push":
-        const success = await registerPushSubscription()
-        event.source?.postMessage({ type: "push_registered", success })
+        const success = await registerPushSubscription();
+        event.source?.postMessage({ type: "push_registered", success });
         break;
       default:
         console.log("Unknown message type", event.data.type);
@@ -106,11 +114,27 @@ self.addEventListener("push", (event) => {
         break;
       case "share_accepted":
         console.log("got push other device accepted sharing request");
-        // TODO forward to client
+        self.clients.matchAll().then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: "share_accepted",
+              sid: data.sid,
+              peerJsId: data.peerJsId,
+              encryptionPublicKey: data.encryptionPublicKey,
+            })
+          })
+        })
         break;
       case "share_rejected":
         console.log("got push other device rejected sharing request");
-        // TODO forward to client
+        self.clients.matchAll().then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: "share_rejected",
+              sid: data.sid,
+            })
+          })
+        })
         break;
       default:
         // maybe foward all other messages to client
@@ -141,15 +165,16 @@ self.addEventListener("notificationclick", async (event) => {
   }
 });
 
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", async () => {
   self.clients.claim();
-  event.waitUntil(
-    // try to register push notifications
-    registerPushSubscription().then((success) => {
-      if (success) console.log("registered subscription");
-      else console.log("Failed to register push notifications");
-    })
-  );
+  // try to register push notifications
+  await registerPushSubscription().then((success) => {
+    if (success) console.log("registered subscription");
+    else console.log("Failed to register push notifications");
+  });
+
+  // register just in case, returns null if not set up or supportet
+  await registerPushSubscription();
 });
 
 // TODO
