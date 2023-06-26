@@ -191,7 +191,7 @@ self.addEventListener("notificationclick", async (event) => {
             });
           else
             console.log('client mysteriously disappeared')
-        }, 300);
+        }, 1500);
       }
       break;
     case "send_share_reject":

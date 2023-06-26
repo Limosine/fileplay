@@ -23,14 +23,14 @@
   import { default_messages as messages } from "$lib/messages";
   import { sender_uuid } from "$lib/peerjs";
 
-  let return_share_details = false;
+  let active_sid: number;
 
   if ("serviceWorker" in navigator) {
     // @ts-ignore
     navigator.serviceWorker.onmessage = (event) => {
       console.log('received return_share_details from service worker')
       if (event.data.type == "return_share_details") {
-        return_share_details = true;
+        active_sid = event.data.sid;
       }
     };
   }
@@ -76,11 +76,12 @@
     pgp_setup();
     setup().then(() => {
       console.log('completed peerjs initialization')
-      if (return_share_details) {
+      if (active_sid) {
         console.log('sending return_share_details to service worker')
         // @ts-ignore
         navigator.serviceWorker.controller.postMessage({
           type: "send_share_details",
+          sid: active_sid,
           peerJsId: $sender_uuid,
           encryptionPublicKey: publicKey_armored,
         });
