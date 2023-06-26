@@ -12,7 +12,7 @@ import {
   encryptFilesWithPassword,
 } from "./openpgp";
 import { updatePeerJS_ID } from "./personal";
-import { transferHandler } from "./stores/ReceivedFiles";
+import { files, transferHandler } from "./stores/ReceivedFiles";
 import { chunkString, sortArrayByOrder } from "./utils";
 
 let peer: Peer;
@@ -50,6 +50,7 @@ const listen = () => {
     connections.push(conn);
 
     conn.on("data", function (received_data) {
+      console.log(received_data);
       handleData(received_data, conn);
     });
   });
@@ -123,6 +124,7 @@ const handleData = (data: any, conn: DataConnection) => {
       }
       case "TransferChunk": {
         const casted = data as FileSharing.TransferChunkMessage;
+        console.log("Received DATA: ", casted);
         const entry = transferHandler.receivedChunks.find((value) => {
           value.transferID == casted.data.transferID;
         });
@@ -216,9 +218,6 @@ const handleData = (data: any, conn: DataConnection) => {
                 receivedChunks.info,
                 process.data.chunkIDs
               );
-              const extractedChunks = sortedChunks.map((value) => {
-                return value.fileChunk;
-              });
               const joinedString = sortedChunks.join();
 
               let decrypted_files;
@@ -243,6 +242,12 @@ const handleData = (data: any, conn: DataConnection) => {
                 }
               });
             }
+
+            files.set({
+              currentChunks: 0,
+              currentFiles: 0,
+              totalFiles: 0,
+            });
 
             transferHandler.receivedChunks =
               transferHandler.receivedChunks.filter((value) => {
@@ -321,73 +326,6 @@ const handleData = (data: any, conn: DataConnection) => {
     }
   }
 };
-// } else if (typeof data.file) {
-//   fileInfos.forEach((val, index, arr) => {
-//     if (val.uuid === data.uuid) {
-//       val.files.forEach((val2, index2, arr2) => {
-//         if (val2.length < 10) {
-//           arr2[index2] = [...val2, data.file];
-//         }
-//       });
-//     }
-//   });
-
-//   let finished = true;
-//   let total = 0;
-//   let downloadedFiles = 0;
-//   fileInfos.forEach((val) => {
-//     val.files.forEach((f) => {
-//       if (f.length != 10) {
-//         finished = false;
-//         return;
-//       }
-
-//       total++;
-//     });
-//   });
-
-//   let count = 0;
-//   fileInfos.forEach((val) => {
-//     val.files.forEach((f) => {
-//       if (f.length == 10) {
-//         downloadedFiles++;
-//       } else {
-//         count = f.length;
-//       }
-//     });
-//   });
-//   files.update(() => {
-//     return {
-//       total,
-//       done: downloadedFiles,
-//       partialProgress: count,
-//     };
-//   });
-
-//   if (finished) {
-//     fileInfos.forEach((val) => {
-//       if (val.uuid === data.uuid) {
-//         val.files.forEach((val2, index2, arr2) => {
-//           arr2[index2] = val2.sort((a, b) => {
-//             return b.part - a.part;
-//           });
-//         });
-//       }
-//     });
-
-//     let files = [];
-
-//     fileInfos.forEach((info) => {
-//       info.files.forEach((val) => {
-//         files.push(val.join());
-//       });
-//     });
-
-//     decryptFilesWithPassword()
-
-//   }
-// }
-// };
 
 const createFileURL = (file: any) => {
   var blob = new Blob([file]);
@@ -528,6 +466,7 @@ export const send = (
                   };
 
                   conn.send(info);
+                  console.log()
                 }
                 const info: FileSharing.SendComplete = {
                   data: transferID,
@@ -563,6 +502,7 @@ export const send = (
                           },
                           type: "TransferChunk",
                         };
+                        conn.send(info)
                       }
                     }
                   },

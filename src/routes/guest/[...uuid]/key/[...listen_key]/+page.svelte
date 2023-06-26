@@ -9,13 +9,8 @@
   let received_files = writable<{ url: string; name: string }[]>([]);
   let fileInfos = $files;
   console.log(fileInfos);
-  let length = 0;
   $: {
-    length = 0;
-
-    // fileInfos.forEach((val) => {
-    //   length += val.fileSizes.length;
-    // });
+    console.log(fileInfos)
   }
   onMount(async () => {
     const { setup, connectAsListener } = await import("$lib/peerjs");
@@ -63,6 +58,8 @@
   {:else}
     <Card padded>
       <h6>{waiting}</h6>
+      <h6>Progress: {fileInfos.currentChunks} / 10</h6>
+      <h6>{fileInfos.currentFiles} / {fileInfos.currentChunks}</h6>
     </Card>
   {/if}
 </div>

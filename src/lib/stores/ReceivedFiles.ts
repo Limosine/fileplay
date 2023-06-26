@@ -1,10 +1,16 @@
-import { readable, writable } from "svelte/store";
+import { writable } from "svelte/store";
 
 export const files = writable<{
-  done: number;
-  total: number;
-  partialProgress: number;
-}>();
+  currentChunks: number;
+  currentFiles: number;
+  totalFiles: number;
+}>({
+  currentChunks: 0,
+  currentFiles: 0,
+  totalFiles: 0,
+});
+
+export const connectionOpen = writable<boolean>(false);
 
 class TransferHandler {
   private transferProcesses: FileSharing.TransferFileMessage[] = [];
@@ -131,6 +137,14 @@ class TransferHandler {
   }
 
   waitForChunks(transferID: string, reject: () => void): void {
+    const info = this.receivedChunks.at(-1)?.info;
+    if (info) {
+      files.set({
+        currentChunks: info.length,
+        currentFiles: this.receivedChunks.length,
+        totalFiles: this.transferProcesses.length,
+      });
+    }
     setTimeout(() => {
       const currentDate = new Date();
       const lastDate = this.lastChunk.find((value) => {
