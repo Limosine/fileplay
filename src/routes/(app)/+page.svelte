@@ -10,12 +10,30 @@
   import { open as select_open } from "$lib/stores/SelectContactStore";
 
   import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
-  import { setup as pgp_setup } from "$lib/openpgp";
+  import { setup as pgp_setup, publicKey_armored } from "$lib/openpgp";
 
   import SettingsDialog from "$lib/dialogs/SettingsDialog.svelte";
 
-  import { settings_open, active, contacts_drawer_open } from "$lib/stores/Dialogs";
-  import { getContacts, getDeviceInfos, getDevices } from "$lib/personal";
+  import {
+    settings_open,
+    active,
+    contacts_drawer_open,
+  } from "$lib/stores/Dialogs";
+  import { updateContacts, getDeviceInfos, getDevices } from "$lib/personal";
+  import { default_messages as messages } from "$lib/messages";
+  import { sender_uuid } from "$lib/peerjs";
+
+  let active_sid: number;
+
+  if ("serviceWorker" in navigator) {
+    // @ts-ignore
+    navigator.serviceWorker.onmessage = (event) => {
+      console.log("received return_share_details from service worker");
+      if (event.data.type == "return_share_details") {
+        active_sid = event.data.sid;
+      }
+    };
+  }
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -33,9 +51,9 @@
 
   function startRefresh() {
     refresh_interval = setInterval(async () => {
-      if ($select_open) getDeviceInfos();
+      if ($select_open) updateContacts();
       if ($settings_open && $active == "Devices") getDevices();
-      if ($contacts_drawer_open) getContacts();
+      if ($contacts_drawer_open) updateContacts();
     }, 5000);
   }
 
@@ -55,8 +73,25 @@
 
     link = (await import("$lib/peerjs")).link;
 
-    pgp_setup();
-    setup("");
+    await messages.init();
+
+    pgp_setup()
+    const peerjs_setup = setup();
+
+    messages.on("return_share_details", async (data) => {
+      console.log("received return_share_details from peer");
+      active_sid = data.sid;
+      await peerjs_setup;
+      // @ts-ignore
+      navigator.serviceWorker.controller.postMessage({
+        type: "send_share_details",
+        sid: active_sid,
+        peerJsId: $sender_uuid,
+        encryptionPublicKey: publicKey_armored,
+      });
+    });
+
+    messages.init();
   });
 </script>
 

@@ -10,6 +10,7 @@
   import { onDestroy, onMount } from "svelte";
   import { getContent, updatePeerJS_ID } from "$lib/personal";
   import { DeviceType } from "$lib/common";
+  import { set } from "idb-keyval";
 
   import {
     deviceParams,
@@ -20,9 +21,10 @@
   import Username from "$lib/components/Username.svelte";
   import { publicKey_armored } from "$lib/openpgp";
   import Device from "$lib/components/Device.svelte";
+  import { default_messages as messages } from "$lib/messages";
 
-  let socketStore: Readable<any>;
-  let unsubscribeSocketStore = () => {};
+  // let socketStore: Readable<any>;
+  // let unsubscribeSocketStore = () => {};
 
   let open: boolean;
 
@@ -56,7 +58,7 @@
 
   async function handleResponseError(res: Response) {
     setupLoading.set(false);
-    const json_ = await res.json();
+    const json_ = (await res.json()) as any;
     if (json_) {
       setupError = json_.message;
     } else {
@@ -66,6 +68,7 @@
 
   async function handleConfirm() {
     if (actionDisabled) return;
+    let keepAliveCode: string;
     setupLoading.set(true);
     // setup device if not already done so
     let storedDeviceParams = localStorage.getItem("deviceParams");
@@ -90,6 +93,7 @@
         handleResponseError(res);
         return;
       }
+      keepAliveCode = (await res.json() as any).keepAliveCode;
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
     }
     switch (newUser) {
@@ -121,15 +125,16 @@
     localStorage.setItem("loggedIn", "true");
     open = false;
     setupLoading.set(false);
-  
-    getContent();
-    updatePeerJS_ID();
-    socketStore = (await import("$lib/websocket")).socketStore;
-    unsubscribeSocketStore = socketStore.subscribe(() => {});
 
-    navigator.serviceWorker.ready.then(registration => {
-      registration.active?.postMessage({type: 'register_push'});
-    })
+    getContent();
+    // updatePeerJS_ID();
+    // socketStore = (await import("$lib/websocket")).socketStore;
+    // unsubscribeSocketStore = socketStore.subscribe(() => {});
+
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.active?.postMessage({ type: "save_keep_alive_code", keepAliveCode });
+    });
+    messages.init()
   }
 
   onMount(async () => {
@@ -144,14 +149,14 @@
       }
     } else {
       getContent();
-      socketStore = (await import("$lib/websocket")).socketStore;
-      unsubscribeSocketStore = socketStore.subscribe(() => {});
+      // socketStore = (await import("$lib/websocket")).socketStore;
+      // unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
   });
 
-  onDestroy(() => {
-    if (socketStore) unsubscribeSocketStore();
-  });
+  // onDestroy(() => {
+  //   if (socketStore) unsubscribeSocketStore();
+  // });
 </script>
 
 <svelte:window on:keydown={handleSetupKeyDown} />

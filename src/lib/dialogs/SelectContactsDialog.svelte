@@ -8,13 +8,11 @@
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
   import {
-    deviceInfos_loaded,
-    deviceInfos,
-    getDeviceInfos,
+    contacts,
   } from "$lib/personal";
   import { getDicebearUrl } from "$lib/common";
   import { userParams } from "$lib/stores/Dialogs";
-  import { publicKey_armored } from "$lib/openpgp";
+  import { default_messages as messages } from "$lib/messages";
 
   let addPendingFile: (files: FileList) => void;
   let send: (
@@ -54,13 +52,6 @@
     $open = false;
   }
 
-  let ghost_items;
-  function setGhostItems(devices: any[]) {
-    ghost_items = new Array(4 - (devices.length % 4));
-  }
-
-  const sent = writable<{ [did: number]: boolean }>({});
-
   const send_front = (device: {
     did: number;
     type: string;
@@ -68,9 +59,71 @@
     peerJsId: string;
     encryptionPublicKey: string;
   }) => {
-    $sent[device.did] = true;
     send($files, device.peerJsId, undefined, device.encryptionPublicKey);
   };
+
+  enum SendState {
+    IDLE,
+    REQUESTING,
+    REJECTED,
+    FAILED,
+    CANCELED,
+    SENDING,
+  }
+  const sendstate: { [cid: number]: SendState } = {};
+  const sharing_ids: { [sid: number]: number } = {};
+
+  function setSendState(cid: number, state: SendState) {
+    sendstate[cid] = state;
+    if (
+      [SendState.FAILED, SendState.REJECTED, SendState.CANCELED].includes(state)
+    ) {
+      setTimeout(() => (sendstate[cid] = SendState.IDLE), 1000);
+    }
+  }
+
+  async function handleContactClick(cid: number) {
+    console.log('handling contact click', cid)
+    switch (sendstate[cid]) {
+      case SendState.REQUESTING:
+        // cancel sharing request
+        await fetch(`/api/share/request?cid=${cid}`, { method: "DELETE" });
+        setSendState(cid, SendState.CANCELED);
+        break;
+      case SendState.SENDING:
+        // cancel sharing in progress
+        setSendState(cid, SendState.CANCELED);
+        // TODO implement
+        break;
+      default: // IDLE, CANCELED, FAILED, REJECTED
+        // request sharing to contact
+        await fetch(`/api/share/request?cid=${cid}`)
+          .then(async (res) => {
+            setSendState(cid, SendState.REQUESTING);
+            sharing_ids[((await res.json()) as any).sid] = cid;
+          })
+          .catch(() => {
+            setSendState(cid, SendState.FAILED);
+          });
+        // handle error in await, update sid
+        break;
+    }
+  }
+
+  messages.on("share_rejected", (data) => {
+    if(!(data.sid in sharing_ids)) return;
+    setSendState(sharing_ids[data.sid], SendState.REJECTED);
+    delete sharing_ids[data.sid];
+  });
+
+  messages.on("share_accepted", (data) => {
+    if(!(data.sid in sharing_ids)) return;
+    setSendState(sharing_ids[data.sid], SendState.SENDING);
+    // send files
+    send($files, data.peerJsId, undefined, data.encryptionPublicKey);
+    // TODO should share state be persistent in ui?
+    delete sharing_ids[data.sid];
+  });
 </script>
 
 <svelte:window on:keydown={handleSelectContactKeyDown} />
@@ -86,44 +139,32 @@
     <Paper variant="unelevated">
       <P_Content>
         <div id="content">
-          {#if $deviceInfos_loaded}
-            {#await $deviceInfos}
-              <p>Contacts are loading...</p>
-            {:then devices}
-              <div style="display: none">
+          <!-- change to contacts -->
+          {#await $contacts}
+            <p>Contacts are loading...</p>
+          {:then contacts}
+            <!-- <div style="display: none">
                 {setGhostItems(devices)}
-              </div>
-              {#each devices as device}
-                {#if $sent[device.did]}
-                  <Card class="selected" style="padding-top: 20px;">
-                    <Media
-                      style="background-image: url({getDicebearUrl(
-                        $userParams.avatarSeed,
-                        150
-                      )}); background-size: contain;"
-                      aspectRatio="16x9"
-                    />
-                    <Content>{device.displayName}</Content>
-                  </Card>
-                {:else}
-                  <Card on:click={() => send_front(device)}>
-                    <PrimaryAction style="padding-top: 20px;">
-                      <Media
-                        style="background-image: url({getDicebearUrl(
-                          $userParams.avatarSeed,
-                          150
-                        )}); background-size: contain;"
-                        aspectRatio="16x9"
-                      />
-                      <Content>{device.displayName}</Content>
-                    </PrimaryAction>
-                  </Card>
-                {/if}
-              {/each}
-            {:catch}
-              <p>Failed to load contacts.</p>
-            {/await}
-          {/if}
+              </div> -->
+            {#each contacts as contact}
+              <!-- TODO animate all sharingstates (progress spinner around dicebear?) -->
+              <Card
+                on:click={() => handleContactClick(contact.cid)}
+                class="selected"
+                style="padding-top: 20px;"
+              >
+                <Media
+                  style="background-image: url({getDicebearUrl(
+                    $userParams.avatarSeed,
+                    150
+                  )}); background-size: contain;"
+                />
+                <Content>{contact.displayName}</Content>
+              </Card>
+            {/each}
+          {:catch}
+            <p>Failed to load contacts.</p>
+          {/await}
         </div>
       </P_Content>
     </Paper>

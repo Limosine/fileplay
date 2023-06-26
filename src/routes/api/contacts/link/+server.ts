@@ -33,10 +33,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   const expires = dayjs().add(LINKING_EXPIRY_TIME, "millisecond").unix();
 
   // delete previous code
-  await db
-    .deleteFrom("contactsLinkCodes")
-    .where("uid", "=", uid)
-    .execute();
+  await db.deleteFrom("contactsLinkCodes").where("uid", "=", uid).execute();
 
   // insert the code into the devicesLinkCodes table
   const res1 = await db
@@ -44,8 +41,8 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
     .values({ code, uid, expires, created_did: did })
     .returning("code")
     .executeTakeFirst();
-  
-  if(!res1) throw error(500, "Could not create code");
+
+  if (!res1) throw error(500, "Could not create code");
 
   return json({ code, expires, refresh: LINKING_REFRESH_TIME });
 };
@@ -84,7 +81,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   if (res3) throw error(400, "Contacts already linked");
 
-  console.log(`Linking ${a} and ${b}`)
+  console.log(`Linking ${a} and ${b}`);
   // insert new linking
   const res2 = await db
     .insertInto("contacts")
@@ -93,11 +90,11 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .executeTakeFirst();
   if (!res2) throw error(500, "Could not create contact");
 
-  console.log(`Linked ${a} and ${b} using cid ${res2.cid}`)
+  console.log(`Linked ${a} and ${b} using cid ${res2.cid}`);
 
   // TODO send push to other device that someone linked to them
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };
 
 export const DELETE: RequestHandler = async ({ platform, cookies }) => {
@@ -115,5 +112,5 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
     .executeTakeFirst();
   if (!res1) throw error(500, "Could not revoke code");
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };

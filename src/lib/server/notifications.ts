@@ -20,6 +20,7 @@ export async function sendNotification(
   topic?: string
 ) {
   if (!platform.env?.MESSAGE_WS) throw new Error("Message WS not configured");
+  console.log("sending notification to", did);
 
   const db = createKysely(platform);
   const res1 = await db

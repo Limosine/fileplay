@@ -13,6 +13,7 @@ import {
   googleFontsCache,
 } from "workbox-recipes";
 import { generateKey } from "openpgp/lightweight";
+import { get, set } from "idb-keyval";
 
 pageCache();
 
@@ -25,22 +26,32 @@ imageCache();
 declare let self: ServiceWorkerGlobalScope;
 
 async function registerPushSubscription(): Promise<boolean> {
-  if (Notification.permission !== "granted") return false;
+  if (Notification.permission !== "granted" || !get("keepAliveCode"))
+    return false;
   try {
     const subscription = await self.registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: ">PUBLIC_VAPID_KEY<",
     });
-    const res = await fetch("/api/push/subscribe", {
+    const res = await fetch("/api/notifications/subscribe", {
       method: "POST",
       body: JSON.stringify({ pushSubscription: subscription }),
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      console.log("res is not ok");
+      return false;
+    }
 
-    console.log("Subscribed to push notifications");
+    // start keepalive
+    setInterval(async () => {
+      await fetch(`/api/keepalive?code=${await get("keepAliveCode")}`, {
+        method: "GET",
+      });
+    }, JSON.parse(">ONLINE_STATUS_REFRESH_TIME<"));
+    console.log("keepalive started");
+
     return true;
   } catch {
-    console.log('Failed to subscribe to push notifications')
     return false;
   }
 }
@@ -56,8 +67,21 @@ self.addEventListener("message", async (event) => {
         break;
       // register push notifications (called after setup, otherwise already initialized)
       case "register_push":
-        const success = await registerPushSubscription()
-        event.source?.postMessage({ type: "push_registered", success })
+        const success = await registerPushSubscription();
+        console.log("Push registration success", success);
+        event.source?.postMessage({ type: "push_registered", success });
+        break;
+      case "save_keep_alive_code":
+        await set("keepAliveCode", event.data.keepAliveCode);
+        break;
+      case "send_share_details":
+        await fetch("/api/share/answer", {
+          method: "POST",
+          body: JSON.stringify({
+            peerJsId: event.data.peerJsId,
+            encryptionPublicKey: event.data.encryptionPublicKey,
+          }),
+        });
         break;
       default:
         console.log("Unknown message type", event.data.type);
@@ -106,11 +130,27 @@ self.addEventListener("push", (event) => {
         break;
       case "share_accepted":
         console.log("got push other device accepted sharing request");
-        // TODO forward to client
+        self.clients.matchAll().then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: "share_accepted",
+              sid: data.sid,
+              peerJsId: data.peerJsId,
+              encryptionPublicKey: data.encryptionPublicKey,
+            });
+          });
+        });
         break;
       case "share_rejected":
         console.log("got push other device rejected sharing request");
-        // TODO forward to client
+        self.clients.matchAll().then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: "share_rejected",
+              sid: data.sid,
+            });
+          });
+        });
         break;
       default:
         // maybe foward all other messages to client
@@ -124,11 +164,44 @@ self.addEventListener("notificationclick", async (event) => {
   switch (event.action) {
     case "send_share_accept":
       console.log("Accepting sharing request...");
+      await deleteNotifications(event.notification.data.tag);
       // TODO forward to client, post to /share/accept
+      // pull client into focus or open window
+      const clients = (await self.clients.matchAll()) as WindowClient[];
+      // prefer an already focused client, else the first one, else a new one
+      let focusedclient;
+      for (const client of clients) {
+        if (client.focused) {
+          focusedclient = client;
+          break;
+        }
+      }
+      let client: WindowClient | null;
+      if (focusedclient) client = focusedclient;
+      else if (clients.length > 0) client = clients[0];
+      else client = await self.clients.openWindow("/");
 
+      if (client) {
+        await client.navigate("/");
+        try {
+          await client.focus();
+        } catch {}
+        setTimeout(async () => {
+          if (client) {
+            client.postMessage({
+              type: "return_share_details",
+              sid: event.notification.data.sid,
+            });
+            console.log('sent message to client')
+          }
+          else console.log("client mysteriously disappeared");
+        }, 1500);
+      }
+      console.log("handled accept click");
       break;
     case "send_share_reject":
       console.log("Rejecting sharing request...");
+      await deleteNotifications(event.notification.data.tag);
       await fetch("/api/share/answer", {
         method: "DELETE",
         body: JSON.stringify({
@@ -141,15 +214,13 @@ self.addEventListener("notificationclick", async (event) => {
   }
 });
 
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", async () => {
   self.clients.claim();
-  event.waitUntil(
-    // try to register push notifications
-    registerPushSubscription().then((success) => {
-      if (success) console.log("registered subscription");
-      else console.log("Failed to register push notifications");
-    })
-  );
+  // try to register push notifications
+  await registerPushSubscription().then((success) => {
+    if (success) console.log("registered subscription");
+    else console.log("Failed to register push notifications");
+  });
 });
 
 // TODO

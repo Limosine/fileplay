@@ -33,12 +33,8 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   // set expiration date
   const expires = dayjs().add(LINKING_EXPIRY_TIME, "millisecond").unix();
 
-
   // delete previous code
-  await db
-    .deleteFrom("devicesLinkCodes")
-    .where("uid", "=", uid)
-    .execute();
+  await db.deleteFrom("devicesLinkCodes").where("uid", "=", uid).execute();
 
   // insert the code into the devicesLinkCodes table
   const res1 = await db
@@ -79,7 +75,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .executeTakeFirst();
   if (!res2) throw error(500, "Could not link device");
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };
 
 export const DELETE: RequestHandler = async ({ platform, cookies }) => {
@@ -87,7 +83,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
-  if(!uid) throw error(401, "No user associated with this device");
+  if (!uid) throw error(401, "No user associated with this device");
 
   // delete the code
   const res1 = await db
@@ -98,5 +94,5 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
     .executeTakeFirst();
   if (!res1) throw error(500, "Could not revoke code");
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };

@@ -1,50 +1,38 @@
+import type { MaybePromise } from "@sveltejs/kit";
 import { get, writable } from "svelte/store";
 
-export interface Contact {
+export interface IContact {
   cid: number;
   displayName: string;
   avatarSeed: string;
   linkedAt: number;
   isOnline: number;
-};
-
-export const contacts = writable<
-  Promise<{
-    cid: number;
-    displayName: string;
-    avatarSeed: string;
-    linkedAt: number;
-    isOnline: number;
-  }[]>>();
-
-export const contacts_loaded = writable(false);
-
-export async function getContacts(): Promise<{
-  cid: number;
-  displayName: string;
-  avatarSeed: string;
-  linkedAt: number;
-  isOnline: number;
-}[]> {
-  const res = await fetch("/api/contacts", {
-    method: "GET",
-    headers: {
-      "accept": "application/json",
-    },
-  });
-
-  if (!res.ok) throw new Error("Failed to fetch contacts");
-
-  const contacts_new = await res.json();
-
-  contacts.set(contacts_new);
-  if (!get(contacts_loaded)) contacts_loaded.set(true);
-  
-  return contacts_new;
 }
 
-export const devices = writable<
-  Promise<{ self: {
+// contacts
+async function getContacts(): Promise<IContact[]> {
+  return fetch("/api/contacts", {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+    },
+  })
+    .then(async (res) => (await res.json()) as IContact[])
+    .catch(() => [] as IContact[]);
+}
+
+export const contacts = writable<MaybePromise<IContact[]>>([]);
+
+export async function updateContacts(): Promise<void> {
+  contacts.set(await getContacts());
+}
+
+export function updateContactsAsync(): void {
+  contacts.set(getContacts());
+}
+
+export const devices = writable<{
+  self: {
     did: number;
     type: string;
     displayName: string;
@@ -58,26 +46,25 @@ export const devices = writable<
     createdAt: number;
     lastSeenAt: number;
   }[];
-}>>();
+}>();
 export const devices_loaded = writable(false);
 
-export async function getDevices(): Promise<
-  { self: {
-      did: number;
-      type: string;
-      displayName: string;
-      createdAt: number;
-      lastSeenAt: number;
-    };
-    others: {
-      did: number;
-      type: string;
-      displayName: string;
-      createdAt: number;
-      lastSeenAt: number;
-    }[];
-  }
-> {
+export async function getDevices(): Promise<{
+  self: {
+    did: number;
+    type: string;
+    displayName: string;
+    createdAt: number;
+    lastSeenAt: number;
+  };
+  others: {
+    did: number;
+    type: string;
+    displayName: string;
+    createdAt: number;
+    lastSeenAt: number;
+  }[];
+}> {
   const res = await fetch("/api/devices", {
     method: "GET",
   });
@@ -121,23 +108,27 @@ export async function getUserInfo(): Promise<{
 }
 
 export const deviceInfos = writable<
-  Promise<{
+  Promise<
+    {
+      did: number;
+      type: string;
+      displayName: string;
+      peerJsId: string;
+      encryptionPublicKey: string;
+    }[]
+  >
+>();
+export const deviceInfos_loaded = writable(false);
+
+export async function getDeviceInfos(): Promise<
+  {
     did: number;
     type: string;
     displayName: string;
     peerJsId: string;
     encryptionPublicKey: string;
-  }[]>
->();
-export const deviceInfos_loaded = writable(false);
-
-export async function getDeviceInfos(): Promise<{
-  did: number;
-  type: string;
-  displayName: string;
-  peerJsId: string;
-  encryptionPublicKey: string;
-}[]> {
+  }[]
+> {
   const res = await fetch("/api/contacts/devices", {
     method: "GET",
   });
@@ -163,6 +154,6 @@ export async function updatePeerJS_ID() {
 
 export function getContent() {
   getUserInfo();
-  getContacts();
+  updateContactsAsync();
   getDevices();
 }

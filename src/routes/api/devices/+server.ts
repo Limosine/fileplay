@@ -63,7 +63,7 @@ export const POST: RequestHandler = async ({
 
   if (!res) throw error(500, "Failed to update device info");
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };
 
 export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
@@ -96,5 +96,5 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
 
   // inform the device that it has been deleted via push
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };

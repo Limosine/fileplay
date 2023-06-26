@@ -93,7 +93,7 @@ export const GET: RequestHandler = async ({
         `SHARE:${res2.sid}`
       )
         .then(() => sent++)
-        .catch(() => {})
+        .catch((e) => {console.error(e)})
     );
   }
 
@@ -177,5 +177,5 @@ export const DELETE: RequestHandler = async ({
 
   await Promise.all(promises);
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };
