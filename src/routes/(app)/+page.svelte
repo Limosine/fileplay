@@ -38,7 +38,7 @@
 
   function startRefresh() {
     refresh_interval = setInterval(async () => {
-      if ($select_open) getDeviceInfos();
+      if ($select_open) updateContacts();
       if ($settings_open && $active == "Devices") getDevices();
       if ($contacts_drawer_open) updateContacts();
     }, 5000);

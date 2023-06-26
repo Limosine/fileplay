@@ -5,14 +5,6 @@ compatibility_date = "2023-05-18"
 [build]
 command = "npm run build"
 
-[build.upload]
-main = "src/ws_do.ts"
-
-[durable_objects]
-bindings = [
-  { name = "MESSAGE_WS", class_name = "MessageWebSocketHibernation" } # Binding to our DurableObjectExample class
-]
-
 [env.preview]
 [[d1_databases]]
 binding = "DB"

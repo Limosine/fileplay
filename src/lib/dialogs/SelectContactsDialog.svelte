@@ -8,15 +8,10 @@
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
   import {
-    deviceInfos_loaded,
-    deviceInfos,
-    getDeviceInfos,
-    contacts_loaded,
     contacts,
   } from "$lib/personal";
   import { getDicebearUrl } from "$lib/common";
   import { userParams } from "$lib/stores/Dialogs";
-  import { publicKey_armored } from "$lib/openpgp";
   import { default_messages as messages } from "$lib/messages";
 
   let addPendingFile: (files: FileList) => void;
