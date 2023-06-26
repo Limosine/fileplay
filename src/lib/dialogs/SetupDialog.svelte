@@ -67,6 +67,7 @@
 
   async function handleConfirm() {
     if (actionDisabled) return;
+    let keepAliveCode: string;
     setupLoading.set(true);
     // setup device if not already done so
     let storedDeviceParams = localStorage.getItem("deviceParams");
@@ -91,9 +92,8 @@
         handleResponseError(res);
         return;
       }
+      keepAliveCode = (await res.json() as any).keepAliveCode;
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
-      const { code } = (await res.json()) as any;
-      await set("keepAliveCode", code);
     }
     switch (newUser) {
       case true:
@@ -131,7 +131,7 @@
     unsubscribeSocketStore = socketStore.subscribe(() => {});
 
     navigator.serviceWorker.ready.then((registration) => {
-      registration.active?.postMessage({ type: "register_push" });
+      registration.active?.postMessage({ type: "register_push", keepAliveCode });
     });
   }
 

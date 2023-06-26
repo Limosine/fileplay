@@ -13,7 +13,7 @@ import {
   googleFontsCache,
 } from "workbox-recipes";
 import { generateKey } from "openpgp/lightweight";
-import { get } from "idb-keyval";
+import { get, set } from "idb-keyval";
 
 pageCache();
 
@@ -25,8 +25,8 @@ imageCache();
 
 declare let self: ServiceWorkerGlobalScope;
 
-async function registerPushSubscription(): Promise<boolean> {
-  if (Notification.permission !== "granted" || !await get('keepAlivecode')) return false;
+async function registerPushSubscription(keepAliveCode: string): Promise<boolean> {
+  if (Notification.permission !== "granted") return false;
   try {
     const subscription = await self.registration.pushManager.subscribe({
       userVisibleOnly: true,
@@ -39,8 +39,9 @@ async function registerPushSubscription(): Promise<boolean> {
     if (!res.ok) return false;
 
     // start keepalive
+    await set('keepAliveCode', keepAliveCode)
     setInterval(async () => {
-      await fetch(`/api/keepalive?code=${await get("keepAliveCode")}`, {
+      await fetch(`/api/keepalive?code=${keepAliveCode}`, {
         method: "GET",
       });
     }, JSON.parse(">KEEPALIVE_INTERVAL<"));
@@ -62,7 +63,7 @@ self.addEventListener("message", async (event) => {
         break;
       // register push notifications (called after setup, otherwise already initialized)
       case "register_push":
-        const success = await registerPushSubscription();
+        const success = await registerPushSubscription(event.data.keepAliveCode);
         console.log("Push registration success", success);
         event.source?.postMessage({ type: "push_registered", success });
         break;
@@ -167,13 +168,12 @@ self.addEventListener("notificationclick", async (event) => {
 self.addEventListener("activate", async () => {
   self.clients.claim();
   // try to register push notifications
-  await registerPushSubscription().then((success) => {
-    if (success) console.log("registered subscription");
-    else console.log("Failed to register push notifications");
-  });
-
-  // register just in case, returns null if not set up or supported
-  console.log('registering push on activate: ', await registerPushSubscription())
+  const keepAliveCode = await get("keepAliveCode");
+  if (keepAliveCode)
+    await registerPushSubscription(keepAliveCode).then((success) => {
+      if (success) console.log("registered subscription");
+      else console.log("Failed to register push notifications");
+    });
 });
 
 // TODO
