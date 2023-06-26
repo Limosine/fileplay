@@ -10,7 +10,7 @@
 
   import { add_open } from "$lib/stores/Dialogs";
 
-  import { contacts, contacts_loaded, updateContacts } from "$lib/personal";
+  import { contacts, updateContacts } from "$lib/personal";
 
   import { contacts_drawer_open as open } from "$lib/stores/Dialogs";
   import { page } from "$app/stores";
@@ -46,32 +46,30 @@
     </Header>
     <Content>
       <div class="list-box">
-        {#if $contacts_loaded}
-          {#await $contacts}
-            <p>Contacts are loading...</p>
-          {:then contacts}
-            {#each contacts as contact}
-              <Card>
-                <PrimaryAction class="items-box">
-                  <div class="box">
-                    <div class="left">{contact.displayName}</div>
-                    <div class="right">
-                      <Wrapper>
-                        <IconButton
-                          class="material-icons"
-                          aria-label="Delete contact">more_vert</IconButton
-                        >
-                        <Tooltip>Manage contacts</Tooltip>
-                      </Wrapper>
-                    </div>
+        {#await $contacts}
+          <p>Contacts are loading...</p>
+        {:then contacts}
+          {#each contacts as contact}
+            <Card>
+              <PrimaryAction class="items-box">
+                <div class="box">
+                  <div class="left">{contact.displayName}</div>
+                  <div class="right">
+                    <Wrapper>
+                      <IconButton
+                        class="material-icons"
+                        aria-label="Delete contact">more_vert</IconButton
+                      >
+                      <Tooltip>Manage contacts</Tooltip>
+                    </Wrapper>
                   </div>
-                </PrimaryAction>
-              </Card>
-            {/each}
-          {:catch}
-            <p>Failed to load contacts.</p>
-          {/await}
-        {/if}
+                </div>
+              </PrimaryAction>
+            </Card>
+          {/each}
+        {:catch}
+          <p>Failed to load contacts.</p>
+        {/await}
       </div>
     </Content>
   </Drawer>
