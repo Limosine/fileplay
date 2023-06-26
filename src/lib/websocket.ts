@@ -15,22 +15,22 @@ function createWebSocket() {
   return websocket;
 };
 
-export const socketStore = readable<"0" | "1" | "2">("0", set => {
-  const store = createWebSocket();
-  store.onmessage = (event) => {
-    if (event.data == "1" || event.data == "2") {
-      status.set(event.data);
-      set(event.data);
-    } else {
-      console.log(event.data);
-    }
-  };
+// export const socketStore = readable<"0" | "1" | "2">("0", set => {
+//   const store = createWebSocket();
+//   store.onmessage = (event) => {
+//     if (event.data == "1" || event.data == "2") {
+//       status.set(event.data);
+//       set(event.data);
+//     } else {
+//       console.log(event.data);
+//     }
+//   };
 
-  setInterval(() => {
-    store.send("ping");
-  }, 25000)
+//   setInterval(() => {
+//     store.send("ping");
+//   }, 25000)
 
-  return () => store.close();
-});
+//   return () => store.close();
+// });
 
 export const status = writable<"0" | "1" | "2">("0");

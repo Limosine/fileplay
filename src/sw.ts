@@ -36,7 +36,10 @@ async function registerPushSubscription(keepAliveCode: string): Promise<boolean>
       method: "POST",
       body: JSON.stringify({ pushSubscription: subscription }),
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      console.log('res is not ok')
+      return false;
+    }
 
     // start keepalive
     await set('keepAliveCode', keepAliveCode)
@@ -44,7 +47,8 @@ async function registerPushSubscription(keepAliveCode: string): Promise<boolean>
       await fetch(`/api/keepalive?code=${keepAliveCode}`, {
         method: "GET",
       });
-    }, JSON.parse(">KEEPALIVE_INTERVAL<"));
+    }, JSON.parse(">ONLINE_STATUS_REFRESH_TIME<"));
+    console.log('keepalive started')
 
     return true;
   } catch {
