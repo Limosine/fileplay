@@ -182,18 +182,20 @@ self.addEventListener("notificationclick", async (event) => {
       else client = await self.clients.openWindow("/");
 
       if (client) {
-        await Promise.all([client.navigate("/"), client.focus().catch(() => { })]);
+        await client.navigate("/");
+        try {
+          await client.focus();
+        } catch {}
         setTimeout(async () => {
           if (client)
             client.postMessage({
               type: "return_share_details",
               sid: event.notification.data.sid,
             });
-          else
-            console.log('client mysteriously disappeared')
+          else console.log("client mysteriously disappeared");
         }, 1500);
       }
-      console.log('handled accept click')
+      console.log("handled accept click");
       break;
     case "send_share_reject":
       console.log("Rejecting sharing request...");
