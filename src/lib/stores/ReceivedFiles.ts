@@ -1,15 +1,5 @@
 import { writable } from "svelte/store";
 
-export const files = writable<{
-  currentChunks: number;
-  currentFiles: number;
-  totalFiles: number;
-}>({
-  currentChunks: 0,
-  currentFiles: 0,
-  totalFiles: 0,
-});
-
 export const connectionOpen = writable<boolean>(false);
 
 class TransferHandler {
@@ -32,7 +22,7 @@ class TransferHandler {
 
   isPasswordProtected(transferID: string): boolean {
     const process = this.transferProcesses.find((value) => {
-      value.data.transferID == transferID;
+      return value.data.transferID == transferID;
     });
 
     if (!process) return false;
@@ -41,7 +31,7 @@ class TransferHandler {
 
   getProcess(transferID: string): FileSharing.TransferFileMessage | undefined {
     return this.transferProcesses.find((value) => {
-      value.data.transferID == transferID;
+      return value.data.transferID == transferID;
     });
   }
 
@@ -52,18 +42,29 @@ class TransferHandler {
     sendAgain: () => void
   ): void {
     const check = () => {
+      let finished = false;
+
+      const interval = setInterval(() => {
+        if (this.receivedTransferAccept.includes(transferID)) {
+          accept();
+          clearInterval(interval);
+          finished = true;
+        }
+      }, 50);
+
+      if (finished) return;
       setTimeout(() => {
         if (!this.receivedTransferAccept.includes(transferID)) {
           const fails = this.getFails(transferID);
           if (fails && fails.initFails >= 3) {
             reject();
+            clearInterval(interval);
           } else {
             this.fail(transferID, true);
             sendAgain();
+            clearInterval(interval);
             check();
           }
-        } else {
-          accept();
         }
       }, 10 * 1000);
     };
@@ -76,26 +77,32 @@ class TransferHandler {
     reject: (missingChunks: string[]) => void
   ) {
     const entry = this.transferProcesses.find((message) => {
-      message.data.transferID == transferID;
+      return message.data.transferID == transferID;
     });
+
+    // console.log(entry);
     const receivedData = this.receivedChunks.find((value) => {
-      value.transferID == transferID;
+      return value.transferID == transferID;
     });
 
     const missingChunks: string[] = [];
 
-    if (entry && receivedData) {
-      for (let i = 0; i < entry.data.chunkIDs.length; i++) {
-        const id = entry.data.chunkIDs[i];
-        const found = receivedData.info.find((value) => {
-          value.chunkID == id;
-        });
-        if (!found) {
-          missingChunks.push(id);
-        }
-      }
+    console.log("Compare: ", entry, receivedData);
 
+    if (entry && receivedData) {
+      const info = receivedData.info.map((value) => {
+        return value.chunkID;
+      });
+      const results = entry.data.chunkIDs.filter(
+        (item) => info.indexOf(item) == -1
+      );
+      results.forEach((value) => {
+        missingChunks.push(value);
+      });
+      console.log("MissingChunks: ", missingChunks);
+      console.log("TransferHandler: ", this.receivedChunks);
       if (missingChunks !== undefined && missingChunks.length != 0) {
+        // console.log("MissingChunks: ", missingChunks);
         reject(missingChunks);
         return;
       }
@@ -112,12 +119,14 @@ class TransferHandler {
     sendAgain: () => void
   ): void {
     const check = () => {
-      setTimeout(() => {
-        if (!this.receivedComplete.includes(transferID)) {
+      let count = 0;
+      const interval = setInterval(() => {
+        if (count >= 20 * 10) {
+          clearInterval(interval);
           const fails = this.getFails(transferID);
           if (
             this.receivedRChunks.find((value) => {
-              value.transferID == transferID;
+              return value.transferID == transferID;
             })
           ) {
             request();
@@ -128,41 +137,79 @@ class TransferHandler {
             sendAgain();
             check();
           }
-        } else {
-          accept();
+          return;
         }
-      }, 10 * 1000);
+        if (this.receivedComplete.includes(transferID)) {
+          accept();
+          clearInterval(interval);
+        }
+        count++;
+      }, 50);
     };
     check();
   }
 
-  waitForChunks(transferID: string, reject: () => void): void {
-    const info = this.receivedChunks.at(-1)?.info;
-    if (info) {
-      files.set({
-        currentChunks: info.length,
-        currentFiles: this.receivedChunks.length,
-        totalFiles: this.transferProcesses.length,
-      });
+  waitForChunks(
+    transferID: string,
+    accept: () => void,
+    reject: () => void
+  ): void {
+    if (
+      this.transferProcesses.find((value) => {
+        return value.data.transferID == transferID;
+      })
+    ) {
+      accept();
     }
-    setTimeout(() => {
+
+    let count = 0;
+    const interval = setInterval(() => {
       const currentDate = new Date();
       const lastDate = this.lastChunk.find((value) => {
-        value.transferID == transferID;
+        return value.transferID == transferID;
       });
+
+      if (count >= 20 * 60) {
+        clearInterval(interval);
+        reject();
+        return;
+      }
+
       if (
         lastDate &&
         currentDate.getTime() > lastDate.date.getTime() &&
         (currentDate.getTime() - lastDate.date.getTime()) / 1000 >= 60
       ) {
         if (this.sentComplete.includes(transferID)) {
+          clearInterval(interval);
           return;
         }
 
-        console.log("Aborting");
+        // console.log("Aborting");
         reject();
       }
-    }, 60 * 1000);
+      count++;
+    }, 50);
+  }
+
+  getInformation(): {
+    currentChunks: number;
+    currentFiles: number;
+    totalFiles: number;
+  } {
+    const info = this.receivedChunks.at(-1)?.info;
+    if (info) {
+      return {
+        currentChunks: info.length,
+        currentFiles: this.receivedChunks.length,
+        totalFiles: this.transferProcesses.length,
+      };
+    }
+    return {
+      currentChunks: 0,
+      currentFiles: 0,
+      totalFiles: 0,
+    };
   }
 
   addTransferProcess(message: FileSharing.TransferFileMessage): void {
@@ -171,12 +218,15 @@ class TransferHandler {
 
   removeTransferProcess(id: string): void {
     this.transferProcesses = this.transferProcesses.filter((message) => {
-      message.data.transferID !== id;
+      return message.data.transferID !== id;
     });
   }
 
   isTransferRunning(message: FileSharing.TransferFileMessage): boolean {
-    return this.transferProcesses.includes(message);
+    const res = this.transferProcesses.filter((value) => {
+      return value.data.transferID == message.data.transferID;
+    });
+    return res.length != 0;
   }
 
   fail(transferID: string, init: boolean): void {
@@ -195,13 +245,13 @@ class TransferHandler {
     transferID: string
   ): { initFails: number; completeFails: number } | undefined {
     return this.failCounts.find((value) => {
-      value.transferID == transferID;
+      return value.transferID == transferID;
     });
   }
 
   removeFails(transferID: string): void {
     this.failCounts.filter((value) => {
-      value.transferID != transferID;
+      return value.transferID != transferID;
     });
   }
 }

@@ -4,14 +4,15 @@
   import { writable } from "svelte/store";
   import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/openpgp";
-  import { files } from "$lib/stores/ReceivedFiles";
+  import { transferHandler } from "$lib/stores/ReceivedFiles";
+  import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
 
   let received_files = writable<{ url: string; name: string }[]>([]);
-  let fileInfos = $files;
-  console.log(fileInfos);
-  $: {
-    console.log(fileInfos)
-  }
+  let info = transferHandler.getInformation();
+  const refreshTimer = setInterval(() => {
+    info = transferHandler.getInformation();
+  }, 10);
+
   onMount(async () => {
     const { setup, connectAsListener } = await import("$lib/peerjs");
     received_files = (await import("$lib/peerjs")).received_files;
@@ -44,7 +45,7 @@
 </script>
 
 <div class="center">
-  {#if $received_files.length != 0}
+  {#if $received_files.length != 0 && $received_files.at(-1)}
     <Card padded>
       <h6>Received file(s):</h6>
       <p class="small"><br /></p>
@@ -54,12 +55,18 @@
           >{received_file.name}</a
         ><br />
       {/each}
+      {#if info.totalFiles > 0}
+        <h6>Progress: {info.currentChunks} / 10</h6>
+        <h6>{info.currentFiles} / {info.totalFiles}</h6>
+      {/if}
     </Card>
   {:else}
     <Card padded>
       <h6>{waiting}</h6>
-      <h6>Progress: {fileInfos.currentChunks} / 10</h6>
-      <h6>{fileInfos.currentFiles} / {fileInfos.currentChunks}</h6>
+      {#if info.totalFiles > 0}
+        <h6>Progress: {info.currentChunks} / 10</h6>
+        <h6>{info.currentFiles} / {info.totalFiles}</h6>
+      {/if}
     </Card>
   {/if}
 </div>
