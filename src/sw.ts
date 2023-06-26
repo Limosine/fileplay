@@ -45,10 +45,8 @@ async function registerPushSubscription(): Promise<boolean> {
       });
     }, JSON.parse(">KEEPALIVE_INTERVAL<"));
 
-    console.log("Subscribed to push notifications");
     return true;
   } catch {
-    console.log("Failed to subscribe to push notifications");
     return false;
   }
 }
@@ -65,6 +63,7 @@ self.addEventListener("message", async (event) => {
       // register push notifications (called after setup, otherwise already initialized)
       case "register_push":
         const success = await registerPushSubscription();
+        console.log("Push registration success", success);
         event.source?.postMessage({ type: "push_registered", success });
         break;
       default:
@@ -173,8 +172,8 @@ self.addEventListener("activate", async () => {
     else console.log("Failed to register push notifications");
   });
 
-  // register just in case, returns null if not set up or supportet
-  await registerPushSubscription();
+  // register just in case, returns null if not set up or supported
+  console.log('registering push on activate: ', await registerPushSubscription())
 });
 
 // TODO

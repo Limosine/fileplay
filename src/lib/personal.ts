@@ -27,6 +27,10 @@ export async function updateContacts(): Promise<void> {
   contacts.set(await getContacts());
 }
 
+export function updateContactsAsync(): void {
+  contacts.set(getContacts());
+}
+
 export const devices = writable<{
   self: {
     did: number;
@@ -150,6 +154,6 @@ export async function updatePeerJS_ID() {
 
 export function getContent() {
   getUserInfo();
-  contacts.set(getContacts());
+  updateContactsAsync();
   getDevices();
 }
