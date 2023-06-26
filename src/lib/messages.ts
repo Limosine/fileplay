@@ -5,7 +5,7 @@
 // share_rejected: other rejected request to share (forwarded by service worker if web push is active)
 
 class Messages {
-  implementation: "websockets" | "webpush" = "websockets";
+  implementation?: "websockets" | "webpush";
   listeners: { [key: string]: ((data: any) => Promise<void> | void)[] } = {};
 
   async init() {

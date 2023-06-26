@@ -21,6 +21,7 @@
   import Username from "$lib/components/Username.svelte";
   import { publicKey_armored } from "$lib/openpgp";
   import Device from "$lib/components/Device.svelte";
+  import { default_messages as messages } from "$lib/messages";
 
   // let socketStore: Readable<any>;
   // let unsubscribeSocketStore = () => {};
@@ -130,9 +131,7 @@
     // socketStore = (await import("$lib/websocket")).socketStore;
     // unsubscribeSocketStore = socketStore.subscribe(() => {});
 
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.active?.postMessage({ type: "register_push", keepAliveCode });
-    });
+    messages.init()
   }
 
   onMount(async () => {

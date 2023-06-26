@@ -25,7 +25,7 @@ imageCache();
 
 declare let self: ServiceWorkerGlobalScope;
 
-async function registerPushSubscription(keepAliveCode: string): Promise<boolean> {
+async function registerPushSubscription(): Promise<boolean> {
   if (Notification.permission !== "granted") return false;
   try {
     const subscription = await self.registration.pushManager.subscribe({
@@ -42,9 +42,8 @@ async function registerPushSubscription(keepAliveCode: string): Promise<boolean>
     }
 
     // start keepalive
-    await set('keepAliveCode', keepAliveCode)
     setInterval(async () => {
-      await fetch(`/api/keepalive?code=${keepAliveCode}`, {
+      await fetch(`/api/keepalive?code=${await get('keepAliveCode')}`, {
         method: "GET",
       });
     }, JSON.parse(">ONLINE_STATUS_REFRESH_TIME<"));
@@ -67,10 +66,12 @@ self.addEventListener("message", async (event) => {
         break;
       // register push notifications (called after setup, otherwise already initialized)
       case "register_push":
-        const success = await registerPushSubscription(event.data.keepAliveCode);
+        const success = await registerPushSubscription();
         console.log("Push registration success", success);
         event.source?.postMessage({ type: "push_registered", success });
         break;
+      case "save_keep_alive_code":
+        await set('keepAliveCode', event.data.code)
       default:
         console.log("Unknown message type", event.data.type);
     }
@@ -172,12 +173,9 @@ self.addEventListener("notificationclick", async (event) => {
 self.addEventListener("activate", async () => {
   self.clients.claim();
   // try to register push notifications
-  const keepAliveCode = await get("keepAliveCode");
-  if (keepAliveCode)
-    await registerPushSubscription(keepAliveCode).then((success) => {
+    await registerPushSubscription().then((success) => {
       if (success) console.log("registered subscription");
       else console.log("Failed to register push notifications");
-    });
 });
 
 // TODO

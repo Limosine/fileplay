@@ -85,10 +85,17 @@
   async function handleContactClick(cid: number) {
     console.log('handling contact click', cid)
     switch (sendstate[cid]) {
-      case SendState.IDLE:
-      case SendState.CANCELED:
-      case SendState.FAILED:
-      case SendState.REJECTED:
+      case SendState.REQUESTING:
+        // cancel sharing request
+        await fetch(`/api/share/request?cid=${cid}`, { method: "DELETE" });
+        setSendState(cid, SendState.CANCELED);
+        break;
+      case SendState.SENDING:
+        // cancel sharing in progress
+        setSendState(cid, SendState.CANCELED);
+        // TODO implement
+        break;
+      default: // IDLE, CANCELED, FAILED, REJECTED
         // request sharing to contact
         await fetch(`/api/share/request?cid=${cid}`)
           .then(async (res) => {
@@ -99,16 +106,6 @@
             setSendState(cid, SendState.FAILED);
           });
         // handle error in await, update sid
-        break;
-      case SendState.REQUESTING:
-        // cancel sharing request
-        await fetch(`/api/share/request?cid=${cid}`, { method: "DELETE" });
-        setSendState(cid, SendState.CANCELED);
-        break;
-      case SendState.SENDING:
-        // cancel sharing in progress
-        setSendState(cid, SendState.CANCELED);
-        // TODO implement
         break;
     }
   }
