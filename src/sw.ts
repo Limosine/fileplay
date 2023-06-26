@@ -187,11 +187,13 @@ self.addEventListener("notificationclick", async (event) => {
           await client.focus();
         } catch {}
         setTimeout(async () => {
-          if (client)
+          if (client) {
             client.postMessage({
               type: "return_share_details",
               sid: event.notification.data.sid,
             });
+            console.log('sent message to client')
+          }
           else console.log("client mysteriously disappeared");
         }, 1500);
       }
