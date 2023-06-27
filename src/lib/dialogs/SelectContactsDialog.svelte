@@ -70,16 +70,6 @@
     $open = false;
   }
 
-  const send_front = (device: {
-    did: number;
-    type: string;
-    displayName: string;
-    peerJsId: string;
-    encryptionPublicKey: string;
-  }) => {
-    send($files, device.peerJsId, undefined, device.encryptionPublicKey);
-  };
-
   enum SendState {
     IDLE,
     REQUESTING,
