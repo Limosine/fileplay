@@ -5,7 +5,6 @@
   import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/openpgp";
   import { transferHandler } from "$lib/stores/ReceivedFiles";
-  import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
 
   let received_files = writable<{ url: string; name: string }[]>([]);
   let info = transferHandler.getInformation();
@@ -18,7 +17,7 @@
     received_files = (await import("$lib/peerjs")).received_files;
 
     pgp_setup();
-    setup("");
+    setup();
 
     let reciever_uuid = $page.params.uuid;
     let listen_key = $page.params.listen_key;

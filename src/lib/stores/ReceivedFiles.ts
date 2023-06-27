@@ -4,6 +4,7 @@ export const connectionOpen = writable<boolean>(false);
 
 class TransferHandler {
   private transferProcesses: FileSharing.TransferFileMessage[] = [];
+  private finishedTransfers: string[] = [];
   private failCounts: {
     transferID: string;
     initFails: number;
@@ -19,6 +20,14 @@ class TransferHandler {
   }[] = [];
   lastChunk: { transferID: string; date: Date }[] = [];
   receivedTransferAccept: string[] = [];
+
+  isProcessFinished(transferID: string): boolean {
+    return this.finishedTransfers.includes(transferID);
+  }
+
+  finishProcess(transferID: string): void {
+    this.finishedTransfers.push(transferID);
+  }
 
   isPasswordProtected(transferID: string): boolean {
     const process = this.transferProcesses.find((value) => {

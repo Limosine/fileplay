@@ -26,7 +26,7 @@ class Messages {
         this.implementation = "webpush";
         // @ts-ignore
         navigator.serviceWorker.onmessage = async (msg) => {
-          await this.listeners[msg.data.type]?.forEach(async (listener) => {
+          this.listeners[msg.data.type]?.forEach(async (listener) => {
             await listener(msg.data);
           })
         };
