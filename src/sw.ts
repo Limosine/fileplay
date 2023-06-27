@@ -69,7 +69,7 @@ self.addEventListener("message", async (event) => {
       case "register_push":
         const success = await registerPushSubscription();
         console.log("Push registration success", success);
-        event.source?.postMessage({ type: "push_registered", success });
+        event.source?.postMessage({ class: "message", type: "push_registered", success });
         break;
       case "save_keep_alive_code":
         await set("keepAliveCode", event.data.keepAliveCode);
@@ -107,11 +107,11 @@ self.addEventListener("push", (event) => {
           actions: [
             {
               title: "Accept",
-              action: "send_share_accept",
+              action: "share_accept",
             },
             {
               title: "Reject",
-              action: "send_share_reject",
+              action: "share_reject",
             },
           ],
           data,
@@ -133,6 +133,7 @@ self.addEventListener("push", (event) => {
         self.clients.matchAll().then((clients) => {
           clients.forEach((client) => {
             client.postMessage({
+              class: "message",
               type: "share_accepted",
               sid: data.sid,
               peerJsId: data.peerJsId,
@@ -146,6 +147,7 @@ self.addEventListener("push", (event) => {
         self.clients.matchAll().then((clients) => {
           clients.forEach((client) => {
             client.postMessage({
+              class: "message",
               type: "share_rejected",
               sid: data.sid,
             });
@@ -162,11 +164,11 @@ self.addEventListener("push", (event) => {
 // handle push notification clicks
 self.addEventListener("notificationclick", async (event) => {
   switch (event.action) {
-    case "send_share_accept":
+    case "share_accept":
       console.log("Accepting sharing request...");
       await deleteNotifications(event.notification.data.tag);
-      // TODO forward to client, post to /share/accept
-      // pull client into focus or open window
+      // TODO forward to client
+      // // pull client into focus or open window
       const clients = (await self.clients.matchAll()) as WindowClient[];
       // prefer an already focused client, else the first one, else a new one
       let focusedclient;
@@ -182,24 +184,38 @@ self.addEventListener("notificationclick", async (event) => {
       else client = await self.clients.openWindow("/");
 
       if (client) {
-        await client.navigate("/");
         try {
-          await client.focus();
-        } catch {}
-        setTimeout(async () => {
-          if (client) {
-            client.postMessage({
-              type: "return_share_details",
-              sid: event.notification.data.sid,
-            });
-            console.log('sent message to client')
-          }
-          else console.log("client mysteriously disappeared");
-        }, 1500);
+          client.focus();
+        } catch { }
+        setTimeout(() => {
+          client?.postMessage({
+            class: "notificationclick",
+            type: "share_accept",
+            sid: event.notification.data.sid,
+          })
+        }, 1000);
       }
+
+      // if (client) {
+      //   await client.navigate("/");
+      //   try {
+      //     await client.focus();
+      //   } catch {}
+      //   setTimeout(async () => {
+      //     if (client) {
+      //       client.postMessage({
+      //         type: "return_share_details",
+      //         sid: event.notification.data.sid,
+      //       });
+      //       console.log('sent message to client')
+      //     }
+      //     else console.log("client mysteriously disappeared");
+      //   }, 1500);
+      // }
       console.log("handled accept click");
       break;
-    case "send_share_reject":
+    case "share_reject":
+      // handle this without opening the app if possible
       console.log("Rejecting sharing request...");
       await deleteNotifications(event.notification.data.tag);
       await fetch("/api/share/answer", {

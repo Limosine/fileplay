@@ -20,7 +20,6 @@
     contacts_drawer_open,
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDeviceInfos, getDevices } from "$lib/personal";
-  import { browser } from "$app/environment";
 
   let sender_uuid: Writable<string>;
 
@@ -50,41 +49,38 @@
     clearInterval(refresh_interval);
   }
 
-  onMount(async () => {
-    startRefresh();
-    sender_uuid = (await import("$lib/peerjs")).sender_uuid;
-  });
-
   onDestroy(stopRefresh);
 
   onMount(async () => {
+    startRefresh();
+    sender_uuid = (await import("$lib/peerjs")).sender_uuid;
+
     const { setup } = await import("$lib/peerjs");
     received_files = (await import("$lib/peerjs")).received_files;
 
     link = (await import("$lib/peerjs")).link;
     const messages = (await import('$lib/messages')).default_messages
 
-    if (browser) {
-      await messages.init();
-    }
+    await pgp_setup();
+    const peerjs_setup = setup()
 
-    pgp_setup();
-    const peerjs_setup = setup();
-
-    messages.on("return_share_details", async (data) => {
-      console.log("received return_share_details from peer");
-      // active_sid = data.sid;
-      await peerjs_setup;
-      // @ts-ignore
-      navigator.serviceWorker.controller.postMessage({
-        type: "send_share_details",
-        // sid: active_sid,
-        peerJsId: $sender_uuid,
-        encryptionPublicKey: publicKey_armored,
-      });
-    });
-
-    messages.init();
+    messages.onnotificationclick('share_accept', async (data: any) => {
+      await peerjs_setup
+      await fetch('/api/share/answer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          peerJsId: $sender_uuid,
+          encryptionPublicKey: publicKey_armored,
+          sid: data.sid
+        })
+      })
+      console.log('share accept notification click handler')
+    })
+    console.log('registered share accept notification click handler')
+    await messages.init()
   });
 </script>
 

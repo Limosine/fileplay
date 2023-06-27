@@ -75,14 +75,14 @@ const handleData = (data: any, conn: DataConnection) => {
             title: "File downloaded",
             content: `The file "${
               Array.from(pending.files)[0].name
-            }" was received.`,
+            }" was sent.`,
           };
         } else {
           notification = {
             title: "Files downloaded",
             content: `The files "${
               Array.from(pending.files)[0].name
-            }", ... were received.`,
+            }", ... were sent.`,
           };
         }
         notifications.set([...get(notifications), notification]);

@@ -53,21 +53,12 @@
       .then(function (permission) {
         // Initial status is available at permission.state
         permission.onchange = function () {
-          console.log("Permission changed to " + this.state);
           if (this.state === "granted" && localStorage.getItem("loggedIn"))
             navigator.serviceWorker.ready.then((registration) => {
               registration.active?.postMessage({ type: "register_push" });
             });
         };
       });
-
-    // resubscribe push notifications on service worker change
-    navigator.serviceWorker.oncontrollerchange = function () {
-      if (localStorage.getItem("loggedIn"))
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.active?.postMessage({ type: "register_push" });
-        });
-    };
 
     // check if service worker is running and handling push
     // yes --> assume it is handling push notifications and the keepalive

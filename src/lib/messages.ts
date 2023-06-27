@@ -4,9 +4,18 @@
 // share_accepted: other accepted request to share (forwarded by service worker if web push is active)
 // share_rejected: other rejected request to share (forwarded by service worker if web push is active)
 
+import { browser } from "$app/environment";
+
 class Messages {
   implementation?: "websockets" | "webpush";
-  listeners: { [key: string]: ((data: any) => Promise<void> | void)[] } = {};
+  message: { [key: string]: ((data: any) => Promise<void> | void)[] } = {};
+  notificationclick: { [key: string]: ((data: any) => Promise<void> | void)[] } = {};
+
+  constructor() {
+    if (!browser) {
+      throw new Error("Messages can only be used in the browser");
+    }
+  }
 
   async init() {
     if ("serviceWorker" in navigator) {
@@ -26,9 +35,21 @@ class Messages {
         this.implementation = "webpush";
         // @ts-ignore
         navigator.serviceWorker.onmessage = async (msg) => {
-          await this.listeners[msg.data.type]?.forEach(async (listener) => {
-            await listener(msg.data);
-          })
+          switch (msg.data.class) {
+            case "message":
+              console.log("received message", msg.data);
+              this.message[msg.data.type]?.forEach(async (listener) => {
+                await listener(msg.data);
+              });
+              break;
+            case "notificationclick":
+              console.log("received notificationclick", msg.data);
+              this.notificationclick[msg.data.type]?.forEach(async (listener) => {
+                await listener(msg.data);
+              })
+              break;
+          }
+          
         };
         return;
       }
@@ -36,12 +57,19 @@ class Messages {
     }
   }
 
-  on(type: string, listener: (data: any) => Promise<void> | void) {
-    if (!this.listeners[type]) {
-      this.listeners[type] = [];
+  onmessage(type: string, listener: (data: any) => Promise<void> | void) {
+    if (!this.message[type]) {
+      this.message[type] = [];
     }
-    this.listeners[type].push(listener);
+    this.message[type].push(listener);
   }
+
+  onnotificationclick(type: string, listener: (data: any) => Promise<void> | void) { 
+    if (!this.notificationclick[type]) {
+      this.notificationclick[type] = [];
+    }
+    this.notificationclick[type].push(listener);
+  };
 }
 
 export const default_messages = new Messages();

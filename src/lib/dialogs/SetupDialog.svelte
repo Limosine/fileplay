@@ -9,8 +9,6 @@
   import { browser } from "$app/environment";
   import { onDestroy, onMount } from "svelte";
   import { getContent, updatePeerJS_ID } from "$lib/personal";
-  import { DeviceType } from "$lib/common";
-  import { set } from "idb-keyval";
 
   import {
     deviceParams,
@@ -21,7 +19,6 @@
   import Username from "$lib/components/Username.svelte";
   import { publicKey_armored } from "$lib/openpgp";
   import Device from "$lib/components/Device.svelte";
-  import { default_messages as messages } from "$lib/messages";
 
   // let socketStore: Readable<any>;
   // let unsubscribeSocketStore = () => {};
@@ -134,7 +131,7 @@
     navigator.serviceWorker.ready.then((registration) => {
       registration.active?.postMessage({ type: "save_keep_alive_code", keepAliveCode });
     });
-    messages.init()
+    await (await import('$lib/messages')).default_messages.init()
   }
 
   onMount(async () => {

@@ -12,7 +12,6 @@
   } from "$lib/personal";
   import { getDicebearUrl } from "$lib/common";
   import { userParams } from "$lib/stores/Dialogs";
-  import { default_messages as messages } from "$lib/messages";
 
   let addPendingFile: (files: FileList) => void;
   let send: (
@@ -25,6 +24,24 @@
   onMount(async () => {
     addPendingFile = (await import("$lib/peerjs")).addPendingFile;
     send = (await import("$lib/peerjs")).send;
+
+    const messages = (await import("$lib/messages")).default_messages;
+    messages.onmessage("share_rejected", (data) => {
+      console.log("share_rejected", data);
+      if(!(data.sid in sharing_ids)) return;
+      setSendState(sharing_ids[data.sid], SendState.REJECTED);
+      delete sharing_ids[data.sid];
+    });
+
+    messages.onmessage("share_accepted", (data) => {
+      console.log("share_accepted", data);
+      if(!(data.sid in sharing_ids)) return;
+      setSendState(sharing_ids[data.sid], SendState.SENDING);
+      // send files
+      send($files, data.peerJsId, undefined, data.encryptionPublicKey);
+      // TODO should share state be persistent in ui?
+      delete sharing_ids[data.sid];
+    });
   });
 
   function handleSelectContactKeyDown(event: CustomEvent | KeyboardEvent) {
@@ -109,21 +126,6 @@
         break;
     }
   }
-
-  messages.on("share_rejected", (data) => {
-    if(!(data.sid in sharing_ids)) return;
-    setSendState(sharing_ids[data.sid], SendState.REJECTED);
-    delete sharing_ids[data.sid];
-  });
-
-  messages.on("share_accepted", (data) => {
-    if(!(data.sid in sharing_ids)) return;
-    setSendState(sharing_ids[data.sid], SendState.SENDING);
-    // send files
-    send($files, data.peerJsId, undefined, data.encryptionPublicKey);
-    // TODO should share state be persistent in ui?
-    delete sharing_ids[data.sid];
-  });
 </script>
 
 <svelte:window on:keydown={handleSelectContactKeyDown} />
