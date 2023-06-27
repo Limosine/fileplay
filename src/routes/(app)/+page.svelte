@@ -4,7 +4,7 @@
   import Input, { input, files } from "$lib/components/Input.svelte";
   import SetupDialog from "$lib/dialogs/SetupDialog.svelte";
   import { onDestroy, onMount } from "svelte";
-  import { writable, type Unsubscriber, type Writable } from "svelte/store";
+  import { writable, type Writable } from "svelte/store";
 
   import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
   import { open as select_open } from "$lib/stores/SelectContactStore";
@@ -21,8 +21,7 @@
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
 
-  let sender_uuid: string;
-  let unsub: Unsubscriber;
+  let sender_uuid: Writable<string>;
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -54,17 +53,7 @@
 
   onMount(async () => {
     startRefresh();
-    unsub = (await import("$lib/peerjs")).sender_uuid.subscribe((value) => {
-      sender_uuid = value;
-    });
-  });
-
-  onDestroy(async () => {
-    stopRefresh();
-    if (unsub) {
-      unsub();
-    }
-  });
+    sender_uuid = (await import("$lib/peerjs")).sender_uuid;
 
     const { setup } = await import("$lib/peerjs");
     received_files = (await import("$lib/peerjs")).received_files;
@@ -93,6 +82,7 @@
     console.log('registered share accept notification click handler')
     await messages.init()
   });
+  
 </script>
 
 <svelte:head>
