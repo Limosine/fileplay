@@ -54,6 +54,10 @@ export async function sendNotification(
 
     const { headers, body, endpoint } = await generatePushHTTPRequest(options);
 
+    console.log("sending push notification to", endpoint)
+    console.log("headers", headers)
+    console.log("body", body)
+
     const res2 = await fetch(endpoint, {
       method: "POST",
       headers,
@@ -61,6 +65,7 @@ export async function sendNotification(
     });
 
     if (!res2.ok) {
+      console.log(JSON.stringify(res2))
       throw new Error(
         `Failed to send request to push server: ${res2.statusText}`
       );
