@@ -54,6 +54,10 @@ export async function sendNotification(
 
     const { headers, body, endpoint } = await generatePushHTTPRequest(options);
 
+    console.log("sending push notification to", endpoint)
+    console.log("headers", headers)
+    console.log("body", body)
+
     const res2 = await fetch(endpoint, {
       method: "POST",
       headers,
