@@ -185,7 +185,7 @@ self.addEventListener("notificationclick", async (event) => {
 
       if (client) {
         try {
-          client.focus();
+          await client.focus();
         } catch { }
         setTimeout(() => {
           client?.postMessage({
