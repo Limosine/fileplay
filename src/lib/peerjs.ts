@@ -15,8 +15,6 @@ import { updatePeerJS_ID } from "./personal";
 import { transferHandler } from "./stores/ReceivedFiles";
 import { chunkString, sortArrayByOrder } from "./utils";
 
-
-
 let peer: Peer;
 export const sender_uuid = writable<string>();
 
@@ -41,10 +39,9 @@ const openPeer = async (uuid?: string) => {
       if (localStorage.getItem("loggedIn")) {
         updatePeerJS_ID();
       }
-      resolve()
+      resolve();
     });
-  })
-  
+  });
 };
 
 export const disconnectPeer = () => {
@@ -89,33 +86,17 @@ const handleData = (data: any, conn: DataConnection) => {
         pending_files.splice(pending_files.indexOf(pending), 1);
       }
     }
-    // } else if (Array.isArray(data.file) && Array.isArray(data.filename)) {
-    //   let decrypted_files;
-    //   if (data.encrypted == "publicKey") {
-    //     decrypted_files = decryptFiles(data.file);
-    //   } else {
-    //     decrypted_files = decryptFilesWithPassword(
-    //       data.file,
-    //       get(page).params.listen_key
-    //     );
-    //   }
-    //   decrypted_files.then((decrypted_files) => {
-    //     for (let i = 0; i < decrypted_files.length; i++) {
-    //       let url = createFileURL(decrypted_files[i]);
-    //       let info = {
-    //         url: url,
-    //         name: data.filename[i],
-    //       };
-    //       received_files.set([...get(received_files), info]);
-    //     }
-    //   });
   } else if (data.type) {
     switch (String(data.type)) {
       case "TransferFile": {
         const casted = data as FileSharing.TransferFileMessage;
+
+        if (transferHandler.isProcessFinished(casted.data.transferID)) return;
+
         if (!transferHandler.isTransferRunning(casted)) {
           transferHandler.addTransferProcess(casted);
         }
+
         let info: FileSharing.AcceptTransferMessage = {
           type: "AcceptTransfer",
           data: casted.data.transferID,
@@ -130,6 +111,9 @@ const handleData = (data: any, conn: DataConnection) => {
       }
       case "TransferChunk": {
         const casted = data as FileSharing.TransferChunkMessage;
+
+        if (transferHandler.isProcessFinished(casted.data.transferID)) return;
+
         const entry = transferHandler.receivedChunks.find((value) => {
           return value.transferID == casted.data.transferID;
         });
@@ -229,14 +213,8 @@ const handleData = (data: any, conn: DataConnection) => {
               }
             );
 
-            console.log("COMPLETE");
-
+            transferHandler.finishProcess(casted.data);
             const process = transferHandler.getProcess(casted.data);
-            console.log(
-              "Check if both things are there",
-              receivedChunks,
-              process
-            );
             if (receivedChunks && process) {
               const sortedChunks = sortArrayByOrder(
                 receivedChunks.info,
@@ -414,17 +392,10 @@ export const send = (
     }
 
     let connect_return = connected(peerID);
-    // if (!connect_return) {
-    //   let conn = peer.connect(peerID);
     let conn = connect_return == false ? peer.connect(peerID) : connect_return;
 
     if (conn.open) {
       encrypted_files.then((encrypted_files) => {
-        // if (!connect_return) {
-        //   let conn = peer.connect(peerID);
-        // console.log(connect_return);
-        // console.log(encrypted_files);
-        // conn.on("open", () => {
         // Sending file sizes inside an array to show different progress sizes for
         // Spicing encrypted file content into ten equal parts since peerjs api doesn't chunk properly
         // Each part has a property identifying its order inside the file
@@ -515,35 +486,35 @@ export const send = (
                     }
                   );
 
-                    for (let i = 0; i < cachedChunks.length; i++) {
-                      if (requestedChunks?.chunkIDs.includes(tempChunkIDs[i])) {
-                        const info: FileSharing.TransferChunkMessage = {
-                          data: {
-                            chunkID: tempChunkIDs[i],
-                            fileChunk: tempCachedChunks[i],
-                            transferID,
-                          },
-                          type: "TransferChunk",
-                        };
-                        conn.send(info)
-                      }
+                  for (let i = 0; i < cachedChunks.length; i++) {
+                    if (requestedChunks?.chunkIDs.includes(tempChunkIDs[i])) {
+                      const info: FileSharing.TransferChunkMessage = {
+                        data: {
+                          chunkID: tempChunkIDs[i],
+                          fileChunk: tempCachedChunks[i],
+                          transferID,
+                        },
+                        type: "TransferChunk",
+                      };
+                      conn.send(info);
                     }
-                  },
-                  () => {
-                    conn.send(info);
                   }
-                );
-              },
-              () => {
-                // TODO: Cancel
-                console.log("Aborting file share due to unexpected error...");
-              },
-              () => {
-                conn.send(info);
-              }
-            );
-          }
-        });
+                },
+                () => {
+                  conn.send(info);
+                }
+              );
+            },
+            () => {
+              // TODO: Cancel
+              console.log("Aborting file share due to unexpected error...");
+            },
+            () => {
+              conn.send(info);
+            }
+          );
+        }
+      });
 
       conn.on("data", function (received_data) {
         handleData(received_data, conn);
@@ -551,32 +522,8 @@ export const send = (
 
       connections.push(conn);
     }
-    // } else {
-    //   if (publicKey !== undefined) {
-    //     connect_return.send({
-    //       file: Array.from(encrypted_files),
-    //       filename: filenames,
-    //       encrypted: "publicKey",
-    //     });
-    //   } else {
-    //     connect_return.send({
-    //       file: Array.from(encrypted_files),
-    //       filename: filenames,
-    //       encrypted: "password",
-    //     });
-    //   }
-    // }
-    // });
   }
 };
-
-// not needed
-// export const multiSend = (files: FileList, reciever_uuids: string[], publicKeys: string[]) => {
-//   let reciever_uuid: string;
-//   for (reciever_uuid of reciever_uuids) {
-//     send(files, reciever_uuid, undefined, publicKeys);
-//   };
-// };
 
 export const setup = async (uuid?: string) => {
   await openPeer(uuid);

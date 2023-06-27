@@ -4,7 +4,7 @@
   import Input, { input, files } from "$lib/components/Input.svelte";
   import SetupDialog from "$lib/dialogs/SetupDialog.svelte";
   import { onDestroy, onMount } from "svelte";
-  import { writable, type Writable } from "svelte/store";
+  import { writable, type Unsubscriber, type Writable } from "svelte/store";
 
   import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
   import { open as select_open } from "$lib/stores/SelectContactStore";
@@ -19,9 +19,10 @@
     active,
     contacts_drawer_open,
   } from "$lib/stores/Dialogs";
-  import { updateContacts, getDeviceInfos, getDevices } from "$lib/personal";
+  import { updateContacts, getDevices } from "$lib/personal";
 
-  let sender_uuid: Writable<string>;
+  let sender_uuid: string;
+  let unsub: Unsubscriber;
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -53,13 +54,23 @@
 
   onMount(async () => {
     startRefresh();
-    sender_uuid = (await import("$lib/peerjs")).sender_uuid;
+    unsub = (await import("$lib/peerjs")).sender_uuid.subscribe((value) => {
+      sender_uuid = value;
+    });
+  });
+
+  onDestroy(async () => {
+    stopRefresh();
+    if (unsub) {
+      unsub();
+    }
+  });
 
     const { setup } = await import("$lib/peerjs");
     received_files = (await import("$lib/peerjs")).received_files;
 
     link = (await import("$lib/peerjs")).link;
-    const messages = (await import('$lib/messages')).default_messages
+    const messages = (await import("$lib/messages")).default_messages;
 
     await pgp_setup();
     const peerjs_setup = setup()

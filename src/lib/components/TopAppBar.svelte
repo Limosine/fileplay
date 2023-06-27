@@ -20,10 +20,6 @@
     } else if (drawer == "notification") {
       drawer_open.set(false);
       notification_open.update(open => (open = !open));
-      notifications.update((val) => {
-        val = [...val, {content: "af", title: "afnalk"}]
-        return val;
-      })
     } else {
       settings_open.set(true);
     }

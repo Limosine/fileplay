@@ -53,7 +53,7 @@ export function updateIsProfaneUsername() {
     }),
   })
     .then((res) => res.json())
-    .then((json) => {
+    .then((json: any) => {
       profaneUsername.set({loading: get(profaneUsername).loading, profane: json.isProfane});
       profaneUsername.set({loading: false, profane: get(profaneUsername).profane});
     })
