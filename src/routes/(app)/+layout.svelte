@@ -52,11 +52,9 @@
       .query({ name: "notifications" })
       .then(function (permission) {
         // Initial status is available at permission.state
-        permission.onchange = function () {
+        permission.onchange = async function () {
           if (this.state === "granted" && localStorage.getItem("loggedIn"))
-            navigator.serviceWorker.ready.then((registration) => {
-              registration.active?.postMessage({ type: "register_push" });
-            });
+            await import('$lib/messages').then((m) => m.default_messages.init())
         };
       });
 

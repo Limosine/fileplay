@@ -26,7 +26,7 @@ imageCache();
 declare let self: ServiceWorkerGlobalScope;
 
 async function registerPushSubscription(): Promise<boolean> {
-  if (Notification.permission !== "granted" || !get("keepAliveCode"))
+  if (Notification.permission !== "granted" || !await get("keepAliveCode"))
     return false;
   try {
     const subscription = await self.registration.pushManager.subscribe({

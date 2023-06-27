@@ -161,7 +161,7 @@
                     150
                   )}); background-size: contain;"
                 />
-                <Content>{contact.displayName}</Content>
+                <Content>{contact.displayName} : {contact.cid in sendstate ? sendstate[contact.cid] : 0}</Content>
               </Card>
             {/each}
           {:catch}
