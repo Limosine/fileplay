@@ -59,6 +59,7 @@ const listen = () => {
 };
 
 const handleData = (data: any, conn: DataConnection) => {
+  console.log("Recieved: ", data);
   if (data.listen_key) {
     let pending: { listen_key: string; files: FileList };
     for (pending of pending_files) {

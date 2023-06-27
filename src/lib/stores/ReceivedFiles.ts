@@ -22,7 +22,7 @@ class TransferHandler {
   receivedTransferAccept: string[] = [];
 
   isProcessFinished(transferID: string): boolean {
-    return this.finishedTransfers.includes(transferID);
+    return this.finishedTransfers.find((value) => value == transferID) != undefined
   }
 
   finishProcess(transferID: string): void {
