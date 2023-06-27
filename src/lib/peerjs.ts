@@ -15,16 +15,7 @@ import { updatePeerJS_ID } from "./personal";
 import { transferHandler } from "./stores/ReceivedFiles";
 import { chunkString, sortArrayByOrder } from "./utils";
 
-let return_share_details = false
 
-if ("serviceWorker" in navigator) {
-  // @ts-ignore
-  navigator.serviceWorker.ready.then((registration) => {
-    registration.addEventListener("message", (event: MessageEvent) => {
-      if (event.data.type === 'return_share_details') return_share_details = true
-    });
-  });
-}
 
 let peer: Peer;
 export const sender_uuid = writable<string>();
