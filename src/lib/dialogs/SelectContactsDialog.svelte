@@ -101,7 +101,6 @@
   }
 
   async function handleContactClick(cid: number) {
-    console.log('handling contact click', cid)
     switch (sendstate[cid]) {
       case SendState.REQUESTING:
         // cancel sharing request

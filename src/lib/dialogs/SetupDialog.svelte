@@ -45,11 +45,11 @@
 
   let setupError: string;
 
-  function handleSetupKeyDown(event: CustomEvent | KeyboardEvent) {
+  async function handleSetupKeyDown(event: CustomEvent | KeyboardEvent) {
     if (!open) return;
     event = event as KeyboardEvent;
     if (event.key === "Enter" && !actionDisabled) {
-      handleConfirm();
+      await handleConfirm();
     }
   }
 
@@ -90,32 +90,29 @@
         handleResponseError(res);
         return;
       }
-      keepAliveCode = (await res.json() as any).keepAliveCode;
+      keepAliveCode = ((await res.json()) as any).keepAliveCode;
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
     }
-    switch (newUser) {
-      case true:
-        // create new user
-        const res = await fetch("/api/setup/user", {
-          method: "POST",
-          body: JSON.stringify($userParams),
-        });
-        if (String(res.status).charAt(0) !== "2") {
-          handleResponseError(res);
-          return;
-        }
-        break;
-      case false:
-        // link to existing user
-        const res2 = await fetch("/api/devices/link", {
-          method: "POST",
-          body: JSON.stringify({ code: linkingCode }),
-        });
-        if (String(res2.status).charAt(0) !== "2") {
-          handleResponseError(res2);
-          return;
-        }
-        break;
+    if (newUser) {
+      // create new user
+      const res = await fetch("/api/setup/user", {
+        method: "POST",
+        body: JSON.stringify($userParams),
+      });
+      if (String(res.status).charAt(0) !== "2") {
+        handleResponseError(res);
+        return;
+      }
+    } else {
+      // link to existing user
+      const res2 = await fetch("/api/devices/link", {
+        method: "POST",
+        body: JSON.stringify({ code: linkingCode }),
+      });
+      if (String(res2.status).charAt(0) !== "2") {
+        handleResponseError(res2);
+        return;
+      }
     }
 
     localStorage.removeItem("deviceParams");
@@ -129,9 +126,12 @@
     // unsubscribeSocketStore = socketStore.subscribe(() => {});
 
     navigator.serviceWorker.ready.then((registration) => {
-      registration.active?.postMessage({ type: "save_keep_alive_code", keepAliveCode });
+      registration.active?.postMessage({
+        type: "save_keep_alive_code",
+        keepAliveCode,
+      });
     });
-    await (await import('$lib/messages')).default_messages.init()
+    await (await import("$lib/messages")).default_messages.init();
   }
 
   onMount(async () => {

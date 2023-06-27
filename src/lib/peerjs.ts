@@ -14,6 +14,7 @@ import {
 import { updatePeerJS_ID } from "./personal";
 import { transferHandler } from "./stores/ReceivedFiles";
 import { chunkString, sortArrayByOrder } from "./utils";
+import type { WebStream } from "openpgp";
 
 let peer: Peer;
 export const sender_uuid = writable<string>();
@@ -382,7 +383,7 @@ export const send = (
       filenames.push(file.name);
     }
 
-    let encrypted_files;
+    let encrypted_files: Promise<WebStream<string>[]>;
     if (publicKey !== undefined) {
       encrypted_files = encryptFiles(files, publicKey);
     } else if (password !== undefined) {
@@ -395,8 +396,9 @@ export const send = (
     console.log('connected for peerId ', peerID, 'is', connect_return)
     let conn = connect_return == false ? peer.connect(peerID) : connect_return;
     console.log('conn is ', conn)
-    
-    if (conn.open) {
+
+    conn.on('open', () => { // on(open)
+      console.log('conn is open, sending files')
       encrypted_files.then((encrypted_files) => {
         // Sending file sizes inside an array to show different progress sizes for
         // Spicing encrypted file content into ten equal parts since peerjs api doesn't chunk properly
@@ -523,7 +525,7 @@ export const send = (
       });
 
       connections.push(conn);
-    }
+    });
   }
 };
 
