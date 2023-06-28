@@ -184,16 +184,15 @@ self.addEventListener("notificationclick", async (event) => {
       else client = await self.clients.openWindow("/");
 
       if (client) {
-        try {
-          await client.focus();
-        } catch { }
-        setTimeout(() => {
-          client?.postMessage({
-            class: "notificationclick",
-            type: "share_accept",
-            sid: event.notification.data.sid,
-          })
-        }, 1000);
+        client.focus().then(() => {
+          setTimeout(() => {
+            client?.postMessage({
+              class: "notificationclick",
+              type: "share_accept",
+              sid: event.notification.data.sid,
+            })
+          }, 1000);
+        }).catch(() => {}) 
       }
 
       // if (client) {
