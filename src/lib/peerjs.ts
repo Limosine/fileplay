@@ -398,10 +398,14 @@ export const send = async (
     if (conn === undefined) throw new Error("Connection is undefined");
 
     new Promise<void>((resolve) => {
-      conn.on("open", () => {
-        console.log("conn is open, sending files");
+      if (!connect_return) {
+        conn.on("open", () => {
+          console.log("conn is open, sending files");
+          resolve();
+        });
+      } else {
         resolve();
-      });
+      }
     }).then(() => {
       encrypted_files.then((encrypted_files) => {
         // Sending file sizes inside an array to show different progress sizes for
