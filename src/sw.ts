@@ -216,13 +216,14 @@ self.addEventListener("notificationclick", async (event) => {
     case "share_reject":
       // handle this without opening the app if possible
       console.log("Rejecting sharing request...");
-      await deleteNotifications(event.notification.data.tag);
-      await fetch("/api/share/answer", {
-        method: "DELETE",
-        body: JSON.stringify({
-          sid: event.notification.data.sid,
-        }),
-      });
+      deleteNotifications(event.notification.data.tag).then(async () => {
+        await fetch("/api/share/answer", {
+          method: "DELETE",
+          body: JSON.stringify({
+            sid: event.notification.data.sid,
+          }),
+        });
+      })
       break;
     default:
       console.log("Unknown notification action", event.action);
@@ -232,7 +233,7 @@ self.addEventListener("notificationclick", async (event) => {
 self.addEventListener("activate", async () => {
   self.clients.claim();
   // try to register push notifications
-  await registerPushSubscription().then((success) => {
+  registerPushSubscription().then((success) => {
     if (success) console.log("registered subscription");
     else console.log("Failed to register push notifications");
   });
