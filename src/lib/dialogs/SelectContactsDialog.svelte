@@ -33,13 +33,13 @@
       delete sharing_ids[data.sid];
     });
 
-    messages.onmessage("share_accepted", (data) => {
+    messages.onmessage("share_accepted", async (data) => {
       console.log("share_accepted", data);
       if(!(data.sid in sharing_ids)) return;
       setSendState(sharing_ids[data.sid], SendState.SENDING);
       // send files
       console.log('sending files')
-      send($files, data.peerJsId, undefined, data.encryptionPublicKey);
+      await send($files, data.peerJsId, undefined, data.encryptionPublicKey);
       // TODO should share state be persistent in ui?
       delete sharing_ids[data.sid];
     });
