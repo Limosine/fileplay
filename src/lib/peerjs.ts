@@ -333,21 +333,20 @@ export const addPendingFile = (files: FileList) => {
   );
 };
 
-export const connectAsListener = (
-  reciever_uuid: string,
-  listen_key: string
-) => {
+export const connectAsListener = (sender_uuid: string, listen_key: string) => {
   peer.on("open", (id) => {
-    let conn = peer.connect(reciever_uuid);
+    let conn = peer.connect(sender_uuid);
 
     conn.on("open", function () {
+      console.log("Sending listen key: ", listen_key);
       conn.send({
         listen_key: listen_key,
       });
-    });
-    // Listener for file transfer
-    conn.on("data", async function (received_data) {
-      await handleData(received_data, conn);
+
+      // Listener for file transfer
+      conn.on("data", async function (received_data) {
+        await handleData(received_data, conn);
+      });
     });
 
     connections.push(conn);

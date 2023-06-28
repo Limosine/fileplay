@@ -19,9 +19,9 @@
     pgp_setup();
     setup();
 
-    let reciever_uuid = $page.params.uuid;
+    let sender_uuid = $page.params.uuid;
     let listen_key = $page.params.listen_key;
-    connectAsListener(reciever_uuid, listen_key);
+    connectAsListener(sender_uuid, listen_key);
   });
 
   const pending_string_template = "Waiting for files";
