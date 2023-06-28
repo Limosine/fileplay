@@ -65,7 +65,7 @@ export async function sendNotification(
     });
 
     if (!res2.ok) {
-      console.log(JSON.stringify(res2))
+      console.log(res2.json())
       throw new Error(
         `Failed to send request to push server: ${res2.statusText}`
       );
