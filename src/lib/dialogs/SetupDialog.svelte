@@ -19,6 +19,7 @@
   import Username from "$lib/components/Username.svelte";
   import { publicKey_armored } from "$lib/openpgp";
   import Device from "$lib/components/Device.svelte";
+  import { NotificationPermission } from "$lib/stores/Dialogs";
 
   // let socketStore: Readable<any>;
   // let unsubscribeSocketStore = () => {};
@@ -119,6 +120,7 @@
     localStorage.setItem("loggedIn", "true");
     open = false;
     setupLoading.set(false);
+    NotificationPermission.set(true);
 
     getContent();
     // updatePeerJS_ID();
@@ -229,9 +231,16 @@
       </div>
     {/if}
     <div class="actions">
-      <Button bind:disabled={actionDisabled} on:click={handleConfirm}>
-        <Label>Finish</Label>
-      </Button>
+      {#if actionDisabled}
+        <Button disabled={true} on:click={handleConfirm} variant="outlined">
+          <Label>Finish</Label>
+        </Button>
+      {:else}
+        <Button disabled={false} on:click={handleConfirm} variant="raised">
+          <Label>Finish</Label>
+        </Button>
+      {/if}
+
       {#if setupError}
         <p style="color:red">{setupError}</p>
       {/if}

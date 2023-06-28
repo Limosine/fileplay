@@ -13,6 +13,7 @@
   import { setup as pgp_setup, publicKey_armored } from "$lib/openpgp";
 
   import SettingsDialog from "$lib/dialogs/SettingsDialog.svelte";
+  import NotificationPermission from "$lib/dialogs/NotificationPermission.svelte";
 
   import {
     settings_open,
@@ -96,12 +97,14 @@
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
-<SetupDialog />
-
 <Input />
+
 <SelectContactsDialog />
 <AddContactDialog />
 <SettingsDialog />
+
+<NotificationPermission/>
+<SetupDialog />
 
 <div class="center">
   <div class="beside">

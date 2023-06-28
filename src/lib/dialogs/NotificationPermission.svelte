@@ -2,17 +2,17 @@
     import Dialog, { Title, Content, Actions } from "@smui/dialog";
     import Button, { Label } from "@smui/button";
   
-    import { NotificationRequest_open } from "$lib/stores/Dialogs";
+    import { NotificationPermission } from "$lib/stores/Dialogs";
   
     function handleContactAddKeyDown(event: CustomEvent | KeyboardEvent) {
-      if (!$NotificationRequest_open) return;
+      if (!$NotificationPermission) return;
       event = event as KeyboardEvent;
   
       if (event.key === "Escape") {
-        NotificationRequest_open.set(false);
+        NotificationPermission.set(false);
         closeHandler("cancel");
       } else if (event.key === "Enter") {
-        NotificationRequest_open.set(false);
+        NotificationPermission.set(false);
         closeHandler("confirm");
       }
     }
@@ -36,7 +36,7 @@
   <svelte:window on:keydown={handleContactAddKeyDown}/>
   
   <Dialog
-    bind:open={$NotificationRequest_open}
+    bind:open={$NotificationPermission}
     aria-labelledby="title"
     aria-describedby="content"
     on:SMUIDialog:closed={closeHandler}

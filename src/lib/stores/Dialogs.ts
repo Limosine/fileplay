@@ -9,7 +9,7 @@ export const notification_open = writable(false);
 export const select_open = writable(false);
 
 export const add_open = writable(false);
-export const NotificationRequest_open = writable(true);
+export const NotificationPermission = writable(false);
 
 export const settings_open = writable(false);
 export const device_edit_loaded = writable(false);
