@@ -20,6 +20,12 @@
     contacts_drawer_open,
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
+  import { transferHandler } from "$lib/stores/ReceivedFiles";
+
+  let info = transferHandler.getInformation();
+  const refreshTimer = setInterval(() => {
+    info = transferHandler.getInformation();
+  }, 10);
 
   let sender_uuid: Writable<string>;
 
@@ -138,7 +144,7 @@
     </Card>
   {/if}
 
-  {#if $received_files.length != 0}
+  <!-- {#if $received_files.length != 0}
     <Card padded>
       <h6>Received file(s):</h6>
       <p class="small"><br /></p>
@@ -148,6 +154,30 @@
           >{received_file.name}</a
         ><br />
       {/each}
+    </Card>
+  {/if} -->
+
+  {#if $received_files.length != 0 && $received_files.at(-1)}
+    <Card padded>
+      <h6>Received file(s):</h6>
+      <p class="small"><br /></p>
+
+      {#each $received_files as received_file}
+        <a href={received_file.url} download={received_file.name}
+          >{received_file.name}</a
+        ><br />
+      {/each}
+      {#if info.totalFiles > 0}
+        <h6>Progress: {info.currentChunks} / 10</h6>
+        <h6>{info.currentFiles} / {info.totalFiles}</h6>
+      {/if}
+    </Card>
+  {:else}
+    <Card padded>
+      {#if info.totalFiles > 0}
+        <h6>Progress: {info.currentChunks} / 10</h6>
+        <h6>{info.currentFiles} / {info.totalFiles}</h6>
+      {/if}
     </Card>
   {/if}
 </div>
