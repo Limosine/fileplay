@@ -397,131 +397,132 @@ export const send = async (
     console.log("conn is ", conn);
     if (conn === undefined) throw new Error("Connection is undefined");
 
-    await new Promise<void>((resolve) => {
+    new Promise<void>((resolve) => {
       conn.on("open", () => {
+        console.log("conn is open, sending files");
         resolve();
       });
-    });
-    console.log("conn is open, sending files");
-    encrypted_files.then((encrypted_files) => {
-      // Sending file sizes inside an array to show different progress sizes for
-      // Spicing encrypted file content into ten equal parts since peerjs api doesn't chunk properly
-      // Each part has a property identifying its order inside the file
-      for (let index = 0; index < encrypted_files.length; index++) {
-        const transferID = uuidv4();
-        const enc_file = encrypted_files.at(index);
-        console.log("Enc file: ", [String(enc_file)]);
+    }).then(() => {
+      encrypted_files.then((encrypted_files) => {
+        // Sending file sizes inside an array to show different progress sizes for
+        // Spicing encrypted file content into ten equal parts since peerjs api doesn't chunk properly
+        // Each part has a property identifying its order inside the file
+        for (let index = 0; index < encrypted_files.length; index++) {
+          const transferID = uuidv4();
+          const enc_file = encrypted_files.at(index);
+          console.log("Enc file: ", [String(enc_file)]);
 
-        if (!enc_file) continue;
+          if (!enc_file) continue;
 
-        const tempChunkIDs: string[] = [];
-        const tempCachedChunks = chunkString(String(enc_file), 10);
-        for (let i = 0; i < 10; i++) {
-          const chunkID = uuidv4();
-          tempChunkIDs.push(chunkID);
-        }
-        chunkIDs.push({
-          transferID,
-          chunkIDs: tempChunkIDs,
-        });
-
-        cachedChunks.push({
-          transferID,
-          chunks: tempCachedChunks,
-        });
-
-        const info: FileSharing.TransferFileMessage = {
-          type: "TransferFile",
-          data: {
+          const tempChunkIDs: string[] = [];
+          const tempCachedChunks = chunkString(String(enc_file), 10);
+          for (let i = 0; i < 10; i++) {
+            const chunkID = uuidv4();
+            tempChunkIDs.push(chunkID);
+          }
+          chunkIDs.push({
+            transferID,
             chunkIDs: tempChunkIDs,
-            fileName: filenames[index],
-            transferID: transferID,
-            encrypted: publicKey !== undefined ? "publickey" : "password",
-          },
-        };
+          });
 
-        conn.send(info);
+          cachedChunks.push({
+            transferID,
+            chunks: tempCachedChunks,
+          });
 
-        transferHandler.confirmAcceptTransfer(
-          transferID,
-          () => {
-            for (let i = 0; i < tempCachedChunks.length; i++) {
-              const info: FileSharing.TransferChunkMessage = {
-                data: {
-                  chunkID: tempChunkIDs[i],
-                  fileChunk: tempCachedChunks[i],
-                  transferID,
-                },
-                type: "TransferChunk",
+          const info: FileSharing.TransferFileMessage = {
+            type: "TransferFile",
+            data: {
+              chunkIDs: tempChunkIDs,
+              fileName: filenames[index],
+              transferID: transferID,
+              encrypted: publicKey !== undefined ? "publickey" : "password",
+            },
+          };
+
+          conn.send(info);
+
+          transferHandler.confirmAcceptTransfer(
+            transferID,
+            () => {
+              for (let i = 0; i < tempCachedChunks.length; i++) {
+                const info: FileSharing.TransferChunkMessage = {
+                  data: {
+                    chunkID: tempChunkIDs[i],
+                    fileChunk: tempCachedChunks[i],
+                    transferID,
+                  },
+                  type: "TransferChunk",
+                };
+
+                conn.send(info);
+                // console.log(info);
+              }
+              const info: FileSharing.SendComplete = {
+                data: transferID,
+                type: "SendComplete",
               };
 
               conn.send(info);
-              // console.log(info);
-            }
-            const info: FileSharing.SendComplete = {
-              data: transferID,
-              type: "SendComplete",
-            };
-
-            conn.send(info);
-            transferHandler.confirmComplete(
-              transferID,
-              () => {
-                // TODO: Complete
-                // console.log("Transfer complete...");
-                transferHandler.receivedComplete =
-                  transferHandler.receivedComplete.filter(
-                    (value) => value != transferID
+              transferHandler.confirmComplete(
+                transferID,
+                () => {
+                  // TODO: Complete
+                  // console.log("Transfer complete...");
+                  transferHandler.receivedComplete =
+                    transferHandler.receivedComplete.filter(
+                      (value) => value != transferID
+                    );
+                  transferHandler.removeFails(transferID);
+                  transferHandler.receivedRChunks =
+                    transferHandler.receivedRChunks.filter((value) => {
+                      return value.transferID != transferID;
+                    });
+                  transferHandler.receivedTransferAccept =
+                    transferHandler.receivedTransferAccept.filter((value) => {
+                      return value != transferID;
+                    });
+                },
+                () => {
+                  // TODO: Cancel
+                  // console.log("Aborting file share due to unexpected error...");
+                },
+                () => {
+                  const requestedChunks = transferHandler.receivedRChunks.find(
+                    (value) => {
+                      return value.transferID == transferID;
+                    }
                   );
-                transferHandler.removeFails(transferID);
-                transferHandler.receivedRChunks =
-                  transferHandler.receivedRChunks.filter((value) => {
-                    return value.transferID != transferID;
-                  });
-                transferHandler.receivedTransferAccept =
-                  transferHandler.receivedTransferAccept.filter((value) => {
-                    return value != transferID;
-                  });
-              },
-              () => {
-                // TODO: Cancel
-                // console.log("Aborting file share due to unexpected error...");
-              },
-              () => {
-                const requestedChunks = transferHandler.receivedRChunks.find(
-                  (value) => {
-                    return value.transferID == transferID;
-                  }
-                );
 
-                for (let i = 0; i < cachedChunks.length; i++) {
-                  if (requestedChunks?.chunkIDs.includes(tempChunkIDs[i])) {
-                    const info: FileSharing.TransferChunkMessage = {
-                      data: {
-                        chunkID: tempChunkIDs[i],
-                        fileChunk: tempCachedChunks[i],
-                        transferID,
-                      },
-                      type: "TransferChunk",
-                    };
-                    conn.send(info);
+                  for (let i = 0; i < cachedChunks.length; i++) {
+                    if (requestedChunks?.chunkIDs.includes(tempChunkIDs[i])) {
+                      const info: FileSharing.TransferChunkMessage = {
+                        data: {
+                          chunkID: tempChunkIDs[i],
+                          fileChunk: tempCachedChunks[i],
+                          transferID,
+                        },
+                        type: "TransferChunk",
+                      };
+                      conn.send(info);
+                    }
                   }
+                },
+                () => {
+                  conn.send(info);
                 }
-              },
-              () => {
-                conn.send(info);
-              }
-            );
-          },
-          () => {
-            // TODO: Cancel
-            throw new Error("Aborting file share due to unexpected error...");
-          },
-          () => {
-            conn.send(info);
-          }
-        );
-      }
+              );
+            },
+            () => {
+              // TODO: Cancel
+              throw new Error("Aborting file share due to unexpected error...");
+            },
+            () => {
+              conn.send(info);
+            }
+          );
+        }
+      });
     });
 
     conn.on("data", async function (received_data) {
