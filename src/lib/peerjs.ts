@@ -393,7 +393,7 @@ export const send = async (
 
     let connect_return = connected(peerID);
     console.log("connected for peerId ", peerID, "is", connect_return);
-    let conn = connect_return == false ? peer.connect(peerID) : connect_return; // fix conenct returns undefined
+    let conn = connect_return == false ? peer.connect(peerID) : connect_return;
     console.log("conn is ", conn);
     if (conn === undefined) throw new Error("Connection is undefined");
 
