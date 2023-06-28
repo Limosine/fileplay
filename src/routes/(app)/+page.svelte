@@ -68,27 +68,26 @@
     const messages = (await import("$lib/messages")).default_messages;
 
     await pgp_setup();
-    const peerjs_setup = setup()
+    const peerjs_setup = setup();
 
-    messages.onnotificationclick('share_accept', async (data: any) => {
-      await peerjs_setup
-      await fetch('/api/share/answer', {
-        method: 'POST',
+    messages.onnotificationclick("share_accept", async (data: any) => {
+      await peerjs_setup;
+      await fetch("/api/share/answer", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           peerJsId: $sender_uuid,
           encryptionPublicKey: publicKey_armored,
-          sid: data.sid
-        })
-      })
-      console.log('share accept notification click handler')
-    })
-    console.log('registered share accept notification click handler')
-    await messages.init()
+          sid: data.sid,
+        }),
+      });
+      console.log("share accept notification click handler");
+    });
+    console.log("registered share accept notification click handler");
+    await messages.init();
   });
-  
 </script>
 
 <svelte:head>
@@ -172,14 +171,11 @@
         <h6>{info.currentFiles} / {info.totalFiles}</h6>
       {/if}
     </Card>
-  {:else}
+  {:else if info.totalFiles > 0}
     <Card padded>
-      {#if info.totalFiles > 0}
-        <h6>Progress: {info.currentChunks} / 10</h6>
-        <h6>{info.currentFiles} / {info.totalFiles}</h6>
-      {/if}
-    </Card>
-  {/if}
+      <h6>Progress: {info.currentChunks} / 10</h6>
+      <h6>{info.currentFiles} / {info.totalFiles}</h6>
+    </Card>{/if}
 </div>
 
 <style>
