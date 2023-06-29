@@ -271,14 +271,17 @@ self.addEventListener("notificationclick", async (event) => {
   }
 });
 
-self.addEventListener("activate", async () => {
-  self.clients.claim();
+self.addEventListener("activate", async (event) => {
+  event.waitUntil(self.clients.claim())
+  // self.clients.claim();
   // try to register push notifications
   registerPushSubscription().then((success) => {
     if (success) console.log("registered subscription");
     else console.log("Failed to register push notifications");
   });
 });
+
+self.addEventListener("install", (event) => event.waitUntil(self.skipWaiting()));
 
 // TODO
 // - handle web share target requests
