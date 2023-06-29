@@ -69,12 +69,15 @@ self.addEventListener("message", async (event) => {
       case "register_push":
         const success = await registerPushSubscription()
           .then((value) => {
+            console.log("Returned: ", value)
             return value;
           })
           .catch((error) => {
             console.log("Error: ", error);
             return false;
-          });
+          }).finally(() => {
+            console.log("Finally...");
+          })
         console.log("Push registration success", success);
         event.source?.postMessage({
           class: "message",
