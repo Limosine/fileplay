@@ -182,12 +182,17 @@ self.addEventListener("notificationclick", async (event) => {
     case "share_accept":
       console.log("Accepting sharing request...");
       await deleteNotifications(event.notification.data.tag);
+      console.log("Delete Notifications...")
       // TODO forward to client
       // // pull client into focus or open window
       const clients = (await self.clients.matchAll()) as WindowClient[];
+      console.log("Clients 1: ", clients)
       // prefer an already focused client, else the first one, else a new one
       let focusedclient;
+      console.log("Looping through clients")
+
       for (const client of clients) {
+        console.log("Going through client: ", client)
         if (client.focused) {
           focusedclient = client;
           break;
