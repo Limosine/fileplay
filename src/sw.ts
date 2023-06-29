@@ -206,6 +206,8 @@ self.addEventListener("notificationclick", async (event) => {
         }
       }
 
+      console.log("All clients: ", clients)
+
       if (client) {
         await client.focus();
         console.log("Focusing window")
