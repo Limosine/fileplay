@@ -198,7 +198,7 @@ self.addEventListener("notificationclick", async (event) => {
       else client = await self.clients.openWindow("/");
 
       if (client) {
-        client
+        await client
           .focus()
           .then(() => {
             setTimeout(() => {
