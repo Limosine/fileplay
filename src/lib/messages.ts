@@ -34,6 +34,7 @@ class Messages {
       });
       console.log(success);
       if (success) {
+        console.log("Webpush active");
         this.implementation = "webpush";
         // @ts-ignore
         navigator.serviceWorker.onmessage = async (msg) => {
