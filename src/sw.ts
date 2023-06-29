@@ -239,7 +239,7 @@ self.addEventListener("notificationclick", async (event) => {
       }
 
       if (client) {
-        await client.focus();
+        event.waitUntil(client.focus());
         console.log("Focusing window");
         setTimeout(() => {
           console.log("Posting message");
