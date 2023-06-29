@@ -69,15 +69,16 @@ self.addEventListener("message", async (event) => {
       case "register_push":
         const success = await registerPushSubscription()
           .then((value) => {
-            console.log("Returned: ", value)
+            console.log("Returned: ", value);
             return value;
           })
           .catch((error) => {
             console.log("Error: ", error);
             return false;
-          }).finally(() => {
-            console.log("Finally...");
           })
+          .finally(() => {
+            console.log("Finally...");
+          });
         console.log("Push registration success", success);
         event.source?.postMessage({
           class: "message",
@@ -195,7 +196,13 @@ self.addEventListener("notificationclick", async (event) => {
       let client: WindowClient | null;
       if (focusedclient) client = focusedclient;
       else if (clients.length > 0) client = clients[0];
-      else client = await self.clients.openWindow("/");
+      else {
+        try {
+          client = await self.clients.openWindow("/");
+        } catch {
+          client = null;
+        }
+      }
 
       if (client) {
         await client
@@ -210,6 +217,8 @@ self.addEventListener("notificationclick", async (event) => {
             }, 1000);
           })
           .catch(() => {});
+      } else {
+        console.log("no client to handle message click");
       }
 
       // if (client) {
