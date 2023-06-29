@@ -105,8 +105,11 @@ self.addEventListener("message", async (event) => {
 });
 
 async function deleteNotifications(tag: string) {
-  await self.registration.getNotifications({ tag }).then((notifications) => {
-    notifications.forEach((notification) => notification.close());
+  const notifications = await self.registration.getNotifications({ tag });
+  console.log("Notifications listed: ", notifications);
+  notifications.forEach((notification) => {
+    console.log("Closing Notification: ", notification);
+    notification.close();
   });
 }
 
@@ -182,17 +185,17 @@ self.addEventListener("notificationclick", async (event) => {
     case "share_accept":
       console.log("Accepting sharing request...");
       await deleteNotifications(event.notification.data.tag);
-      console.log("Delete Notifications...")
+      console.log("Delete Notifications...");
       // TODO forward to client
       // // pull client into focus or open window
       const clients = (await self.clients.matchAll()) as WindowClient[];
-      console.log("Clients 1: ", clients)
+      console.log("Clients 1: ", clients);
       // prefer an already focused client, else the first one, else a new one
       let focusedclient;
-      console.log("Looping through clients")
+      console.log("Looping through clients");
 
       for (const client of clients) {
-        console.log("Going through client: ", client)
+        console.log("Going through client: ", client);
         if (client.focused) {
           focusedclient = client;
           break;
@@ -200,7 +203,7 @@ self.addEventListener("notificationclick", async (event) => {
       }
       let client: WindowClient | null;
       console.log("Client initiating");
-      
+
       console.log("All clients: ", clients);
       if (focusedclient) client = focusedclient;
       else if (clients.length > 0) client = clients[0];
@@ -211,7 +214,6 @@ self.addEventListener("notificationclick", async (event) => {
         } catch {
           console.log("client null");
           client = null;
-
         }
       }
 
