@@ -189,7 +189,12 @@ self.addEventListener("notificationclick", async (event) => {
       console.log("Delete Notifications...");
       // TODO forward to client
       // // pull client into focus or open window
-      await goto("/");
+      event.waitUntil(self.clients.matchAll({
+        includeUncontrolled: true,
+        type: "window"
+      }).then((clients) => {
+        console.log("Promised clients: ", clients )
+      }));
       const unfilteredClients = await self.clients.matchAll({
         includeUncontrolled: true,
       });
