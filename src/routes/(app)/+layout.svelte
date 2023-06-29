@@ -40,11 +40,12 @@
           swScriptUrl: string,
           registration: ServiceWorkerRegistration
         ) {
-          registration && update(swScriptUrl, registration);
-          setInterval(
-            async () => await update(swScriptUrl, registration),
-            1000 * 60 * 60
-          );
+          registration &&
+            setInterval(
+              async () => await update(swScriptUrl, registration),
+              1000 * 60 * 60
+            );
+          update(swScriptUrl, registration);
         },
         onRegisterError(error: any) {
           console.error("SW registration error", error);
