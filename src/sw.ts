@@ -239,16 +239,16 @@ self.addEventListener("notificationclick", async (event) => {
       }
 
       if (client) {
-        event.waitUntil(client.focus());
+        await client.navigate("/");
         console.log("Focusing window");
-        setTimeout(() => {
-          console.log("Posting message");
-          client?.postMessage({
-            class: "notificationclick",
-            type: "share_accept",
-            sid: event.notification.data.sid,
-          });
-        }, 1000);
+        // setTimeout(() => {
+        console.log("Posting message");
+        client?.postMessage({
+          class: "notificationclick",
+          type: "share_accept",
+          sid: event.notification.data.sid,
+        });
+        // }, 1000);
       } else {
         console.log("no client to handle message click");
       }
