@@ -206,7 +206,9 @@ self.addEventListener("notificationclick", async (event) => {
 
       if (client) {
         await client.focus();
+        console.log("Focusing window")
         setTimeout(() => {
+          console.log("Posting message")
           client?.postMessage({
             class: "notificationclick",
             type: "share_accept",
