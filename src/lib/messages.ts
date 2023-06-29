@@ -37,6 +37,7 @@ class Messages {
         this.implementation = "webpush";
         // @ts-ignore
         navigator.serviceWorker.onmessage = async (msg) => {
+          console.log("OnMessage: ", msg);
           switch (msg.data.class) {
             case "message":
               console.log("received message", msg.data);
