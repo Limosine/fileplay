@@ -189,9 +189,13 @@ self.addEventListener("notificationclick", async (event) => {
       console.log("Delete Notifications...");
       // TODO forward to client
       // // pull client into focus or open window
+      console.log(
+        "Unfiltered: ",
+        await self.clients.matchAll({ includeUncontrolled: true })
+      );
       const clients = (await self.clients.matchAll({
         includeUncontrolled: true,
-        type: "window"
+        type: "window",
       })) as WindowClient[];
       console.log("Clients 1: ", clients);
       // prefer an already focused client, else the first one, else a new one
@@ -272,7 +276,7 @@ self.addEventListener("notificationclick", async (event) => {
 });
 
 self.addEventListener("activate", async (event) => {
-  event.waitUntil(self.clients.claim())
+  event.waitUntil(self.clients.claim());
   // self.clients.claim();
   // try to register push notifications
   registerPushSubscription().then((success) => {
@@ -281,7 +285,9 @@ self.addEventListener("activate", async (event) => {
   });
 });
 
-self.addEventListener("install", (event) => event.waitUntil(self.skipWaiting()));
+self.addEventListener("install", (event) =>
+  event.waitUntil(self.skipWaiting())
+);
 
 // TODO
 // - handle web share target requests
