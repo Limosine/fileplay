@@ -26,7 +26,7 @@ imageCache();
 declare let self: ServiceWorkerGlobalScope;
 
 async function registerPushSubscription(): Promise<boolean> {
-  if (Notification.permission !== "granted" || !await get("keepAliveCode"))
+  if (Notification.permission !== "granted" || !(await get("keepAliveCode")))
     return false;
   try {
     const subscription = await self.registration.pushManager.subscribe({
@@ -67,9 +67,20 @@ self.addEventListener("message", async (event) => {
         break;
       // register push notifications (called after setup, otherwise already initialized)
       case "register_push":
-        const success = await registerPushSubscription();
+        const success = await registerPushSubscription()
+          .then((value) => {
+            return value;
+          })
+          .catch((error) => {
+            console.log(error);
+            return false;
+          });
         console.log("Push registration success", success);
-        event.source?.postMessage({ class: "message", type: "push_registered", success });
+        event.source?.postMessage({
+          class: "message",
+          type: "push_registered",
+          success,
+        });
         break;
       case "save_keep_alive_code":
         await set("keepAliveCode", event.data.keepAliveCode);
@@ -184,15 +195,18 @@ self.addEventListener("notificationclick", async (event) => {
       else client = await self.clients.openWindow("/");
 
       if (client) {
-        client.focus().then(() => {
-          setTimeout(() => {
-            client?.postMessage({
-              class: "notificationclick",
-              type: "share_accept",
-              sid: event.notification.data.sid,
-            })
-          }, 1000);
-        }).catch(() => {}) 
+        client
+          .focus()
+          .then(() => {
+            setTimeout(() => {
+              client?.postMessage({
+                class: "notificationclick",
+                type: "share_accept",
+                sid: event.notification.data.sid,
+              });
+            }, 1000);
+          })
+          .catch(() => {});
       }
 
       // if (client) {
@@ -223,7 +237,7 @@ self.addEventListener("notificationclick", async (event) => {
             sid: event.notification.data.sid,
           }),
         });
-      })
+      });
       break;
     default:
       console.log("Unknown notification action", event.action);
