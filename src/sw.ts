@@ -199,7 +199,9 @@ self.addEventListener("notificationclick", async (event) => {
       else {
         try {
           client = await self.clients.openWindow("/");
+          console.log("client: ", client)
         } catch {
+          console.log("client null")
           client = null;
         }
       }
