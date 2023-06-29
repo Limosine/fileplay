@@ -189,7 +189,7 @@ self.addEventListener("notificationclick", async (event) => {
       console.log("Delete Notifications...");
       // TODO forward to client
       // // pull client into focus or open window
-      goto("/");
+      await goto("/");
       const clients = (await self.clients.matchAll()) as WindowClient[];
       console.log("Clients 1: ", clients);
       // prefer an already focused client, else the first one, else a new one
