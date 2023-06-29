@@ -69,7 +69,7 @@ export async function getDevices(): Promise<{
     method: "GET",
   });
 
-  const devices_new = await res.json();
+  const devices_new: any = await res.json();
 
   devices.set(devices_new);
   if (!get(devices_loaded)) devices_loaded.set(true);
@@ -99,7 +99,7 @@ export async function getUserInfo(): Promise<{
     method: "GET",
   });
 
-  const user_new = await res.json();
+  const user_new: any = await res.json();
 
   user.set(user_new);
   if (!get(user_loaded)) user_loaded.set(true);
@@ -133,23 +133,12 @@ export async function getDeviceInfos(): Promise<
     method: "GET",
   });
 
-  const deviceInfos_new = await res.json();
+  const deviceInfos_new: any = await res.json();
 
   deviceInfos.set(deviceInfos_new);
   if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
 
   return deviceInfos_new;
-}
-
-export async function updatePeerJS_ID() {
-  const sender_uuid = (await import("./peerjs")).sender_uuid;
-
-  // await fetch("/api/devices", {
-  //   method: "POST",
-  //   body: JSON.stringify({
-  //     peerJsId: get(sender_uuid),
-  //   }),
-  // });
 }
 
 export function getContent() {

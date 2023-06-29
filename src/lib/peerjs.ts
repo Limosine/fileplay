@@ -11,7 +11,6 @@ import {
   encryptFiles,
   encryptFilesWithPassword,
 } from "./openpgp";
-import { updatePeerJS_ID } from "./personal";
 import { transferHandler } from "./stores/ReceivedFiles";
 import { chunkString, sortArrayByOrder } from "./utils";
 import type { WebStream } from "openpgp";
@@ -21,27 +20,21 @@ export const sender_uuid = writable<string>();
 
 let connections: DataConnection[] = [];
 
-let pending_files: { listen_key: string; files: FileList }[] = [];
+let pending_files: { listen_key: string; files: FileList; }[] = [];
 export const link = writable("");
-export const received_files = writable<{ url: string; name: string }[]>([]);
+export const received_files = writable<{ url: string; name: string; }[]>([]);
 
-const cachedChunks: { transferID: string; chunks: string[] }[] = [];
-const chunkIDs: { transferID: string; chunkIDs: string[] }[] = [];
+const cachedChunks: { transferID: string; chunks: string[]; }[] = [];
+const chunkIDs: { transferID: string; chunkIDs: string[]; }[] = [];
 
 const openPeer = async (uuid?: string) => {
   if (uuid) {
     peer = new Peer(uuid);
   } else peer = new Peer();
 
-  await new Promise<void>((resolve) => {
-    peer.on("open", (id) => {
-      sender_uuid.set(id);
-
-      if (localStorage.getItem("loggedIn")) {
-        updatePeerJS_ID();
-      }
-      resolve();
-    });
+  peer.on("open", (id) => {
+    sender_uuid.set(id);
+    console.log("Peer opened, PeerID: ", id);
   });
 };
 
@@ -62,7 +55,7 @@ const listen = () => {
 const handleData = async (data: any, conn: DataConnection) => {
   console.log("Recieved: ", data);
   if (data.listen_key) {
-    let pending: { listen_key: string; files: FileList };
+    let pending: { listen_key: string; files: FileList; };
     for (pending of pending_files) {
       if (pending.listen_key == data.listen_key) {
         await send(pending.files, conn.peer, pending.listen_key);
@@ -71,16 +64,14 @@ const handleData = async (data: any, conn: DataConnection) => {
         if (pending.files.length == 1) {
           notification = {
             title: "File downloaded",
-            content: `The file "${
-              Array.from(pending.files)[0].name
-            }" was sent.`,
+            content: `The file "${Array.from(pending.files)[0].name
+              }" was sent.`,
           };
         } else {
           notification = {
             title: "Files downloaded",
-            content: `The files "${
-              Array.from(pending.files)[0].name
-            }", ... were sent.`,
+            content: `The files "${Array.from(pending.files)[0].name
+              }", ... were sent.`,
           };
         }
         notifications.set([...get(notifications), notification]);
@@ -312,24 +303,24 @@ export const addPendingFile = (files: FileList) => {
 
   console.log(
     "http://" +
-      location.hostname +
-      ":" +
-      location.port +
-      "/guest/" +
-      get(sender_uuid) +
-      "/key/" +
-      listen_key
+    location.hostname +
+    ":" +
+    location.port +
+    "/guest/" +
+    get(sender_uuid) +
+    "/key/" +
+    listen_key
   );
 
   link.set(
     "http://" +
-      location.hostname +
-      ":" +
-      location.port +
-      "/guest/" +
-      get(sender_uuid) +
-      "/key/" +
-      listen_key
+    location.hostname +
+    ":" +
+    location.port +
+    "/guest/" +
+    get(sender_uuid) +
+    "/key/" +
+    listen_key
   );
 };
 

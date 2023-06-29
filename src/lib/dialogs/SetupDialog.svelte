@@ -2,13 +2,12 @@
   import Dialog, { Title, Content } from "@smui/dialog";
   import Button, { Group, Label } from "@smui/button";
   import Textfield from "@smui/textfield";
-  import Select, { Option } from "@smui/select";
   import LinearProgress from "@smui/linear-progress";
 
-  import { get, type Readable } from "svelte/store";
+  import { get} from "svelte/store";
   import { browser } from "$app/environment";
-  import { onDestroy, onMount } from "svelte";
-  import { getContent, updatePeerJS_ID } from "$lib/personal";
+  import { onMount } from "svelte";
+  import { getContent, } from "$lib/personal";
 
   import {
     deviceParams,
