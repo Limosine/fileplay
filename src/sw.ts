@@ -189,12 +189,16 @@ self.addEventListener("notificationclick", async (event) => {
       console.log("Delete Notifications...");
       // TODO forward to client
       // // pull client into focus or open window
-      event.waitUntil(self.clients.matchAll({
-        includeUncontrolled: true,
-        type: "window"
-      }).then((clients) => {
-        console.log("Promised clients: ", clients )
-      }));
+      event.waitUntil(
+        self.clients
+          .matchAll({
+            includeUncontrolled: true,
+            type: "window",
+          })
+          .then((clients) => {
+            console.log("Promised clients: ", clients);
+          })
+      );
       const unfilteredClients = await self.clients.matchAll({
         includeUncontrolled: true,
       });
@@ -222,12 +226,16 @@ self.addEventListener("notificationclick", async (event) => {
       if (focusedclient) client = focusedclient;
       else if (clients.length > 0) client = clients[0];
       else {
-        try {
-          client = await self.clients.openWindow("/");
-          console.log("client: ", client);
-        } catch {
-          console.log("client null");
-        }
+        client = await self.clients
+          .openWindow("/")
+          .then((client) => {
+            return client;
+          })
+          .catch((reason) => {
+            console.log("Client null: ", reason);
+            return null;
+          });
+        console.log("client: ", client);
       }
 
       if (client) {
@@ -290,7 +298,9 @@ self.addEventListener("activate", (event) => {
   });
 });
 
-self.addEventListener("install", (event) => event.waitUntil(self.skipWaiting()));
+self.addEventListener("install", (event) =>
+  event.waitUntil(self.skipWaiting())
+);
 
 // TODO
 // - handle web share target requests
