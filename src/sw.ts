@@ -215,7 +215,7 @@ self.addEventListener("notificationclick", async (event) => {
           break;
         }
       }
-      let client: WindowClient | null;
+      let client: WindowClient | null = null;
       console.log("Client initiating");
 
       console.log("All clients: ", clients);
@@ -227,7 +227,6 @@ self.addEventListener("notificationclick", async (event) => {
           console.log("client: ", client);
         } catch {
           console.log("client null");
-          client = null;
         }
       }
 
