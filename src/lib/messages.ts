@@ -31,7 +31,7 @@ class Messages {
         navigator.serviceWorker.ready.then((registration) => {
           registration.active?.postMessage({ type: "register_push" });
         });
-      });#
+      });
       console.log(success);
       if (success) {
         this.implementation = "webpush";
