@@ -72,7 +72,7 @@ self.addEventListener("message", async (event) => {
             return value;
           })
           .catch((error) => {
-            console.log(error);
+            console.log("Error: ", error);
             return false;
           });
         console.log("Push registration success", success);
