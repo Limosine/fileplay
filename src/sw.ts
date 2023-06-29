@@ -194,6 +194,7 @@ self.addEventListener("notificationclick", async (event) => {
         }
       }
       let client: WindowClient | null;
+      console.log("Client initiating");
       
       console.log("All clients: ", clients);
       if (focusedclient) client = focusedclient;
