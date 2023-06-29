@@ -334,9 +334,15 @@ export const addPendingFile = (files: FileList) => {
 };
 
 export const connectAsListener = (sender_uuid: string, listen_key: string) => {
+  console.log(
+    "Connecting with ID: ",
+    sender_uuid,
+    " with listen key: ",
+    listen_key
+  );
   peer.on("open", (id) => {
     let conn = peer.connect(sender_uuid);
-
+    console.log("COnnceted: ", conn);
     conn.on("open", function () {
       console.log("Sending listen key: ", listen_key);
       conn.send({
