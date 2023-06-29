@@ -44,9 +44,11 @@ export const disconnectPeer = () => {
 
 const listen = () => {
   peer.on("connection", (conn) => {
+    console.log("COnnection on");
     connections.push(conn);
 
     conn.on("data", async function (received_data) {
+      console.log("DATA: ", received_data);
       await handleData(received_data, conn);
     });
   });
@@ -331,7 +333,7 @@ export const connectAsListener = (sender_uuid: string, listen_key: string) => {
     " with listen key: ",
     listen_key
   );
-  peer.on("open", (id) => {
+  peer.on("open", async (id) => {
     let connect_return = connected(sender_uuid);
     console.log("connected for peerId ", sender_uuid, "is", connect_return);
     let conn =
@@ -339,31 +341,51 @@ export const connectAsListener = (sender_uuid: string, listen_key: string) => {
     console.log("conn is ", conn);
     if (conn === undefined) throw new Error("Connection is undefined");
 
-    new Promise<void>((resolve) => {
-      if (!connect_return) {
-        conn.on("open", () => {
-          console.log("conn is open, sending files");
-          resolve();
-        });
-      } else {
-        resolve();
-      }
-    }).then(() => {
-      console.log("COnnceted: ", conn);
-      conn.on("open", function () {
+    if (!connect_return) {
+      conn.on("open", () => {
+        console.log("conn is open, sending details");
         console.log("Sending listen key: ", listen_key);
         conn.send({
           listen_key: listen_key,
         });
-
-        // Listener for file transfer
-        conn.on("data", async function (received_data) {
-          await handleData(received_data, conn);
-        });
       });
+    } else {
+      console.log("Sending listen key: ", listen_key);
+      conn.send({
+        listen_key: listen_key,
+      });
+    }
 
-      if (!connections.includes(conn)) connections.push(conn);
+    conn.on("data", async function (received_data) {
+      await handleData(received_data, conn);
     });
+
+    // new Promise<void>((resolve) => {
+    //   if (!connect_return) {
+    //     conn.on("open", () => {
+    //       console.log("conn is open, sending details");
+    //       resolve();
+    //     });
+    //   } else {
+    //     resolve();
+    //   }
+    // }).then(() => {
+    //   console.log("COnnceted: ", conn);
+    //   conn.on("open", function () {
+    //     console.log("Sending listen key: ", listen_key);
+    //     conn.send({
+    //       listen_key: listen_key,
+    //     });
+
+    //     // Listener for file transfer
+    //     conn.on("data", async function (received_data) {
+    //       await handleData(received_data, conn);
+    //     });
+    //   });
+
+    // if (!connections.includes(conn)) connections.push(conn);
+    connections.push(conn);
+    // });
   });
 };
 
