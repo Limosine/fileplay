@@ -14,29 +14,37 @@
   onMount(async () => {
     // update service worker
     if (pwaInfo) {
+      const update = async (
+        swScriptUrl: string,
+        registration: ServiceWorkerRegistration
+      ) => {
+        // check if sw is installing or navigator is offline
+        if (!(!registration.installing && navigator)) return;
+        if ("connection" in navigator && !navigator.onLine) return;
+        const resp = await fetch(swScriptUrl, {
+          cache: "no-store",
+          headers: {
+            cache: "no-store",
+            "cache-control": "no-cache",
+          },
+        });
+        if (resp.status === 200) {
+          await registration.update();
+          console.log("SW updated");
+        }
+      };
+
       registerSW({
         // TODO handle queued update (show in notifications, update if inactive)
         onRegisteredSW(
           swScriptUrl: string,
           registration: ServiceWorkerRegistration
         ) {
-          registration &&
-            setInterval(async () => {
-              // check if sw is installing or navigator is offline
-              if (!(!registration.installing && navigator)) return;
-              if ("connection" in navigator && !navigator.onLine) return;
-              const resp = await fetch(swScriptUrl, {
-                cache: "no-store",
-                headers: {
-                  cache: "no-store",
-                  "cache-control": "no-cache",
-                },
-              });
-              if (resp.status === 200) {
-                await registration.update();
-                console.log("SW updated");
-              }
-            }, 1000 * 60 * 60);
+          registration && update(swScriptUrl, registration);
+          setInterval(
+            async () => await update(swScriptUrl, registration),
+            1000 * 60 * 60
+          );
         },
         onRegisterError(error: any) {
           console.error("SW registration error", error);
@@ -54,7 +62,9 @@
         // Initial status is available at permission.state
         permission.onchange = async function () {
           if (this.state === "granted" && localStorage.getItem("loggedIn"))
-            await import('$lib/messages').then((m) => m.default_messages.init())
+            await import("$lib/messages").then((m) =>
+              m.default_messages.init()
+            );
         };
       });
 
