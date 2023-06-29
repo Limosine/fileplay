@@ -341,21 +341,38 @@ export const connectAsListener = (sender_uuid: string, listen_key: string) => {
     listen_key
   );
   peer.on("open", (id) => {
-    let conn = peer.connect(sender_uuid);
-    console.log("COnnceted: ", conn);
-    conn.on("open", function () {
-      console.log("Sending listen key: ", listen_key);
-      conn.send({
-        listen_key: listen_key,
+    let connect_return = connected(sender_uuid);
+    console.log("connected for peerId ", sender_uuid, "is", connect_return);
+    let conn =
+      connect_return == false ? peer.connect(sender_uuid) : connect_return;
+    console.log("conn is ", conn);
+    if (conn === undefined) throw new Error("Connection is undefined");
+
+    new Promise<void>((resolve) => {
+      if (!connect_return) {
+        conn.on("open", () => {
+          console.log("conn is open, sending files");
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    }).then(() => {
+      console.log("COnnceted: ", conn);
+      conn.on("open", function () {
+        console.log("Sending listen key: ", listen_key);
+        conn.send({
+          listen_key: listen_key,
+        });
+
+        // Listener for file transfer
+        conn.on("data", async function (received_data) {
+          await handleData(received_data, conn);
+        });
       });
 
-      // Listener for file transfer
-      conn.on("data", async function (received_data) {
-        await handleData(received_data, conn);
-      });
+      if (!connections.includes(conn)) connections.push(conn);
     });
-
-    connections.push(conn);
   });
 };
 
