@@ -18,6 +18,7 @@ class Messages {
   }
 
   async init() {
+    console.log(navigator);
     if ("serviceWorker" in navigator) {
       const success = await new Promise((resolve, reject) => {
         // @ts-ignore
@@ -30,7 +31,8 @@ class Messages {
         navigator.serviceWorker.ready.then((registration) => {
           registration.active?.postMessage({ type: "register_push" });
         });
-      });
+      });#
+      console.log(success);
       if (success) {
         this.implementation = "webpush";
         // @ts-ignore
