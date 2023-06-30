@@ -49,6 +49,7 @@ async function registerPushSubscription(): Promise<boolean> {
           })
         })
       }
+      return false
     }
 
     // start keepalive
