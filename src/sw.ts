@@ -14,7 +14,6 @@ import {
 } from "workbox-recipes";
 import { generateKey } from "openpgp/lightweight";
 import { get, set } from "idb-keyval";
-import { goto } from "$app/navigation";
 
 pageCache();
 
