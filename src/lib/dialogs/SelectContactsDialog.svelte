@@ -28,20 +28,20 @@
     const messages = (await import("$lib/messages")).default_messages;
     messages.onmessage("share_rejected", (data) => {
       console.log("share_rejected", data);
-      if(!(data.data.sid in sharing_ids)) return;
-      setSendState(sharing_ids[data.data.sid], SendState.REJECTED);
-      delete sharing_ids[data.data.sid];
+      if(!(data.sid in sharing_ids)) return;
+      setSendState(sharing_ids[data.sid], SendState.REJECTED);
+      delete sharing_ids[data.sid];
     });
 
     messages.onmessage("share_accepted", (data) => {
       console.log("share_accepted", data);
-      if(!(data.data.sid in sharing_ids)) return;
-      setSendState(sharing_ids[data.data.sid], SendState.SENDING);
+      if(!(data.sid in sharing_ids)) return;
+      setSendState(sharing_ids[data.sid], SendState.SENDING);
       // send files
       console.log('sending files')
-      send($files, data.peerJsId, undefined, data.data.encryptionPublicKey);
+      send($files, data.peerJsId, undefined, data.encryptionPublicKey);
       // TODO should share state be persistent in ui?
-      delete sharing_ids[data.data.sid];
+      delete sharing_ids[data.sid];
     });
   });
 

@@ -165,9 +165,11 @@ self.addEventListener("push", async (event) => {
             client.postMessage({
               class: "message",
               type: "share_accepted",
-              sid: data.sid,
-              peerJsId: data.peerJsId,
-              encryptionPublicKey: data.encryptionPublicKey,
+              data: {
+                sid: data.sid,
+                peerJsId: data.peerJsId,
+                encryptionPublicKey: data.encryptionPublicKey,
+              },
             });
           });
         });
