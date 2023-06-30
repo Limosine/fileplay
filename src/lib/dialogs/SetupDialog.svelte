@@ -4,10 +4,10 @@
   import Textfield from "@smui/textfield";
   import LinearProgress from "@smui/linear-progress";
 
-  import { get} from "svelte/store";
+  import { get } from "svelte/store";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
-  import { getContent, } from "$lib/personal";
+  import { getContent } from "$lib/personal";
 
   import {
     deviceParams,
@@ -91,6 +91,7 @@
         return;
       }
       keepAliveCode = ((await res.json()) as any).keepAliveCode;
+      localStorage.setItem("keepAliveCode", keepAliveCode);
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
     }
     if (newUser) {
@@ -126,14 +127,13 @@
     // socketStore = (await import("$lib/websocket")).socketStore;
     // unsubscribeSocketStore = socketStore.subscribe(() => {});
 
-    localStorage.setItem("keepAliveCode", keepAliveCode);
     navigator.serviceWorker.ready.then((registration) => {
       registration.active?.postMessage({
         type: "save_keep_alive_code",
         keepAliveCode,
       });
     });
-    console.log('initialising messages after setup')
+    console.log("initialising messages after setup");
     await (await import("$lib/messages")).default_messages.init();
   }
 
