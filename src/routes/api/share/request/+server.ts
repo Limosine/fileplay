@@ -175,7 +175,7 @@ export const DELETE: RequestHandler = async ({
           data: { tag: `SHARE:${res2.sid}` },
         }),
         `SHARE:${res2.sid}`
-      ).catch((r) => console.log(r));
+      ).catch((r) => console.log(r))
     );
   }
 

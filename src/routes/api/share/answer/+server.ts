@@ -53,7 +53,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
           data: { tag: `SHARE:${sid}` },
         }),
         `SHARE:${sid}`
-      ).catch((r) => console.log(r));
+      ).catch((r) => console.log(r))
     );
   }
 
@@ -136,7 +136,7 @@ export const DELETE: RequestHandler = async ({
           data: { tag: `SHARE:${sid}` },
         }),
         `SHARE:${sid}`
-      ).catch((r) => console.log(r));
+      ).catch((r) => console.log(r))
     );
   }
   await Promise.all(promises);
