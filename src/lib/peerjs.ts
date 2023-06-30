@@ -451,6 +451,7 @@ export const send = async (
     };
 
     let encryptedFiles: string[];
+    console.log(publicKey);
     if (publicKey !== undefined) {
       console.log('encrypting with public key')
       encryptedFiles = await encryptFiles(files, publicKey);
