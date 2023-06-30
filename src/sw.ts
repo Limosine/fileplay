@@ -23,6 +23,8 @@ staticResourceCache();
 
 imageCache();
 
+console.log("Service worker loaded");
+
 declare let self: ServiceWorkerGlobalScope;
 
 async function registerPushSubscription(): Promise<boolean> {

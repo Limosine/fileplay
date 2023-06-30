@@ -37,7 +37,7 @@
           if (registration) {
             setInterval(
               async () => await update(registration),
-              3 * 60 * 1000 // 3 minutes (for debugging)
+              20 * 1000 // 20 secs (for debugging)
             );
             await update(registration);
             navigator.serviceWorker.ready.then((registration) => {
