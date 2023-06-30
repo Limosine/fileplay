@@ -90,10 +90,9 @@
     const messages = (await import("$lib/messages")).default_messages;
 
     pgp_setup();
-    const peerjs_setup = setup();
+    setup();
 
     messages.onnotificationclick("share_accept", async (data: any) => {
-      peerjs_setup;
       await fetch("/api/share/answer", {
         method: "POST",
         headers: {
@@ -107,16 +106,33 @@
       });
       console.log("share accept notification click handler");
     });
-    console.log("registered share accept notification click handler");
+    messages.onnotificationclick("share_reject", async (data: any) => {
+      await fetch("/api/share/answer", {
+        method: "DELETE",
+        body: JSON.stringify({
+          sid: data.sid,
+        }),
+      });
+      console.log("share reject notification click handler");
+    });
     await messages.init();
+
+    if ("connection" in navigator)
+      //@ts-ignore
+      navigator.connection.onChange = async () => {
+        console.log("connection change");
+        await messages.init();
+      };
   });
 
+  let init_tries = 0;
   $: {
     // re-init messages if error
-    if ($status === "2") {
+    if ($status === "2" && init_tries < 5) {
       setTimeout(async () => {
         if ($status === "2")
           await (await import("$lib/messages")).default_messages.init();
+        init_tries++;
       }, 1000);
     }
   }

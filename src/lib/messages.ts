@@ -10,6 +10,7 @@ import { writable } from "svelte/store";
 import { ONLINE_STATUS_REFRESH_TIME } from "./common";
 
 export const status = writable<"0" | "1" | "2">("0");
+export const connectionMode = writable<string | null>()
 
 class Messages {
   implementation?: "websockets" | "webpush";
@@ -19,7 +20,7 @@ class Messages {
   } = {};
   systemmessage: { [key: string]: ((data: any) => Promise<void> | void)[] } =
     {};
-  wsinterval: any
+  wsinterval: any;
 
   constructor() {
     console.warn("Messages contructor has been called on the server side");
@@ -41,8 +42,7 @@ class Messages {
       return;
     }
 
-    // "serviceWorker" in navigator
-    if (false) {
+    if ("serviceWorker" in navigator) {
       const success: boolean = await new Promise((resolve) => {
         // @ts-ignore
         navigator.serviceWorker.onmessage = (msg) => {
@@ -55,12 +55,12 @@ class Messages {
             });
           }
         };
+        setTimeout(() => { resolve(false)}, 7000) // timeout after 7 seconds and try websockets
         // @ts-ignore
         navigator.serviceWorker.ready.then((registration) => {
           registration.active?.postMessage({ type: "register_push" });
         });
       });
-      console.log(success);
       if (success) {
         console.log("Webpush active");
         this.implementation = "webpush";
@@ -97,25 +97,42 @@ class Messages {
           }
         };
         status.set("1");
+        connectionMode.set("Web-Push");
         return;
       }
-      
     }
+
+    const keepalive = async () => {
+      await fetch(
+        `/api/keepalive?code=${localStorage.getItem("keepAliveCode")}`,
+        {
+          method: "GET",
+        }
+      ).then((res) => {
+        if (!res.ok) {
+          console.log("res for keepalive is not ok");
+          status.set("2");
+          if (res.status === 401) {
+            console.log('got 401 from keepalive')
+            localStorage.removeItem("loggedIn");
+            localStorage.removeItem("keepAliveCode");
+            window.location.reload();
+          }
+        }
+      });
+    };
+    // probe keepalive  for authentication
+    await keepalive();
     const ws = new WebSocket(`wss://${PUBLIC_FILEPLAY_DOMAIN}/websocket`);
     // TODO setup websockets otherwise, show messages from service worker using displayNotification
     ws.onmessage = (msg) => {
       console.log("received message from websocket", msg);
       this.dispatchMessage(JSON.parse(msg.data));
     };
-    ws.onerror = (ev) => {
-      console.log("error connecting to websocket");
-      console.log(ev);
-      status.set("2");
-    };
+
     const wsres = await new Promise<boolean>((resolve) => {
       ws.onopen = () => {
         console.log("websocket opened");
-        status.set("1");
         resolve(true);
       };
       ws.onerror = () => {
@@ -125,22 +142,24 @@ class Messages {
       };
     });
 
+    ws.onerror = (ev) => {
+      console.log("error connecting to websocket");
+      console.log(ev);
+      status.set("2");
+    };
+
+    ws.onclose = (ev) => {
+      console.log("websocket closed");
+      console.log(ev);
+      status.set("2");
+    }
+
     if (wsres) {
-      this.wsinterval = setInterval(async () => {
-        await fetch(
-          `/api/keepalive?code=${localStorage.getItem("keepAliveCode")}`,
-          {
-            method: "GET",
-          }
-        ).then((res) => {
-          if (!res.ok) {
-            console.log("res for keepalive is not ok");
-            status.set("2");
-          }
-        });
-      }, ONLINE_STATUS_REFRESH_TIME);
+      this.wsinterval = setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME);
       console.log("keepalive started");
-      return
+      status.set("1");
+      connectionMode.set("WebSocket");
+      return;
     }
 
     // error if not already returned

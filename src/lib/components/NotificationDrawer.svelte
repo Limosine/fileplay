@@ -10,11 +10,13 @@
   } from "@smui/card";
   import Button, { Label } from "@smui/button";
   import {
+  addNotification,
     deleteNotification,
     notification_open,
     notifications,
   } from "$lib/stores/Dialogs";
   import type { INotification } from "$lib/stores/Dialogs";
+  import { onMount } from "svelte";
 
   let width: number;
 
@@ -27,6 +29,34 @@
       data: n.data,
     });
   }
+
+  onMount(async () => {
+    const messages = (await import("$lib/messages")).default_messages;
+    messages.onmessage("sharing_request", (data) => {
+      console.log("sharing_request", data);
+      addNotification({
+        title: "Sharing Request",
+        body: `${data.sender} wants to share files with you. Click to accept.`,
+        actions: [
+          {
+            title: "Accept",
+            action: "share_accept",
+          },
+          {
+            title: "Reject",
+            action: "share_reject",
+          },
+        ],
+        tag: data.sid,
+        data: data,
+      })
+    });
+    messages.onmessage("sharing_cancel", (data) => {
+      console.log("sharing_cancel", data);
+      deleteNotification(data.sid);
+    });
+  })
+  
 </script>
 
 <svelte:window bind:outerWidth={width} />

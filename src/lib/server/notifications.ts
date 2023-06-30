@@ -26,7 +26,7 @@ export async function sendNotification(
   const db = createKysely(platform);
   const res1 = await db
     .selectFrom("devices")
-    .select(["pushSubscription", "websocketId"])
+    .select(["pushSubscription", "websocketId", 'lastUsedConnection'])
     .where(({ and, cmpr }) =>
       and([
         cmpr("did", "=", did),
@@ -42,7 +42,7 @@ export async function sendNotification(
   if (!res1) throw new Error("Device not found");
   const { pushSubscription, websocketId } = res1;
 
-  if (pushSubscription) {
+  if (res1.lastUsedConnection === 'push' && pushSubscription) {
     // todo check if subscription is already expired
 
     const options = {
@@ -80,10 +80,10 @@ export async function sendNotification(
         `Failed to send request to push server: ${res2.statusText}`
       );
     }
-  } else if (websocketId) {
+  } else if (res1.lastUsedConnection === 'websocket' && websocketId) {
     const id = platform.env.MESSAGE_WS.idFromString(websocketId);
     const stub = platform.env.MESSAGE_WS.get(id);
-    const response = await stub.fetch("", {
+    const response = await stub.fetch("https://app.fileplay.me/websockets-do", {
       method: "POST",
       body: payload,
     });

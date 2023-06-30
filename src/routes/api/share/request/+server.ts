@@ -84,22 +84,26 @@ export const GET: RequestHandler = async ({
         did_to,
         JSON.stringify({
           type: "sharing_request",
-          sid: res2.sid,
-          expires,
-          sender,
-          avatarSeed,
-          tag: `SHARE:${res2.sid}`,
+          data: {
+            sid: res2.sid,
+            expires,
+            sender,
+            avatarSeed,
+            tag: `SHARE:${res2.sid}`,
+          },
         }),
         `SHARE:${res2.sid}`
       )
         .then(() => sent++)
-        .catch((e) => {console.error(e)})
+        .catch((e) => {
+          console.error(e);
+        })
     );
   }
 
   await Promise.all(promises);
 
-  if (sent === 0) throw error(500, "Failed to send push notifications");
+  if (sent === 0) throw error(500, "Failed to send notifications");
 
   return json({ sid: res2.sid });
 };
@@ -168,7 +172,7 @@ export const DELETE: RequestHandler = async ({
         did_to,
         JSON.stringify({
           type: "sharing_cancel",
-          tag: `SHARE:${res2.sid}`,
+          data: { tag: `SHARE:${res2.sid}` },
         }),
         `SHARE:${res2.sid}`
       ).catch(() => {})

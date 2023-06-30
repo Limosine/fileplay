@@ -106,6 +106,7 @@
         // request sharing to contact
         await fetch(`/api/share/request?cid=${cid}`)
           .then(async (res) => {
+            if(!res.ok) throw new Error("Request failed");
             setSendState(cid, SendState.REQUESTING);
             sharing_ids[((await res.json()) as any).sid] = cid;
             console.log("Sharing Ids: ", sharing_ids);
@@ -143,7 +144,6 @@
               <!-- TODO animate all sharingstates (progress spinner around dicebear?) -->
               <Card
                 on:click={() => handleContactClick(contact.cid)}
-                class="selected"
                 style="padding-top: 20px;"
               >
                 <Media

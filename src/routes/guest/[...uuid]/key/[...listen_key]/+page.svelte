@@ -7,11 +7,6 @@
   import { finishedTransfers, receivedChunks } from "$lib/stores/ReceivedFiles";
 
   let received_files = writable<{ url: string; name: string }[]>([]);
-  // let info = transferHandler.getInformation();
-  // const refreshTimer = setInterval(() => {
-  //   info = transferHandler.getInformation();
-  // }, 10);
-
   let currentChunks = 0;
   let totalChunks = 0;
 

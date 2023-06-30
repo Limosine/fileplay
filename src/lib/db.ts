@@ -18,6 +18,7 @@ interface DecivesTable {
   createdAt: ColumnType<number, undefined, undefined>;
   lastSeenAt: ColumnType<number, undefined, number>;
   websocketId: string | null;
+  lastUsedConnection: "websocket" | "push" | null;
   pushSubscription: string | null;
 }
 
