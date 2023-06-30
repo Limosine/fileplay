@@ -52,6 +52,11 @@
         },
       });
     }
+    const messages = (await import("$lib/messages")).default_messages;
+    messages.onmessage('reset_client', () => {
+      localStorage.removeItem("loggedIn");
+      window.location.reload();
+    })
   });
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
 
@@ -68,6 +73,8 @@
             );
         };
       });
+
+    
 
     // check if service worker is running and handling push
     // yes --> assume it is handling push notifications and the keepalive

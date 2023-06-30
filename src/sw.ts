@@ -40,7 +40,17 @@ async function registerPushSubscription(): Promise<boolean> {
     });
     if (!res.ok) {
       console.log("res is not ok");
-      return false;
+      if (res.status === 401) {
+        console.log("resetting client")
+        await self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({
+              class: "message",
+              type: "reset_client"
+            })
+          })
+        })
+      }
     }
 
     // start keepalive
