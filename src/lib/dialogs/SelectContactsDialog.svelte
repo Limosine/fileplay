@@ -7,19 +7,12 @@
   import { onMount } from "svelte";
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
-  import {
-    contacts,
-  } from "$lib/personal";
+  import { contacts } from "$lib/personal";
   import { getDicebearUrl } from "$lib/common";
   import { userParams } from "$lib/stores/Dialogs";
 
   let addPendingFile: (files: FileList) => void;
-  let send: (
-    files: FileList,
-    peerID: string,
-    password?: string,
-    publicKey?: string
-  ) => void;
+  let send: (files: FileList, peerID?: string, publicKey?: string) => void;
 
   onMount(async () => {
     addPendingFile = (await import("$lib/peerjs")).addPendingFile;
@@ -28,18 +21,18 @@
     const messages = (await import("$lib/messages")).default_messages;
     messages.onmessage("share_rejected", (data) => {
       console.log("share_rejected", data);
-      if(!(data.sid in sharing_ids)) return;
+      if (!(data.sid in sharing_ids)) return;
       setSendState(sharing_ids[data.sid], SendState.REJECTED);
       delete sharing_ids[data.sid];
     });
 
     messages.onmessage("share_accepted", (data) => {
       console.log("share_accepted", data);
-      if(!(data.sid in sharing_ids)) return;
+      if (!(data.sid in sharing_ids)) return;
       setSendState(sharing_ids[data.sid], SendState.SENDING);
       // send files
-      console.log('sending files')
-      send($files, data.peerJsId, undefined, data.encryptionPublicKey);
+      console.log("sending files");
+      send($files, data.peerJsId, data.encryptionPublicKey);
       // TODO should share state be persistent in ui?
       delete sharing_ids[data.sid];
     });
@@ -106,7 +99,7 @@
         // request sharing to contact
         await fetch(`/api/share/request?cid=${cid}`)
           .then(async (res) => {
-            if(!res.ok) throw new Error("Request failed");
+            if (!res.ok) throw new Error("Request failed");
             setSendState(cid, SendState.REQUESTING);
             sharing_ids[((await res.json()) as any).sid] = cid;
             console.log("Sharing Ids: ", sharing_ids);
@@ -152,7 +145,11 @@
                     150
                   )}); background-size: contain;"
                 />
-                <Content>{contact.displayName} : {contact.cid in sendstate ? sendstate[contact.cid] : 0}</Content>
+                <Content
+                  >{contact.displayName} : {contact.cid in sendstate
+                    ? sendstate[contact.cid]
+                    : 0}</Content
+                >
               </Card>
             {/each}
           {:catch}
