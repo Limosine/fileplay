@@ -40,9 +40,7 @@
               20 * 1000 // 20 secs (for debugging)
             );
             await update(registration);
-            navigator.serviceWorker.ready.then((registration) => {
-              registration.active?.postMessage({ type: "skip_waiting" });
-            });
+            registration.waiting?.postMessage({ type: "skip_waiting" });
           }
         },
         onRegisterError(error: any) {
@@ -51,11 +49,13 @@
       }).needRefresh;
 
       messages.onnotificationclick("update_sw", () => {
-        navigator.serviceWorker.ready.then((registration) => {
-              registration.active?.postMessage({ type: "skip_waiting" });
-            });
+        navigator.serviceWorker.getRegistration().then((reg) => {
+          reg?.waiting?.postMessage({ type: "skip_waiting" });
+          window.location.reload();
+        });
       });
     }
+
     messages.onsystemmessage("reset_client", () => {
       console.log("resetting client message received");
       localStorage.removeItem("loggedIn");

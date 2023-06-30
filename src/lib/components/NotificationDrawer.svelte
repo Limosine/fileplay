@@ -55,7 +55,7 @@
                   <Button
                     on:click={() => handleNotificationClick(n, action.action)}
                   >
-                    <Label>action.title</Label>
+                    <Label>{action.title}</Label>
                   </Button>
                 </ActionButtons>
               {/each}
