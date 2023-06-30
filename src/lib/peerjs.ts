@@ -181,8 +181,10 @@ export const send = (
 
     let encrypted_files;
     if (publicKey !== undefined) {
+      console.log("encrypting with public key")
       encrypted_files = encryptFiles(files, publicKey);
     } else if (password !== undefined) {
+      console.log("encrypting with password")
       encrypted_files = encryptFilesWithPassword(files, password);
     } else {
       throw new Error("A password or public key has to be defined.");
