@@ -22,6 +22,7 @@
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
   import { transferHandler } from "$lib/stores/ReceivedFiles";
+  import { status } from "$lib/messages";
 
   let info = transferHandler.getInformation();
   const refreshTimer = setInterval(() => {
@@ -89,6 +90,16 @@
     console.log("registered share accept notification click handler");
     await messages.init();
   });
+
+  $: {
+    // re-init messages if error
+    if ($status === "2") {
+      setTimeout(async () => {
+        if ($status === "2")
+          await (await import("$lib/messages")).default_messages.init();
+      }, 1000);
+    }
+  }
 </script>
 
 <svelte:head>
@@ -103,7 +114,7 @@
 <AddContactDialog />
 <SettingsDialog />
 
-<NotificationPermission/>
+<NotificationPermission />
 <SetupDialog />
 
 <div class="center">

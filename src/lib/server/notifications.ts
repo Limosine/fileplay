@@ -1,6 +1,6 @@
 import { PRIVATE_VAPID_KEY } from "$env/static/private";
 import { PUBLIC_VAPID_KEY } from "$env/static/public";
-import { SHARING_TIMEOUT } from "$lib/common";
+import { ONLINE_STATUS_TIMEOUT, SHARING_TIMEOUT } from "$lib/common";
 import type { Database } from "$lib/db";
 // import Peer from "peerjs";
 import {
@@ -8,6 +8,7 @@ import {
   ApplicationServerKeys,
 } from "webpush-webcrypto";
 import { createKysely } from "./db";
+import dayjs from "dayjs";
 
 /**
  * Sends a push notfications to a device with the given device ID.
@@ -26,7 +27,16 @@ export async function sendNotification(
   const res1 = await db
     .selectFrom("devices")
     .select(["pushSubscription", "websocketId"])
-    .where("did", "=", did)
+    .where(({ and, cmpr }) =>
+      and([
+        cmpr("did", "=", did),
+        cmpr(
+          "lastSeenAt",
+          ">",
+          dayjs().subtract(ONLINE_STATUS_TIMEOUT, "ms").unix()
+        ),
+      ])
+    )
     .executeTakeFirst();
 
   if (!res1) throw new Error("Device not found");
@@ -54,9 +64,9 @@ export async function sendNotification(
 
     const { headers, body, endpoint } = await generatePushHTTPRequest(options);
 
-    console.log("sending push notification to", endpoint)
-    console.log("headers", headers)
-    console.log("body", body)
+    console.log("sending push notification to", endpoint);
+    console.log("headers", headers);
+    console.log("body", body);
 
     const res2 = await fetch(endpoint, {
       method: "POST",
@@ -65,7 +75,7 @@ export async function sendNotification(
     });
 
     if (!res2.ok) {
-      console.log(res2.json())
+      console.log(res2.json());
       throw new Error(
         `Failed to send request to push server: ${res2.statusText}`
       );
@@ -75,7 +85,7 @@ export async function sendNotification(
     const stub = platform.env.MESSAGE_WS.get(id);
     const response = await stub.fetch("", {
       method: "POST",
-      body: payload
+      body: payload,
     });
     if (!response.ok)
       throw new Error(`Failed to send message: ${response.statusText}`);

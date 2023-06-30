@@ -5,14 +5,12 @@
 
 import { getDicebearUrl, ONLINE_STATUS_REFRESH_TIME } from "$lib/common";
 import dayjs from "dayjs";
-// import Peer from "peerjs";
 import {
   pageCache,
   imageCache,
   staticResourceCache,
   googleFontsCache,
 } from "workbox-recipes";
-import { generateKey } from "openpgp/lightweight";
 import { get, set } from "idb-keyval";
 
 pageCache();
@@ -57,9 +55,21 @@ async function registerPushSubscription(): Promise<boolean> {
     setInterval(async () => {
       await fetch(`/api/keepalive?code=${await get("keepAliveCode")}`, {
         method: "GET",
+      }).then((res) => {
+        if(!res.ok) {
+          console.log("res for keepalive is not ok");
+          self.clients.matchAll().then(clients => {
+            clients.forEach(client => {
+              client.postMessage({
+                type: "set_status",
+                status: "2"
+              })
+            })
+          })
+        }
       });
-    }, JSON.parse(">ONLINE_STATUS_REFRESH_TIME<"));
-    console.log("keepalive started");
+    }, ONLINE_STATUS_REFRESH_TIME);
+    console.log("keepalive for push started");
 
     return true;
   } catch {
@@ -305,15 +315,3 @@ self.addEventListener("activate", (event) => {
     else console.log("Failed to register push notifications");
   });
 });
-
-// TODO
-// - handle web share target requests
-// - handle file management
-// - register push notifications                          DONE
-// - send push notifications subscription to server       DONE
-// - send keepalive requests to server                    DONE
-// - handle push messages, show notifications             DONE
-// - handle push notification clicks (accept, reject)     DONE
-// - handle file sending
-// - after files are received, show a notification if app is closed or in app list -> open in web share api
-// - show in app notifications

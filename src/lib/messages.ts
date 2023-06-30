@@ -5,7 +5,9 @@
 // share_rejected: other rejected request to share (forwarded by service worker if web push is active)
 
 import { browser } from "$app/environment";
+import { FILEPLAY_DOMAIN } from "$env/static/private";
 import { writable } from "svelte/store";
+import { ONLINE_STATUS_REFRESH_TIME } from "./common";
 
 export const status = writable<"0" | "1" | "2">("0");
 
@@ -17,9 +19,10 @@ class Messages {
   } = {};
   systemmessage: { [key: string]: ((data: any) => Promise<void> | void)[] } =
     {};
-  
+  wsinterval: any
+
   constructor() {
-    console.warn('Messages contructor has been called on the server side')
+    console.warn("Messages contructor has been called on the server side");
   }
 
   async init() {
@@ -30,9 +33,11 @@ class Messages {
     console.log("starting messages.ts init");
     status.set("0");
 
+    if(this.wsinterval) clearInterval(this.wsinterval)
+
     if (!localStorage.getItem("loggedIn")) {
       console.log("not logged in, not initializing messages");
-      status.set("1");
+      status.set("0");
       return;
     }
 
@@ -93,7 +98,44 @@ class Messages {
         status.set("1");
         return;
       }
+      const ws = new WebSocket(`wss://${FILEPLAY_DOMAIN}/websocket`);
       // TODO setup websockets otherwise, show messages from service worker using displayNotification
+      ws.onmessage = (msg) => {
+        console.log("received message from websocket", msg);
+        this.dispatchMessage(JSON.parse(msg.data));
+      };
+      ws.onerror = (ev) => {
+        console.log("error connecting to websocket");
+        console.log(ev);
+        status.set("2");
+      };
+      const wsres = await new Promise<boolean>((resolve) => {
+        ws.onopen = () => {
+          console.log("websocket opened");
+          status.set("1");
+          resolve(true);
+        };
+        ws.onerror = () => {
+          console.log("error connecting to websocket");
+          status.set("2");
+          resolve(false);
+        };
+      })
+
+      if (wsres) {
+        this.wsinterval = setInterval(async () => {
+          await fetch(`/api/keepalive?code=${localStorage.getItem("keepAliveCode")}`, {
+            method: "GET",
+          }).then((res) => {
+            if (!res.ok) {
+              console.log("res for keepalive is not ok");
+              status.set("2");
+            }
+          });
+        }, ONLINE_STATUS_REFRESH_TIME);
+        console.log("keepalive started");
+      }
+      
       // error if not already returned
       status.set("2");
     }
@@ -102,7 +144,14 @@ class Messages {
   dispatchNotificationClick(data: any) {
     console.log("dsipatching notificationclick", data);
     this.notificationclick[data.type]?.forEach(async (listener) => {
-      await listener(data);
+      await listener(data.data);
+    });
+  }
+
+  dispatchMessage(data: any) {
+    console.log("dispatching message", data);
+    this.message[data.type]?.forEach(async (listener) => {
+      await listener(data.data);
     });
   }
 
@@ -132,3 +181,7 @@ class Messages {
 }
 
 export const default_messages = new Messages();
+
+default_messages.onsystemmessage("update_status", (data) => {
+  status.set(data.status);
+});

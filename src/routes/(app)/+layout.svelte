@@ -20,7 +20,6 @@
 
     if (pwaInfo) {
       const update = async (registration: ServiceWorkerRegistration) => {
-        console.log("checking for SW update");
         // check if sw is installing or navigator is offline
         if (!(!registration.installing && navigator)) return;
         if ("connection" in navigator && !navigator.onLine) return;

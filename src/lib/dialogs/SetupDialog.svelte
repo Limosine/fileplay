@@ -126,6 +126,7 @@
     // socketStore = (await import("$lib/websocket")).socketStore;
     // unsubscribeSocketStore = socketStore.subscribe(() => {});
 
+    localStorage.setItem("keepAliveCode", keepAliveCode);
     navigator.serviceWorker.ready.then((registration) => {
       registration.active?.postMessage({
         type: "save_keep_alive_code",
