@@ -23,6 +23,7 @@
   import { updateContacts, getDevices } from "$lib/personal";
   import { transferHandler } from "$lib/stores/ReceivedFiles";
   import { status } from "$lib/messages";
+  import Textfield from "@smui/textfield";
 
   let info = transferHandler.getInformation();
   const refreshTimer = setInterval(() => {
@@ -30,6 +31,11 @@
   }, 10);
 
   let sender_uuid: Writable<string>;
+
+  let send: (files: FileList, peerID?: string, publicKey?: string ) => {}
+  let addPendingFile: (files: FileList) => {};
+
+  let peerID = "";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -65,6 +71,8 @@
 
     const { setup } = await import("$lib/peerjs");
     received_files = (await import("$lib/peerjs")).received_files;
+    send = (await import("$lib/peerjs")).send;
+    addPendingFile = (await import("$lib/peerjs")).addPendingFile;
 
     link = (await import("$lib/peerjs")).link;
     const messages = (await import("$lib/messages")).default_messages;
@@ -127,13 +135,26 @@
     </Card>
 
     {#if $files}
+      <Textfield
+        label="PeerID"
+        bind:value={peerID}
+      />
       <Card>
         <PrimaryAction
-          on:click={() => select_open.set(true)}
+          on:click={() => send($files, peerID)}
           style="padding: 64px"
         >
           <Icon class="material-icons" style="font-size: 30px">send</Icon>
           Send file(s)
+        </PrimaryAction>
+      </Card>
+      <Card>
+        <PrimaryAction
+          on:click={() => addPendingFile($files)}
+          style="padding: 64px"
+        >
+          <Icon class="material-icons" style="font-size: 30px">send</Icon>
+          Via link
         </PrimaryAction>
       </Card>
     {/if}
