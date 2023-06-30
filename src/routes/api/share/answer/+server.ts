@@ -53,7 +53,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
           data: { tag: `SHARE:${sid}` },
         }),
         `SHARE:${sid}`
-      ).catch(() => {})
+      ).catch((r) => console.log(r));
     );
   }
 
@@ -72,7 +72,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
         sid,
       },
     })
-  );
+  ).catch((r) => console.log(r));
 
   return new Response(null, { status: 200 });
 };
@@ -114,7 +114,7 @@ export const DELETE: RequestHandler = async ({
       type: "share_rejected",
       data: { sid },
     })
-  );
+  ).catch((r) => console.log(r));
 
   // revoke all other devices' requests
   const dids = await db
@@ -136,7 +136,7 @@ export const DELETE: RequestHandler = async ({
           data: { tag: `SHARE:${sid}` },
         }),
         `SHARE:${sid}`
-      ).catch(() => {})
+      ).catch((r) => console.log(r));
     );
   }
   await Promise.all(promises);

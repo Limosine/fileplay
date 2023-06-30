@@ -97,7 +97,7 @@ class Messages {
           }
         };
         status.set("1");
-        connectionMode.set("Web-Push");
+        connectionMode.set("Web—Push");
         return;
       }
     }
