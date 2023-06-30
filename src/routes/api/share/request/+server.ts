@@ -84,16 +84,20 @@ export const GET: RequestHandler = async ({
         did_to,
         JSON.stringify({
           type: "sharing_request",
-          sid: res2.sid,
-          expires,
-          sender,
-          avatarSeed,
-          tag: `SHARE:${res2.sid}`,
+          data: {
+            sid: res2.sid,
+            expires,
+            sender,
+            avatarSeed,
+            tag: `SHARE:${res2.sid}`,
+          },
         }),
         `SHARE:${res2.sid}`
       )
         .then(() => sent++)
-        .catch((e) => {console.error(e)})
+        .catch((e) => {
+          console.error(e);
+        })
     );
   }
 
@@ -168,7 +172,7 @@ export const DELETE: RequestHandler = async ({
         did_to,
         JSON.stringify({
           type: "sharing_cancel",
-          tag: `SHARE:${res2.sid}`,
+          data: { tag: `SHARE:${res2.sid}` },
         }),
         `SHARE:${res2.sid}`
       ).catch(() => {})

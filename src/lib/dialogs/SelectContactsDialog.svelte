@@ -144,7 +144,6 @@
               <!-- TODO animate all sharingstates (progress spinner around dicebear?) -->
               <Card
                 on:click={() => handleContactClick(contact.cid)}
-                class="selected"
                 style="padding-top: 20px;"
               >
                 <Media

@@ -164,19 +164,19 @@ self.addEventListener("push", async (event) => {
               action: "share_reject",
             },
           ],
-          data,
-          body: `${data.sender} wants to share files with you. Click to accept.`,
-          icon: getDicebearUrl(data.avatarSeed, 192),
-          tag: data.tag,
+          data: data.data,
+          body: `${data.data.sender} wants to share files with you. Click to accept.`,
+          icon: getDicebearUrl(data.data.avatarSeed, 192),
+          tag: data.data.tag,
         });
         // delete notification on timeout
         setTimeout(async () => {
-          await deleteNotifications(data.tag);
-        }, dayjs.unix(data.expires).diff(dayjs(), "millisecond"));
+          await deleteNotifications(data.data.tag);
+        }, dayjs.unix(data.data.expires).diff(dayjs(), "millisecond"));
         break;
       case "sharing_cancel":
         console.log("canceling own sharing notification");
-        await deleteNotifications(data.tag);
+        await deleteNotifications(data.data.tag);
         break;
       case "share_accepted":
         console.log("got push other device accepted sharing request");
@@ -185,11 +185,7 @@ self.addEventListener("push", async (event) => {
             client.postMessage({
               class: "message",
               type: "share_accepted",
-              data: {
-                sid: data.sid,
-                peerJsId: data.peerJsId,
-                encryptionPublicKey: data.encryptionPublicKey,
-              },
+              data: data.data,
             });
           });
         });
@@ -201,7 +197,7 @@ self.addEventListener("push", async (event) => {
             client.postMessage({
               class: "message",
               type: "share_rejected",
-              sid: data.sid,
+              data: data.data,
             });
           });
         });

@@ -50,7 +50,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
         did_to,
         JSON.stringify({
           type: "sharing_cancel",
-          tag: `SHARE:${sid}`,
+          data: { tag: `SHARE:${sid}` },
         }),
         `SHARE:${sid}`
       ).catch(() => {})
@@ -66,9 +66,11 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     did_return,
     JSON.stringify({
       type: "share_accepted",
-      peerJsId,
-      encryptionPublicKey,
-      sid,
+      data: {
+        peerJsId,
+        encryptionPublicKey,
+        sid,
+      },
     })
   );
 
@@ -110,7 +112,7 @@ export const DELETE: RequestHandler = async ({
     did_return,
     JSON.stringify({
       type: "share_rejected",
-      sid,
+      data: { sid },
     })
   );
 
@@ -131,7 +133,7 @@ export const DELETE: RequestHandler = async ({
         did_to,
         JSON.stringify({
           type: "sharing_cancel",
-          tag: `SHARE:${sid}`,
+          data: { tag: `SHARE:${sid}` },
         }),
         `SHARE:${sid}`
       ).catch(() => {})
