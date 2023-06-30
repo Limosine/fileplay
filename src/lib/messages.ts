@@ -33,7 +33,7 @@ class Messages {
     console.log("starting messages.ts init");
     status.set("0");
 
-    if(this.wsinterval) clearInterval(this.wsinterval)
+    if (this.wsinterval) clearInterval(this.wsinterval);
 
     if (!localStorage.getItem("loggedIn")) {
       console.log("not logged in, not initializing messages");
@@ -41,7 +41,8 @@ class Messages {
       return;
     }
 
-    if ("serviceWorker" in navigator) {
+    // "serviceWorker" in navigator
+    if (false) {
       const success: boolean = await new Promise((resolve) => {
         // @ts-ignore
         navigator.serviceWorker.onmessage = (msg) => {
@@ -98,47 +99,52 @@ class Messages {
         status.set("1");
         return;
       }
-      const ws = new WebSocket(`wss://${PUBLIC_FILEPLAY_DOMAIN}/websocket`);
-      // TODO setup websockets otherwise, show messages from service worker using displayNotification
-      ws.onmessage = (msg) => {
-        console.log("received message from websocket", msg);
-        this.dispatchMessage(JSON.parse(msg.data));
-      };
-      ws.onerror = (ev) => {
-        console.log("error connecting to websocket");
-        console.log(ev);
-        status.set("2");
-      };
-      const wsres = await new Promise<boolean>((resolve) => {
-        ws.onopen = () => {
-          console.log("websocket opened");
-          status.set("1");
-          resolve(true);
-        };
-        ws.onerror = () => {
-          console.log("error connecting to websocket");
-          status.set("2");
-          resolve(false);
-        };
-      })
-
-      if (wsres) {
-        this.wsinterval = setInterval(async () => {
-          await fetch(`/api/keepalive?code=${localStorage.getItem("keepAliveCode")}`, {
-            method: "GET",
-          }).then((res) => {
-            if (!res.ok) {
-              console.log("res for keepalive is not ok");
-              status.set("2");
-            }
-          });
-        }, ONLINE_STATUS_REFRESH_TIME);
-        console.log("keepalive started");
-      }
       
-      // error if not already returned
-      status.set("2");
     }
+    const ws = new WebSocket(`wss://${PUBLIC_FILEPLAY_DOMAIN}/websocket`);
+    // TODO setup websockets otherwise, show messages from service worker using displayNotification
+    ws.onmessage = (msg) => {
+      console.log("received message from websocket", msg);
+      this.dispatchMessage(JSON.parse(msg.data));
+    };
+    ws.onerror = (ev) => {
+      console.log("error connecting to websocket");
+      console.log(ev);
+      status.set("2");
+    };
+    const wsres = await new Promise<boolean>((resolve) => {
+      ws.onopen = () => {
+        console.log("websocket opened");
+        status.set("1");
+        resolve(true);
+      };
+      ws.onerror = () => {
+        console.log("error connecting to websocket");
+        status.set("2");
+        resolve(false);
+      };
+    });
+
+    if (wsres) {
+      this.wsinterval = setInterval(async () => {
+        await fetch(
+          `/api/keepalive?code=${localStorage.getItem("keepAliveCode")}`,
+          {
+            method: "GET",
+          }
+        ).then((res) => {
+          if (!res.ok) {
+            console.log("res for keepalive is not ok");
+            status.set("2");
+          }
+        });
+      }, ONLINE_STATUS_REFRESH_TIME);
+      console.log("keepalive started");
+      return
+    }
+
+    // error if not already returned
+    status.set("2");
   }
 
   dispatchNotificationClick(data: any) {
