@@ -77,11 +77,11 @@
     link = (await import("$lib/peerjs")).link;
     const messages = (await import("$lib/messages")).default_messages;
 
-    await pgp_setup();
+    pgp_setup();
     const peerjs_setup = setup();
 
     messages.onnotificationclick("share_accept", async (data: any) => {
-      await peerjs_setup;
+      peerjs_setup;
       await fetch("/api/share/answer", {
         method: "POST",
         headers: {
@@ -135,26 +135,13 @@
     </Card>
 
     {#if $files}
-      <Textfield
-        label="PeerID"
-        bind:value={peerID}
-      />
       <Card>
         <PrimaryAction
-          on:click={() => send($files, peerID)}
+          on:click={() => select_open.set(true)}
           style="padding: 64px"
         >
           <Icon class="material-icons" style="font-size: 30px">send</Icon>
           Send file(s)
-        </PrimaryAction>
-      </Card>
-      <Card>
-        <PrimaryAction
-          on:click={() => addPendingFile($files)}
-          style="padding: 64px"
-        >
-          <Icon class="material-icons" style="font-size: 30px">send</Icon>
-          Via link
         </PrimaryAction>
       </Card>
     {/if}
@@ -177,19 +164,6 @@
       {/each}
     </Card>
   {/if}
-
-  <!-- {#if $received_files.length != 0}
-    <Card padded>
-      <h6>Received file(s):</h6>
-      <p class="small"><br /></p>
-
-      {#each $received_files as received_file}
-        <a href={received_file.url} download={received_file.name}
-          >{received_file.name}</a
-        ><br />
-      {/each}
-    </Card>
-  {/if} -->
 
   {#if $received_files.length != 0 && $received_files.at(-1)}
     <Card padded>
