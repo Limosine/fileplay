@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
 
   const res1 = await db
     .updateTable("devices")
-    .set({ websocketId: id.toString() })
+    .set({ websocketId: id.toString(), lastUsedConnection: 'websocket' })
     .where("did", "=", did)
     .returning('did')
     .executeTakeFirst();
