@@ -21,21 +21,33 @@
     contacts_drawer_open,
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
-  import { transferHandler } from "$lib/stores/ReceivedFiles";
   import { status } from "$lib/messages";
-  import Textfield from "@smui/textfield";
+  import { finishedTransfers, receivedChunks } from "$lib/stores/ReceivedFiles";
 
-  let info = transferHandler.getInformation();
-  const refreshTimer = setInterval(() => {
-    info = transferHandler.getInformation();
-  }, 10);
+  // let info = transferHandler.getInformation();
+  // const refreshTimer = setInterval(() => {
+  //   info = transferHandler.getInformation();
+  // }, 10);
 
   let sender_uuid: Writable<string>;
 
-  let send: (files: FileList, peerID?: string, publicKey?: string ) => {}
+  let send: (files: FileList, peerID?: string, publicKey?: string) => {};
   let addPendingFile: (files: FileList) => {};
 
-  let peerID = "";
+  let currentChunks = 0;
+  let totalChunks = 0;
+
+  $: {
+    $receivedChunks.forEach((value) => {
+      if (value.chunks.length < value.chunkNumber) {
+        totalChunks = value.chunkNumber;
+        if (!$finishedTransfers.includes(value.fileID)) {
+          currentChunks = value.chunks.length;
+          return;
+        } else currentChunks = totalChunks;
+      }
+    });
+  }
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -175,16 +187,14 @@
           >{received_file.name}</a
         ><br />
       {/each}
-      {#if info.totalFiles > 0}
-        <h6>Progress: {info.currentChunks} / 10</h6>
-        <h6>{info.currentFiles} / {info.totalFiles}</h6>
+      {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
+        <h6>
+          Progress: {currentChunks} / {totalChunks}
+        </h6>
+        <h6>{$received_files.length} / {$receivedChunks.length}</h6>
       {/if}
     </Card>
-  {:else if info.totalFiles > 0}
-    <Card padded>
-      <h6>Progress: {info.currentChunks} / 10</h6>
-      <h6>{info.currentFiles} / {info.totalFiles}</h6>
-    </Card>{/if}
+  {/if}
 </div>
 
 <style>

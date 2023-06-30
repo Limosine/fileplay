@@ -4,13 +4,28 @@
   import { writable } from "svelte/store";
   import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/openpgp";
-  import { transferHandler } from "$lib/stores/ReceivedFiles";
+  import { finishedTransfers, receivedChunks } from "$lib/stores/ReceivedFiles";
 
   let received_files = writable<{ url: string; name: string }[]>([]);
-  let info = transferHandler.getInformation();
-  const refreshTimer = setInterval(() => {
-    info = transferHandler.getInformation();
-  }, 10);
+  // let info = transferHandler.getInformation();
+  // const refreshTimer = setInterval(() => {
+  //   info = transferHandler.getInformation();
+  // }, 10);
+
+  let currentChunks = 0;
+  let totalChunks = 0;
+
+  $: {
+    $receivedChunks.forEach((value) => {
+      if (value.chunks.length < value.chunkNumber) {
+        totalChunks = value.chunkNumber;
+        if (!$finishedTransfers.includes(value.fileID)) {
+          currentChunks = value.chunks.length;
+          return;
+        } else currentChunks = totalChunks;
+      }
+    });
+  }
 
   onMount(async () => {
     const { setup, connectAsListener } = await import("$lib/peerjs");
@@ -20,8 +35,8 @@
     setup();
 
     let sender_uuid = $page.params.uuid;
-    let filetransfer_id = $page.params.listen_key;
-    connectAsListener(sender_uuid, filetransfer_id);
+    let filetransferID = $page.params.listen_key;
+    connectAsListener(sender_uuid, filetransferID);
   });
 
   const pending_string_template = "Waiting for files";
@@ -44,8 +59,6 @@
 </script>
 
 <div class="center">
-  
-
   {#if $received_files.length != 0 && $received_files.at(-1)}
     <Card padded>
       <h6>Received file(s):</h6>
@@ -56,17 +69,21 @@
           >{received_file.name}</a
         ><br />
       {/each}
-      {#if info.totalFiles > 0}
-        <h6>Progress: {info.currentChunks} / 10</h6>
-        <h6>{info.currentFiles} / {info.totalFiles}</h6>
+      {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
+        <h6>
+          Progress: {currentChunks} / {totalChunks}
+        </h6>
+        <h6>{$received_files.length} / {$receivedChunks.length}</h6>
       {/if}
     </Card>
   {:else}
     <Card padded>
       <h6>{waiting}</h6>
-      {#if info.totalFiles > 0}
-        <h6>Progress: {info.currentChunks} / 10</h6>
-        <h6>{info.currentFiles} / {info.totalFiles}</h6>
+      {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
+        <h6>
+          Progress: {currentChunks} / {totalChunks}
+        </h6>
+        <h6>{$received_files.length} / {$receivedChunks.length}</h6>
       {/if}
     </Card>
   {/if}
