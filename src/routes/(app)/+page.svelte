@@ -78,10 +78,9 @@
     const messages = (await import("$lib/messages")).default_messages;
 
     pgp_setup();
-    const peerjs_setup = setup();
+    setup()
 
     messages.onnotificationclick("share_accept", async (data: any) => {
-      peerjs_setup;
       await fetch("/api/share/answer", {
         method: "POST",
         headers: {
@@ -95,7 +94,15 @@
       });
       console.log("share accept notification click handler");
     });
-    console.log("registered share accept notification click handler");
+    messages.onnotificationclick("share_reject", async (data: any) => {
+      await fetch("/api/share/answer", {
+          method: "DELETE",
+          body: JSON.stringify({
+            sid: data.sid,
+          }),
+        });
+      console.log("share reject notification click handler");
+    });
     await messages.init();
 
     if('connection' in navigator)

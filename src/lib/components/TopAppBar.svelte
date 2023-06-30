@@ -8,7 +8,7 @@
   import IconButton, { Icon } from "@smui/icon-button";
   import Tooltip, { Wrapper } from '@smui/tooltip';
   import { writable } from 'svelte/store';
-  import { status as current_status } from "$lib/messages";
+  import { connectionMode, status as current_status } from "$lib/messages";
 
   import { contacts_drawer_open as drawer_open } from '$lib/stores/Dialogs';
   import { notifications, notification_open, settings_open } from '$lib/stores/Dialogs';
@@ -37,7 +37,7 @@
       <Section align="end" toolbar>
         <Wrapper>
           <div><div class="connection-status" style="background-color: {colors[$current_status]}"></div></div>
-          <Tooltip>Connection status: {status[$current_status]}</Tooltip>
+          <Tooltip>Connection status: {status[$current_status]}{$connectionMode ? `(${$connectionMode})` : ''}</Tooltip>
         </Wrapper>
 
         <Wrapper>

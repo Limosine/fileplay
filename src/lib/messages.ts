@@ -10,6 +10,7 @@ import { writable } from "svelte/store";
 import { ONLINE_STATUS_REFRESH_TIME } from "./common";
 
 export const status = writable<"0" | "1" | "2">("0");
+export const connectionMode = writable<string | null>()
 
 class Messages {
   implementation?: "websockets" | "webpush";
@@ -41,8 +42,7 @@ class Messages {
       return;
     }
 
-    // "serviceWorker" in navigator
-    if (false) {
+    if (/* "serviceWorker" in navigator */ false) {
       const success: boolean = await new Promise((resolve) => {
         // @ts-ignore
         navigator.serviceWorker.onmessage = (msg) => {
@@ -97,6 +97,7 @@ class Messages {
           }
         };
         status.set("1");
+        connectionMode.set("push");
         return;
       }
     }
@@ -132,7 +133,6 @@ class Messages {
     const wsres = await new Promise<boolean>((resolve) => {
       ws.onopen = () => {
         console.log("websocket opened");
-        status.set("1");
         resolve(true);
       };
       ws.onerror = () => {
@@ -158,6 +158,8 @@ class Messages {
       
       this.wsinterval = setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME);
       console.log("keepalive started");
+      status.set("1");
+      connectionMode.set("websocket");
       return;
     }
 

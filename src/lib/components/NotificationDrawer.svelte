@@ -40,19 +40,19 @@
         actions: [
           {
             title: "Accept",
-            action: "accept",
+            action: "share_accept",
           },
           {
             title: "Reject",
-            action: "reject",
+            action: "share_reject",
           },
         ],
         tag: data.sid,
         data: data,
       })
     });
-    messages.onmessage("share_rejected", (data) => {
-      console.log("share_rejected", data);
+    messages.onmessage("sharing_cancel", (data) => {
+      console.log("sharing_cancel", data);
       deleteNotification(data.sid);
     });
   })
