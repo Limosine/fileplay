@@ -70,7 +70,7 @@
     addNotification({
       title: "New version available",
       body: "Click here to update",
-      tag: "new_sw_version"
+      tag: "new_sw_version",
       actions: [
         {
           title: "Update",
