@@ -5,6 +5,9 @@
 // share_rejected: other rejected request to share (forwarded by service worker if web push is active)
 
 import { browser } from "$app/environment";
+import { writable } from "svelte/store";
+
+export const status = writable<"0" | "1" | "2">("0");
 
 class Messages {
   implementation?: "websockets" | "webpush";
@@ -23,6 +26,14 @@ class Messages {
 
   async init() {
     console.log('starting messages.ts init');
+    status.set("0");
+
+    if (!localStorage.getItem('loggedIn')) {
+      console.log('not logged in, not initializing messages');
+      status.set("1");
+      return;
+    }
+    
     if ("serviceWorker" in navigator) {
       const success: boolean = await new Promise((resolve) => {
         // @ts-ignore
@@ -74,9 +85,12 @@ class Messages {
               break;
           }
         };
+        status.set("1");
         return;
       }
       // TODO setup websockets otherwise
+      // error if not already returned
+      status.set("2");
     }
   }
 
