@@ -100,6 +100,8 @@ export async function decryptFiles(encrypted_files: string[]) {
         armoredMessage: file
       });
 
+      console.log(message.getEncryptionKeyIDs());
+
       const { data: decrypted } = await openpgp.decrypt({
         message,
         decryptionKeys: privateKey_object,
