@@ -54,10 +54,11 @@
     }
     const messages = (await import("$lib/messages")).default_messages;
     messages.onmessage('reset_client', () => {
-      console.log('resetting client')
+      console.log('resetting client message received')
       localStorage.removeItem("loggedIn");
       window.location.reload();
     })
+    console.log('registered reset_client handler on client side')
   });
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
 
