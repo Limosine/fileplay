@@ -54,6 +54,7 @@
     }
     const messages = (await import("$lib/messages")).default_messages;
     messages.onmessage('reset_client', () => {
+      console.log('resetting client')
       localStorage.removeItem("loggedIn");
       window.location.reload();
     })
