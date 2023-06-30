@@ -4,15 +4,12 @@ import Peer from "peerjs";
 import { get, writable } from "svelte/store";
 import { page } from "$app/stores";
 import { addNotification, notifications } from "./stores/Dialogs";
-import { v4 as uuidv4 } from "uuid";
 import {
   decryptFiles,
   decryptFilesWithPassword,
   encryptFiles,
   encryptFilesWithPassword,
 } from "./openpgp";
-import { transferHandler } from "./stores/ReceivedFiles";
-import { sortArrayByOrder } from "./utils";
 
 let peer: Peer;
 export const sender_uuid = writable<string>();
@@ -137,14 +134,10 @@ const handleRequest = (data: any, conn: DataConnection) => {
 
   notification = {
     title: "Sharing request",
-    content: "A user wants to send files to you.",
-    infos: {
-      filetransfer_id: data.filetransfer_id,
-      peerID: conn.peer
-    },
+    body: "A user wants to send files to you.",
   };
 
-  notifications.set([...get(notifications), notification]);
+  addNotification(notification);
 };
 
 const sendInfos = (
