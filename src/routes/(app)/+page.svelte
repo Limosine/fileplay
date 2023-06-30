@@ -97,14 +97,22 @@
     });
     console.log("registered share accept notification click handler");
     await messages.init();
+
+    if('connection' in navigator)
+      navigator.connection.onChange = async () => {
+        console.log('connection change')
+        await messages.init();
+      }
   });
 
+  let init_tries = 0;
   $: {
     // re-init messages if error
-    if ($status === "2") {
+    if ($status === "2" && init_tries < 5) {
       setTimeout(async () => {
         if ($status === "2")
           await (await import("$lib/messages")).default_messages.init();
+          init_tries++;
       }, 1000);
     }
   }

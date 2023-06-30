@@ -21,7 +21,6 @@ staticResourceCache();
 
 imageCache();
 
-
 declare let self: ServiceWorkerGlobalScope;
 
 async function registerPushSubscription(): Promise<boolean> {
@@ -38,37 +37,39 @@ async function registerPushSubscription(): Promise<boolean> {
     });
     if (!res.ok) {
       console.log("res is not ok");
-      if (res.status === 401) {
-        console.log("resetting client")
-        await self.clients.matchAll().then(clients => {
-          clients.forEach(client => {
-            client.postMessage({
-              type: "reset_client"
-            })
-          })
-        })
-      }
-      return false
+      return false;
     }
 
-    // start keepalive
-    setInterval(async () => {
+    const keepalive = async () => {
       await fetch(`/api/keepalive?code=${await get("keepAliveCode")}`, {
         method: "GET",
-      }).then((res) => {
-        if(!res.ok) {
+      }).then(async (res) => {
+        if (!res.ok) {
           console.log("res for keepalive is not ok");
-          self.clients.matchAll().then(clients => {
-            clients.forEach(client => {
+          self.clients.matchAll().then((clients) => {
+            clients.forEach((client) => {
               client.postMessage({
                 type: "set_status",
-                status: "2"
-              })
-            })
-          })
+                status: "2",
+              });
+            });
+          });
+          if (res.status === 401) {
+            console.log("resetting client");
+            await self.clients.matchAll().then((clients) => {
+              clients.forEach((client) => {
+                client.postMessage({
+                  type: "reset_client",
+                });
+              });
+            });
+          }
         }
       });
-    }, ONLINE_STATUS_REFRESH_TIME);
+    };
+    // start keepalive
+    setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME);
+    await keepalive();
     console.log("keepalive for push started");
 
     return true;
@@ -84,7 +85,7 @@ self.addEventListener("message", async (event) => {
     switch (event.data.type) {
       // skip waiting to activate new service worker
       case "skip_waiting":
-        console.log('Trying to update service worker')
+        console.log("Trying to update service worker");
         self.skipWaiting();
         break;
       // register push notifications (called after setup, otherwise already initialized)
@@ -212,11 +213,9 @@ self.addEventListener("notificationclick", async (event) => {
       console.log("Delete Notifications...");
       // TODO forward to client
       // // pull client into focus or open window
-      await self.clients
-          .matchAll()
-          .then((clients) => {
-            console.log("Promised clients: ", clients);
-          })
+      await self.clients.matchAll().then((clients) => {
+        console.log("Promised clients: ", clients);
+      });
       const unfilteredClients = await self.clients.matchAll({
         includeUncontrolled: true,
       });

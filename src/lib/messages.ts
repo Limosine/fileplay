@@ -19,7 +19,7 @@ class Messages {
   } = {};
   systemmessage: { [key: string]: ((data: any) => Promise<void> | void)[] } =
     {};
-  wsinterval: any
+  wsinterval: any;
 
   constructor() {
     console.warn("Messages contructor has been called on the server side");
@@ -99,7 +99,6 @@ class Messages {
         status.set("1");
         return;
       }
-      
     }
     const ws = new WebSocket(`wss://${PUBLIC_FILEPLAY_DOMAIN}/websocket`);
     // TODO setup websockets otherwise, show messages from service worker using displayNotification
@@ -126,7 +125,7 @@ class Messages {
     });
 
     if (wsres) {
-      this.wsinterval = setInterval(async () => {
+      const keepalive = async () => {
         await fetch(
           `/api/keepalive?code=${localStorage.getItem("keepAliveCode")}`,
           {
@@ -136,11 +135,20 @@ class Messages {
           if (!res.ok) {
             console.log("res for keepalive is not ok");
             status.set("2");
+            if (res.status === 401) {
+              localStorage.removeItem("loggedIn");
+              localStorage.removeItem("keepAliveCode");
+              window.location.reload();
+            }
           }
         });
+      };
+      this.wsinterval = setInterval(async () => {
+        keepalive();
       }, ONLINE_STATUS_REFRESH_TIME);
+      await keepalive();
       console.log("keepalive started");
-      return
+      return;
     }
 
     // error if not already returned

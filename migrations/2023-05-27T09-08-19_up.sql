@@ -16,6 +16,7 @@ create table devices (
     lastSeenAt integer not null default (unixepoch('now')),
     websocketId text,
     pushSubscription text,
+    lastUsedConnection text,
     foreign key (uid) references users(uid)
 );
 

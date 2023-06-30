@@ -17,6 +17,7 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
       .set({
         pushSubscription: JSON.stringify(pushSubscription),
         websocketId: null,
+        lastUsedConnection: 'push'
       })
       .where("did", "=", did)
       .returning("did")
@@ -26,7 +27,7 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   } else if (websocketId) {
     const res = await db
       .updateTable("devices")
-      .set({ websocketId, pushSubscription: null })
+      .set({ websocketId, pushSubscription: null, lastUsedConnection: 'websocket' })
       .where("did", "=", did)
       .returning("did")
       .executeTakeFirst();

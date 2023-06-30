@@ -10,7 +10,7 @@
     "sourceMap": true,
     "strict": true,
     "types": ["vite-plugin-pwa/client", "@cloudflare/workers-types"],
-    "lib": ["DOM", "WebWorker", "ESNext"]
+    "lib": ["DOM", "ESNext"]
   },
   "include": [
 		"./.svelte-kit/ambient.d.ts",

@@ -99,7 +99,7 @@ export const GET: RequestHandler = async ({
 
   await Promise.all(promises);
 
-  if (sent === 0) throw error(500, "Failed to send push notifications");
+  if (sent === 0) throw error(500, "Failed to send notifications");
 
   return json({ sid: res2.sid });
 };
