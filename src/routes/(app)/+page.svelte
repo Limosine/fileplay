@@ -21,14 +21,7 @@
     contacts_drawer_open,
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
-  import { transferHandler } from "$lib/stores/ReceivedFiles";
   import { status } from "$lib/messages";
-  import Textfield from "@smui/textfield";
-
-  let info = transferHandler.getInformation();
-  const refreshTimer = setInterval(() => {
-    info = transferHandler.getInformation();
-  }, 10);
 
   let sender_uuid: Writable<string>;
 
@@ -190,16 +183,8 @@
           >{received_file.name}</a
         ><br />
       {/each}
-      {#if info.totalFiles > 0}
-        <h6>Progress: {info.currentChunks} / 10</h6>
-        <h6>{info.currentFiles} / {info.totalFiles}</h6>
-      {/if}
     </Card>
-  {:else if info.totalFiles > 0}
-    <Card padded>
-      <h6>Progress: {info.currentChunks} / 10</h6>
-      <h6>{info.currentFiles} / {info.totalFiles}</h6>
-    </Card>{/if}
+  {/if}
 </div>
 
 <style>

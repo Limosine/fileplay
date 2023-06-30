@@ -102,7 +102,13 @@ const handleFinish = (data: any) => {
     if (received_file_chunks.file_id == data.file_id) {
       file = received_file_chunks.chunks.join("");
 
-      let decrypted_file = await decryptFilesWithPassword([file], get(page).params.listen_key);
+      let decrypted_file;
+      if (received_file_chunks.encrypted == "publicKey") {
+        decrypted_file = await decryptFiles([file]);
+      } else {
+        decrypted_file = await decryptFilesWithPassword([file], get(page).params.listen_key);
+      }
+
 
       let url = createFileURL(decrypted_file[0]);
       let info = {
