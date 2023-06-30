@@ -452,6 +452,7 @@ export const send = async (
 
     let encryptedFiles: string[];
     if (publicKey !== undefined) {
+      console.log('encrypting with public key')
       encryptedFiles = await encryptFiles(files, publicKey);
       console.log("SEnding");
       filetransferInfos = {
@@ -460,6 +461,7 @@ export const send = async (
         files: chunkFiles(files, encryptedFiles),
       };
     } else {
+      console.log('encrypting with password')
       let filetransferID = nanoid(16);
       encryptedFiles = await encryptFilesWithPassword(files, filetransferID);
       filetransferInfos = {
