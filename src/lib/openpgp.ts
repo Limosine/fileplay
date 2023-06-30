@@ -31,7 +31,7 @@ async function convertPrivateKey(){
 export async function encryptFiles(files: FileList, armoredKey: string) {
 
   const filePromises = Array.from(files).map((file) => {
-    return new Promise<openpgp.WebStream<string>>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const reader = new FileReader;
       reader.onload = async () => {
         try {
@@ -64,7 +64,7 @@ export async function encryptFiles(files: FileList, armoredKey: string) {
 
 export async function encryptFilesWithPassword(files: FileList, password: string) {
   const filePromises = Array.from(files).map((file) => {
-    return new Promise<openpgp.WebStream<string>>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const reader = new FileReader;
       reader.onload = async () => {
         try {
@@ -93,7 +93,7 @@ export async function encryptFilesWithPassword(files: FileList, password: string
 }
 
 // return type?
-export async function decryptFiles(encrypted_files: openpgp.WebStream<string>[]) {
+export async function decryptFiles(encrypted_files: string[]) {
   const filePromises = Array.from(encrypted_files).map((file) => {
     return new Promise<openpgp.MaybeStream<openpgp.Data>> (async (resolve, reject) => {
       const message = await openpgp.readMessage({
@@ -115,7 +115,7 @@ export async function decryptFiles(encrypted_files: openpgp.WebStream<string>[])
   return decrypted_files;
 }
 
-export async function decryptFilesWithPassword(encrypted_files: openpgp.WebStream<string>[], password: string) {
+export async function decryptFilesWithPassword(encrypted_files: string[], password: string) {
   const filePromises = Array.from(encrypted_files).map((file) => {
     return new Promise<openpgp.MaybeStream<openpgp.Data>> (async (resolve, reject) => {
       const message = await openpgp.readMessage({

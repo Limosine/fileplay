@@ -19,6 +19,7 @@
     "@cloudflare/workers-types": "^4.20230518.0",
     "@formkit/auto-animate": "^1.0.0-beta.6",
     "@material/typography": "^14.0.0",
+    "@openpgp/web-stream-tools": "^0.0.13",
     "@smui-extra/badge": "^7.0.0-beta.8",
     "@smui/banner": "^7.0.0-beta.8",
     "@smui/button": "^7.0.0-beta.8",
