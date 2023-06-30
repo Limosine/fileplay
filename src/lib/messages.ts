@@ -55,12 +55,12 @@ class Messages {
             });
           }
         };
+        setTimeout(() => { resolve(false)}, 7000) // timeout after 7 seconds and try websockets
         // @ts-ignore
         navigator.serviceWorker.ready.then((registration) => {
           registration.active?.postMessage({ type: "register_push" });
         });
       });
-      console.log(success);
       if (success) {
         console.log("Webpush active");
         this.implementation = "webpush";
@@ -97,7 +97,7 @@ class Messages {
           }
         };
         status.set("1");
-        connectionMode.set("push");
+        connectionMode.set("Web Push");
         return;
       }
     }
@@ -155,11 +155,10 @@ class Messages {
     }
 
     if (wsres) {
-      
       this.wsinterval = setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME);
       console.log("keepalive started");
       status.set("1");
-      connectionMode.set("websocket");
+      connectionMode.set("Web Socket");
       return;
     }
 

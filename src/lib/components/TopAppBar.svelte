@@ -37,7 +37,7 @@
       <Section align="end" toolbar>
         <Wrapper>
           <div><div class="connection-status" style="background-color: {colors[$current_status]}"></div></div>
-          <Tooltip>Connection status: {status[$current_status]}{$connectionMode ? `(${$connectionMode})` : ''}</Tooltip>
+          <Tooltip>Connection status: {status[$current_status]}{$connectionMode ? ` (${$connectionMode})` : ''}</Tooltip>
         </Wrapper>
 
         <Wrapper>
