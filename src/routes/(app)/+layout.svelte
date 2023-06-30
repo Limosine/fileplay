@@ -65,7 +65,7 @@
   });
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
-  $: if (needRefresh) {
+  $: if ($needRefresh) {
     console.log("need refresh SW");
     addNotification({
       title: "New version available",
