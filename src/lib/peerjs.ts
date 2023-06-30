@@ -40,7 +40,6 @@ export const disconnectPeer = () => {
 
 const listen = () => {
   peer.on("connection", (conn) => {
-    console.log("COnnection on");
     connections.push(conn);
 
     conn.on("data", function (received_data) {
@@ -59,7 +58,7 @@ const handleData = (data: any, conn: DataConnection) => {
   } else if (data.type == "ChunkRequest") {
     sendChunked(conn.peer, data.filetransfer_id, data.chunk_id, data.file_id);
 
-    // Receiver:
+  // Receiver:
   } else if (data.type == "Request") {
     handleRequest(data, conn);
     // Testing (without Notification):
@@ -112,7 +111,6 @@ const handleFinish = (data: any) => {
       };
 
       received_files.set([...get(received_files), info]);
-      console.log(info);
     }
   });
 };
@@ -326,7 +324,6 @@ const handleChunk = (
   file_id: string
 ) => {
   let received_file_chunks = received_chunks.find(received_file_chunks => received_file_chunks.file_id == file_id);
-  console.log(received_chunks, file_id);
 
   if (received_file_chunks !== undefined) {
     received_file_chunks.chunks.push(chunk);
@@ -377,8 +374,6 @@ const sendChunked = (
                 chunk_id: 0,
                 chunk: file.file[0]
               };
-            } else {
-              console.log("The last chunk was received.");
             }
           }
         }
@@ -484,17 +479,6 @@ export const addPendingFile = async (files: FileList) => {
   let filetransfer_id = await send(files);
 
   if (filetransfer_id !== undefined) {
-    console.log(
-      "http://" +
-      location.hostname +
-      ":" +
-      location.port +
-      "/guest/" +
-      get(sender_uuid) +
-      "/key/" +
-      filetransfer_id
-    );
-
     link.set(
       "http://" +
       location.hostname +
