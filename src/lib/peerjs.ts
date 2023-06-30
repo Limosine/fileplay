@@ -80,12 +80,16 @@ const handleFinish = (data: any) => {
 
   received_chunks.forEach(async (received_file_chunks) => {
     if (received_file_chunks.file_id == data.file_id) {
+      console.log('received_file_chunks.file_id == data.file_id')
       file = received_file_chunks.chunks.join("");
 
       let decrypted_file;
+      console.log(received_file_chunks.encrypted)
       if (received_file_chunks.encrypted == "publicKey") {
+        console.log('decrypting with key')
         decrypted_file = await decryptFiles([file]);
       } else {
+        console.log('decrypting with password')
         decrypted_file = await decryptFilesWithPassword([file], get(page).params.listen_key);
       }
 
