@@ -14,11 +14,17 @@ export const GET: RequestHandler = async ({ platform, url }) => {
     return new Response("Expected code", { status: 400 });
   }
 
-  const { did } = await db
+  const res1 = await db
     .selectFrom("keepAliveCodes")
     .select("did")
     .where("code", "=", keepAliveCode)
-    .executeTakeFirstOrThrow();
+    .executeTakeFirst();
+  
+  if (!res1) {
+    return new Response("Invalid code", { status: 401 });
+  }
+
+  const { did } = res1;
 
   const { uid } = await db
     .updateTable("devices")

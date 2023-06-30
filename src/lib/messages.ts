@@ -112,6 +112,7 @@ class Messages {
           console.log("res for keepalive is not ok");
           status.set("2");
           if (res.status === 401) {
+            console.log('got 401 from keepalive')
             localStorage.removeItem("loggedIn");
             localStorage.removeItem("keepAliveCode");
             window.location.reload();
@@ -155,9 +156,7 @@ class Messages {
 
     if (wsres) {
       
-      this.wsinterval = setInterval(async () => {
-        keepalive();
-      }, ONLINE_STATUS_REFRESH_TIME);
+      this.wsinterval = setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME);
       console.log("keepalive started");
       return;
     }
