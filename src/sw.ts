@@ -23,7 +23,7 @@ staticResourceCache();
 
 imageCache();
 
-console.log("Service worker loaded");
+// console.log("Service worker loaded");
 
 declare let self: ServiceWorkerGlobalScope;
 
