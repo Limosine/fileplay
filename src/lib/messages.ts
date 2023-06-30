@@ -100,17 +100,34 @@ class Messages {
         return;
       }
     }
+
+    const keepalive = async () => {
+      await fetch(
+        `/api/keepalive?code=${localStorage.getItem("keepAliveCode")}`,
+        {
+          method: "GET",
+        }
+      ).then((res) => {
+        if (!res.ok) {
+          console.log("res for keepalive is not ok");
+          status.set("2");
+          if (res.status === 401) {
+            localStorage.removeItem("loggedIn");
+            localStorage.removeItem("keepAliveCode");
+            window.location.reload();
+          }
+        }
+      });
+    };
+    // probe keepalive  for authentication
+    await keepalive();
     const ws = new WebSocket(`wss://${PUBLIC_FILEPLAY_DOMAIN}/websocket`);
     // TODO setup websockets otherwise, show messages from service worker using displayNotification
     ws.onmessage = (msg) => {
       console.log("received message from websocket", msg);
       this.dispatchMessage(JSON.parse(msg.data));
     };
-    ws.onerror = (ev) => {
-      console.log("error connecting to websocket");
-      console.log(ev);
-      status.set("2");
-    };
+
     const wsres = await new Promise<boolean>((resolve) => {
       ws.onopen = () => {
         console.log("websocket opened");
@@ -124,29 +141,23 @@ class Messages {
       };
     });
 
+    ws.onerror = (ev) => {
+      console.log("error connecting to websocket");
+      console.log(ev);
+      status.set("2");
+    };
+
+    ws.onclose = (ev) => {
+      console.log("websocket closed");
+      console.log(ev);
+      status.set("2");
+    }
+
     if (wsres) {
-      const keepalive = async () => {
-        await fetch(
-          `/api/keepalive?code=${localStorage.getItem("keepAliveCode")}`,
-          {
-            method: "GET",
-          }
-        ).then((res) => {
-          if (!res.ok) {
-            console.log("res for keepalive is not ok");
-            status.set("2");
-            if (res.status === 401) {
-              localStorage.removeItem("loggedIn");
-              localStorage.removeItem("keepAliveCode");
-              window.location.reload();
-            }
-          }
-        });
-      };
+      
       this.wsinterval = setInterval(async () => {
         keepalive();
       }, ONLINE_STATUS_REFRESH_TIME);
-      await keepalive();
       console.log("keepalive started");
       return;
     }

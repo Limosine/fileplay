@@ -37,6 +37,16 @@ async function registerPushSubscription(): Promise<boolean> {
     });
     if (!res.ok) {
       console.log("res is not ok");
+      if (res.status === 401) {
+        console.log("resetting client");
+        await self.clients.matchAll().then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: "reset_client",
+            });
+          });
+        });
+      }
       return false;
     }
 
@@ -69,7 +79,6 @@ async function registerPushSubscription(): Promise<boolean> {
     };
     // start keepalive
     setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME);
-    await keepalive();
     console.log("keepalive for push started");
 
     return true;
