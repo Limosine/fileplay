@@ -42,7 +42,7 @@ class Messages {
       return;
     }
 
-    if (/* "serviceWorker" in navigator */ false) {
+    if ("serviceWorker" in navigator) {
       const success: boolean = await new Promise((resolve) => {
         // @ts-ignore
         navigator.serviceWorker.onmessage = (msg) => {
