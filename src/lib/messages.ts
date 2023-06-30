@@ -17,23 +17,25 @@ class Messages {
   } = {};
   systemmessage: { [key: string]: ((data: any) => Promise<void> | void)[] } =
     {};
-
+  
   constructor() {
-    if (!browser) {
-      throw new Error("Messages can only be used in the browser");
-    }
+    console.warn('Messages contructor has been called on the server side')
   }
 
   async init() {
-    console.log('starting messages.ts init');
+    if (!browser) {
+      throw new Error("Messages can only be used in the browser");
+    }
+
+    console.log("starting messages.ts init");
     status.set("0");
 
-    if (!localStorage.getItem('loggedIn')) {
-      console.log('not logged in, not initializing messages');
+    if (!localStorage.getItem("loggedIn")) {
+      console.log("not logged in, not initializing messages");
       status.set("1");
       return;
     }
-    
+
     if ("serviceWorker" in navigator) {
       const success: boolean = await new Promise((resolve) => {
         // @ts-ignore
@@ -41,7 +43,7 @@ class Messages {
           if (msg.data.type === "push_registered") {
             resolve(msg.data.data.success);
           } else {
-            console.log('executing system message during init')
+            console.log("executing system message during init");
             this.systemmessage[msg.data.type]?.forEach(async (listener) => {
               await listener(msg.data.data);
             });
@@ -78,7 +80,10 @@ class Messages {
               );
               break;
             default:
-              console.log('received system message from service worker', msg.data)
+              console.log(
+                "received system message from service worker",
+                msg.data
+              );
               this.systemmessage[msg.data.type]?.forEach(async (listener) => {
                 await listener(msg.data.data);
               });

@@ -25,22 +25,24 @@ interface NotificationAction {
   title: string;
 }
 
-interface Notification {
+export interface INotification {
   actions?: NotificationAction[];
   title: string;
   body?: string;
   data?: any;
   tag: string;
 }
-export const notifications = writable<Notification[]>([]);
+export const notifications = writable<INotification[]>([]);
 
 export const addNotification = (
-  notification: PartialBy<Notification, "tag">
+  notification: PartialBy<INotification, "tag">
 ) => {
+  // replace notifications with the same tag
+  if('tag' in notification && notification.tag) deleteNotification(notification.tag);
   notifications.update((notifications) => {
     if (!("tag" in notification))
       notification.tag = Math.random().toString(36).substring(7);
-    notifications.push(notification as Notification);
+    notifications.push(notification as INotification);
     return notifications;
   });
 };

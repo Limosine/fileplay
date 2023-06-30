@@ -73,6 +73,7 @@ self.addEventListener("message", async (event) => {
     switch (event.data.type) {
       // skip waiting to activate new service worker
       case "skip_waiting":
+        console.log('Trying to update service worker')
         self.skipWaiting();
         break;
       // register push notifications (called after setup, otherwise already initialized)
