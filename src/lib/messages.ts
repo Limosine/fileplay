@@ -97,7 +97,7 @@ class Messages {
           }
         };
         status.set("1");
-        connectionMode.set("Web Push");
+        connectionMode.set("Web-Push");
         return;
       }
     }
@@ -158,7 +158,7 @@ class Messages {
       this.wsinterval = setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME);
       console.log("keepalive started");
       status.set("1");
-      connectionMode.set("Web Socket");
+      connectionMode.set("WebSocket");
       return;
     }
 

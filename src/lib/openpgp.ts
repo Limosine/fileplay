@@ -94,14 +94,17 @@ export async function encryptFilesWithPassword(files: FileList, password: string
 
 // return type?
 export async function decryptFiles(encrypted_files: string[]) {
+  console.log('called decryptfile')
   const filePromises = Array.from(encrypted_files).map((file) => {
-    return new Promise<openpgp.MaybeStream<openpgp.Data>> (async (resolve, reject) => {
+    return new Promise<openpgp.MaybeStream<openpgp.Data>> (async (resolve) => {
       const message = await openpgp.readMessage({
         armoredMessage: file
       });
 
+      console.log('1')
       console.log(message.getEncryptionKeyIDs());
 
+      console.log('2')
       const { data: decrypted } = await openpgp.decrypt({
         message,
         decryptionKeys: privateKey_object,
@@ -111,9 +114,9 @@ export async function decryptFiles(encrypted_files: string[]) {
       resolve(decrypted);
     });
   });
-
+  
   const decrypted_files = await Promise.all(filePromises);
-
+  console.log("3");
   return decrypted_files;
 }
 
