@@ -124,7 +124,7 @@ async function deleteNotifications(tag: string) {
 }
 
 // handle push notifications
-self.addEventListener("push", (event) => {
+self.addEventListener("push", async (event) => {
   if (event.data) {
     const data = event.data.json();
     // todo handle single notifications
@@ -154,7 +154,7 @@ self.addEventListener("push", (event) => {
         break;
       case "sharing_cancel":
         console.log("canceling own sharing notification");
-        event.waitUntil(deleteNotifications(data.tag));
+        await deleteNotifications(data.tag);
         break;
       case "share_accepted":
         console.log("got push other device accepted sharing request");
@@ -198,16 +198,11 @@ self.addEventListener("notificationclick", async (event) => {
       console.log("Delete Notifications...");
       // TODO forward to client
       // // pull client into focus or open window
-      event.waitUntil(
-        self.clients
-          .matchAll({
-            includeUncontrolled: true,
-            type: "window",
-          })
+      await self.clients
+          .matchAll()
           .then((clients) => {
             console.log("Promised clients: ", clients);
           })
-      );
       const unfilteredClients = await self.clients.matchAll({
         includeUncontrolled: true,
       });

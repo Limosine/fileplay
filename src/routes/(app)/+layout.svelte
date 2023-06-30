@@ -88,9 +88,10 @@
         // Initial status is available at permission.state
         permission.onchange = async function () {
           if (this.state === "granted" && localStorage.getItem("loggedIn"))
-            await import("$lib/messages").then((m) =>
-              m.default_messages.init()
-            );
+            await import("$lib/messages").then((m) => {
+              m.default_messages.init();
+              console.log("initialising messages on notification change");
+            });
         };
       });
 
