@@ -37,10 +37,9 @@
           if (registration) {
             setInterval(
               async () => await update(registration),
-              20 * 1000 // 20 secs (for debugging)
+              5 * 60 * 1000 // 5 mins secs (for debugging)
             );
             await update(registration);
-            registration.waiting?.postMessage({ type: "skip_waiting" });
           }
         },
         onRegisterError(error: any) {

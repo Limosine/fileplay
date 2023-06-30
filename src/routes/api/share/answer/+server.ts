@@ -34,30 +34,30 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   // revoke all other devices' requests
   // disabled
-  // const dids = await db
-  //   .selectFrom("devices")
-  //   .select("did")
-  //   .where("uid", "=", uid)
-  //   .execute();
+  const dids = await db
+    .selectFrom("devices")
+    .select("did")
+    .where("uid", "=", uid)
+    .execute();
 
-  // const promises = [];
-  // for (const { did: did_to } of dids) {
-  //   // todo send notification
-  //   promises.push(
-  //     sendPushNotification(
-  //       db,
-  //       fetch,
-  //       did_to,
-  //       JSON.stringify({
-  //         type: "sharing_cancel",
-  //         tag: `SHARE:${sid}`,
-  //       }),
-  //       `SHARE:${sid}`
-  //     ).catch(() => {})
-  //   );
-  // }
+  const promises = [];
+  for (const { did: did_to } of dids) {
+    // todo send notification
+    promises.push(
+      sendNotification(
+        platform as App.Platform,
+        fetch,
+        did_to,
+        JSON.stringify({
+          type: "sharing_cancel",
+          tag: `SHARE:${sid}`,
+        }),
+        `SHARE:${sid}`
+      ).catch(() => {})
+    );
+  }
 
-  // await Promise.all(promises);
+  await Promise.all(promises);
 
   // send accept notification to did_return
   await sendNotification(

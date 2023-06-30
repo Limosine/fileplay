@@ -23,7 +23,6 @@ staticResourceCache();
 
 imageCache();
 
-// console.log("Service worker loaded");
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -246,7 +245,7 @@ self.addEventListener("notificationclick", async (event) => {
       }
 
       if (client) {
-        await client.navigate("/");
+        //await client.navigate("/");
         console.log("Focusing window");
         // setTimeout(() => {
         console.log("Posting message");
