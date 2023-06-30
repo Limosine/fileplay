@@ -3,7 +3,7 @@ import type { DataConnection } from "peerjs";
 import Peer from "peerjs";
 import { get, writable } from "svelte/store";
 import { page } from "$app/stores";
-import { notifications } from "./stores/Dialogs";
+import { addNotification, notifications } from "./stores/Dialogs";
 import { v4 as uuidv4 } from "uuid";
 import {
   decryptFiles,
@@ -66,17 +66,17 @@ const handleData = async (data: any, conn: DataConnection) => {
         if (pending.files.length == 1) {
           notification = {
             title: "File downloaded",
-            content: `The file "${Array.from(pending.files)[0].name
+            body: `The file "${Array.from(pending.files)[0].name
               }" was sent.`,
           };
         } else {
           notification = {
             title: "Files downloaded",
-            content: `The files "${Array.from(pending.files)[0].name
+            body: `The files "${Array.from(pending.files)[0].name
               }", ... were sent.`,
           };
         }
-        notifications.set([...get(notifications), notification]);
+        addNotification(notification);
         pending_files.splice(pending_files.indexOf(pending), 1);
       }
     }

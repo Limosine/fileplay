@@ -93,7 +93,7 @@ self.addEventListener("message", async (event) => {
         event.source?.postMessage({
           class: "message",
           type: "push_registered",
-          success,
+          data: { success },
         });
         break;
       case "save_keep_alive_code":
@@ -211,7 +211,7 @@ self.addEventListener("notificationclick", async (event) => {
       const unfilteredClients = await self.clients.matchAll({
         includeUncontrolled: true,
       });
-      console.log("UNfiltered: ", unfilteredClients);
+      console.log("Unfiltered: ", unfilteredClients);
       const clients = (await self.clients.matchAll({
         includeUncontrolled: true,
         type: "window",
@@ -255,7 +255,7 @@ self.addEventListener("notificationclick", async (event) => {
         client?.postMessage({
           class: "notificationclick",
           type: "share_accept",
-          sid: event.notification.data.sid,
+          data: event.notification.data,
         });
         // }, 1000);
       } else {

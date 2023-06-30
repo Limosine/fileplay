@@ -8,7 +8,7 @@
   import IconButton, { Icon } from "@smui/icon-button";
   import Tooltip, { Wrapper } from '@smui/tooltip';
   import { writable } from 'svelte/store';
-  import { status as current_status } from "$lib/websocket";
+  import { status as current_status } from "$lib/messages";
 
   import { contacts_drawer_open as drawer_open } from '$lib/stores/Dialogs';
   import { notifications, notification_open, settings_open } from '$lib/stores/Dialogs';

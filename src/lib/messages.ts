@@ -39,11 +39,11 @@ class Messages {
         // @ts-ignore
         navigator.serviceWorker.onmessage = (msg) => {
           if (msg.data.type === "push_registered") {
-            resolve(msg.data.success);
+            resolve(msg.data.data.success);
           } else {
             console.log('executing system message during init')
             this.systemmessage[msg.data.type]?.forEach(async (listener) => {
-              await listener(msg.data);
+              await listener(msg.data.data);
             });
           }
         };
@@ -63,7 +63,7 @@ class Messages {
             case "message":
               console.log("received message from service worker", msg.data);
               this.message[msg.data.type]?.forEach(async (listener) => {
-                await listener(msg.data);
+                await listener(msg.data.data);
               });
               break;
             case "notificationclick":
@@ -73,14 +73,14 @@ class Messages {
               );
               this.notificationclick[msg.data.type]?.forEach(
                 async (listener) => {
-                  await listener(msg.data);
+                  await listener(msg.data.data);
                 }
               );
               break;
             default:
               console.log('received system message from service worker', msg.data)
               this.systemmessage[msg.data.type]?.forEach(async (listener) => {
-                await listener(msg.data);
+                await listener(msg.data.data);
               });
               break;
           }
@@ -88,10 +88,17 @@ class Messages {
         status.set("1");
         return;
       }
-      // TODO setup websockets otherwise
+      // TODO setup websockets otherwise, show messages from service worker using displayNotification
       // error if not already returned
       status.set("2");
     }
+  }
+
+  dispatchNotificationClick(data: any) {
+    console.log("dsipatching notificationclick", data);
+    this.notificationclick[data.type]?.forEach(async (listener) => {
+      await listener(data);
+    });
   }
 
   onmessage(type: string, listener: (data: any) => Promise<void> | void) {
