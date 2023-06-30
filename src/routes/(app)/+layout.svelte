@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { page } from "$app/stores";
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
-  import { registerSW } from "virtual:pwa-register";
 
   import TopAppBar from "$lib/components/TopAppBar.svelte";
   import Drawer from "$lib/components/ContactDrawer.svelte";
@@ -21,10 +19,7 @@
     const messages = (await import("$lib/messages")).default_messages;
 
     if (pwaInfo) {
-      const update = async (
-        swScriptUrl: string,
-        registration: ServiceWorkerRegistration
-      ) => {
+      const update = async (registration: ServiceWorkerRegistration) => {
         console.log("checking for SW update");
         // check if sw is installing or navigator is offline
         if (!(!registration.installing && navigator)) return;
@@ -33,28 +28,32 @@
         await registration.update();
       };
 
-      const { needRefresh, updateServiceWorker } = useRegisterSW({
+      needRefresh = await useRegisterSW({
         // TODO handle queued update (show in notifications, update if inactive)
         async onRegisteredSW(
-          swScriptUrl: string,
+          _swScriptUrl: string,
           registration: ServiceWorkerRegistration | undefined
         ) {
           if (registration) {
             setInterval(
-              async () => await update(swScriptUrl, registration),
-              1000 * 60 * 60
+              async () => await update(registration),
+              3 * 60 * 1000 // 3 minutes (for debugging)
             );
-            await update(swScriptUrl, registration);
+            await update(registration);
+            navigator.serviceWorker.ready.then((registration) => {
+              registration.active?.postMessage({ type: "skip_waiting" });
+            });
           }
         },
         onRegisterError(error: any) {
           console.error("SW registration error", error);
         },
-      });
+      }).needRefresh;
 
-      messages.onnotificationclick("refresh", () => {
-        console.log("refreshing");
-        updateServiceWorker();
+      messages.onnotificationclick("update_sw", () => {
+        navigator.serviceWorker.ready.then((registration) => {
+              registration.active?.postMessage({ type: "skip_waiting" });
+            });
       });
     }
     messages.onsystemmessage("reset_client", () => {
@@ -74,7 +73,7 @@
       actions: [
         {
           title: "Update",
-          action: "refresh",
+          action: "update_sw",
         },
       ],
     });
