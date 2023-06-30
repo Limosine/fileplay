@@ -53,7 +53,7 @@
       });
     }
     const messages = (await import("$lib/messages")).default_messages;
-    messages.onmessage('reset_client', () => {
+    messages.onsystemmessage('reset_client', () => {
       console.log('resetting client message received')
       localStorage.removeItem("loggedIn");
       window.location.reload();

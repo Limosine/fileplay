@@ -9,7 +9,11 @@ import { browser } from "$app/environment";
 class Messages {
   implementation?: "websockets" | "webpush";
   message: { [key: string]: ((data: any) => Promise<void> | void)[] } = {};
-  notificationclick: { [key: string]: ((data: any) => Promise<void> | void)[] } = {};
+  notificationclick: {
+    [key: string]: ((data: any) => Promise<void> | void)[];
+  } = {};
+  systemmessage: { [key: string]: ((data: any) => Promise<void> | void)[] } =
+    {};
 
   constructor() {
     if (!browser) {
@@ -18,13 +22,18 @@ class Messages {
   }
 
   async init() {
-    console.log(navigator);
+    console.log('starting messages.ts init');
     if ("serviceWorker" in navigator) {
-      const success = await new Promise((resolve, reject) => {
+      const success: boolean = await new Promise((resolve) => {
         // @ts-ignore
         navigator.serviceWorker.onmessage = (msg) => {
           if (msg.data.type === "push_registered") {
             resolve(msg.data.success);
+          } else {
+            console.log('executing system message during init')
+            this.systemmessage[msg.data.type]?.forEach(async (listener) => {
+              await listener(msg.data);
+            });
           }
         };
         // @ts-ignore
@@ -41,19 +50,29 @@ class Messages {
           console.log("OnMessage: ", msg);
           switch (msg.data.class) {
             case "message":
-              console.log("received message", msg.data);
+              console.log("received message from service worker", msg.data);
               this.message[msg.data.type]?.forEach(async (listener) => {
                 await listener(msg.data);
               });
               break;
             case "notificationclick":
-              console.log("received notificationclick", msg.data);
-              this.notificationclick[msg.data.type]?.forEach(async (listener) => {
+              console.log(
+                "received notificationclick from service worker",
+                msg.data
+              );
+              this.notificationclick[msg.data.type]?.forEach(
+                async (listener) => {
+                  await listener(msg.data);
+                }
+              );
+              break;
+            default:
+              console.log('received system message from service worker', msg.data)
+              this.systemmessage[msg.data.type]?.forEach(async (listener) => {
                 await listener(msg.data);
-              })
+              });
               break;
           }
-          
         };
         return;
       }
@@ -68,12 +87,22 @@ class Messages {
     this.message[type].push(listener);
   }
 
-  onnotificationclick(type: string, listener: (data: any) => Promise<void> | void) { 
+  onnotificationclick(
+    type: string,
+    listener: (data: any) => Promise<void> | void
+  ) {
     if (!this.notificationclick[type]) {
       this.notificationclick[type] = [];
     }
     this.notificationclick[type].push(listener);
-  };
+  }
+
+  onsystemmessage(type: string, listener: (data: any) => Promise<void> | void) {
+    if (!this.systemmessage[type]) {
+      this.systemmessage[type] = [];
+    }
+    this.systemmessage[type].push(listener);
+  }
 }
 
 export const default_messages = new Messages();

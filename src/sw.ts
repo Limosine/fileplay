@@ -44,7 +44,6 @@ async function registerPushSubscription(): Promise<boolean> {
         await self.clients.matchAll().then(clients => {
           clients.forEach(client => {
             client.postMessage({
-              class: "message",
               type: "reset_client"
             })
           })
