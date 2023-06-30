@@ -70,28 +70,8 @@ const handleData = (data: any, conn: DataConnection) => {
     sendChunkRequest(conn.peer, data.filetransfer_id, data.chunk_info.chunk_id + 1, data.chunk_info.file_id);
   } else if (data.type == "FileFinished") {
     handleFinish(data);
-  } else if (Array.isArray(data.file) && Array.isArray(data.filename)) {
-    let decrypted_files;
-    if (data.encrypted == "publicKey") {
-      decrypted_files = decryptFiles(data.file);
-    } else {
-      decrypted_files = decryptFilesWithPassword(
-        data.file,
-        get(page).params.listen_key
-      );
-    }
-
-    decrypted_files.then((decrypted_files) => {
-      for (let i = 0; i < decrypted_files.length; i++) {
-        let url = createFileURL(decrypted_files[i]);
-        let info = {
-          url: url,
-          name: data.filename[i],
-        };
-
-        received_files.set([...get(received_files), info]);
-      }
-    });
+  } else {
+    // console.log(data);
   }
 };
 
@@ -108,7 +88,6 @@ const handleFinish = (data: any) => {
       } else {
         decrypted_file = await decryptFilesWithPassword([file], get(page).params.listen_key);
       }
-
 
       let url = createFileURL(decrypted_file[0]);
       let info = {
