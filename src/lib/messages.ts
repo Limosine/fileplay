@@ -5,7 +5,7 @@
 // share_rejected: other rejected request to share (forwarded by service worker if web push is active)
 
 import { browser } from "$app/environment";
-import { FILEPLAY_DOMAIN } from "$env/static/private";
+import { PUBLIC_FILEPLAY_DOMAIN } from "$env/static/public";
 import { writable } from "svelte/store";
 import { ONLINE_STATUS_REFRESH_TIME } from "./common";
 
@@ -98,7 +98,7 @@ class Messages {
         status.set("1");
         return;
       }
-      const ws = new WebSocket(`wss://${FILEPLAY_DOMAIN}/websocket`);
+      const ws = new WebSocket(`wss://${PUBLIC_FILEPLAY_DOMAIN}/websocket`);
       // TODO setup websockets otherwise, show messages from service worker using displayNotification
       ws.onmessage = (msg) => {
         console.log("received message from websocket", msg);
