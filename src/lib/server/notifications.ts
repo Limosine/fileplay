@@ -75,9 +75,11 @@ export async function sendNotification(
     });
 
     if (!res2.ok) {
-      console.log(res2.json());
+      console.log();
       throw new Error(
-        `Failed to send request to push server: ${res2.statusText}`
+        `Failed to send request to push server: ${await res2.text()} (${
+          res2.code
+        } ${res2.statusText})`
       );
     }
   } else if (res1.lastUsedConnection === 'websocket' && websocketId) {
