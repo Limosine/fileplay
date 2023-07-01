@@ -51,10 +51,10 @@ export const handleChunk = (
   chunk: string,
   file_id: string
 ) => {
-  let received_file_chunks = get(received_chunks).find(received_file_chunks => received_file_chunks.file_id == file_id);
+  let index = get(received_chunks).findIndex(received_file_chunks => received_file_chunks.file_id == file_id);
 
-  if (received_file_chunks !== undefined) {
-    received_file_chunks.chunks.push(chunk);
+  if (index !== undefined) {
+    received_chunks.update((received_chunks) => { received_chunks[index].chunks.push(chunk); return received_chunks})
   } else {
     console.log("No such file");
   }
