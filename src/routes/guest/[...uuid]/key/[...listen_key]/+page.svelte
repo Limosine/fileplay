@@ -4,8 +4,8 @@
   import { writable } from "svelte/store";
   import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/openpgp";
+  import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
 
-  let received_files = writable<{ url: string; name: string }[]>([]);
   let received_chunks = writable<
     {
       file_id: string;
@@ -13,12 +13,12 @@
       encrypted: string;
       chunk_number: number;
       chunks: string[];
+      url?: string | undefined;
     }[]
   >([]);
 
   onMount(async () => {
     const { setup, connectAsListener } = await import("$lib/peerjs/main");
-    received_files = (await import("$lib/peerjs/common")).received_files;
     received_chunks = (await import("$lib/peerjs/common")).received_chunks;
 
     pgp_setup();
@@ -28,53 +28,38 @@
     let filetransferID = $page.params.listen_key;
     connectAsListener(sender_uuid, filetransferID);
   });
-
-  const pending_string_template = "Waiting for files";
-  let waiting: string;
-  let index = -1;
-  const interval = setInterval(() => {
-    if ($received_files.length == 0) {
-      if (index >= 3) {
-        index = 0;
-      } else index++;
-    } else if (interval) {
-      clearInterval(interval);
-    }
-
-    waiting = pending_string_template.padEnd(
-      pending_string_template.length + index,
-      "."
-    );
-  }, 500);
 </script>
 
 <div class="center">
-  {#if $received_chunks.length != 0 && $received_chunks.at(-1)}
-    <Card padded>
-      <h6>Receiving file(s):</h6>
-      <p class="small"><br /></p>
-
-      {#each $received_chunks as received_file_chunks}
-        <h6>
-          {received_file_chunks.file_name}: {received_file_chunks.chunks.length}
-          / {received_file_chunks.chunk_number}
-        </h6>
-      {/each}
-    </Card>
-  {/if}
-
-  {#if $received_files.length != 0 && $received_files.at(-1)}
-    <Card padded>
+  <Card padded>
+    {#if $received_chunks.length != 0 && $received_chunks.at(-1)}
       <h6>Received file(s):</h6>
       <p class="small"><br /></p>
 
-      {#each $received_files as received_file}
-        <a href={received_file.url} download={received_file.name}
-          >{received_file.name}</a
-        ><br />
+      {#each $received_chunks as received_file_chunks}
+        <LinearProgress
+          style="text-align: left"
+          progress={received_file_chunks.chunks.length /
+            received_file_chunks.chunk_number}
+          closed={!!received_file_chunks.url}
+        />
+        <Card padded>
+          {#if received_file_chunks.url}
+            <a
+              href={received_file_chunks.url}
+              download={received_file_chunks.file_name}
+            >
+              {received_file_chunks.file_name}
+            </a>
+          {:else}
+            {received_file_chunks.file_name}
+          {/if}
+        </Card>
       {/each}
-    </Card>
-  {/if}
+    {:else}
+      <h6>Waiting for files...</h6>
+    {/if}
+  </Card>
 </div>
 
 <style>

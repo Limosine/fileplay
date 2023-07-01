@@ -1,36 +1,26 @@
 import { get } from "svelte/store";
-import { createFileURL, received_chunks, received_files } from "./common";
+import { createFileURL, received_chunks } from "./common";
 import { decryptFiles, decryptFilesWithPassword } from "$lib/openpgp";
 import { page } from "$app/stores";
 
-export const handleFinish = (data: any) => {
-  let file: string;
+export const handleFinish = async (data: any) => {
+  let index = get(received_chunks).findIndex(received_file_chunks => received_file_chunks.file_id == data.file_id);
 
-  get(received_chunks).forEach(async (received_file_chunks) => {
-    if (received_file_chunks.file_id == data.file_id) {
-      file = received_file_chunks.chunks.join("");
+  let file = get(received_chunks)[index].chunks.join("");
 
-      let decrypted_file;
-      if (received_file_chunks.encrypted == "publicKey") {
-        decrypted_file = await decryptFiles([file]);
-      } else {
-        decrypted_file = await decryptFilesWithPassword(
-          [file],
-          get(page).params.listen_key
-        );
-      }
+  let decrypted_file;
+  if (get(received_chunks)[index].encrypted == "publicKey") {
+    decrypted_file = await decryptFiles([file]);
+  } else {
+    decrypted_file = await decryptFilesWithPassword(
+      [file],
+      get(page).params.listen_key
+    );
+  }
 
-      let url = createFileURL(decrypted_file[0]);
-      let info = {
-        url: url,
-        name: received_file_chunks.file_name,
-      };
+  let url = createFileURL(decrypted_file[0]);
 
-      // Todo: remove item from received_chunks array.
-
-      received_files.set([...get(received_files), info]);
-    }
-  });
+  received_chunks.update((received_chunks) => { received_chunks[index].url = url; return received_chunks; });
 };
 
 export const handleFileInfos = (data: any) => {
@@ -41,7 +31,7 @@ export const handleFileInfos = (data: any) => {
       encrypted: data.encrypted,
       chunk_number: file.chunk_number,
       chunks: []
-    }
+    };
 
     received_chunks.set([...get(received_chunks), initial_chunk]);
   });
@@ -54,7 +44,7 @@ export const handleChunk = (
   let index = get(received_chunks).findIndex(received_file_chunks => received_file_chunks.file_id == file_id);
 
   if (index !== undefined) {
-    received_chunks.update((received_chunks) => { received_chunks[index].chunks.push(chunk); return received_chunks})
+    received_chunks.update((received_chunks) => { received_chunks[index].chunks.push(chunk); return received_chunks; });
   } else {
     console.log("No such file");
   }

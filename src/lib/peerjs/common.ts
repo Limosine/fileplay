@@ -19,8 +19,7 @@ export let pending_filetransfers = writable<{
 }[]>([]);
 
 // Receiver Side:
-export const received_files = writable<{ url: string; name: string; }[]>([]);
-export const received_chunks = writable<{ file_id: string, file_name: string, encrypted: string, chunk_number: number, chunks: string[]; }[]>([]);
+export const received_chunks = writable<{ file_id: string, file_name: string, encrypted: string, chunk_number: number, chunks: string[], url?: string }[]>([]);
 export const link = writable("");
 
 // Functions:

@@ -22,6 +22,7 @@
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
   import { status } from "$lib/messages";
+  import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
 
   let sender_uuid: Writable<string>;
 
@@ -36,9 +37,16 @@
     $files = e.dataTransfer.files;
   };
 
-  let received_files = writable<{ url: string; name: string }[]>([]);
-  let received_chunks = writable<{ file_id: string, file_name: string, encrypted: string, chunk_number: number, chunks: string[]; }[]>([]);
-
+  let received_chunks = writable<
+    {
+      file_id: string;
+      file_name: string;
+      encrypted: string;
+      chunk_number: number;
+      chunks: string[];
+      url?: string | undefined;
+    }[]
+  >([]);
   let link = writable("");
 
   let refresh_interval: any;
@@ -62,7 +70,6 @@
     sender_uuid = (await import("$lib/peerjs/common")).sender_uuid;
 
     const { setup } = await import("$lib/peerjs/main");
-    received_files = (await import("$lib/peerjs/common")).received_files;
     received_chunks = (await import("$lib/peerjs/common")).received_chunks;
     send = (await import("$lib/peerjs/send")).send;
     addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
@@ -176,27 +183,28 @@
 
   {#if $received_chunks.length != 0 && $received_chunks.at(-1)}
     <Card padded>
-      <h6>Receiving file(s):</h6>
-      <p class="small"><br /></p>
-
-      {#each $received_chunks as received_file_chunks}
-        <h6>
-          {received_file_chunks.file_name}: {received_file_chunks.chunks.length}
-          / {received_file_chunks.chunk_number}
-        </h6>
-      {/each}
-    </Card>
-  {/if}
-
-  {#if $received_files.length != 0 && $received_files.at(-1)}
-    <Card padded>
       <h6>Received file(s):</h6>
       <p class="small"><br /></p>
 
-      {#each $received_files as received_file}
-        <a href={received_file.url} download={received_file.name}
-          >{received_file.name}</a
-        ><br />
+      {#each $received_chunks as received_file_chunks}
+        <LinearProgress
+          style="text-align: left"
+          progress={received_file_chunks.chunks.length /
+            received_file_chunks.chunk_number}
+          closed={!!received_file_chunks.url}
+        />
+        <Card padded>
+          {#if received_file_chunks.url}
+            <a
+              href={received_file_chunks.url}
+              download={received_file_chunks.file_name}
+            >
+              {received_file_chunks.file_name}
+            </a>
+          {:else}
+            {received_file_chunks.file_name}
+          {/if}
+        </Card>
       {/each}
     </Card>
   {/if}
