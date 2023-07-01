@@ -213,6 +213,7 @@ self.addEventListener("push", async (event) => {
 self.addEventListener("notificationclick", async (event) => {
   switch (event.action) {
     case "share_accept":
+    case "":
       console.log("Accepting sharing request...");
       await deleteNotifications(event.notification.data.tag);
       console.log("Delete Notifications...");
