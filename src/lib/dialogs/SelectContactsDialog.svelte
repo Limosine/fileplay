@@ -16,7 +16,7 @@
 
   onMount(async () => {
     addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
-    send = (await import("$lib/peerjs/main")).send;
+    send = (await import("$lib/peerjs/send")).send;
 
     const messages = (await import("$lib/messages")).default_messages;
     messages.onmessage("share_rejected", (data) => {
