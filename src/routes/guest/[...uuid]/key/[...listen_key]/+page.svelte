@@ -4,27 +4,26 @@
   import { writable } from "svelte/store";
   import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/openpgp";
-  import { finishedTransfers, receivedChunks } from "$lib/stores/ReceivedFiles";
 
   let received_files = writable<{ url: string; name: string }[]>([]);
   let currentChunks = 0;
   let totalChunks = 0;
 
-  $: {
-    $receivedChunks.forEach((value) => {
-      if (value.chunks.length < value.chunkNumber) {
-        totalChunks = value.chunkNumber;
-        if (!$finishedTransfers.includes(value.fileID)) {
-          currentChunks = value.chunks.length;
-          return;
-        } else currentChunks = totalChunks;
-      }
-    });
-  }
+  // $: {
+  //   $receivedChunks.forEach((value) => {
+  //     if (value.chunks.length < value.chunkNumber) {
+  //       totalChunks = value.chunkNumber;
+  //       if (!$finishedTransfers.includes(value.fileID)) {
+  //         currentChunks = value.chunks.length;
+  //         return;
+  //       } else currentChunks = totalChunks;
+  //     }
+  //   });
+  // }
 
   onMount(async () => {
-    const { setup, connectAsListener } = await import("$lib/peerjs");
-    received_files = (await import("$lib/peerjs")).received_files;
+    const { setup, connectAsListener } = await import("$lib/peerjs/main");
+    received_files = (await import("$lib/peerjs/common")).received_files;
 
     pgp_setup();
     setup();
@@ -64,14 +63,14 @@
           >{received_file.name}</a
         ><br />
       {/each}
-      {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
+      <!-- {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
         <h6>
           Progress: {currentChunks} / {totalChunks}
         </h6>
         <h6>{$received_files.length} / {$receivedChunks.length}</h6>
-      {/if}
+      {/if} -->
     </Card>
-  {:else}
+  <!-- {:else}
     <Card padded>
       <h6>{waiting}</h6>
       {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
@@ -80,7 +79,7 @@
         </h6>
         <h6>{$received_files.length} / {$receivedChunks.length}</h6>
       {/if}
-    </Card>
+    </Card> -->
   {/if}
 </div>
 
