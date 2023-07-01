@@ -50,9 +50,9 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
         did_to,
         JSON.stringify({
           type: "sharing_cancel",
-          data: { tag: `SHARE:${sid}` },
+          data: { tag: `SHARE${sid}` },
         }),
-        `SHARE:${sid}`
+        `SHARE${sid}`
       ).catch((r) => console.log(r))
     );
   }
@@ -133,9 +133,9 @@ export const DELETE: RequestHandler = async ({
         did_to,
         JSON.stringify({
           type: "sharing_cancel",
-          data: { tag: `SHARE:${sid}` },
+          data: { tag: `SHARE${sid}` },
         }),
-        `SHARE:${sid}`
+        `SHARE${sid}`
       ).catch((r) => console.log(r))
     );
   }

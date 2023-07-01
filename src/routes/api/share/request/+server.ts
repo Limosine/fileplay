@@ -89,10 +89,10 @@ export const GET: RequestHandler = async ({
             expires,
             sender,
             avatarSeed,
-            tag: `SHARE:${res2.sid}`,
+            tag: `SHARE${res2.sid}`,
           },
         }),
-        `SHARE:${res2.sid}`
+        `SHARE${res2.sid}`
       )
         .then(() => sent++)
         .catch((e) => {
@@ -172,9 +172,9 @@ export const DELETE: RequestHandler = async ({
         did_to,
         JSON.stringify({
           type: "sharing_cancel",
-          data: { tag: `SHARE:${res2.sid}` },
+          data: { tag: `SHARE${res2.sid}` },
         }),
-        `SHARE:${res2.sid}`
+        `SHARE${res2.sid}`
       ).catch((r) => console.log(r))
     );
   }
