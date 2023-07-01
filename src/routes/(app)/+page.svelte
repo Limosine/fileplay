@@ -22,12 +22,8 @@
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
   import { status } from "$lib/messages";
-  import { finishedTransfers, receivedChunks } from "$lib/stores/ReceivedFiles";
 
-  // let info = transferHandler.getInformation();
-  // const refreshTimer = setInterval(() => {
-  //   info = transferHandler.getInformation();
-  // }, 10);
+
 
   let sender_uuid: Writable<string>;
 
@@ -37,17 +33,17 @@
   let currentChunks = 0;
   let totalChunks = 0;
 
-  $: {
-    $receivedChunks.forEach((value) => {
-      if (value.chunks.length < value.chunkNumber) {
-        totalChunks = value.chunkNumber;
-        if (!$finishedTransfers.includes(value.fileID)) {
-          currentChunks = value.chunks.length;
-          return;
-        } else currentChunks = totalChunks;
-      }
-    });
-  }
+  // $: {
+  //   $receivedChunks.forEach((value) => {
+  //     if (value.chunks.length < value.chunkNumber) {
+  //       totalChunks = value.chunkNumber;
+  //       if (!$finishedTransfers.includes(value.fileID)) {
+  //         currentChunks = value.chunks.length;
+  //         return;
+  //       } else currentChunks = totalChunks;
+  //     }
+  //   });
+  // }
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -79,14 +75,14 @@
 
   onMount(async () => {
     startRefresh();
-    sender_uuid = (await import("$lib/peerjs")).sender_uuid;
+    sender_uuid = (await import("$lib/peerjs/common")).sender_uuid;
 
-    const { setup } = await import("$lib/peerjs");
-    received_files = (await import("$lib/peerjs")).received_files;
-    send = (await import("$lib/peerjs")).send;
-    addPendingFile = (await import("$lib/peerjs")).addPendingFile;
+    const { setup } = await import("$lib/peerjs/main");
+    received_files = (await import("$lib/peerjs/common")).received_files;
+    send = (await import("$lib/peerjs/send")).send;
+    addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
 
-    link = (await import("$lib/peerjs")).link;
+    link = (await import("$lib/peerjs/common")).link;
     const messages = (await import("$lib/messages")).default_messages;
 
     pgp_setup();
@@ -203,12 +199,12 @@
           >{received_file.name}</a
         ><br />
       {/each}
-      {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
+      <!-- {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
         <h6>
           Progress: {currentChunks} / {totalChunks}
         </h6>
         <h6>{$received_files.length} / {$receivedChunks.length}</h6>
-      {/if}
+      {/if} -->
     </Card>
   {/if}
 </div>

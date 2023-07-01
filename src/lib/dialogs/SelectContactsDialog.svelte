@@ -15,8 +15,8 @@
   let send: (files: FileList, peerID?: string, publicKey?: string) => void;
 
   onMount(async () => {
-    addPendingFile = (await import("$lib/peerjs")).addPendingFile;
-    send = (await import("$lib/peerjs")).send;
+    addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
+    send = (await import("$lib/peerjs/main")).send;
 
     const messages = (await import("$lib/messages")).default_messages;
     messages.onmessage("share_rejected", (data) => {
