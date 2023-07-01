@@ -26,6 +26,8 @@ export const handleFinish = (data: any) => {
         name: received_file_chunks.file_name,
       };
 
+      // Todo: remove item from received_chunks array.
+
       received_files.set([...get(received_files), info]);
     }
   });

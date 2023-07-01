@@ -6,24 +6,12 @@
   import { setup as pgp_setup } from "$lib/openpgp";
 
   let received_files = writable<{ url: string; name: string }[]>([]);
-  let currentChunks = 0;
-  let totalChunks = 0;
-
-  // $: {
-  //   $receivedChunks.forEach((value) => {
-  //     if (value.chunks.length < value.chunkNumber) {
-  //       totalChunks = value.chunkNumber;
-  //       if (!$finishedTransfers.includes(value.fileID)) {
-  //         currentChunks = value.chunks.length;
-  //         return;
-  //       } else currentChunks = totalChunks;
-  //     }
-  //   });
-  // }
+  let received_chunks = writable<{ file_id: string, file_name: string, encrypted: string, chunk_number: number, chunks: string[]; }[]>([]);
 
   onMount(async () => {
     const { setup, connectAsListener } = await import("$lib/peerjs/main");
     received_files = (await import("$lib/peerjs/common")).received_files;
+    received_chunks = (await import("$lib/peerjs/common")).received_chunks;
 
     pgp_setup();
     setup();
@@ -58,28 +46,17 @@
       <h6>Received file(s):</h6>
       <p class="small"><br /></p>
 
+      {#each $received_chunks as received_file_chunks}
+        <h6>
+          {received_file_chunks.file_name}: {received_file_chunks.chunks.length} / {received_file_chunks.chunk_number}
+        </h6>
+      {/each}
       {#each $received_files as received_file}
         <a href={received_file.url} download={received_file.name}
           >{received_file.name}</a
         ><br />
       {/each}
-      <!-- {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
-        <h6>
-          Progress: {currentChunks} / {totalChunks}
-        </h6>
-        <h6>{$received_files.length} / {$receivedChunks.length}</h6>
-      {/if} -->
     </Card>
-  <!-- {:else}
-    <Card padded>
-      <h6>{waiting}</h6>
-      {#if $receivedChunks.length > 0 && $finishedTransfers.length != $receivedChunks.length}
-        <h6>
-          Progress: {currentChunks} / {totalChunks}
-        </h6>
-        <h6>{$received_files.length} / {$receivedChunks.length}</h6>
-      {/if}
-    </Card> -->
   {/if}
 </div>
 
