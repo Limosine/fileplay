@@ -72,13 +72,13 @@ export async function sendNotification(
       method: "POST",
       headers,
       body,
-    });
+    }) as Response;
 
     if (!res2.ok) {
       console.log();
       throw new Error(
         `Failed to send request to push server: ${await res2.text()} (${
-          res2.code
+          res2.status
         } ${res2.statusText})`
       );
     }
