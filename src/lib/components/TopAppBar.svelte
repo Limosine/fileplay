@@ -34,10 +34,11 @@
 <header class="mdc-top-app-bar">
   <TopAppBar bind:this={$topAppBar} variant="fixed">
     <Row>
-      <Section align="end" toolbar>
+      <Section toolbar>
         <Wrapper>
-          <div><div class="connection-status" style="background-color: {colors[$current_status]}"></div></div>
-          <Tooltip>Connection status: {status[$current_status]}{$connectionMode ? ` (${$connectionMode})` : ''}</Tooltip>
+          <IconButton class="material-icons" aria-label="Manage contacts" on:click={() => open("contact")}
+            >contacts</IconButton>
+          <Tooltip>Manage contacts</Tooltip>
         </Wrapper>
 
         <Wrapper>
@@ -50,11 +51,12 @@
 
           <Tooltip>Show notifications</Tooltip>
         </Wrapper>
+      </Section>
 
+      <Section align="end" toolbar>
         <Wrapper>
-          <IconButton class="material-icons" aria-label="Manage contacts" on:click={() => open("contact")}
-            >contacts</IconButton>
-          <Tooltip>Manage contacts</Tooltip>
+          <div><div class="connection-status" style="background-color: {colors[$current_status]}"></div></div>
+          <Tooltip>Connection status: {status[$current_status]}{$connectionMode ? ` (${$connectionMode})` : ''}</Tooltip>
         </Wrapper>
 
         <Wrapper>

@@ -17,14 +17,12 @@
   import { onMount } from "svelte";
 </script>
 
-<div dir="rtl">
   <Drawer
     class="mdc-top-app-bar--fixed-adjust"
-    dir="ltr"
     variant="dismissible"
     bind:open={$open}
   >
-    <Header dir="ltr">
+    <Header>
       <Title>Contacts</Title>
       <Subtitle>Manage your contacts</Subtitle>
       <div class="button-box">
@@ -74,7 +72,6 @@
       </div>
     </Content>
   </Drawer>
-</div>
 
 {#if $page.url.pathname == "/"}
   <slot />

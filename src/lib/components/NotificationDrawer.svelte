@@ -10,7 +10,7 @@
   } from "@smui/card";
   import Button, { Label } from "@smui/button";
   import {
-  addNotification,
+    addNotification,
     deleteNotification,
     notification_open,
     notifications,
@@ -49,61 +49,57 @@
         ],
         tag: data.sid,
         data: data,
-      })
+      });
     });
     messages.onmessage("sharing_cancel", (data) => {
       console.log("sharing_cancel", data);
       deleteNotification(data.sid);
     });
-  })
-  
+  });
 </script>
 
 <svelte:window bind:outerWidth={width} />
 
-<div dir="rtl">
-  <Drawer
-    class="mdc-top-app-bar--fixed-adjust"
-    dir="ltr"
-    variant="dismissible"
-    bind:open={$notification_open}
-  >
-    <Header dir="ltr">
-      <Title>Notifications</Title>
-    </Header>
-    <Content>
-      <div class="list-box">
-        {#each $notifications as n}
-          <Card>
-            <C_Content class="mdc-typography--body2">
-              <h6>{n.title}</h6>
-              {n.body}
-            </C_Content>
-            <Actions>
-              {#each n.actions ?? [] as action}
-                <ActionButtons>
-                  <Button
-                    on:click={() => handleNotificationClick(n, action.action)}
-                  >
-                    <Label>{action.title}</Label>
-                  </Button>
-                </ActionButtons>
-              {/each}
-              <ActionIcons>
-                <IconButton
-                  class="material-icons"
-                  on:click={() => deleteNotification(n.tag)}
+<Drawer
+  class="mdc-top-app-bar--fixed-adjust"
+  variant="dismissible"
+  bind:open={$notification_open}
+>
+  <Header>
+    <Title>Notifications</Title>
+  </Header>
+  <Content>
+    <div class="list-box">
+      {#each $notifications as n}
+        <Card>
+          <C_Content class="mdc-typography--body2">
+            <h6>{n.title}</h6>
+            {n.body}
+          </C_Content>
+          <Actions>
+            {#each n.actions ?? [] as action}
+              <ActionButtons>
+                <Button
+                  on:click={() => handleNotificationClick(n, action.action)}
                 >
-                  close
-                </IconButton>
-              </ActionIcons>
-            </Actions>
-          </Card>
-        {/each}
-      </div>
-    </Content>
-  </Drawer>
-</div>
+                  <Label>{action.title}</Label>
+                </Button>
+              </ActionButtons>
+            {/each}
+            <ActionIcons>
+              <IconButton
+                class="material-icons"
+                on:click={() => deleteNotification(n.tag)}
+              >
+                close
+              </IconButton>
+            </ActionIcons>
+          </Actions>
+        </Card>
+      {/each}
+    </div>
+  </Content>
+</Drawer>
 
 <slot />
 

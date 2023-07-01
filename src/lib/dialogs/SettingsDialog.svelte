@@ -135,7 +135,6 @@
       body: JSON.stringify({
         displayName: $deviceParams.displayName,
         type: $deviceParams.type,
-        encryptionPublicKey: $deviceParams.encryptionPublicKey,
       }),
     });
   }
@@ -149,7 +148,7 @@
       method: "GET",
     });
 
-    const codeproperties = await res.json();
+    const codeproperties: any = await res.json();
 
     generated_code = true;
     expires_at = codeproperties.expires;

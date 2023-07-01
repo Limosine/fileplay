@@ -24,7 +24,10 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
-  const updateValues = await request.json();
+  const updateValues: {
+    displayName?: string,
+    avatarSeed?: string,
+  } = await request.json();
 
   const res1 = await db
     .updateTable("users")

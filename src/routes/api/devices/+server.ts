@@ -3,6 +3,7 @@ import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
+import type { DeviceType } from "$lib/common";
 
 export const GET: RequestHandler = async ({ cookies, platform }) => {
   // get all devices linked to this account (requires cookie auth)
@@ -47,7 +48,10 @@ export const POST: RequestHandler = async ({
 
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
-  const updateObject = await request.json(); // todo validation using ajv / joi
+  const updateObject: {
+    displayName?: string,
+    type?: DeviceType,
+  } = await request.json();
 
   const res = await db
     .updateTable("devices")
