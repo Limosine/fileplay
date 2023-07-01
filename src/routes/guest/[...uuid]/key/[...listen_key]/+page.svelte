@@ -6,7 +6,15 @@
   import { setup as pgp_setup } from "$lib/openpgp";
 
   let received_files = writable<{ url: string; name: string }[]>([]);
-  let received_chunks = writable<{ file_id: string, file_name: string, encrypted: string, chunk_number: number, chunks: string[]; }[]>([]);
+  let received_chunks = writable<
+    {
+      file_id: string;
+      file_name: string;
+      encrypted: string;
+      chunk_number: number;
+      chunks: string[];
+    }[]
+  >([]);
 
   onMount(async () => {
     const { setup, connectAsListener } = await import("$lib/peerjs/main");
@@ -41,16 +49,25 @@
 </script>
 
 <div class="center">
+  {#if $received_chunks.length != 0 && $received_chunks.at(-1)}
+    <Card padded>
+      <h6>Receiving file(s):</h6>
+      <p class="small"><br /></p>
+
+      {#each $received_chunks as received_file_chunks}
+        <h6>
+          {received_file_chunks.file_name}: {received_file_chunks.chunks.length}
+          / {received_file_chunks.chunk_number}
+        </h6>
+      {/each}
+    </Card>
+  {/if}
+
   {#if $received_files.length != 0 && $received_files.at(-1)}
     <Card padded>
       <h6>Received file(s):</h6>
       <p class="small"><br /></p>
 
-      {#each $received_chunks as received_file_chunks}
-        <h6>
-          {received_file_chunks.file_name}: {received_file_chunks.chunks.length} / {received_file_chunks.chunk_number}
-        </h6>
-      {/each}
       {#each $received_files as received_file}
         <a href={received_file.url} download={received_file.name}
           >{received_file.name}</a
