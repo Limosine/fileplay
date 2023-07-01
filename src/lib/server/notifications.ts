@@ -53,7 +53,7 @@ export async function sendNotification(
       payload,
       target: JSON.parse(pushSubscription),
       adminContact: "mailto:web-push@fileplay.me",
-      ttl: SHARING_TIMEOUT,
+      ttl: Math.ceil(SHARING_TIMEOUT / 1000), // this is in seconds instead of milliseconds
       urgency: "high",
     };
 
