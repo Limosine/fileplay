@@ -41,5 +41,6 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
 
   if (!res1) throw error(500, "Failed to create websocket id");
 
+  console.log("created websocket id", id.toString());
   return await message_ws_do.fetch(new_request);
 };
