@@ -28,6 +28,7 @@
 
     switch (action) {
       case "confirm":
+        console.log('requesting permission to notifications')
         Notification.requestPermission();
     }
   }
@@ -44,8 +45,11 @@
   <Title id="title">Request notification permission</Title>
   <Content>
     <div>
-      Do you want to receive notifications. With notifications you can be
-      reminded. Doesn't work on Bromite.
+      Yay! Your device supports Push Notifications. With Push Notifications, you
+      can be notified of new messages even when you are not on the website.
+
+      Sending notifications requires your permission. Click "Yes" to allow
+      notifications.
     </div>
   </Content>
   <Actions>
