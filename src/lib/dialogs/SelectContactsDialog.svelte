@@ -148,7 +148,7 @@
                   class="card-media-16x9"
                   aspectRatio="16x9"
                   style="background-image: url({getDicebearUrl(
-                    $userParams.avatarSeed,
+                    contact.avatarSeed,
                     150
                   )}); background-size: contain;"
                 />
