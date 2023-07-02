@@ -70,7 +70,7 @@
     SENDING,
   }
   const sendstate: { [cid: number]: SendState } = {};
-  const sharing_ids: { [sid: number]: number } = {};
+  let sharing_ids: { [sid: number]: number } = {};
 
   function setSendState(cid: number, state: SendState) {
     sendstate[cid] = state;
@@ -87,10 +87,18 @@
         // cancel sharing request
         await fetch(`/api/share/request?cid=${cid}`, { method: "DELETE" });
         setSendState(cid, SendState.CANCELED);
+        // remove sharing id
+        sharing_ids = Object.fromEntries(
+          Object.entries(sharing_ids).filter(([sid, _cid]) => _cid !== cid)
+        );
         break;
       case SendState.SENDING:
         // cancel sharing in progress
         setSendState(cid, SendState.CANCELED);
+        // remove sharing id
+        sharing_ids = Object.fromEntries(
+          Object.entries(sharing_ids).filter(([sid, _cid]) => _cid !== cid)
+        );
         break;
       default: // IDLE, CANCELED, FAILED, REJECTED
         // request sharing to contact

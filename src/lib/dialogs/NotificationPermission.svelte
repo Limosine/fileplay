@@ -31,6 +31,9 @@
         console.log("requesting permission to notifications");
         console.log(await Notification.requestPermission());
     }
+
+    console.log("initializing messages after notification permission request");
+    await (await import("$lib/messages")).default_messages.init();
   }
 </script>
 

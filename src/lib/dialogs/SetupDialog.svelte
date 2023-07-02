@@ -134,8 +134,6 @@
         keepAliveCode,
       });
     });
-    console.log("initializing messages after setup");
-    await (await import("$lib/messages")).default_messages.init();
   }
 
   onMount(async () => {
