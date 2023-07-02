@@ -8,8 +8,9 @@
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
   import { contacts } from "$lib/personal";
-  import { getDicebearUrl } from "$lib/common";
+  import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
   import { userParams } from "$lib/stores/Dialogs";
+  import dayjs from "dayjs";
 
   let addPendingFile: (files: FileList) => void;
   let send: (files: FileList, peerID?: string, publicKey?: string) => void;
@@ -134,23 +135,24 @@
                 {setGhostItems(devices)}
               </div> -->
             {#each contacts as contact}
-              <!-- TODO animate all sharingstates (progress spinner around dicebear?) -->
-              <Card
-                on:click={() => handleContactClick(contact.cid)}
-                style="padding-top: 20px;"
-              >
-                <Media
-                  style="background-image: url({getDicebearUrl(
-                    $userParams.avatarSeed,
-                    150
-                  )}); background-size: contain;"
-                />
-                <Content
-                  >{contact.displayName} : {contact.cid in sendstate
-                    ? sendstate[contact.cid]
-                    : 0}</Content
+                <!-- TODO animate all sharingstates (progress spinner around dicebear?) -->
+                <Card
+                  on:click={() => handleContactClick(contact.cid)}
+                  disabled={contact.lastSeenAt < dayjs().subtract(ONLINE_STATUS_TIMEOUT, 'ms').unix()}
+                  style="padding-top: 20px;"
                 >
-              </Card>
+                  <Media
+                    style="background-image: url({getDicebearUrl(
+                      $userParams.avatarSeed,
+                      150
+                    )}); background-size: contain;"
+                  />
+                  <Content
+                    >{contact.displayName} : {contact.cid in sendstate
+                      ? sendstate[contact.cid]
+                      : 0}</Content
+                  >
+                </Card>
             {/each}
           {:catch}
             <p>Failed to load contacts.</p>

@@ -8,7 +8,7 @@ export interface IContact {
   displayName: string;
   avatarSeed: string;
   linkedAt: number;
-  isOnline: number;
+  lastSeenAt: number;
 }
 
 // contacts

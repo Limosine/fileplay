@@ -24,6 +24,9 @@ imageCache();
 declare let self: ServiceWorkerGlobalScope;
 
 async function registerPushSubscription(): Promise<boolean> {
+  const oldKeepaliveInterval = await get('keepaliveInterval')
+  if(oldKeepaliveInterval) clearInterval(oldKeepaliveInterval)
+
   if (Notification.permission !== "granted" || !("pushManager" in self.registration)|| !(await get("keepAliveCode")))
     return false;
   try {
@@ -78,7 +81,7 @@ async function registerPushSubscription(): Promise<boolean> {
       });
     };
     // start keepalive
-    setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME);
+    await set('keepaliveInterval', setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME))
     console.log("keepalive for push started");
 
     return true;
