@@ -65,8 +65,10 @@
   }
 
   $: {
-    if ($deviceID == $devices.self.did) deleteDisabled = true;
-    else deleteDisabled = false;
+    if ($devices_loaded) {
+      if ($deviceID == $devices.self.did) deleteDisabled = true;
+      else deleteDisabled = false;
+    }
   }
 
   function handleSettingsKeyDown(event: CustomEvent | KeyboardEvent) {
