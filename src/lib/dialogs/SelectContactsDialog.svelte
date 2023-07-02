@@ -138,10 +138,11 @@
                 <!-- TODO animate all sharingstates (progress spinner around dicebear?) -->
                 <Card
                   on:click={() => handleContactClick(contact.cid)}
-                  disabled={contact.lastSeenAt < dayjs().subtract(ONLINE_STATUS_TIMEOUT, 'ms').unix()}
+                  class:disabled={contact.lastSeenAt < dayjs().subtract(ONLINE_STATUS_TIMEOUT, 'ms').unix()}
                   style="padding-top: 20px;"
                 >
                   <Media
+                    class="card-media-16x9" aspectRatio="16x9"
                     style="background-image: url({getDicebearUrl(
                       $userParams.avatarSeed,
                       150
