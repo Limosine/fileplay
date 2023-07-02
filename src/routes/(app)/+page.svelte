@@ -187,24 +187,26 @@
       <p class="small"><br /></p>
 
       {#each $received_chunks as received_file_chunks}
-        <LinearProgress
-          style="text-align: left"
-          progress={received_file_chunks.chunks.length /
-            received_file_chunks.chunk_number}
-          closed={!!received_file_chunks.url}
-        />
-        <Card padded>
-          {#if received_file_chunks.url}
-            <a
-              href={received_file_chunks.url}
-              download={received_file_chunks.file_name}
-            >
+        <div style="margin-bottom: 5px;">
+          <LinearProgress
+            style="text-align: left"
+            progress={received_file_chunks.chunks.length /
+              received_file_chunks.chunk_number}
+            closed={!!received_file_chunks.url}
+          />
+          <Card padded>
+            {#if received_file_chunks.url}
+              <a
+                href={received_file_chunks.url}
+                download={received_file_chunks.file_name}
+              >
+                {received_file_chunks.file_name}
+              </a>
+            {:else}
               {received_file_chunks.file_name}
-            </a>
-          {:else}
-            {received_file_chunks.file_name}
-          {/if}
-        </Card>
+            {/if}
+          </Card>
+        </div>
       {/each}
     </Card>
   {/if}
