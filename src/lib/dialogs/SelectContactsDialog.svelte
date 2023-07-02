@@ -156,17 +156,6 @@
                       >{contact.displayName} : {contact.cid in sendstate
                         ? sendstate[contact.cid]
                         : 0}
-                      </Content>
-                    <Media
-                      style="background-image: url({getDicebearUrl(
-                        $userParams.avatarSeed,
-                        150
-                      )}); background-size: contain;"
-                    />
-                    <Content>
-                      {contact.displayName} : {contact.cid in sendstate
-                        ? sendstate[contact.cid]
-                        : 0}
                     </Content>
                   </PrimaryAction>
                 </Card>
