@@ -16,7 +16,7 @@
   import { page } from "$app/stores";
 
   async function deleteContact(cid: number) {
-    const res = await fetch(`/api/contacts?${cid}`, {
+    const res = await fetch(`/api/contacts?cid=${cid}`, {
       method: "DELETE",
     });
   }
