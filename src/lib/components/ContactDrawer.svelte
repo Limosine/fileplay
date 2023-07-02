@@ -14,7 +14,12 @@
 
   import { contacts_drawer_open as open } from "$lib/stores/Dialogs";
   import { page } from "$app/stores";
-  import { onMount } from "svelte";
+
+  async function deleteContact(cid: number) {
+    const res = await fetch(`/api/contacts?${cid}`, {
+      method: "DELETE",
+    });
+  }
 </script>
 
   <Drawer
@@ -57,8 +62,10 @@
                     <Wrapper>
                       <IconButton
                         class="material-icons"
-                        aria-label="Delete contact">more_vert</IconButton
-                      >
+                        aria-label="Delete contact"
+                        on:click={() => deleteContact(contact.cid)}>
+                        delete
+                      </IconButton>
                       <Tooltip>Manage contacts</Tooltip>
                     </Wrapper>
                   </div>
