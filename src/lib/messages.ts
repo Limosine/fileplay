@@ -122,7 +122,7 @@ class Messages {
     // probe keepalive  for authentication
     await keepalive();
     const ws = new WebSocket(`wss://${PUBLIC_FILEPLAY_DOMAIN}/websocket`);
-    // TODO setup websockets otherwise, show messages from service worker using displayNotification
+    // the websocket id in the database is set when calling /websocket
     ws.onmessage = (msg) => {
       console.log("received message from websocket", msg);
       this.dispatchMessage(JSON.parse(msg.data));

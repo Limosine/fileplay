@@ -32,7 +32,6 @@
       // send files
       console.log("sending files");
       send($files, data.peerJsId, data.encryptionPublicKey);
-      // TODO should share state be persistent in ui?
       delete sharing_ids[data.sid];
     });
   });
@@ -92,7 +91,6 @@
       case SendState.SENDING:
         // cancel sharing in progress
         setSendState(cid, SendState.CANCELED);
-        // TODO implement
         break;
       default: // IDLE, CANCELED, FAILED, REJECTED
         // request sharing to contact

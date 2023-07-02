@@ -1,10 +1,9 @@
 import { createKysely } from "$lib/server/db";
 import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
+import { error } from "@sveltejs/kit";
 
 export const GET: RequestHandler = async ({ platform, url }) => {
-  // TODO this doesn't work if called via service worker.
-  // solution: create a separate keepalive linked to user
   const db = createKysely(platform);
   const keepAliveCode = url.searchParams.get("code");
 
@@ -24,12 +23,17 @@ export const GET: RequestHandler = async ({ platform, url }) => {
 
   const { did } = res1;
 
-  const { uid } = await db
+  const { uid, websocketId, pushSubscription, lastUsedConnection } = await db
     .updateTable("devices")
     .set({ lastSeenAt: dayjs().unix() })
     .where("did", "=", did)
-    .returning("uid")
+    .returning(["uid", "websocketId", "pushSubscription", "lastUsedConnection"])
     .executeTakeFirstOrThrow();
+  
+  // check if there is a connection to keep alive anyways
+  if ((lastUsedConnection === "push" && !pushSubscription) ||
+    (lastUsedConnection === "websocket" && !websocketId))
+    throw error(400, "No connection to keep alive!")
 
   await db
     .updateTable("users")

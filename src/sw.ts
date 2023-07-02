@@ -251,7 +251,6 @@ self.addEventListener("notificationclick", async (event) => {
       console.log("Accepting sharing request...");
       await deleteNotifications(event.notification.data.tag);
       console.log("Delete Notifications...");
-      // TODO forward to client
       // // pull client into focus or open window
       await self.clients.matchAll().then((clients) => {
         console.log("Promised clients: ", clients);

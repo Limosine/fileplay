@@ -17,7 +17,7 @@
     }
   }
 
-  function closeHandler(e: CustomEvent<{ action: string }> | string) {
+  async function closeHandler(e: CustomEvent<{ action: string }> | string) {
     let action: string;
 
     if (typeof e === "string") {
@@ -28,8 +28,8 @@
 
     switch (action) {
       case "confirm":
-        console.log('requesting permission to notifications')
-        Notification.requestPermission();
+        console.log("requesting permission to notifications");
+        console.log(await Notification.requestPermission());
     }
   }
 </script>
@@ -44,10 +44,10 @@
 >
   <Title id="title">Request notification permission</Title>
   <Content>
+    <!-- this feature doesn't work in Bromite -->
     <div>
       Yay! Your device supports Push Notifications. With Push Notifications, you
       can be notified of new messages even when you are not on the website.
-
       Sending notifications requires your permission. Click "Yes" to allow
       notifications.
     </div>
