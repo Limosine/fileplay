@@ -120,10 +120,10 @@ export const DELETE: RequestHandler = async ({
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
   // get contact id from query params
-  const sid_s = url.searchParams.get("sid");
-  if (!sid_s) throw error(400, "No sid in query params");
-  const cid = parseInt(sid_s);
-  if (isNaN(cid)) throw error(400, "Invalid sid in query params");
+  const cid_s = url.searchParams.get("cid");
+  if (!cid_s) throw error(400, "No cid in query params");
+  const cid = parseInt(cid_s);
+  if (isNaN(cid)) throw error(400, "Invalid cid in query params");
 
   // get other user id from contact id
   const res1 = await db
