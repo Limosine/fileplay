@@ -39,6 +39,8 @@
   let differentDevice: boolean;
   let actionDisabled: boolean;
   let actionDisabledDevice: boolean;
+  let deleteDisabled: boolean;
+
   $: {
     different =
       $userParams.displayName != $original_username ||
@@ -60,6 +62,11 @@
 
   $: {
     actionDisabledDevice = !$deviceParams.displayName || !$deviceParams.type;
+  }
+
+  $: {
+    if ($deviceID == $devices.self.did) deleteDisabled = true;
+    else deleteDisabled = false;
   }
 
   function handleSettingsKeyDown(event: CustomEvent | KeyboardEvent) {
@@ -276,7 +283,7 @@
                         $editDevice_open = true;
                       }}
                       class="material-icons"
-                      >more
+                      >more_vert
                     </IconButton>
                   </Cell>
                 </Row>
@@ -355,7 +362,7 @@
     {/if}
   </Content>
   <Actions>
-    <Button action="delete">
+    <Button bind:disabled={deleteDisabled} action="delete">
       <Label>Delete</Label>
     </Button>
     <Button bind:disabled={actionDisabledDevice} action="confirm">

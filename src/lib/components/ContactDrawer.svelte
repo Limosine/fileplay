@@ -66,7 +66,7 @@
                         on:click={() => deleteContact(contact.cid)}>
                         delete
                       </IconButton>
-                      <Tooltip>Manage contacts</Tooltip>
+                      <Tooltip>Delete contact</Tooltip>
                     </Wrapper>
                   </div>
                 </div>
