@@ -38,7 +38,8 @@ class Messages {
       return;
     }
 
-    if ("serviceWorker" in navigator) {
+    // broken on most browsers "serviceWorker" in navigator
+    if (false) {
       const success: boolean = await new Promise((resolve) => {
         // @ts-ignore
         navigator.serviceWorker.onmessage = (msg) => {
