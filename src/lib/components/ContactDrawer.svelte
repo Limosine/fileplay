@@ -22,64 +22,63 @@
   }
 </script>
 
-<Drawer
-  class="mdc-top-app-bar--fixed-adjust"
-  variant="dismissible"
-  bind:open={$open}
->
-  <Header>
-    <Title>Contacts</Title>
-    <Subtitle>Manage your contacts</Subtitle>
-    <div class="button-box">
-      <Button
-        variant="unelevated"
-        color="primary"
-        style="width: 100%;"
-        on:click={() => ($add_open = !$add_open)}
-      >
-        Add contact
-      </Button>
-      <Button
-        class="material-icons"
-        variant="unelevated"
-        on:click={updateContacts}
-      >
-        refresh
-      </Button>
-    </div>
-  </Header>
-  <Content>
-    <div class="list-box">
-      {#await $contacts}
-        <p>Contacts are loading...</p>
-      {:then contacts_}
-        {#each contacts_ as contact}
-          <Card>
-            <PrimaryAction class="items-box">
-              <div class="box">
-                <div class="left">{contact.displayName}</div>
-                <div class="right">
-                  <Wrapper>
-                    <IconButton
-                      class="material-icons"
-                      aria-label="Delete contact"
-                      on:click={() => deleteContact(contact.cid)}
-                    >
-                      delete
-                    </IconButton>
-                    <Tooltip>Manage contacts</Tooltip>
-                  </Wrapper>
+  <Drawer
+    class="mdc-top-app-bar--fixed-adjust"
+    variant="dismissible"
+    bind:open={$open}
+  >
+    <Header>
+      <Title>Contacts</Title>
+      <Subtitle>Manage your contacts</Subtitle>
+      <div class="button-box">
+        <Button
+          variant="unelevated"
+          color="primary"
+          style="width: 100%;"
+          on:click={() => ($add_open = !$add_open)}
+        >
+          Add contact
+        </Button>
+        <Button
+          class="material-icons"
+          variant="unelevated"
+          on:click={updateContacts}
+        >
+          refresh
+        </Button>
+      </div>
+    </Header>
+    <Content>
+      <div class="list-box">
+        {#await $contacts}
+          <p>Contacts are loading...</p>
+        {:then contacts_}
+          {#each contacts_ as contact}
+            <Card>
+              <PrimaryAction class="items-box">
+                <div class="box">
+                  <div class="left">{contact.displayName}</div>
+                  <div class="right">
+                    <Wrapper>
+                      <IconButton
+                        class="material-icons"
+                        aria-label="Delete contact"
+                        on:click={() => deleteContact(contact.cid)}>
+                        delete
+                      </IconButton>
+                      <Tooltip>Delete contacts</Tooltip>
+                    </Wrapper>
+                  </div>
                 </div>
-              </div>
-            </PrimaryAction>
-          </Card>
-        {/each}
-      {:catch}
-        <p>Failed to load contacts.</p>
-      {/await}
-    </div>
-  </Content>
-</Drawer>
+              </PrimaryAction>
+            </Card>
+          {/each}
+        {:catch}
+          <p>Failed to load contacts.</p>
+        {/await}
+      </div>
+    </Content>
+  </Drawer>
 
 {#if $page.url.pathname == "/"}
   <slot />
