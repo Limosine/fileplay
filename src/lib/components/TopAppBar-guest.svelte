@@ -1,11 +1,7 @@
 <script lang="ts" context="module">
-  import TopAppBar, {
-    Row,
-    Section,
-    Title,
-  } from "@smui/top-app-bar";
-  import Tooltip, { Wrapper } from '@smui/tooltip';
-  import { writable } from 'svelte/store';
+  import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
+  import Tooltip, { Wrapper } from "@smui/tooltip";
+  import { writable } from "svelte/store";
 
   export const topAppBar = writable<TopAppBar>();
 
@@ -22,7 +18,12 @@
       </Section>
       <Section align="end" toolbar>
         <Wrapper>
-          <div><div class="connection-status" style="background-color: {colors[current_status]}"></div></div>
+          <div>
+            <div
+              class="connection-status"
+              style="background-color: {colors[current_status]}"
+            />
+          </div>
           <Tooltip>Connection status: {status[current_status]}</Tooltip>
         </Wrapper>
       </Section>
@@ -30,7 +31,7 @@
   </TopAppBar>
 </header>
 
-<slot/>
+<slot />
 
 <style>
   .mdc-top-app-bar {

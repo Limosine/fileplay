@@ -1,8 +1,4 @@
-// events
-// sharing_request: receiving request to share
-// sharing_cancel: cancel request to share
-// share_accepted: other accepted request to share (forwarded by service worker if web push is active)
-// share_rejected: other rejected request to share (forwarded by service worker if web push is active)
+/// <reference lib="dom" />
 
 import { browser } from "$app/environment";
 import { PUBLIC_FILEPLAY_DOMAIN } from "$env/static/public";
@@ -10,7 +6,7 @@ import { writable } from "svelte/store";
 import { ONLINE_STATUS_REFRESH_TIME } from "./common";
 
 export const status = writable<"0" | "1" | "2">("0");
-export const connectionMode = writable<string | null>()
+export const connectionMode = writable<string | null>();
 
 class Messages {
   implementation?: "websockets" | "webpush";
@@ -23,7 +19,7 @@ class Messages {
   wsinterval: any;
 
   constructor() {
-    console.warn("Messages contructor has been called on the server side");
+    console.warn("Messages constructor has been called on the server side");
   }
 
   async init() {
@@ -55,7 +51,9 @@ class Messages {
             });
           }
         };
-        setTimeout(() => { resolve(false)}, 7000) // timeout after 7 seconds and try websockets
+        setTimeout(() => {
+          resolve(false);
+        }, 7000); // timeout after 7 seconds and try websockets
         // @ts-ignore
         navigator.serviceWorker.ready.then((registration) => {
           registration.active?.postMessage({ type: "register_push" });
@@ -97,7 +95,7 @@ class Messages {
           }
         };
         status.set("1");
-        connectionMode.set("Web—Push");
+        connectionMode.set("WebPush");
         return;
       }
     }
@@ -113,7 +111,7 @@ class Messages {
           console.log("res for keepalive is not ok");
           status.set("2");
           if (res.status === 401) {
-            console.log('got 401 from keepalive')
+            console.log("got 401 from keepalive");
             localStorage.removeItem("loggedIn");
             localStorage.removeItem("keepAliveCode");
             window.location.reload();
@@ -152,7 +150,7 @@ class Messages {
       console.log("websocket closed");
       console.log(ev);
       status.set("2");
-    }
+    };
 
     if (wsres) {
       this.wsinterval = setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME);
@@ -167,7 +165,7 @@ class Messages {
   }
 
   dispatchNotificationClick(data: any) {
-    console.log("dsipatching notificationclick", data);
+    console.log("dispatching notificationclick", data);
     this.notificationclick[data.type]?.forEach(async (listener) => {
       await listener(data.data);
     });
@@ -213,4 +211,4 @@ default_messages.onsystemmessage("update_status", (data) => {
 
 default_messages.onsystemmessage("retry_messages_init", () => {
   default_messages.init();
-})
+});

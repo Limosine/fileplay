@@ -1,7 +1,6 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
-import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit";
 
@@ -35,12 +34,12 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
 
   const res1 = await db
     .updateTable("devices")
-    .set({ websocketId: id.toString(), lastUsedConnection: 'websocket' })
+    .set({ websocketId: id.toString(), lastUsedConnection: "websocket" })
     .where("did", "=", did)
-    .returning('did')
+    .returning("did")
     .executeTakeFirst();
-  
-  if (!res1) throw error(500, "Failed to create websocket id")
+
+  if (!res1) throw error(500, "Failed to create websocket id");
 
   return await message_ws_do.fetch(new_request);
 };

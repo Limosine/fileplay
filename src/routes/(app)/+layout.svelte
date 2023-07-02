@@ -28,7 +28,6 @@
       };
 
       needRefresh = await useRegisterSW({
-        // TODO handle queued update (show in notifications, update if inactive)
         async onRegisteredSW(
           _swScriptUrl: string,
           registration: ServiceWorkerRegistration | undefined
@@ -89,7 +88,7 @@
           if (localStorage.getItem("loggedIn"))
             await import("$lib/messages").then(async (m) => {
               await m.default_messages.init();
-              console.log("initialising messages on notification change");
+              console.log("initializing messages on notification change");
             });
         };
       });

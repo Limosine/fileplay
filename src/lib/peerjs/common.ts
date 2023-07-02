@@ -3,23 +3,34 @@ import type { DataConnection, Peer } from "peerjs";
 import { get, writable } from "svelte/store";
 
 // Stores:
-export const peer =  writable<Peer>();
+export const peer = writable<Peer>();
 export const sender_uuid = writable<string>();
 export const connections = writable<DataConnection[]>([]);
 
 // Sender Side:
-export let pending_filetransfers = writable<{
-  filetransfer_id: string;
-  encrypted: string;
-  files: {
-    file: string[];
-    file_name: string;
-    file_id: string;
-  }[];
-}[]>([]);
+export let pending_filetransfers = writable<
+  {
+    filetransfer_id: string;
+    encrypted: string;
+    files: {
+      file: string[];
+      file_name: string;
+      file_id: string;
+    }[];
+  }[]
+>([]);
 
 // Receiver Side:
-export const received_chunks = writable<{ file_id: string, file_name: string, encrypted: string, chunk_number: number, chunks: string[], url?: string }[]>([]);
+export const received_chunks = writable<
+  {
+    file_id: string;
+    file_name: string;
+    encrypted: string;
+    chunk_number: number;
+    chunks: string[];
+    url?: string;
+  }[]
+>([]);
 export const link = writable("");
 
 // Functions:
@@ -53,10 +64,15 @@ export const chunkString = (str: string, size: number) => {
 };
 
 export const chunkFiles = (files: FileList, encrypted_files: string[]) => {
-  let chunkedFiles: { file: string[], file_name: string, file_id: string, }[] = [];
+  let chunkedFiles: { file: string[]; file_name: string; file_id: string }[] =
+    [];
 
   for (let i = 0; i < encrypted_files.length; i++) {
-    chunkedFiles.push({ file: chunkString(encrypted_files[i], 1000000), file_name: files[i].name, file_id: nanoid (16), });
+    chunkedFiles.push({
+      file: chunkString(encrypted_files[i], 1000000),
+      file_name: files[i].name,
+      file_id: nanoid(16),
+    });
   }
 
   return chunkedFiles;

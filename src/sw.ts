@@ -69,16 +69,18 @@ async function registerPushSubscription(): Promise<boolean> {
       const success = await postSubscription(subscription);
       console.log("received pushsubscriptionchange");
       if (!success) {
-        console.log("reinitialising messages from sw");
+        console.log("reinitializing messages from sw");
         await self.clients.matchAll().then((clients) => {
           clients.forEach((client) => {
             client.postMessage({
-              type: "retry_messages_init"
+              type: "retry_messages_init",
             });
           });
         });
       }
     };
+
+    await postSubscription(subscription);
 
     const keepalive = async () => {
       await fetch(`/api/keepalive?code=${await get("keepAliveCode")}`, {
@@ -236,7 +238,7 @@ self.addEventListener("push", async (event) => {
         });
         break;
       default:
-        // maybe foward all other messages to client
+        // maybe forward all other messages to client
         console.log("Unknown notification type", data.type);
     }
   }

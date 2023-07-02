@@ -14,11 +14,12 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   if (already_uid) throw error(403, "Device already linked to user");
 
   const updateObject: {
-    displayName: string,
-    avatarSeed: string
+    displayName: string;
+    avatarSeed: string;
   } = await request.json();
 
-  if (isProfane(updateObject.displayName)) throw error(418, "Display name is profane"); // 418 I'm a teapot since this can only be triggered if someone manually f'ed with the api
+  if (isProfane(updateObject.displayName))
+    throw error(418, "Display name is profane"); // 418 I'm a teapot since this can only be triggered if someone manually f'ed with the api
 
   // insert new user into db
   const res1 = await db

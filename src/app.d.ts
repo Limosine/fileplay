@@ -29,42 +29,42 @@ declare global {
         chunkIDs: string[];
         transferID: string;
         fileName: string;
-        encrypted: "publickey" | "password"
+        encrypted: "publickey" | "password";
       };
     }
 
-    interface TransferChunkMessage implements Message{
+    interface TransferChunkMessage {
       type: "TransferChunk";
       /**This is the chunk ID. */
       data: {
-        fileChunk: string,
-        chunkID: string,
-        transferID: string,
+        fileChunk: string;
+        chunkID: string;
+        transferID: string;
       };
     }
 
-    interface AcceptTransferMessage implements Message{
+    interface AcceptTransferMessage {
       type: "AcceptTransfer";
       /**This is the transfer ID. */
       data: string;
     }
 
-    interface RequestChunk implements Message{
+    interface RequestChunk {
       type: "RequestChunk";
       /**This is the chunk ID. */
       data: {
-        transferID: string,
-        chunkIDs: string[]
+        transferID: string;
+        chunkIDs: string[];
       };
     }
 
-    interface SendComplete implements Message{
+    interface SendComplete {
       type: "SendComplete";
       /**This is the transfer ID. */
       data: string;
     }
 
-    interface ReceiveComplete implements Message{
+    interface ReceiveComplete {
       type: "ReceiveComplete";
       /**This is the transfer ID. */
       data: string;

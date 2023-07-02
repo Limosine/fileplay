@@ -9,7 +9,7 @@ interface UsersTable {
   lastSeenAt: ColumnType<number, undefined, number>;
 }
 
-interface DecivesTable {
+interface DevicesTable {
   did: Generated<number>;
   uid: number | null; // indexed, foreign key users.id
   linkedAt: number | null;
@@ -57,7 +57,7 @@ interface keepAliveCodesTable {
 
 export interface DB {
   users: UsersTable;
-  devices: DecivesTable;
+  devices: DevicesTable;
   contacts: ContactsTable;
   devicesLinkCodes: DevicesLinkCodesTable;
   contactsLinkCodes: ContactsLinkCodesTable;

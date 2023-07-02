@@ -38,7 +38,8 @@ export const addNotification = (
   notification: PartialBy<INotification, "tag">
 ) => {
   // replace notifications with the same tag
-  if('tag' in notification && notification.tag) deleteNotification(notification.tag);
+  if ("tag" in notification && notification.tag)
+    deleteNotification(notification.tag);
   notifications.update((notifications) => {
     if (!("tag" in notification))
       notification.tag = Math.random().toString(36).substring(7);

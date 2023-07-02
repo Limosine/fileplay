@@ -1,8 +1,6 @@
 import { PRIVATE_VAPID_KEY } from "$env/static/private";
 import { PUBLIC_VAPID_KEY } from "$env/static/public";
 import { ONLINE_STATUS_TIMEOUT, SHARING_TIMEOUT } from "$lib/common";
-import type { Database } from "$lib/db";
-// import Peer from "peerjs";
 import {
   generatePushHTTPRequest,
   ApplicationServerKeys,
@@ -11,7 +9,7 @@ import { createKysely } from "./db";
 import dayjs from "dayjs";
 
 /**
- * Sends a push notfications to a device with the given device ID.
+ * Sends a push notifications to a device with the given device ID.
  */
 export async function sendNotification(
   platform: App.Platform,
@@ -26,7 +24,7 @@ export async function sendNotification(
   const db = createKysely(platform);
   const res1 = await db
     .selectFrom("devices")
-    .select(["pushSubscription", "websocketId", 'lastUsedConnection'])
+    .select(["pushSubscription", "websocketId", "lastUsedConnection"])
     .where(({ and, cmpr }) =>
       and([
         cmpr("did", "=", did),
@@ -42,7 +40,7 @@ export async function sendNotification(
   if (!res1) throw new Error("Device not found");
   const { pushSubscription, websocketId } = res1;
 
-  if (res1.lastUsedConnection === 'push' && pushSubscription) {
+  if (res1.lastUsedConnection === "push" && pushSubscription) {
     // todo check if subscription is already expired
 
     const options = {
@@ -68,11 +66,11 @@ export async function sendNotification(
     console.log("headers", headers);
     console.log("body", body);
 
-    const res2 = await fetch(endpoint, {
+    const res2 = (await fetch(endpoint, {
       method: "POST",
       headers,
       body,
-    }) as Response;
+    })) as Response;
 
     if (!res2.ok) {
       console.log();
@@ -82,7 +80,7 @@ export async function sendNotification(
         } ${res2.statusText})`
       );
     }
-  } else if (res1.lastUsedConnection === 'websocket' && websocketId) {
+  } else if (res1.lastUsedConnection === "websocket" && websocketId) {
     const id = platform.env.MESSAGE_WS.idFromString(websocketId);
     const stub = platform.env.MESSAGE_WS.get(id);
     const response = await stub.fetch("https://app.fileplay.me/websockets-do", {

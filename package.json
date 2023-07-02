@@ -13,7 +13,7 @@
     "prepare": "npm run smui-theme-light && npm run smui-theme-dark",
     "smui-theme-light": "smui-theme compile static/smui.css -i src/theme",
     "smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark",
-    "pwassets": "npx pwa-asset-generator ./static/logo.png ./static/pwa-assets/ -w -v /pwa-assets -o -b '#1a1a1a'"
+    "pwassets": "npx pwa-asset-generator ./static/favicon.png ./static/pwa-assets/ -v /pwa-assets -o -b '#202124' -e -p 15%"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230518.0",

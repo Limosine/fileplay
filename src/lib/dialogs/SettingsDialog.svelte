@@ -5,7 +5,13 @@
   import DataTable, { Head, Body, Row, Cell } from "@smui/data-table";
   import dayjs from "dayjs";
   import localizedFormat from "dayjs/plugin/localizedFormat";
-  import { devices, devices_loaded, getDevices, loadInfos, withDeviceType } from "$lib/personal";
+  import {
+    devices,
+    devices_loaded,
+    getDevices,
+    loadInfos,
+    withDeviceType,
+  } from "$lib/personal";
   import IconButton from "@smui/icon-button";
   import Tab, { Label as Tab_Label } from "@smui/tab";
   import TabBar from "@smui/tab-bar";
@@ -28,8 +34,8 @@
   import { DeviceType, TimeFormat } from "$lib/common";
   import { onMount, onDestroy } from "svelte";
   import Textfield from "@smui/textfield";
-  import Radio from '@smui/radio';
-  import FormField from '@smui/form-field';
+  import Radio from "@smui/radio";
+  import FormField from "@smui/form-field";
 
   dayjs.extend(localizedFormat);
 
@@ -127,7 +133,7 @@
   }
 
   async function deleteDevice(did: number) {
-    const res = await fetch(`/api/devices?${did}`, {
+    await fetch(`/api/devices?${did}`, {
       method: "DELETE",
     });
   }

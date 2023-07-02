@@ -54,7 +54,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const { uid: a } = await loadSignedDeviceID(cookies, key, db);
   if (!a) throw error(401, "No user associated with this device");
 
-  const { code: code_any } = await request.json();
+  const { code: code_any } = await request.json() as any;
   const code = (code_any as string).toUpperCase().replaceAll("O", "0"); // normalize code
 
   // get uid to link to

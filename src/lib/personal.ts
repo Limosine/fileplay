@@ -1,6 +1,11 @@
 import type { MaybePromise } from "@sveltejs/kit";
 import { get, writable } from "svelte/store";
-import { deviceParams, device_edit_loaded, original_displayName, original_type } from "./stores/Dialogs";
+import {
+  deviceParams,
+  device_edit_loaded,
+  original_displayName,
+  original_type,
+} from "./stores/Dialogs";
 import { DeviceType } from "./common";
 
 export interface IContact {
@@ -122,64 +127,78 @@ export const deviceInfos = writable<
 >();
 export const deviceInfos_loaded = writable(false);
 
-export async function getDeviceInfos(): Promise<
-  {
-    did: number;
-    type: string;
-    displayName: string;
-    peerJsId: string;
-    encryptionPublicKey: string;
-  }[]
-> {
-  const res = await fetch("/api/contacts/devices", {
-    method: "GET",
-  });
+// TODO remove @Limosine
+// export async function getDeviceInfos(): Promise<
+//   {
+//     did: number;
+//     type: string;
+//     displayName: string;
+//     peerJsId: string;
+//     encryptionPublicKey: string;
+//   }[]
+// > {
+//   const res = await fetch("/api/contacts/devices", {
+//     method: "GET",
+//   });
 
-  const deviceInfos_new: any = await res.json();
+//   const deviceInfos_new: any = await res.json();
 
-  deviceInfos.set(deviceInfos_new);
-  if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
+//   deviceInfos.set(deviceInfos_new);
+//   if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
 
-  return deviceInfos_new;
-}
+//   return deviceInfos_new;
+// }
 
 export function withDeviceType(name: string): { type: string; name: string } {
   // @ts-ignore
   return { name, type: DeviceType[name] as string };
 }
 
-export const loadInfos = (devices: { self: {
-  did: number;
-  type: string;
-  displayName: string;
-  createdAt: number;
-  lastSeenAt: number;
-};
-others: {
-  did: number;
-  type: string;
-  displayName: string;
-  createdAt: number;
-  lastSeenAt: number;
-}[]; }, did: number) => {
-  let device: {did: number; type: string; displayName: string; createdAt: number; lastSeenAt: number } | undefined;
+export const loadInfos = (
+  devices: {
+    self: {
+      did: number;
+      type: string;
+      displayName: string;
+      createdAt: number;
+      lastSeenAt: number;
+    };
+    others: {
+      did: number;
+      type: string;
+      displayName: string;
+      createdAt: number;
+      lastSeenAt: number;
+    }[];
+  },
+  did: number
+) => {
+  let device:
+    | {
+        did: number;
+        type: string;
+        displayName: string;
+        createdAt: number;
+        lastSeenAt: number;
+      }
+    | undefined;
 
   if (devices.self.did == did) {
     device = devices.self;
   } else {
-    device = devices.others.find(device => device.did === did);
+    device = devices.others.find((device) => device.did === did);
   }
 
-  if (!device) throw new Error("No device with this deviceID is linked to this account.");
+  if (!device)
+    throw new Error("No device with this deviceID is linked to this account.");
 
   deviceParams.update((deviceParams) => {
     if (!device) return deviceParams;
-    deviceParams.displayName = device.displayName; 
+    deviceParams.displayName = device.displayName;
     deviceParams.type = device.type;
-    return deviceParams
+    return deviceParams;
   });
 
-  
   original_displayName.set(device.displayName);
   original_type.set(device.type);
 

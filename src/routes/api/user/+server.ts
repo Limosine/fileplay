@@ -25,8 +25,8 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
   const updateValues: {
-    displayName?: string,
-    avatarSeed?: string,
+    displayName?: string;
+    avatarSeed?: string;
   } = await request.json();
 
   const res1 = await db

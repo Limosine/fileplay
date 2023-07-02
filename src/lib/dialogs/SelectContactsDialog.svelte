@@ -1,15 +1,13 @@
 <script lang="ts">
   import Dialog, { Title, Content, Actions } from "@smui/dialog";
-  import Card, { PrimaryAction, Media, MediaContent } from "@smui/card";
+  import Card, { PrimaryAction, Media } from "@smui/card";
   import Paper, { Content as P_Content } from "@smui/paper";
   import Button, { Label } from "@smui/button";
-  import { writable } from "svelte/store";
   import { onMount } from "svelte";
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
   import { contacts } from "$lib/personal";
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
-  import { userParams } from "$lib/stores/Dialogs";
   import dayjs from "dayjs";
 
   let addPendingFile: (files: FileList) => void;

@@ -49,8 +49,8 @@ export const POST: RequestHandler = async ({
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
   const updateObject: {
-    displayName?: string,
-    type?: DeviceType,
+    displayName?: string;
+    type?: DeviceType;
   } = await request.json();
 
   const res = await db

@@ -1,3 +1,25 @@
 {
-    "typescript.tsdk": "node_modules\\typescript\\lib"
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "cSpell.words": [
+    "Bromite",
+    "codehostname",
+    "codeproperties",
+    "Dicebear",
+    "dids",
+    "FILEPLAY",
+    "filetransfer",
+    "filetransfers",
+    "focusedclient",
+    "keepalive",
+    "keyval",
+    "openpgp",
+    "peerjs",
+    "pwassets",
+    "sendstate",
+    "sharingstates",
+    "systemmessage",
+    "vflex",
+    "wsinterval",
+    "wsres"
+  ]
 }

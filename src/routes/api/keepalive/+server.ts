@@ -1,12 +1,10 @@
-import { COOKIE_SIGNING_SECRET } from "$env/static/private";
-import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ platform, url }) => {
-  // TODO this doesnt work if called via wervice worker.
-  // solution: create a seperate keepalive linked to user
+  // TODO this doesn't work if called via service worker.
+  // solution: create a separate keepalive linked to user
   const db = createKysely(platform);
   const keepAliveCode = url.searchParams.get("code");
 
@@ -19,7 +17,7 @@ export const GET: RequestHandler = async ({ platform, url }) => {
     .select("did")
     .where("code", "=", keepAliveCode)
     .executeTakeFirst();
-  
+
   if (!res1) {
     return new Response("Invalid code", { status: 401 });
   }

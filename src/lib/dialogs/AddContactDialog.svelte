@@ -1,7 +1,7 @@
 <script lang="ts">
   import Dialog, { Title, Content, Actions } from "@smui/dialog";
   import Button, { Label, Group } from "@smui/button";
-  import Textfield from '@smui/textfield';
+  import Textfield from "@smui/textfield";
 
   import { add_open, codehostname } from "$lib/stores/Dialogs";
   import { onDestroy, onMount } from "svelte";
@@ -14,7 +14,7 @@
 
   function setHostname() {
     if ($codehostname.includes("@")) {
-      hostname = $codehostname.slice($codehostname.search("@")+1);
+      hostname = $codehostname.slice($codehostname.search("@") + 1);
       code = $codehostname.slice(0, $codehostname.search("@"));
     } else {
       code = $codehostname;
@@ -33,7 +33,7 @@
       closeHandler("confirm");
     }
   }
-  
+
   function closeHandler(e: CustomEvent<{ action: string }> | string) {
     let action: string;
 
@@ -51,25 +51,29 @@
   }
 
   async function redeemCode() {
-    var link = '/api/contacts/link';
+    var link = "/api/contacts/link";
     if (hostname) {
       link = "https://" + hostname + link;
     }
 
-	  const res = await fetch(link, {
-		  method: 'POST',
-      body: JSON.stringify({code: code})
-	  });
+    const res = await fetch(link, {
+      method: "POST",
+      body: JSON.stringify({ code: code }),
+    });
   }
 
-  async function generateCode(): Promise<{code: string, expires: number, refresh: number}> {
+  async function generateCode(): Promise<{
+    code: string;
+    expires: number;
+    refresh: number;
+  }> {
     // todo refresh this code after specified interval
 
-	  const res = await fetch('/api/contacts/link', {
-		  method: 'GET'
-	  });
+    const res = await fetch("/api/contacts/link", {
+      method: "GET",
+    });
 
-	  const codeproperties = await res.json();
+    const codeproperties = (await res.json()) as any;
     expires_at = codeproperties.expires;
 
     return codeproperties;
@@ -80,14 +84,14 @@
   let updateInterval: any;
 
   function updateExpiresIn() {
-    if(expires_at) expires_in = Math.round((expires_at - dayjs().unix()) / 60);
+    if (expires_at) expires_in = Math.round((expires_at - dayjs().unix()) / 60);
   }
 
-  onMount(() => updateInterval = setInterval(updateExpiresIn, 1000));
+  onMount(() => (updateInterval = setInterval(updateExpiresIn, 1000)));
   onDestroy(() => clearInterval(updateInterval));
 </script>
 
-<svelte:window on:keydown={handleContactAddKeyDown}/>
+<svelte:window on:keydown={handleContactAddKeyDown} />
 
 <Dialog
   bind:open={$add_open}
@@ -127,14 +131,21 @@
         {/if}
       </Group>
       {#if redeemCode_section}
-        <Textfield bind:value={$codehostname} on:input={() => setHostname()} label="Linking code" input$maxlength={6}/>
+        <Textfield
+          bind:value={$codehostname}
+          on:input={() => setHostname()}
+          label="Linking code"
+          input$maxlength={6}
+        />
       {:else}
-        <br/>
+        <br />
         {#await generateCode()}
           <p>Generating code...</p>
-        {:then codeproperties} 
-          <p>Code: {codeproperties.code}<br/>
-          Expires in {expires_in} m</p>
+        {:then codeproperties}
+          <p>
+            Code: {codeproperties.code}<br />
+            Expires in {expires_in} m
+          </p>
         {:catch}
           <p>Failed to generate code.</p>
         {/await}
