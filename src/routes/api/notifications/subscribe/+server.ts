@@ -17,7 +17,7 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
       .set({
         pushSubscription: JSON.stringify(pushSubscription),
         websocketId: null,
-        lastUsedConnection: 'push'
+        lastUsedConnection: "push",
       })
       .where("did", "=", did)
       .returning("did")
@@ -27,12 +27,28 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   } else if (websocketId) {
     const res = await db
       .updateTable("devices")
-      .set({ websocketId, pushSubscription: null, lastUsedConnection: 'websocket' })
+      .set({
+        websocketId,
+        pushSubscription: null,
+        lastUsedConnection: "websocket",
+      })
       .where("did", "=", did)
       .returning("did")
       .executeTakeFirst();
 
     if (!res) throw error(500, "Failed to update peerjs id");
+  } else if (pushSubscription === "" || websocketId === "") {
+    const res = await db
+      .updateTable("devices")
+      .set({
+        websocketId: null,
+        pushSubscription: null,
+        lastUsedConnection: null,
+      })
+      .where("did", "=", did)
+      .returning("did")
+      .executeTakeFirst();
+    if (!res) throw error(500, "Failed to delete subsciption");
   } else throw error(400, "Missing push subscription or peerjs id");
 
   return new Response(null, { status: 200 });

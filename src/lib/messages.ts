@@ -210,3 +210,7 @@ export const default_messages = new Messages();
 default_messages.onsystemmessage("update_status", (data) => {
   status.set(data.status);
 });
+
+default_messages.onsystemmessage("retry_messages_init", () => {
+  default_messages.init();
+})

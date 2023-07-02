@@ -136,12 +136,10 @@
               </div> -->
             {#each contacts as contact}
               <!-- TODO animate all sharingstates (progress spinner around dicebear?) -->
+              {#if contact.lastSeenAt >
+                dayjs().subtract(ONLINE_STATUS_TIMEOUT, "ms").unix()}
               <Card
                 on:click={() => handleContactClick(contact.cid)}
-                class={contact.lastSeenAt <
-                dayjs().subtract(ONLINE_STATUS_TIMEOUT, "ms").unix()
-                  ? "disabled"
-                  : ""}
                 style="padding-top: 20px;"
               >
                 <Media
@@ -158,6 +156,7 @@
                     : 0}</Content
                 >
               </Card>
+              {/if}
             {/each}
           {:catch}
             <p>Failed to load contacts.</p>

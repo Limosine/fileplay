@@ -2,7 +2,7 @@ create table users (
     uid integer primary key autoincrement,
     displayName text not null,
     avatarSeed text not null,
-    createdAt integer not null default (unixepoch('now')),
+    createdAt integer not null default (unixepoch('now')),  -- seconds since epoch
     lastSeenAt integer not null default (unixepoch('now'))
 );
 

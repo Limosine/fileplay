@@ -24,34 +24,61 @@ imageCache();
 declare let self: ServiceWorkerGlobalScope;
 
 async function registerPushSubscription(): Promise<boolean> {
-  const oldKeepaliveInterval = await get('keepaliveInterval')
-  if(oldKeepaliveInterval) clearInterval(oldKeepaliveInterval)
+  const oldKeepaliveInterval = await get("keepaliveInterval");
+  if (oldKeepaliveInterval) clearInterval(oldKeepaliveInterval);
 
-  if (Notification.permission !== "granted" || !("pushManager" in self.registration)|| !(await get("keepAliveCode")))
+  if (
+    Notification.permission !== "granted" ||
+    !("pushManager" in self.registration) ||
+    !(await get("keepAliveCode"))
+  )
     return false;
   try {
     const subscription = await self.registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: ">PUBLIC_VAPID_KEY<",
     });
-    const res = await fetch("/api/notifications/subscribe", {
-      method: "POST",
-      body: JSON.stringify({ pushSubscription: subscription }),
-    });
-    if (!res.ok) {
-      console.log("res is not ok");
-      if (res.status === 401) {
-        console.log("resetting client");
+    const postSubscription = async (subscription: PushSubscription) => {
+      const res = await fetch("/api/notifications/subscribe", {
+        method: "POST",
+        body: JSON.stringify({ pushSubscription: subscription }),
+      });
+      if (!res.ok) {
+        console.log("res is not ok");
+        if (res.status === 401) {
+          console.log("resetting client");
+          await self.clients.matchAll().then((clients) => {
+            clients.forEach((client) => {
+              client.postMessage({
+                type: "reset_client",
+              });
+            });
+          });
+        }
+        return false;
+      }
+      return true;
+    };
+
+    self.onpushsubscriptionchange = async (event) => {
+      // update subscription on server
+      const subscription = await self.registration.pushManager.subscribe(
+        // @ts-ignore
+        event.oldSubscription.options
+      );
+      const success = await postSubscription(subscription);
+      console.log("received pushsubscriptionchange");
+      if (!success) {
+        console.log("reinitialising messages from sw");
         await self.clients.matchAll().then((clients) => {
           clients.forEach((client) => {
             client.postMessage({
-              type: "reset_client",
+              type: "retry_messages_init"
             });
           });
         });
       }
-      return false;
-    }
+    };
 
     const keepalive = async () => {
       await fetch(`/api/keepalive?code=${await get("keepAliveCode")}`, {
@@ -81,7 +108,10 @@ async function registerPushSubscription(): Promise<boolean> {
       });
     };
     // start keepalive
-    await set('keepaliveInterval', setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME))
+    await set(
+      "keepaliveInterval",
+      setInterval(keepalive, ONLINE_STATUS_REFRESH_TIME)
+    );
     console.log("keepalive for push started");
 
     return true;
