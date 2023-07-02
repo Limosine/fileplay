@@ -13,6 +13,7 @@ export async function saveSignedDeviceID(
   const signature = await sign(id, key);
   const cookie_opts: CookieSerializeOptions = {
     path: "/",
+    maxAge: 60 * 60 * 24 * 60 * 12 * 10,
   };
   cookies.set("did", id, cookie_opts);
   cookies.set("did_sig", signature, cookie_opts);

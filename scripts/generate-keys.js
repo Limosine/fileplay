@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import { setWebCrypto, ApplicationServerKeys }from 'webpush-webcrypto';
+import crypto from "crypto";
+import { setWebCrypto, ApplicationServerKeys } from "webpush-webcrypto";
 setWebCrypto(crypto);
 
 const keys = await ApplicationServerKeys.generate();

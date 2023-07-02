@@ -1,6 +1,6 @@
 # API Routes
 
-<h1> NOT UPTO DATE ANYMORE. LOOK AT THE POSTMAN COLLECTION!!! </h1>
+<h1> NOT UP TO DATE ANYMORE. LOOK AT THE POSTMAN COLLECTION!!! </h1>
 
 ## User
 
@@ -15,12 +15,12 @@
 | GET | `/user/devices` | cookies: `device id`, `device secret` | List of all devices connected to user | List all devices linked to the user the requesting device is linked to.
 | POST | `/user/devices/remove` | cookies: `device id`, `device secret`; `device id` to remove | | Remove a device from the user the requesting device is linked to. At next connection from the removed device, tell it to restart the first-time-setup. |
 | GET | `/user/devices/link` | cookies: `device id`, `device secret` | `device add code` | Return a code for linking a new device and start accepting devices added via this code. |
-| REMOVE | `/user/devices/link` | cookies: `device id`, `device secret` | | When closing the 'add devices' window, this enpoint is called to stop accepting new devices using the previously generated code. Action is also run after 5 minutes on the server. |
+| REMOVE | `/user/devices/link` | cookies: `device id`, `device secret` | | When closing the 'add devices' window, this endpoint is called to stop accepting new devices using the previously generated code. Action is also run after 5 minutes on the server. |
 | POST | `/user/devices/link` | cookies: `device id`, `device secret`; device add code` to redeem | | Add device to the user this code was created for and merge contacts. |
 
 ## Contacts
 
-| verb | endpoint | payload | return | decription |
+| verb | endpoint | payload | return | description |
 | --- | --- | --- | --- | --- |
 | GET | `/user/contacts` | cookies: `device id`, `device secret` | List of all personas in contacts | List contacts |
 | POST | `/user/contacts/remove` | cookies: `device id`, `device secret`; `user id` of contact to remove | | Remove contacts on both sides |
@@ -32,9 +32,9 @@
 
 | verb | endpoint | payload | return | description |
 | --- | --- | --- | --- | --- |
-| POST | `/listen` | cookies: `device id`, `device secret`; `web push endpoint`, `CSRF prevention token` | `401: Not Authorised` if invalid credentials or no persona found (device was removed) | Send web push endpoint for messages + CSRF key |
+| POST | `/listen` | cookies: `device id`, `device secret`; `web push endpoint`, `CSRF prevention token` | `401: Not Authorized` if invalid credentials or no persona found (device was removed) | Send web push endpoint for messages + CSRF key |
 | GET (`Upgrade: WebSocket`) | `/share` | cookies: `device id`, `device secret` | WebSocket | Open Websocket that streams user online updates (show persons not devices) and gets messages requesting a WebRTC connection with receiving devices (create a `sharing token` for each device) |
-| GET (`Upgrade: WebSocket`) | `/accept` | cookies: `device id`, `device secret`; `sharing token` | WebSocket | Open Websocket with server (sending device) to negotiate WebRTC conenction |
+| GET (`Upgrade: WebSocket`) | `/accept` | cookies: `device id`, `device secret`; `sharing token` | WebSocket | Open Websocket with server (sending device) to negotiate WebRTC connection |
 | GET | `/keepalive` | cookies: `device id`, `device secret` | | Send keepalive (for online-status) |
 
 

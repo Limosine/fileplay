@@ -2,14 +2,13 @@
   import Dialog, { Title, Content } from "@smui/dialog";
   import Button, { Group, Label } from "@smui/button";
   import Textfield from "@smui/textfield";
-  import Select, { Option } from "@smui/select";
   import LinearProgress from "@smui/linear-progress";
+  import Select, { Option } from "@smui/select";
 
-  import { get, type Readable } from "svelte/store";
+  import { get } from "svelte/store";
   import { browser } from "$app/environment";
-  import { onDestroy, onMount } from "svelte";
-  import { getContent, updatePeerJS_ID } from "$lib/personal";
-  import { DeviceType } from "$lib/common";
+  import { onMount } from "svelte";
+  import { getContent, withDeviceType } from "$lib/personal";
 
   import {
     deviceParams,
@@ -19,9 +18,11 @@
   } from "$lib/stores/Dialogs";
   import Username from "$lib/components/Username.svelte";
   import { publicKey_armored } from "$lib/openpgp";
+  import { NotificationPermission } from "$lib/stores/Dialogs";
+  import { DeviceType } from "$lib/common";
 
-  let socketStore: Readable<any>;
-  let unsubscribeSocketStore = () => {};
+  // let socketStore: Readable<any>;
+  // let unsubscribeSocketStore = () => {};
 
   let open: boolean;
 
@@ -45,17 +46,17 @@
 
   let setupError: string;
 
-  function handleSetupKeyDown(event: CustomEvent | KeyboardEvent) {
+  async function handleSetupKeyDown(event: CustomEvent | KeyboardEvent) {
     if (!open) return;
     event = event as KeyboardEvent;
     if (event.key === "Enter" && !actionDisabled) {
-      handleConfirm();
+      await handleConfirm();
     }
   }
 
   async function handleResponseError(res: Response) {
     setupLoading.set(false);
-    const json_ = await res.json();
+    const json_ = (await res.json()) as any;
     if (json_) {
       setupError = json_.message;
     } else {
@@ -65,6 +66,7 @@
 
   async function handleConfirm() {
     if (actionDisabled) return;
+    let keepAliveCode: string;
     setupLoading.set(true);
     // setup device if not already done so
     let storedDeviceParams = localStorage.getItem("deviceParams");
@@ -89,49 +91,49 @@
         handleResponseError(res);
         return;
       }
+      keepAliveCode = ((await res.json()) as any).keepAliveCode;
+      localStorage.setItem("keepAliveCode", keepAliveCode);
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
     }
-    switch (newUser) {
-      case true:
-        // create new user
-        const res = await fetch("/api/setup/user", {
-          method: "POST",
-          body: JSON.stringify($userParams),
-        });
-        if (String(res.status).charAt(0) !== "2") {
-          handleResponseError(res);
-          return;
-        }
-        break;
-      case false:
-        // link to existing user
-        const res2 = await fetch("/api/devices/link", {
-          method: "POST",
-          body: JSON.stringify({ code: linkingCode }),
-        });
-        if (String(res2.status).charAt(0) !== "2") {
-          handleResponseError(res2);
-          return;
-        }
-        break;
+    if (newUser) {
+      // create new user
+      const res = await fetch("/api/setup/user", {
+        method: "POST",
+        body: JSON.stringify($userParams),
+      });
+      if (String(res.status).charAt(0) !== "2") {
+        handleResponseError(res);
+        return;
+      }
+    } else {
+      // link to existing user
+      const res2 = await fetch("/api/devices/link", {
+        method: "POST",
+        body: JSON.stringify({ code: linkingCode }),
+      });
+      if (String(res2.status).charAt(0) !== "2") {
+        handleResponseError(res2);
+        return;
+      }
     }
 
     localStorage.removeItem("deviceParams");
     localStorage.setItem("loggedIn", "true");
     open = false;
     setupLoading.set(false);
-  
+    NotificationPermission.set(true);
+
     getContent();
-    updatePeerJS_ID();
-    socketStore = (await import("$lib/websocket")).socketStore;
-    unsubscribeSocketStore = socketStore.subscribe(() => {});
+    // updatePeerJS_ID();
+    // socketStore = (await import("$lib/websocket")).socketStore;
+    // unsubscribeSocketStore = socketStore.subscribe(() => {});
 
-    new BroadcastChannel("sw").postMessage({type: 'register_push'});
-  }
-
-  function withDeviceType(name: string): { type: string; name: string } {
-    // @ts-ignore
-    return { name, type: DeviceType[name] as string };
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.active?.postMessage({
+        type: "save_keep_alive_code",
+        keepAliveCode,
+      });
+    });
   }
 
   onMount(async () => {
@@ -146,14 +148,14 @@
       }
     } else {
       getContent();
-      socketStore = (await import("$lib/websocket")).socketStore;
-      unsubscribeSocketStore = socketStore.subscribe(() => {});
+      // socketStore = (await import("$lib/websocket")).socketStore;
+      // unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
   });
 
-  onDestroy(() => {
-    if (socketStore) unsubscribeSocketStore();
-  });
+  // onDestroy(() => {
+  //   if (socketStore) unsubscribeSocketStore();
+  // });
 </script>
 
 <svelte:window on:keydown={handleSetupKeyDown} />
@@ -172,21 +174,23 @@
   <Content>
     <h6>Device</h6>
     <div id="content">
-      <Textfield
-        bind:value={$deviceParams.displayName}
-        label="Device Name"
-        bind:disabled={$setupLoading}
-        input$maxlength={32}
-      />
-      <Select
-        bind:value={$deviceParams.type}
-        label="Device Type"
-        bind:disabled={$setupLoading}
-      >
-        {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-          <Option value={type}>{name}</Option>
-        {/each}
-      </Select>
+      <div id="content-device">
+        <Textfield
+          bind:value={$deviceParams.displayName}
+          label="Device Name"
+          bind:disabled={$setupLoading}
+          input$maxlength={32}
+        />
+        <Select
+          bind:value={$deviceParams.type}
+          label="Device Type"
+          bind:disabled={$setupLoading}
+        >
+          {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+            <Option value={type}>{name}</Option>
+          {/each}
+        </Select>
+      </div>
     </div>
     <br />
     <h6>User</h6>
@@ -243,9 +247,16 @@
       </div>
     {/if}
     <div class="actions">
-      <Button bind:disabled={actionDisabled} on:click={handleConfirm}>
-        <Label>Finish</Label>
-      </Button>
+      {#if actionDisabled}
+        <Button disabled={true} on:click={handleConfirm} variant="outlined">
+          <Label>Finish</Label>
+        </Button>
+      {:else}
+        <Button disabled={false} on:click={handleConfirm} variant="raised">
+          <Label>Finish</Label>
+        </Button>
+      {/if}
+
       {#if setupError}
         <p style="color:red">{setupError}</p>
       {/if}
@@ -266,5 +277,11 @@
     flex-flow: row;
     justify-content: center;
     gap: 10px;
+  }
+
+  #content-device {
+    display: flex;
+    flex-flow: row;
+    gap: 7px;
   }
 </style>

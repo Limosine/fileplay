@@ -2,53 +2,104 @@
   import Drawer, { Content, Header, Title } from "@smui/drawer";
 
   import IconButton from "@smui/icon-button";
-  import Card, { ActionButtons, ActionIcons, Actions, Content as C_Content } from "@smui/card";
+  import Card, {
+    ActionButtons,
+    ActionIcons,
+    Actions,
+    Content as C_Content,
+  } from "@smui/card";
   import Button, { Label } from "@smui/button";
-  import { notification_open, notifications } from "$lib/stores/Dialogs";
+  import {
+    addNotification,
+    deleteNotification,
+    notification_open,
+    notifications,
+  } from "$lib/stores/Dialogs";
+  import type { INotification } from "$lib/stores/Dialogs";
+  import { onMount } from "svelte";
 
   let width: number;
 
-  const deleteNotification = (notification: {title: string, content: string}) => {
-    $notifications.splice($notifications.indexOf(notification), 1);
-    $notifications = $notifications;
-  };
+  async function handleNotificationClick(n: INotification, action: string) {
+    deleteNotification(n.tag);
+    if (action == "close") return null;
+    const messages = (await import("$lib/messages")).default_messages;
+    messages.dispatchNotificationClick({
+      type: action,
+      data: n.data,
+    });
+  }
+
+  onMount(async () => {
+    const messages = (await import("$lib/messages")).default_messages;
+    messages.onmessage("sharing_request", (data) => {
+      console.log("sharing_request", data);
+      addNotification({
+        title: "Sharing Request",
+        body: `${data.sender} wants to share files with you. Click to accept.`,
+        actions: [
+          {
+            title: "Accept",
+            action: "share_accept",
+          },
+          {
+            title: "Reject",
+            action: "share_reject",
+          },
+        ],
+        tag: data.sid,
+        data: data,
+      });
+    });
+    messages.onmessage("sharing_cancel", (data) => {
+      console.log("sharing_cancel", data);
+      deleteNotification(data.sid);
+    });
+  });
 </script>
 
-<svelte:window bind:outerWidth={width}></svelte:window>
+<svelte:window bind:outerWidth={width} />
 
-<div dir="rtl">
-  <Drawer class="mdc-top-app-bar--fixed-adjust" dir="ltr" variant="dismissible" bind:open={$notification_open}>
-    <Header dir="ltr">
-      <Title>Notifications</Title>
-    </Header>
-    <Content>
-      <div class="list-box">
-        {#each $notifications as notification}
-          <Card>
-            <C_Content class="mdc-typography--body2">
-              <h6>{notification.title}</h6>
-              {notification.content}
-            </C_Content>
-            <Actions>
-              {#if notification.title == "Contact request"}
-                <ActionButtons>
-                  <Button>
-                    <Label>Add</Label>
-                  </Button>
-                </ActionButtons>
-              {/if}
-              <ActionIcons>
-                <IconButton class="material-icons" on:click={() => deleteNotification(notification)}>
-                  close
-                </IconButton>
-              </ActionIcons>
-            </Actions>
-          </Card>
-        {/each}
-      </div>
-    </Content>
-  </Drawer>
-</div>
+<Drawer
+  class="mdc-top-app-bar--fixed-adjust"
+  variant="dismissible"
+  bind:open={$notification_open}
+>
+  <Header>
+    <Title>Notifications</Title>
+  </Header>
+  <Content>
+    <div class="list-box">
+      {#each $notifications as n}
+        <Card>
+          <C_Content class="mdc-typography--body2">
+            <h6>{n.title}</h6>
+            {n.body}
+          </C_Content>
+          <Actions>
+            {#each n.actions ?? [] as action}
+              <ActionButtons>
+                <Button
+                  on:click={() => handleNotificationClick(n, action.action)}
+                >
+                  <Label>{action.title}</Label>
+                </Button>
+              </ActionButtons>
+            {/each}
+            <ActionIcons>
+              <IconButton
+                class="material-icons"
+                on:click={() => deleteNotification(n.tag)}
+              >
+                close
+              </IconButton>
+            </ActionIcons>
+          </Actions>
+        </Card>
+      {/each}
+    </div>
+  </Content>
+</Drawer>
 
 <slot />
 

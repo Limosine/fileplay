@@ -4,20 +4,21 @@ import { createKysely } from "$lib/server/db";
 import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit";
-import { sendPushNotification } from "$lib/server/webpush";
+import { sendNotification } from "$lib/server/notifications";
 
 // accept a sharing request
 export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // todo revoke offer for this user and clear all notifications
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const { did, uid } = await loadSignedDeviceID(cookies, key, db);
+  const { uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const { sid, peerJsId, encryptionPublicKey } = await request.json();
+  const { sid, peerJsId, encryptionPublicKey } = (await request.json()) as any;
 
-  // get and delete sharing request
+  // get sharing request
   const res1 = await db
-    .deleteFrom("sharing")
+    .selectFrom("sharing")
+    .select("did")
     .where(({ and, cmpr }) =>
       and([
         cmpr("sid", "=", sid),
@@ -25,7 +26,6 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
         cmpr("expires", ">", dayjs().unix()),
       ])
     )
-    .returning("did")
     .executeTakeFirst();
 
   if (!res1) throw error(404, "Sharing request not found");
@@ -33,6 +33,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const { did: did_return } = res1;
 
   // revoke all other devices' requests
+  // disabled
   const dids = await db
     .selectFrom("devices")
     .select("did")
@@ -42,43 +43,51 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const promises = [];
   for (const { did: did_to } of dids) {
     // todo send notification
-    promises.push(sendPushNotification(
-      db,
-      fetch,
-      did_to,
-      JSON.stringify({
-        type: "sharing_cancel",
-        tag: `SHARE:${sid}`,
-      }),
-      `SHARE:${sid}`
-    ).catch(() => { }));
+    promises.push(
+      sendNotification(
+        platform as App.Platform,
+        fetch,
+        did_to,
+        JSON.stringify({
+          type: "sharing_cancel",
+          data: { tag: `SHARE${sid}` },
+        }),
+        `SHARE${sid}`
+      ).catch((r) => console.log(r))
+    );
   }
 
   await Promise.all(promises);
 
   // send accept notification to did_return
-  await sendPushNotification(
-    db,
+  await sendNotification(
+    platform as App.Platform,
     fetch,
     did_return,
     JSON.stringify({
-      type: "sharing_accept",
-      peerJsId,
-      encryptionPublicKey,
-      sid
+      type: "share_accepted",
+      data: {
+        peerJsId,
+        encryptionPublicKey,
+        sid,
+      },
     })
-  );
+  ).catch((r) => console.log(r));
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };
 
-// todo DELETE for rejecting a sharing request on all devices
-export const DELETE: RequestHandler = async ({ cookies, platform, request, fetch }) => {
+export const DELETE: RequestHandler = async ({
+  cookies,
+  platform,
+  request,
+  fetch,
+}) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const { sid } = await request.json();
+  const { sid } = (await request.json()) as any;
 
   // get and delete sharing request
   const res1 = await db
@@ -97,10 +106,15 @@ export const DELETE: RequestHandler = async ({ cookies, platform, request, fetch
 
   const { did: did_return } = res1;
 
-  await sendPushNotification(db, fetch, did_return, JSON.stringify({
-    type: "sharing_reject",
-    sid
-  }))
+  await sendNotification(
+    platform as App.Platform,
+    fetch,
+    did_return,
+    JSON.stringify({
+      type: "share_rejected",
+      data: { sid },
+    })
+  ).catch((r) => console.log(r));
 
   // revoke all other devices' requests
   const dids = await db
@@ -112,18 +126,20 @@ export const DELETE: RequestHandler = async ({ cookies, platform, request, fetch
   const promises = [];
   for (const { did: did_to } of dids) {
     // todo send notification
-    promises.push(sendPushNotification(
-      db,
-      fetch,
-      did_to,
-      JSON.stringify({
-        type: "sharing_cancel",
-        tag: `SHARE:${sid}`,
-      }),
-      `SHARE:${sid}`
-    ).catch(() => {}));
+    promises.push(
+      sendNotification(
+        platform as App.Platform,
+        fetch,
+        did_to,
+        JSON.stringify({
+          type: "sharing_cancel",
+          data: { tag: `SHARE${sid}` },
+        }),
+        `SHARE${sid}`
+      ).catch((r) => console.log(r))
+    );
   }
   await Promise.all(promises);
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };

@@ -3,6 +3,7 @@ import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
+import type { DeviceType } from "$lib/common";
 
 export const GET: RequestHandler = async ({ cookies, platform }) => {
   // get all devices linked to this account (requires cookie auth)
@@ -10,14 +11,22 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const devices = await db
+  const d_self = await db
     .selectFrom("devices")
     .select(["did", "type", "displayName", "createdAt", "lastSeenAt"])
-    .where(({ or, cmpr }) => or([cmpr("did", "=", did), cmpr("uid", "=", uid)]))
+    .where("did", "=", did)
+    .executeTakeFirstOrThrow();
+
+  const d_others = await db
+    .selectFrom("devices")
+    .select(["did", "type", "displayName", "createdAt", "lastSeenAt"])
+    .where(({ and, cmpr }) =>
+      and([cmpr("did", "!=", did), cmpr("uid", "=", uid)])
+    )
     .orderBy("displayName")
     .execute();
 
-  return json(devices, { status: 200 });
+  return json({ self: d_self, others: d_others }, { status: 200 });
 };
 
 export const POST: RequestHandler = async ({
@@ -39,7 +48,10 @@ export const POST: RequestHandler = async ({
 
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
 
-  const updateObject = await request.json(); // todo validation using ajv / joi
+  const updateObject: {
+    displayName?: string;
+    type?: DeviceType;
+  } = await request.json();
 
   const res = await db
     .updateTable("devices")
@@ -55,7 +67,7 @@ export const POST: RequestHandler = async ({
 
   if (!res) throw error(500, "Failed to update device info");
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };
 
 export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
@@ -88,5 +100,5 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
 
   // inform the device that it has been deleted via push
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };

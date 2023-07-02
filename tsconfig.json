@@ -9,8 +9,8 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "types": ["vite-plugin-pwa/client"],
-    "lib": ["DOM", "WebWorker", "ESNext"]
+    "types": ["vite-plugin-pwa/client", "@cloudflare/workers-types"],
+    "lib": ["DOM", "ESNext"]
   },
   "include": [
 		"./.svelte-kit/ambient.d.ts",
@@ -18,11 +18,13 @@
 		"./vite.config.ts",
 		"./src/**/*.js",
 		"./src/**/*.ts",
+    "./src/lib/*.ts",
 		"./src/**/*.svelte",
 		"./tests/**/*.js",
 		"./tests/**/*.ts",
 		"./tests/**/*.svelte",
-    "./env.d.ts"
+    "./env.d.ts",
+    "./app.d.ts"
 	],
   // Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
   //

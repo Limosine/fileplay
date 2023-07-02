@@ -1,9 +1,10 @@
 import { json, type RequestHandler } from "@sveltejs/kit";
-import { isProfane } from "$lib/server/utils";
 
-export const POST: RequestHandler = async ({request, platform}) => {
-  const username: string = (await request.json()).username;
+export const POST: RequestHandler = async ({ request }) => {
+  const username: string = ((await request.json()) as any).username;
   if (!username) return new Response("Missing username!", { status: 400 });
-
-  return json({ isProfane: isProfane(username) });
+  const res = await fetch(
+    `https://www.purgomalum.com/service/containsprofanity?text=${username}`
+  );
+  return json({ isProfane: (await res.text()) === "true" });
 };

@@ -5,28 +5,49 @@
   import DataTable, { Head, Body, Row, Cell } from "@smui/data-table";
   import dayjs from "dayjs";
   import localizedFormat from "dayjs/plugin/localizedFormat";
-  import { devices, devices_loaded, getDevices } from "$lib/personal";
-  import IconButton from "@smui/icon-button/src/IconButton.svelte";
-  import { settings_open } from "$lib/stores/Dialogs";
+  import {
+    devices,
+    devices_loaded,
+    getDevices,
+    loadInfos,
+    withDeviceType,
+  } from "$lib/personal";
+  import IconButton from "@smui/icon-button";
   import Tab, { Label as Tab_Label } from "@smui/tab";
   import TabBar from "@smui/tab-bar";
   import Username from "$lib/components/Username.svelte";
   import {
+    settings_open,
+    editDevice_open,
+    original_displayName,
+    original_type,
+    deviceID,
+    device_edit_loaded,
     active,
+    deviceParams,
+    setupLoading,
     userParams,
     profaneUsername,
     original_username,
     original_avatarSeed,
+    deviceIsSelf,
   } from "$lib/stores/Dialogs";
-  import { TimeFormat } from "$lib/common";
+  import { DeviceType, TimeFormat } from "$lib/common";
   import { onMount, onDestroy } from "svelte";
+  import Textfield from "@smui/textfield";
+  import Radio from "@smui/radio";
+  import FormField from "@smui/form-field";
 
   dayjs.extend(localizedFormat);
 
   let generated_code = false;
 
   let different: boolean;
+  let differentDevice: boolean;
   let actionDisabled: boolean;
+  let actionDisabledDevice: boolean;
+  let deleteDisabled: boolean;
+
   $: {
     different =
       $userParams.displayName != $original_username ||
@@ -34,22 +55,49 @@
   }
 
   $: {
+    differentDevice =
+      $deviceParams.displayName != $original_displayName ||
+      $deviceParams.type != $original_type;
+  }
+
+  $: {
     actionDisabled =
       !$userParams.displayName ||
       $profaneUsername.profane ||
-      $profaneUsername.loading
+      $profaneUsername.loading;
+  }
+
+  $: {
+    actionDisabledDevice = !$deviceParams.displayName || !$deviceParams.type;
+  }
+
+  $: {
+    if ($devices_loaded) {
+      if ($deviceID == $devices.self.did) deleteDisabled = true;
+      else deleteDisabled = false;
+    }
   }
 
   function handleSettingsKeyDown(event: CustomEvent | KeyboardEvent) {
     if (!$settings_open) return;
     event = event as KeyboardEvent;
 
-    if (event.key === "Escape") {
-      settings_open.set(false);
-      closeHandler("cancel");
-    } else if (event.key === "Enter") {
-      settings_open.set(false);
-      closeHandler("confirm");
+    if ($editDevice_open) {
+      if (event.key === "Escape") {
+        editDevice_open.set(false);
+        closeHandlerDevice("cancel");
+      } else if (event.key === "Enter") {
+        editDevice_open.set(false);
+        closeHandlerDevice("confirm");
+      }
+    } else {
+      if (event.key === "Escape") {
+        settings_open.set(false);
+        closeHandler("cancel");
+      } else if (event.key === "Enter") {
+        settings_open.set(false);
+        closeHandler("confirm");
+      }
     }
   }
 
@@ -67,12 +115,46 @@
         if (!actionDisabled && different) {
           await updateUserInfo();
         }
+        break;
+    }
+  }
+
+  async function closeHandlerDevice(
+    e: CustomEvent<{ action: string }> | string
+  ) {
+    let action: string;
+
+    if (typeof e === "string") {
+      action = e;
+    } else {
+      action = e.detail.action;
+    }
+
+    switch (action) {
+      case "confirm":
+        if (!actionDisabledDevice && differentDevice) {
+          await updateDeviceInfo($deviceID);
+        }
+        break;
+      case "delete":
+        deleteDevice($deviceID);
+        break;
     }
   }
 
   async function deleteDevice(did: number) {
-    const res = await fetch(`/api/devices?${did}`, {
+    await fetch(`/api/devices?${did}`, {
       method: "DELETE",
+    });
+  }
+
+  async function updateDeviceInfo(did: number) {
+    await fetch(`/api/devices?${did}`, {
+      method: "POST",
+      body: JSON.stringify({
+        displayName: $deviceParams.displayName,
+        type: $deviceParams.type,
+      }),
     });
   }
 
@@ -85,7 +167,7 @@
       method: "GET",
     });
 
-    const codeproperties = await res.json();
+    const codeproperties: any = await res.json();
 
     generated_code = true;
     expires_at = codeproperties.expires;
@@ -118,6 +200,14 @@
 </script>
 
 <svelte:window on:keydown={handleSettingsKeyDown} />
+
+<div style="display: none">
+  {#if $devices_loaded && $deviceID && !$device_edit_loaded}
+    {#await $devices then devices}
+      {loadInfos(devices, $deviceID)}
+    {/await}
+  {/if}
+</div>
 
 <Dialog
   bind:open={$settings_open}
@@ -185,22 +275,51 @@
             {#await $devices}
               <p>Contacts are loading...</p>
             {:then devices}
-              {#each devices as device}
+              <Body>
+                <Row>
+                  <Cell>{devices.self.displayName}</Cell>
+                  <Cell>{devices.self.type}</Cell>
+                  <Cell
+                    >{dayjs
+                      .unix(devices.self.lastSeenAt)
+                      .format(TimeFormat.MinuteDate)}</Cell
+                  >
+                  <Cell>
+                    <IconButton
+                      on:click={() => {
+                        $deviceID = devices.self.did;
+                        $device_edit_loaded = false;
+                        $editDevice_open = true;
+                        $deviceIsSelf = true;
+                      }}
+                      class="material-icons"
+                      >more_vert
+                    </IconButton>
+                  </Cell>
+                </Row>
+              </Body>
+              {#each devices.others as device}
                 <Body>
                   <Row>
                     <Cell>{device.displayName}</Cell>
                     <Cell>{device.type}</Cell>
-                    <Cell
-                      >{dayjs.unix(device.lastSeenAt).format(
-                        TimeFormat.MinuteDate
-                      )}</Cell
+                    <Cell>
+                      {dayjs
+                        .unix(device.lastSeenAt)
+                        .format(TimeFormat.MinuteDate)}</Cell
                     >
-                    <Cell
-                      ><IconButton
-                        on:click={() => deleteDevice(device.did)}
-                        class="material-icons">delete</IconButton
-                      ></Cell
-                    >
+                    <Cell>
+                      <IconButton
+                        on:click={() => {
+                          $deviceID = device.did;
+                          $device_edit_loaded = false;
+                          $editDevice_open = true;
+                          $deviceIsSelf = false;
+                        }}
+                        class="material-icons"
+                        >more_vert
+                      </IconButton>
+                    </Cell>
                   </Row>
                 </Body>
               {/each}
@@ -221,8 +340,61 @@
   </Actions>
 </Dialog>
 
+<Dialog
+  bind:open={$editDevice_open}
+  aria-labelledby="title"
+  aria-describedby="content"
+  on:SMUIDialog:closed={closeHandlerDevice}
+>
+  <Title id="title">Edit device</Title>
+  <Content>
+    {#if $editDevice_open}
+      <div id="content-device">
+        <Textfield
+          bind:value={$deviceParams.displayName}
+          label="Device Name"
+          bind:disabled={$setupLoading}
+          input$maxlength={32}
+        />
+        <h6>Device Type</h6>
+        {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+          <FormField>
+            <Radio
+              bind:group={$deviceParams.type}
+              bind:value={type}
+              bind:disabled={$setupLoading}
+            />
+            <span slot="label">
+              {name}
+            </span>
+          </FormField>
+        {/each}
+      </div>
+    {/if}
+  </Content>
+  <Actions>
+    {#if !$deviceIsSelf}
+      <Button bind:disabled={deleteDisabled} action="delete">
+        <Label>Delete</Label>
+      </Button>
+    {/if}
+    <Button bind:disabled={deleteDisabled} action="delete">
+      <Label>Delete</Label>
+    </Button>
+    <Button bind:disabled={actionDisabledDevice} action="confirm">
+      <Label>Close</Label>
+    </Button>
+  </Actions>
+</Dialog>
+
 <style>
   #content {
+    display: flex;
+    flex-flow: column;
+    gap: 7px;
+  }
+
+  #content-device {
     display: flex;
     flex-flow: column;
     gap: 7px;

@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
-  if(!uid) throw error(400, "No user associated with this device")
+  if (!uid) throw error(400, "No user associated with this device");
 
   const contacts = await db
     .selectFrom("contacts")
@@ -47,7 +47,7 @@ export const DELETE: RequestHandler = async ({ platform, url, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
-  if(!uid) throw error(400, "No user associated with this device")
+  if (!uid) throw error(400, "No user associated with this device");
 
   const cid_s = url.searchParams.get("cid");
   if (!cid_s) throw error(400, "No contact id provided");
@@ -62,5 +62,5 @@ export const DELETE: RequestHandler = async ({ platform, url, cookies }) => {
 
   if (!res1) throw error(404, "Contact not found");
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };

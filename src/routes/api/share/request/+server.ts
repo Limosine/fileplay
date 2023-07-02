@@ -5,7 +5,7 @@ import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import dayjs from "dayjs";
 import { SHARING_TIMEOUT } from "$lib/common";
-import { sendPushNotification } from "$lib/server/webpush";
+import { sendNotification } from "$lib/server/notifications";
 
 // request sharing via contact id
 export const GET: RequestHandler = async ({
@@ -77,27 +77,33 @@ export const GET: RequestHandler = async ({
 
   for (const { did: did_to } of dids) {
     // todo send notification
-    promises.push(sendPushNotification(
-      db,
-      fetch,
-      did_to,
-      JSON.stringify({
-        type: "sharing_request",
-        sid: res2.sid,
-        expires,
-        sender,
-        avatarSeed,
-        tag: `SHARE:${res2.sid}`,
-      }),
-      `SHARE:${res2.sid}`
-    )
-      .then(() => sent++)
-      .catch(() => { }));
+    promises.push(
+      sendNotification(
+        platform as App.Platform,
+        fetch,
+        did_to,
+        JSON.stringify({
+          type: "sharing_request",
+          data: {
+            sid: res2.sid,
+            expires,
+            sender,
+            avatarSeed,
+            tag: `SHARE${res2.sid}`,
+          },
+        }),
+        `SHARE${res2.sid}`
+      )
+        .then(() => sent++)
+        .catch((e) => {
+          console.error(e);
+        })
+    );
   }
 
   await Promise.all(promises);
 
-  if (sent === 0) throw error(500, "Failed to send push notifications");
+  if (sent === 0) throw error(500, "Failed to send notifications");
 
   return json({ sid: res2.sid });
 };
@@ -159,19 +165,21 @@ export const DELETE: RequestHandler = async ({
 
   for (const { did: did_to } of dids) {
     // todo send notification
-    promises.push(sendPushNotification(
-      db,
-      fetch,
-      did_to,
-      JSON.stringify({
-        type: "sharing_cancel",
-        tag: `SHARE:${res2.sid}`,
-      }),
-      `SHARE:${res2.sid}`
-    ).catch(() => { }));
+    promises.push(
+      sendNotification(
+        platform as App.Platform,
+        fetch,
+        did_to,
+        JSON.stringify({
+          type: "sharing_cancel",
+          data: { tag: `SHARE${res2.sid}` },
+        }),
+        `SHARE${res2.sid}`
+      ).catch((r) => console.log(r))
+    );
   }
 
   await Promise.all(promises);
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: 200 });
 };

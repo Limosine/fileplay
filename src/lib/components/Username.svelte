@@ -75,7 +75,7 @@
 
 <style>
   .user {
-    margin-top: 1em;
+    margin: 1em 0em 1.5em 0em;
     display: grid;
     grid-template-columns: auto auto;
     grid-gap: 1rem;
