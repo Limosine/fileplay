@@ -3,11 +3,12 @@
   import Button, { Group, Label } from "@smui/button";
   import Textfield from "@smui/textfield";
   import LinearProgress from "@smui/linear-progress";
+  import Select, { Option } from "@smui/select";
 
   import { get } from "svelte/store";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
-  import { getContent } from "$lib/personal";
+  import { getContent, withDeviceType } from "$lib/personal";
 
   import {
     deviceParams,
@@ -17,8 +18,8 @@
   } from "$lib/stores/Dialogs";
   import Username from "$lib/components/Username.svelte";
   import { publicKey_armored } from "$lib/openpgp";
-  import Device from "$lib/components/Device.svelte";
   import { NotificationPermission } from "$lib/stores/Dialogs";
+  import { DeviceType } from "$lib/common";
 
   // let socketStore: Readable<any>;
   // let unsubscribeSocketStore = () => {};
@@ -175,7 +176,23 @@
   <Content>
     <h6>Device</h6>
     <div id="content">
-      <Device />
+      <div id="content-device">
+        <Textfield
+          bind:value={$deviceParams.displayName}
+          label="Device Name"
+          bind:disabled={$setupLoading}
+          input$maxlength={32}
+        />
+        <Select
+          bind:value={$deviceParams.type}
+          label="Device Type"
+          bind:disabled={$setupLoading}
+        >
+          {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+            <Option value={type}>{name}</Option>
+          {/each}
+        </Select>
+      </div>
     </div>
     <br />
     <h6>User</h6>
@@ -262,5 +279,11 @@
     flex-flow: row;
     justify-content: center;
     gap: 10px;
+  }
+
+  #content-device {
+    display: flex;
+    flex-flow: row;
+    gap: 7px;
   }
 </style>

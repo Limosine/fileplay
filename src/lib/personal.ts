@@ -1,5 +1,7 @@
 import type { MaybePromise } from "@sveltejs/kit";
 import { get, writable } from "svelte/store";
+import { deviceParams, device_edit_loaded, original_displayName, original_type } from "./stores/Dialogs";
+import { DeviceType } from "./common";
 
 export interface IContact {
   cid: number;
@@ -140,6 +142,49 @@ export async function getDeviceInfos(): Promise<
 
   return deviceInfos_new;
 }
+
+export function withDeviceType(name: string): { type: string; name: string } {
+  // @ts-ignore
+  return { name, type: DeviceType[name] as string };
+}
+
+export const loadInfos = (devices: { self: {
+  did: number;
+  type: string;
+  displayName: string;
+  createdAt: number;
+  lastSeenAt: number;
+};
+others: {
+  did: number;
+  type: string;
+  displayName: string;
+  createdAt: number;
+  lastSeenAt: number;
+}[]; }, did: number) => {
+  let device: {did: number; type: string; displayName: string; createdAt: number; lastSeenAt: number } | undefined;
+
+  if (devices.self.did == did) {
+    device = devices.self;
+  } else {
+    device = devices.others.find(device => device.did === did);
+  }
+
+  if (!device) throw new Error("No device with this deviceID is linked to this account.");
+
+  deviceParams.update((deviceParams) => {
+    if (!device) return deviceParams;
+    deviceParams.displayName = device.displayName; 
+    deviceParams.type = device.type;
+    return deviceParams
+  });
+
+  
+  original_displayName.set(device.displayName);
+  original_type.set(device.type);
+
+  device_edit_loaded.set(true);
+};
 
 export function getContent() {
   getUserInfo();

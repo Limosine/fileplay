@@ -5,7 +5,7 @@
   import DataTable, { Head, Body, Row, Cell } from "@smui/data-table";
   import dayjs from "dayjs";
   import localizedFormat from "dayjs/plugin/localizedFormat";
-  import { devices, devices_loaded, getDevices } from "$lib/personal";
+  import { devices, devices_loaded, getDevices, loadInfos, withDeviceType } from "$lib/personal";
   import IconButton from "@smui/icon-button";
   import Tab, { Label as Tab_Label } from "@smui/tab";
   import TabBar from "@smui/tab-bar";
@@ -19,14 +19,17 @@
     device_edit_loaded,
     active,
     deviceParams,
+    setupLoading,
     userParams,
     profaneUsername,
     original_username,
     original_avatarSeed,
   } from "$lib/stores/Dialogs";
-  import { TimeFormat } from "$lib/common";
+  import { DeviceType, TimeFormat } from "$lib/common";
   import { onMount, onDestroy } from "svelte";
-  import Device from "$lib/components/Device.svelte";
+  import Textfield from "@smui/textfield";
+  import Radio from '@smui/radio';
+  import FormField from '@smui/form-field';
 
   dayjs.extend(localizedFormat);
 
@@ -52,13 +55,11 @@
     actionDisabled =
       !$userParams.displayName ||
       $profaneUsername.profane ||
-      $profaneUsername.loading
+      $profaneUsername.loading;
   }
 
   $: {
-    actionDisabledDevice =
-      !$deviceParams.displayName ||
-      !$deviceParams.type
+    actionDisabledDevice = !$deviceParams.displayName || !$deviceParams.type;
   }
 
   function handleSettingsKeyDown(event: CustomEvent | KeyboardEvent) {
@@ -102,7 +103,9 @@
     }
   }
 
-  async function closeHandlerDevice(e: CustomEvent<{ action: string }> | string) {
+  async function closeHandlerDevice(
+    e: CustomEvent<{ action: string }> | string
+  ) {
     let action: string;
 
     if (typeof e === "string") {
@@ -182,6 +185,14 @@
 
 <svelte:window on:keydown={handleSettingsKeyDown} />
 
+<div style="display: none">
+  {#if $devices_loaded && $deviceID && !$device_edit_loaded}
+    {#await $devices then devices}
+      {loadInfos(devices, $deviceID)}
+    {/await}
+  {/if}
+</div>
+
 <Dialog
   bind:open={$settings_open}
   aria-labelledby="title"
@@ -248,35 +259,47 @@
             {#await $devices}
               <p>Contacts are loading...</p>
             {:then devices}
-            <Body>
-              <Row>
-                <Cell>{devices.self.displayName}</Cell>
-                <Cell>{devices.self.type}</Cell>
-                <Cell
-                  >{dayjs.unix(devices.self.lastSeenAt).format(
-                    TimeFormat.MinuteDate
-                  )}</Cell>
-                <Cell>
-                  <IconButton
-                    on:click={() => {$deviceID = devices.self.did; $device_edit_loaded = false; $editDevice_open = true}}
-                    class="material-icons">more
-                  </IconButton>
-                </Cell>
-              </Row>
-            </Body>
+              <Body>
+                <Row>
+                  <Cell>{devices.self.displayName}</Cell>
+                  <Cell>{devices.self.type}</Cell>
+                  <Cell
+                    >{dayjs
+                      .unix(devices.self.lastSeenAt)
+                      .format(TimeFormat.MinuteDate)}</Cell
+                  >
+                  <Cell>
+                    <IconButton
+                      on:click={() => {
+                        $deviceID = devices.self.did;
+                        $device_edit_loaded = false;
+                        $editDevice_open = true;
+                      }}
+                      class="material-icons"
+                      >more
+                    </IconButton>
+                  </Cell>
+                </Row>
+              </Body>
               {#each devices.others as device}
                 <Body>
                   <Row>
                     <Cell>{device.displayName}</Cell>
                     <Cell>{device.type}</Cell>
                     <Cell>
-                      {dayjs.unix(device.lastSeenAt).format(
-                        TimeFormat.MinuteDate
-                      )}</Cell>
+                      {dayjs
+                        .unix(device.lastSeenAt)
+                        .format(TimeFormat.MinuteDate)}</Cell
+                    >
                     <Cell>
                       <IconButton
-                        on:click={() => {$deviceID = device.did; $device_edit_loaded = false; $editDevice_open = true}}
-                        class="material-icons">more_vert
+                        on:click={() => {
+                          $deviceID = device.did;
+                          $device_edit_loaded = false;
+                          $editDevice_open = true;
+                        }}
+                        class="material-icons"
+                        >more_vert
                       </IconButton>
                     </Cell>
                   </Row>
@@ -308,7 +331,27 @@
   <Title id="title">Edit device</Title>
   <Content>
     {#if $editDevice_open}
-      <Device />
+      <div id="content-device">
+        <Textfield
+          bind:value={$deviceParams.displayName}
+          label="Device Name"
+          bind:disabled={$setupLoading}
+          input$maxlength={32}
+        />
+        <h6>Device Type</h6>
+        {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+          <FormField>
+            <Radio
+              bind:group={$deviceParams.type}
+              bind:value={type}
+              bind:disabled={$setupLoading}
+            />
+            <span slot="label">
+              {name}
+            </span>
+          </FormField>
+        {/each}
+      </div>
     {/if}
   </Content>
   <Actions>
@@ -323,6 +366,12 @@
 
 <style>
   #content {
+    display: flex;
+    flex-flow: column;
+    gap: 7px;
+  }
+
+  #content-device {
     display: flex;
     flex-flow: column;
     gap: 7px;
