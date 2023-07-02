@@ -70,6 +70,7 @@ export const original_avatarSeed = writable<string>("");
 export const original_displayName = writable<string>("");
 export const original_type = writable<string>("");
 export const deviceID = writable<number>();
+export const deviceIsSelf = writable<boolean>(false);
 
 export const profaneUsername = writable<{ loading: boolean; profane: boolean }>(
   {

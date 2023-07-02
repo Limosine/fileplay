@@ -19,6 +19,7 @@
     await fetch(`/api/contacts?cid=${cid}`, {
       method: "DELETE",
     });
+    await updateContacts()
   }
 </script>
 

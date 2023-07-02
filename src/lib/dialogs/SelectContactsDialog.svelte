@@ -62,12 +62,12 @@
   }
 
   enum SendState {
-    IDLE,
-    REQUESTING,
-    REJECTED,
-    FAILED,
-    CANCELED,
-    SENDING,
+    IDLE = "idle",
+    REQUESTING = "requesting",
+    REJECTED = "rejected",
+    FAILED = "failed",
+    CANCELED = "canceled",
+    SENDING = "sending",
   }
   const sendstate: { [cid: number]: SendState } = {};
   let sharing_ids: { [sid: number]: number } = {};
@@ -135,9 +135,6 @@
           {#await $contacts}
             <p>Contacts are loading...</p>
           {:then contacts}
-            <!-- <div style="display: none">
-                {setGhostItems(devices)}
-              </div> -->
             {#each contacts as contact}
               <!-- TODO animate all sharingstates (progress spinner around dicebear?) -->
               {#if contact.lastSeenAt > dayjs()
@@ -159,7 +156,7 @@
                     <Content
                       >{contact.displayName} : {contact.cid in sendstate
                         ? sendstate[contact.cid]
-                        : 0}
+                        : "idle"}
                     </Content>
                   </PrimaryAction>
                 </Card>

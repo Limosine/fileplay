@@ -30,6 +30,7 @@
     profaneUsername,
     original_username,
     original_avatarSeed,
+    deviceIsSelf,
   } from "$lib/stores/Dialogs";
   import { DeviceType, TimeFormat } from "$lib/common";
   import { onMount, onDestroy } from "svelte";
@@ -289,6 +290,7 @@
                         $deviceID = devices.self.did;
                         $device_edit_loaded = false;
                         $editDevice_open = true;
+                        $deviceIsSelf = true;
                       }}
                       class="material-icons"
                       >more_vert
@@ -312,6 +314,7 @@
                           $deviceID = device.did;
                           $device_edit_loaded = false;
                           $editDevice_open = true;
+                          $deviceIsSelf = false;
                         }}
                         class="material-icons"
                         >more_vert
@@ -370,6 +373,11 @@
     {/if}
   </Content>
   <Actions>
+    {#if !$deviceIsSelf}
+      <Button bind:disabled={deleteDisabled} action="delete">
+        <Label>Delete</Label>
+      </Button>
+    {/if}
     <Button bind:disabled={deleteDisabled} action="delete">
       <Label>Delete</Label>
     </Button>

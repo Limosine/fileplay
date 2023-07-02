@@ -6,6 +6,7 @@
   import { add_open, codehostname } from "$lib/stores/Dialogs";
   import { onDestroy, onMount } from "svelte";
   import dayjs from "dayjs";
+  import { updateContacts } from "$lib/personal";
 
   let hostname: string;
   let code = "";
@@ -56,10 +57,11 @@
       link = "https://" + hostname + link;
     }
 
-    const res = await fetch(link, {
+    await fetch(link, {
       method: "POST",
       body: JSON.stringify({ code: code }),
     });
+    await updateContacts();
   }
 
   async function generateCode(): Promise<{
