@@ -103,12 +103,10 @@
   {@html webManifest}
 </svelte:head>
 
-<div on:touchmove|preventDefault>
-  <TopAppBar />
+<TopAppBar />
 
-  <N_Drawer>
-    <Drawer>
-      <slot />
-    </Drawer>
-  </N_Drawer>
-</div>
+<N_Drawer>
+  <Drawer>
+    <slot />
+ </Drawer>
+</N_Drawer>
