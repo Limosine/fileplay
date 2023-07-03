@@ -13,7 +13,6 @@
   import { setup as pgp_setup, publicKey_armored } from "$lib/openpgp";
 
   import SettingsDialog from "$lib/dialogs/SettingsDialog.svelte";
-  import NotificationPermission from "$lib/dialogs/NotificationPermission.svelte";
 
   import {
     settings_open,
@@ -24,6 +23,8 @@
   import { status } from "$lib/messages";
   import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
   import QRCode from "qrcode";
+  import Button, { Group, Label } from "@smui/button";
+  import Tooltip, { Wrapper } from "@smui/tooltip";
 
   let qrCode: string;
   const generateQRCode = async (link: string) => {
@@ -37,9 +38,6 @@
   };
 
   let sender_uuid: Writable<string>;
-
-  let send: (files: FileList, peerID?: string, publicKey?: string) => {};
-  let addPendingFile: (files: FileList) => {};
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -83,8 +81,6 @@
 
     const { setup } = await import("$lib/peerjs/main");
     received_chunks = (await import("$lib/peerjs/common")).received_chunks;
-    send = (await import("$lib/peerjs/send")).send;
-    addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
 
     link = (await import("$lib/peerjs/common")).link;
     const messages = (await import("$lib/messages")).default_messages;
@@ -153,7 +149,6 @@
 <AddContactDialog />
 <SettingsDialog />
 
-<NotificationPermission />
 <SetupDialog />
 
 <div class="center">
@@ -179,14 +174,39 @@
   </div>
 
   {#if $link}
-    <Card padded>
-      Link:<br />
-      <a href={$link}>{$link}</a>
-    </Card>
-  {/if}
-  {#if qrCode}
-    <Card padded>
-      <img src={qrCode} alt="QR Code" />
+    <Card class="card">
+      <div class="link">
+        {#if qrCode}
+          <img src={qrCode} alt="QR Code" />
+        {/if}
+
+        <div>
+          <h6>Link</h6>
+          <br />
+          <Group variant="unelevated">
+            <Wrapper>
+              <Button
+                variant="outlined"
+                class="material-icons"
+                on:click={() => navigator.clipboard.writeText($link)}
+                >content_copy</Button
+              >
+              <Tooltip>Copy link</Tooltip>
+            </Wrapper>
+            <Wrapper>
+              <Button
+                variant="outlined"
+                class="material-icons"
+                on:click={() =>
+                  navigator.share({
+                    url: $link,
+                  })}>share</Button
+              >
+              <Tooltip>Share link</Tooltip>
+            </Wrapper>
+          </Group>
+        </div>
+      </div>
     </Card>
   {/if}
 
@@ -251,5 +271,13 @@
     align-items: center;
     text-align: center;
     min-height: 100vh;
+  }
+  .link {
+    display: flex;
+    flex-flow: row;
+    gap: 30px;
+  }
+  * :global(.card) {
+    padding: 30px;
   }
 </style>
