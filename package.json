@@ -91,7 +91,9 @@
   },
   "type": "module",
   "dependencies": {
+    "headless-qr": "^1.0.3",
     "qrcode": "^1.5.3",
+    "svelte-qrcode": "^1.0.0",
     "uuid": "^9.0.0"
   }
 }
