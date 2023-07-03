@@ -1,10 +1,27 @@
 <script lang="ts">
   import Card from "@smui/card";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { writable } from "svelte/store";
   import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/openpgp";
   import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
+
+  let waitingTemplateString = "Waiting for files";
+  let finalString = waitingTemplateString;
+  let counter = 0;
+  const animationInterval = setInterval(() => {
+    if (counter >= 3) {
+      finalString = waitingTemplateString;
+      counter = 0;
+    } else {
+      finalString = finalString.concat(".");
+      counter++;
+    }
+  }, 500);
+
+  onDestroy(() => {
+    clearInterval(animationInterval);
+  });
 
   let received_chunks = writable<
     {
@@ -59,7 +76,7 @@
         </div>
       {/each}
     {:else}
-      <h6>Waiting for files...</h6>
+      <h6>{finalString}</h6>
     {/if}
   </Card>
 </div>
