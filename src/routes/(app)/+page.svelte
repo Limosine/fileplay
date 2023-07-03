@@ -23,6 +23,18 @@
   import { updateContacts, getDevices } from "$lib/personal";
   import { status } from "$lib/messages";
   import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
+  import QRCode from "qrcode";
+
+  let qrCode: string;
+  const generateQRCode = async (link: string) => {
+    try {
+      qrCode = await QRCode.toDataURL(link);
+
+      console.log(qrCode);
+    } catch (error) {
+      console.error("Failed to generate QR code:", error);
+    }
+  };
 
   let sender_uuid: Writable<string>;
 
@@ -116,6 +128,9 @@
   let init_tries = 0;
   $: {
     // re-init messages if error
+    if ($link) {
+      generateQRCode($link);
+    }
     if ($status === "2" && init_tries < 5) {
       setTimeout(async () => {
         if ($status === "2")
@@ -167,6 +182,11 @@
     <Card padded>
       Link:<br />
       <a href={$link}>{$link}</a>
+    </Card>
+  {/if}
+  {#if qrCode}
+    <Card padded>
+      <img src={qrCode} alt="QR Code" />
     </Card>
   {/if}
 
