@@ -17,8 +17,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   // get sharing request
   const res1 = await db
-    .selectFrom("sharing")
-    .select("did")
+    .deleteFrom("sharing")
     .where(({ and, cmpr }) =>
       and([
         cmpr("sid", "=", sid),
@@ -26,6 +25,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
         cmpr("expires", ">", dayjs().unix()),
       ])
     )
+    .returning('did')
     .executeTakeFirst();
 
   if (!res1) throw error(404, "Sharing request not found");

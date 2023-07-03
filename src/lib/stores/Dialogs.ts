@@ -37,6 +37,7 @@ export const notifications = writable<INotification[]>([]);
 export const addNotification = (
   notification: PartialBy<INotification, "tag">
 ) => {
+  console.log('Adding notification', notification.tag)
   // replace notifications with the same tag
   if ("tag" in notification && notification.tag)
     deleteNotification(notification.tag);
@@ -49,9 +50,10 @@ export const addNotification = (
 };
 
 export const deleteNotification = (tag: string) => {
-  notifications.update((notifications) => {
-    return notifications.filter((n) => n.tag != tag);
-  });
+  console.log('deleting notification', tag)
+  notifications.update((notifications) => 
+    notifications.filter((n) => n.tag != tag)
+  );
 };
 
 export const deviceParams = writable({
