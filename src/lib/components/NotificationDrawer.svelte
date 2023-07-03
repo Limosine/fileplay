@@ -17,6 +17,7 @@
   } from "$lib/stores/Dialogs";
   import type { INotification } from "$lib/stores/Dialogs";
   import { onMount } from "svelte";
+  import { SHARING_TIMEOUT } from "$lib/common";
 
   let width: number;
 
@@ -50,6 +51,9 @@
         tag: data.sid,
         data: data,
       });
+      setTimeout(() => {
+        deleteNotification(data.sid);
+      }, SHARING_TIMEOUT);
     });
     messages.onmessage("sharing_cancel", (data) => {
       console.log("sharing_cancel", data);
