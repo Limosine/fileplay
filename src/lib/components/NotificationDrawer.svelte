@@ -48,16 +48,16 @@
             action: "share_reject",
           },
         ],
-        tag: data.sid,
+        tag: data.tag,
         data: data,
       });
       setTimeout(() => {
-        deleteNotification(data.sid);
+        deleteNotification(data.tag);
       }, SHARING_TIMEOUT);
     });
     messages.onmessage("sharing_cancel", (data) => {
       console.log("sharing_cancel", data);
-      deleteNotification(data.sid);
+      deleteNotification(data.tag);
     });
   });
 </script>
