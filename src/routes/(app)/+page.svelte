@@ -24,6 +24,8 @@
   import { status } from "$lib/messages";
   import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
 
+  import QRCode from "qrcode";
+
   let sender_uuid: Writable<string>;
 
   let send: (files: FileList, peerID?: string, publicKey?: string) => {};
@@ -114,8 +116,14 @@
   });
 
   let init_tries = 0;
+  let qrCodeURL: string;
   $: {
     // re-init messages if error
+    if ($link) {
+      async () => {
+        qrCodeURL = await QRCode.toDataURL($link);
+      };
+    }
     if ($status === "2" && init_tries < 5) {
       setTimeout(async () => {
         if ($status === "2")
@@ -167,6 +175,11 @@
     <Card padded>
       Link:<br />
       <a href={$link}>{$link}</a>
+    </Card>
+  {/if}
+  {#if qrCodeURL}
+    <Card padded>
+      <img src={qrCodeURL} alt="QR Code">
     </Card>
   {/if}
 
