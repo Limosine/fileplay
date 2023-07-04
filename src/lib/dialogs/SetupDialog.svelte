@@ -121,12 +121,13 @@
     localStorage.setItem("loggedIn", "true");
     open = false;
     setupLoading.set(false);
-    NotificationPermission.set(true);
 
     getContent();
     // updatePeerJS_ID();
     // socketStore = (await import("$lib/websocket")).socketStore;
     // unsubscribeSocketStore = socketStore.subscribe(() => {});
+
+    (await import('$lib/messages')).default_messages.init();
 
     navigator.serviceWorker.ready.then((registration) => {
       registration.active?.postMessage({
