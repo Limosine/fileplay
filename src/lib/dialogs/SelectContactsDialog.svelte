@@ -9,6 +9,7 @@
   import { contacts } from "$lib/personal";
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
   import dayjs from "dayjs";
+  import { sentChunksStore } from "$lib/stores/SentFilesStore";
 
   let addPendingFile: (files: FileList) => void;
   let send: (files: FileList, peerID?: string, publicKey?: string) => void;
@@ -59,6 +60,7 @@
     }
 
     $open = false;
+    sentChunksStore.freeData();
   }
 
   enum SendState {

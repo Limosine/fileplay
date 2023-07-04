@@ -35,10 +35,10 @@ const createStore = () => {
         ];
       });
     },
-    freeData: (peerID: string) => {
+    freeData: () => {
       set(
         get(store).filter((value) => {
-          return value.peerID != peerID;
+          return value.sentChunks == value.totalChunks;
         })
       );
     },
