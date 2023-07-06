@@ -17,7 +17,8 @@
   import {
     settings_open,
     active,
-    contacts_drawer_open,
+    drawer,
+    drawer_open
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
   import { status } from "$lib/messages";
@@ -65,7 +66,7 @@
     refresh_interval = setInterval(async () => {
       if ($select_open) updateContacts();
       if ($settings_open && $active == "Devices") getDevices();
-      if ($contacts_drawer_open) updateContacts();
+      if ($drawer_open && $drawer == "Contact") updateContacts();
     }, 5000);
   }
 

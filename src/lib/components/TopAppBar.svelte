@@ -6,22 +6,18 @@
   import { writable } from "svelte/store";
   import { connectionMode, status as current_status } from "$lib/messages";
 
-  import { contacts_drawer_open as drawer_open } from "$lib/stores/Dialogs";
+  import { drawer_open, drawer as drawer_state } from "$lib/stores/Dialogs";
   import {
     notifications,
-    notification_open,
     settings_open,
   } from "$lib/stores/Dialogs";
 
-  const open = (drawer: string) => {
-    if (drawer == "contact") {
-      notification_open.set(false);
-      drawer_open.update((open) => (open = !open));
-    } else if (drawer == "notification") {
-      drawer_open.set(false);
-      notification_open.update((open) => (open = !open));
-    } else {
+  const open = (open: "Contact" | "Notification" | "Settings") => {
+    if (open == "Settings") {
       settings_open.set(true);
+    } else {
+      drawer_state.set(open);
+      drawer_open.update((open) => (open = !open));
     }
   };
 
@@ -39,7 +35,7 @@
           <IconButton
             class="material-icons"
             aria-label="Manage contacts"
-            on:click={() => open("contact")}>contacts</IconButton
+            on:click={() => open("Contact")}>contacts</IconButton
           >
           <Tooltip>Manage contacts</Tooltip>
         </Wrapper>
@@ -48,7 +44,7 @@
           <IconButton
             class="material-icons"
             aria-label="Show notifications"
-            on:click={() => open("notification")}
+            on:click={() => open("Notification")}
           >
             <Icon class="material-icons">notifications</Icon>
             {#if $notifications.length != 0}
@@ -84,7 +80,7 @@
           <IconButton
             class="material-icons"
             aria-label="Settings Page"
-            on:click={() => open("settings")}>settings</IconButton
+            on:click={() => open("Settings")}>settings</IconButton
           >
           <Tooltip>Settings Page</Tooltip>
         </Wrapper>

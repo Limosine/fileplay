@@ -1,9 +1,8 @@
 import { get, writable } from "svelte/store";
 import { browser } from "$app/environment";
 
-export const contacts_drawer_open = writable(false);
-
-export const notification_open = writable(false);
+export const drawer_open = writable(false);
+export const drawer = writable<"Contact" | "Notification">("Notification");
 
 export const select_open = writable(false);
 

@@ -3,8 +3,7 @@
   import { pwaInfo } from "virtual:pwa-info";
 
   import TopAppBar from "$lib/components/TopAppBar.svelte";
-  import Drawer from "$lib/components/ContactDrawer.svelte";
-  import N_Drawer from "$lib/components/NotificationDrawer.svelte";
+  import Drawer from "$lib/components/Drawer.svelte";
 
   import "$lib/../theme/typography.scss";
   import { browser } from "$app/environment";
@@ -105,8 +104,6 @@
 
 <TopAppBar />
 
-<N_Drawer>
-  <Drawer>
-    <slot />
- </Drawer>
-</N_Drawer>
+<Drawer>
+  <slot />
+</Drawer>
