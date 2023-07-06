@@ -11,9 +11,8 @@
     topAppBar,
   } from "$lib/stores/Dialogs";
   import { notifications, settings_open } from "$lib/stores/Dialogs";
-  import { onDestroy } from "svelte";
-  import { scale } from "svelte/transition";
 
+  let cachedLength = 0;
   let notified = false;
   let popNumber = false;
 
@@ -42,6 +41,13 @@
   $: $notifications, notifyIcon();
 
   const notifyIcon = () => {
+    if (cachedLength < $notifications.length) {
+      cachedLength = $notifications.length;
+    } else {
+      cachedLength = $notifications.length;
+      return;
+    }
+
     console.log("Notified: ", $notifications, notified);
     if (!notified) {
       notified = true;
