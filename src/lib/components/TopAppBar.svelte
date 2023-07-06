@@ -1,12 +1,11 @@
-<script lang="ts" context="module">
+<script lang="ts">
   import TopAppBar, { Row, Section } from "@smui/top-app-bar";
   import Badge from "@smui-extra/badge";
   import IconButton, { Icon } from "@smui/icon-button";
   import Tooltip, { Wrapper } from "@smui/tooltip";
-  import { writable } from "svelte/store";
   import { connectionMode, status as current_status } from "$lib/messages";
 
-  import { drawer_open, drawer as drawer_state } from "$lib/stores/Dialogs";
+  import { drawer_open, drawer as drawer_state, topAppBar } from "$lib/stores/Dialogs";
   import {
     notifications,
     settings_open,
@@ -16,12 +15,15 @@
     if (open == "Settings") {
       settings_open.set(true);
     } else {
-      drawer_state.set(open);
-      drawer_open.update((open) => (open = !open));
+      if ((open == "Contact" && $drawer_state == "Contact") || (open == "Notification" && $drawer_state == "Notification")) {
+        drawer_open.update((open) => (open = !open));
+      } else {
+        drawer_open.set(false);
+        drawer_state.set(open);
+        drawer_open.set(true);
+      }
     }
   };
-
-  export const topAppBar = writable<TopAppBar>();
 
   const colors = ["yellow", "green", "red"];
   const status = ["Connecting", "Online", "Error"];
