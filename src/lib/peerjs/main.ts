@@ -12,47 +12,52 @@ import {
 import { handleChunk, handleFileInfos, handleFinish } from "./handle";
 
 const openPeer = async (uuid?: string) => {
+  const promise = new Promise<void>(async (resolve) => {
+    const turnServerConfig: {
+      turnUrl: string;
+      turnPassword: string;
+      turnUsername: string;
+    } = await res.json();
+  
+    const config = {
+      iceServers: [
+        {
+          urls: `turn:${turnServerConfig.turnUrl}`,
+          username: turnServerConfig.turnUsername,
+          credential: turnServerConfig.turnPassword,
+        },
+        { urls: "stun:stun.l.google.com:19302" },
+      ],
+    };
+  
+    if (uuid) {
+      peer.set(
+        new Peer(uuid, {
+          config,
+          debug: 3,
+        })
+      );
+    } else
+      peer.set(
+        new Peer({
+          config,
+          debug: 3,
+        })
+      );
+  
+    peer.set(
+      get(peer).on("open", (id) => {
+        sender_uuid.set(id);
+        resolve();
+      })
+    );
+  })
+
   const res = await fetch("/api/turn", {
     method: "GET",
   });
 
-  const turnServerConfig: {
-    turnUrl: string;
-    turnPassword: string;
-    turnUsername: string;
-  } = await res.json();
-
-  const config = {
-    iceServers: [
-      {
-        urls: `turn:${turnServerConfig.turnUrl}`,
-        username: turnServerConfig.turnUsername,
-        credential: turnServerConfig.turnPassword,
-      },
-      { urls: "stun:stun.l.google.com:19302" },
-    ],
-  };
-
-  if (uuid) {
-    peer.set(
-      new Peer(uuid, {
-        config,
-        debug: 3,
-      })
-    );
-  } else
-    peer.set(
-      new Peer({
-        config,
-        debug: 3,
-      })
-    );
-
-  peer.set(
-    get(peer).on("open", (id) => {
-      sender_uuid.set(id);
-    })
-  );
+  
 };
 
 export const disconnectPeer = () => {
@@ -140,7 +145,7 @@ export const connectAsListener = (
   });
 };
 
-export const setup = (uuid?: string) => {
-  openPeer(uuid);
+export const setup = async (uuid?: string) => {
+  await openPeer(uuid);
   listen();
 };
