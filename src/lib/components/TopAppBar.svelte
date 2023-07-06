@@ -12,6 +12,7 @@
   } from "$lib/stores/Dialogs";
   import { notifications, settings_open } from "$lib/stores/Dialogs";
   import { onDestroy } from "svelte";
+  import { scale } from "svelte/transition";
 
   let notified = false;
   let popNumber = false;
@@ -41,7 +42,7 @@
   $: $notifications, notifyIcon();
 
   const notifyIcon = () => {
-    console.log("Notified");
+    console.log("Notified: ", $notifications, notified);
     if (!notified) {
       notified = true;
       setTimeout(() => {
@@ -55,27 +56,6 @@
       }, 300);
     }
   };
-
-  const test = setInterval(() => {
-    $notifications = [
-      ...$notifications,
-      {
-        tag: "tag",
-        title: "Title",
-        actions: [
-          { action: "Accept", title: "Accept" },
-          { action: "Reject", title: "Reject" },
-        ],
-        body: "Nimm an",
-        data: "",
-      },
-    ];
-    console.log("Added not: ", $notifications);
-  }, 2000);
-
-  onDestroy(() => {
-    clearInterval(test);
-  });
 
   const colors = ["yellow", "green", "red"];
   const status = ["Connecting", "Online", "Error"];
@@ -104,10 +84,11 @@
               >notifications</Icon
             >
             {#if $notifications.length != 0}
-              <div class="badge-margin">
+              <div class={popNumber ? "pop-number" : ""}>
                 <Badge
-                  class={popNumber ? "pop-number" : ""}
                   aria-label="notification count"
+                  style="margin-top: 7px;
+                  margin-right: 3px;"
                   color="secondary">{$notifications.length}</Badge
                 >
               </div>
@@ -166,11 +147,6 @@
     animation: pop 0.3s ease-in-out;
   }
 
-  :global(.badge-margin) {
-    margin-top: 7px;
-    margin-right: 3px;
-  }
-
   @keyframes acceptNotification {
     0% {
       transform: rotate(0deg);
@@ -191,13 +167,13 @@
 
   @keyframes pop {
     0% {
-      transform: scale(0);
+      transform: scale(0) translateX(10px) translateY(-33px);
     }
     85% {
-      transform: scale(1.3);
+      transform: scale(1.3) translateX(10px) translateY(-33px);
     }
     100% {
-      transform: scale(1);
+      transform: scale(1) translateX(10px) translateY(-33px);
     }
   }
 </style>
