@@ -5,6 +5,7 @@ const createStore = () => {
   const { subscribe, set } = store;
 
   return {
+    ...store,
     subscribe,
     setSendState: (cid: number, state: SendState) => {
       const sendState = get(store);
