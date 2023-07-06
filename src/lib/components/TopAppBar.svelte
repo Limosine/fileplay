@@ -104,11 +104,13 @@
               >notifications</Icon
             >
             {#if $notifications.length != 0}
-              <Badge
-                class={popNumber ? "pop-number badge-margin" : "badge-margin"}
-                aria-label="notification count"
-                color="secondary">{$notifications.length}</Badge
-              >
+              <div class="badge-margin">
+                <Badge
+                  class={popNumber ? "pop-number" : ""}
+                  aria-label="notification count"
+                  color="secondary">{$notifications.length}</Badge
+                >
+              </div>
             {/if}
           </IconButton>
 
@@ -162,7 +164,6 @@
 
   :global(.pop-number) {
     animation: pop 0.3s ease-in-out;
-    transform-origin: top right;
   }
 
   :global(.badge-margin) {
