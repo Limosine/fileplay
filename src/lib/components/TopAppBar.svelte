@@ -5,17 +5,25 @@
   import Tooltip, { Wrapper } from "@smui/tooltip";
   import { connectionMode, status as current_status } from "$lib/messages";
 
-  import { drawer_open, drawer as drawer_state, topAppBar } from "$lib/stores/Dialogs";
   import {
-    notifications,
-    settings_open,
+    drawer_open,
+    drawer as drawer_state,
+    topAppBar,
   } from "$lib/stores/Dialogs";
+  import { notifications, settings_open } from "$lib/stores/Dialogs";
+  import { onDestroy } from "svelte";
+
+  let notified = false;
+  let popNumber = false;
 
   const open = (open: "Contact" | "Notification" | "Settings") => {
     if (open == "Settings") {
       settings_open.set(true);
     } else {
-      if ((open == "Contact" && $drawer_state == "Contact") || (open == "Notification" && $drawer_state == "Notification")) {
+      if (
+        (open == "Contact" && $drawer_state == "Contact") ||
+        (open == "Notification" && $drawer_state == "Notification")
+      ) {
         drawer_open.update((open) => (open = !open));
       } else if ($drawer_state == "") {
         drawer_state.set(open);
@@ -29,6 +37,45 @@
       }
     }
   };
+
+  $: $notifications, notifyIcon();
+
+  const notifyIcon = () => {
+    console.log("Notified");
+    if (!notified) {
+      notified = true;
+      setTimeout(() => {
+        notified = false;
+      }, 450);
+    }
+    if (!popNumber) {
+      popNumber = true;
+      setTimeout(() => {
+        popNumber = false;
+      }, 300);
+    }
+  };
+
+  const test = setInterval(() => {
+    $notifications = [
+      ...$notifications,
+      {
+        tag: "tag",
+        title: "Title",
+        actions: [
+          { action: "Accept", title: "Accept" },
+          { action: "Reject", title: "Reject" },
+        ],
+        body: "Nimm an",
+        data: "",
+      },
+    ];
+    console.log("Added not: ", $notifications);
+  }, 2000);
+
+  onDestroy(() => {
+    clearInterval(test);
+  });
 
   const colors = ["yellow", "green", "red"];
   const status = ["Connecting", "Online", "Error"];
@@ -49,17 +96,18 @@
 
         <Wrapper>
           <IconButton
-            class="material-icons"
+            class="material-icons notify"
             aria-label="Show notifications"
             on:click={() => open("Notification")}
           >
-            <Icon class="material-icons">notifications</Icon>
+            <Icon class="material-icons {notified ? 'notify' : ''}"
+              >notifications</Icon
+            >
             {#if $notifications.length != 0}
               <Badge
+                class={popNumber ? "pop-number badge-margin" : "badge-margin"}
                 aria-label="notification count"
-                color="secondary"
-                style="margin-top: 7px; margin-right: 3px;"
-                >{$notifications.length}</Badge
+                color="secondary">{$notifications.length}</Badge
               >
             {/if}
           </IconButton>
@@ -106,5 +154,49 @@
     border: 4px solid white;
     height: 12px;
     width: 12px;
+  }
+
+  :global(.notify) {
+    animation: acceptNotification 0.45s linear;
+  }
+
+  :global(.pop-number) {
+    animation: pop 0.3s ease-in-out;
+    transform-origin: top right;
+  }
+
+  :global(.badge-margin) {
+    margin-top: 7px;
+    margin-right: 3px;
+  }
+
+  @keyframes acceptNotification {
+    0% {
+      transform: rotate(0deg);
+    }
+    20% {
+      transform: rotate(40deg);
+    }
+    60% {
+      transform: rotate(-40deg);
+    }
+    85% {
+      transform: rotate(15deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes pop {
+    0% {
+      transform: scale(0);
+    }
+    85% {
+      transform: scale(1.3);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 </style>
