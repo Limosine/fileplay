@@ -89,15 +89,14 @@
   <Header>
     {#if $drawer == "Notification"}
       <Title>Notifications</Title>
-      <div class="button-box">
+      <div class="button-box notification-box">
         <Button
           variant="unelevated"
           color="primary"
           style="width: 100%;"
-          class="material-icons"
           on:click={() => ($notifications.forEach((n) => { deleteNotification(n.tag)}))}
         >
-          clear_all
+          Clear all
         </Button>
       </div>
     {:else}
@@ -225,5 +224,8 @@
     gap: 5px;
     padding: 7px;
     padding-top: 10px;
+  }
+  .notification-box {
+    padding-top: 12px;
   }
 </style>
