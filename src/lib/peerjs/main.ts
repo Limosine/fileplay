@@ -30,7 +30,7 @@ const openPeer = async (uuid?: string) => {
           username: turnServerConfig.turnUsername,
           credential: turnServerConfig.turnPassword,
         },
-        { urls: "stun:stun01.sipphone.com" },
+        { urls: "stun:stun.ekiga.net" },
       ],
     };
 
