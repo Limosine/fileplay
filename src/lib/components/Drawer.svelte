@@ -22,10 +22,9 @@
 
   import { AutoAdjust } from "@smui/top-app-bar";
 
-  import { topAppBar } from "./TopAppBar.svelte";
   import Tooltip, { Wrapper } from "@smui/tooltip";
 
-  import { add_open } from "$lib/stores/Dialogs";
+  import { add_open, topAppBar } from "$lib/stores/Dialogs";
 
   import { drawer_open as open, drawer } from "$lib/stores/Dialogs";
   import { page } from "$app/stores";
