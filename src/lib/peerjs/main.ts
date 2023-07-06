@@ -12,7 +12,11 @@ import {
 import { handleChunk, handleFileInfos, handleFinish } from "./handle";
 
 const openPeer = async (uuid?: string) => {
-  const promise = new Promise<void>(async (resolve) => {
+  return new Promise<void>(async (resolve) => {
+    const res = await fetch("/api/turn", {
+      method: "GET",
+    });
+
     const turnServerConfig: {
       turnUrl: string;
       turnPassword: string;
@@ -52,12 +56,6 @@ const openPeer = async (uuid?: string) => {
       })
     );
   })
-
-  const res = await fetch("/api/turn", {
-    method: "GET",
-  });
-
-  
 };
 
 export const disconnectPeer = () => {
