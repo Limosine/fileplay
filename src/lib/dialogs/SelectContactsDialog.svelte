@@ -10,6 +10,7 @@
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
   import dayjs from "dayjs";
   import { sentChunksStore } from "$lib/stores/SentFilesStore";
+  import {sendState} from '$lib/stores/state'
 
   let addPendingFile: (files: FileList) => void;
   let send: (files: FileList, peerID?: string, publicKey?: string) => void;
@@ -71,20 +72,19 @@
     CANCELED = "canceled",
     SENDING = "sending",
   }
-  const sendstate: { [cid: number]: SendState } = {};
   let sharing_ids: { [sid: number]: number } = {};
 
   function setSendState(cid: number, state: SendState) {
-    sendstate[cid] = state;
+    $sendState[cid] = state;
     if (
       [SendState.FAILED, SendState.REJECTED, SendState.CANCELED].includes(state)
     ) {
-      setTimeout(() => (sendstate[cid] = SendState.IDLE), 1000);
+      setTimeout(() => ($sendState[cid] = SendState.IDLE), 1000);
     }
   }
 
   async function handleContactClick(cid: number) {
-    switch (sendstate[cid]) {
+    switch ($sendState[cid]) {
       case SendState.REQUESTING:
         // cancel sharing request
         await fetch(`/api/share/request?cid=${cid}`, { method: "DELETE" });
@@ -156,8 +156,8 @@
                       )}); background-size: contain;"
                     />
                     <Content
-                      >{contact.displayName} : {contact.cid in sendstate
-                        ? sendstate[contact.cid]
+                      >{contact.displayName} : {contact.cid in $sendState
+                        ? $sendState[contact.cid]
                         : "idle"}
                     </Content>
                   </PrimaryAction>
