@@ -22,8 +22,10 @@
         drawer_open.set(true);
       } else {
         drawer_open.set(false);
-        drawer_state.set(open);
-        setTimeout(() => drawer_open.set(true), 300);
+        setTimeout(() => {
+          drawer_state.set(open);
+          drawer_open.set(true);
+        }, 300);
       }
     }
   };
