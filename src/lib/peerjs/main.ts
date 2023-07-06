@@ -22,7 +22,7 @@ const openPeer = async (uuid?: string) => {
       turnPassword: string;
       turnUsername: string;
     } = await res.json();
-  
+
     const config = {
       iceServers: [
         {
@@ -30,10 +30,10 @@ const openPeer = async (uuid?: string) => {
           username: turnServerConfig.turnUsername,
           credential: turnServerConfig.turnPassword,
         },
-        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun01.sipphone.com" },
       ],
     };
-  
+
     if (uuid) {
       peer.set(
         new Peer(uuid, {
@@ -48,14 +48,14 @@ const openPeer = async (uuid?: string) => {
           debug: 3,
         })
       );
-  
+
     peer.set(
       get(peer).on("open", (id) => {
         sender_uuid.set(id);
         resolve();
       })
     );
-  })
+  });
 };
 
 export const disconnectPeer = () => {
