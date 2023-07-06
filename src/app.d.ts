@@ -17,59 +17,15 @@ declare global {
     }
   }
 
-  namespace FileSharing {
-    interface Message {
-      type: string;
-      data: {};
-    }
-
-    interface TransferFileMessage extends Message {
-      type: "TransferFile";
-      data: {
-        chunkIDs: string[];
-        transferID: string;
-        fileName: string;
-        encrypted: "publickey" | "password";
-      };
-    }
-
-    interface TransferChunkMessage {
-      type: "TransferChunk";
-      /**This is the chunk ID. */
-      data: {
-        fileChunk: string;
-        chunkID: string;
-        transferID: string;
-      };
-    }
-
-    interface AcceptTransferMessage {
-      type: "AcceptTransfer";
-      /**This is the transfer ID. */
-      data: string;
-    }
-
-    interface RequestChunk {
-      type: "RequestChunk";
-      /**This is the chunk ID. */
-      data: {
-        transferID: string;
-        chunkIDs: string[];
-      };
-    }
-
-    interface SendComplete {
-      type: "SendComplete";
-      /**This is the transfer ID. */
-      data: string;
-    }
-
-    interface ReceiveComplete {
-      type: "ReceiveComplete";
-      /**This is the transfer ID. */
-      data: string;
-    }
+  enum SendState {
+    IDLE = "idle",
+    REQUESTING = "requesting",
+    REJECTED = "rejected",
+    FAILED = "failed",
+    CANCELED = "canceled",
+    SENDING = "sending",
   }
+  
   interface Contact {
     id: string;
     name: string;
