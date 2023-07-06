@@ -17,10 +17,13 @@
     } else {
       if ((open == "Contact" && $drawer_state == "Contact") || (open == "Notification" && $drawer_state == "Notification")) {
         drawer_open.update((open) => (open = !open));
+      } else if ($drawer_state == "") {
+        drawer_state.set(open);
+        drawer_open.set(true);
       } else {
         drawer_open.set(false);
         drawer_state.set(open);
-        drawer_open.set(true);
+        setTimeout(() => drawer_open.set(true), 300);
       }
     }
   };

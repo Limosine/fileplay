@@ -5,7 +5,7 @@ import type TopAppBar from "@smui/top-app-bar";
 export const topAppBar = writable<TopAppBar>();
 
 export const drawer_open = writable(false);
-export const drawer = writable<"Contact" | "Notification">("Notification");
+export const drawer = writable<"Contact" | "Notification" | "">("");
 
 export const select_open = writable(false);
 
