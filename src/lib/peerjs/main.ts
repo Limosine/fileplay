@@ -12,50 +12,15 @@ import {
 import { handleChunk, handleFileInfos, handleFinish } from "./handle";
 
 const openPeer = async (uuid?: string) => {
-  return new Promise<void>(async (resolve) => {
-    const res = await fetch("/api/turn", {
-      method: "GET",
-    });
+  if (uuid) {
+    peer.set(new Peer(uuid));
+  } else peer.set(new Peer());
 
-    const turnServerConfig: {
-      turnUrl: string;
-      turnPassword: string;
-      turnUsername: string;
-    } = await res.json();
-
-    const config = {
-      iceServers: [
-        {
-          urls: `turn:${turnServerConfig.turnUrl}`,
-          username: turnServerConfig.turnUsername,
-          credential: turnServerConfig.turnPassword,
-        },
-        { urls: "stun:stun.ekiga.net" },
-      ],
-    };
-
-    if (uuid) {
-      peer.set(
-        new Peer(uuid, {
-          config,
-          debug: 3,
-        })
-      );
-    } else
-      peer.set(
-        new Peer({
-          config,
-          debug: 3,
-        })
-      );
-
-    peer.set(
-      get(peer).on("open", (id) => {
-        sender_uuid.set(id);
-        resolve();
-      })
-    );
-  });
+  peer.set(
+    get(peer).on("open", (id) => {
+      sender_uuid.set(id);
+    })
+  );
 };
 
 export const disconnectPeer = () => {
@@ -143,7 +108,7 @@ export const connectAsListener = (
   });
 };
 
-export const setup = async (uuid?: string) => {
-  await openPeer(uuid);
+export const setup = (uuid?: string) => {
+  openPeer(uuid);
   listen();
 };
