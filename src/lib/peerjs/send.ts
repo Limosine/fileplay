@@ -9,7 +9,6 @@ import {
 import { handleData } from "./main";
 import { encryptFiles, encryptFilesWithPassword } from "$lib/openpgp";
 import { nanoid } from "nanoid";
-import { sentChunksStore } from "$lib/stores/SentFilesStore";
 
 export const sendInfos = (peerID: string, filetransfer_id: string) => {
   let pending_filetransfer = get(pending_filetransfers).find(
@@ -24,19 +23,13 @@ export const sendInfos = (peerID: string, filetransfer_id: string) => {
       chunk_number: number;
     }[] = [];
 
-    let totalChunks = 0;
-
     pending_filetransfer.files.forEach((file) => {
       files.push({
         file_name: file.file_name,
         file_id: file.file_id,
         chunk_number: file.file.length,
       });
-
-      totalChunks += file.file.length;
     });
-
-    sentChunksStore.initiateTransfer(peerID, totalChunks);
 
     let connect_return = connected(peerID);
     if (connect_return == false) {
@@ -222,7 +215,6 @@ export const sendChunked = (
           filetransfer_id: filetransfer_id,
           chunk_info,
         });
-        sentChunksStore.sendChunk(peerID);
       }
     });
 
