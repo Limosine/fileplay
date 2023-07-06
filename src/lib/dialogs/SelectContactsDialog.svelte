@@ -10,7 +10,7 @@
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
   import dayjs from "dayjs";
   import { sentChunksStore } from "$lib/stores/SentFilesStore";
-  import {sendState} from '$lib/stores/state'
+  import { sendState } from "$lib/stores/state";
 
   let addPendingFile: (files: FileList) => void;
   let send: (files: FileList, peerID?: string, publicKey?: string) => void;

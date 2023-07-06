@@ -1,7 +1,7 @@
 import { get, writable } from "svelte/store";
 
 const createStore = () => {
-  const store = writable<{ [cid: number]: SendState }>();
+  const store = writable<{ [cid: number]: SendState }>([]);
   const { subscribe, set } = store;
 
   return {
