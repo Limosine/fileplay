@@ -90,6 +90,17 @@
   <Header>
     {#if $drawer == "Notification"}
       <Title>Notifications</Title>
+      <div class="button-box">
+        <Button
+          variant="unelevated"
+          color="primary"
+          style="width: 100%;"
+          class="material-icons"
+          on:click={() => ($notifications.forEach((n) => { deleteNotification(n.tag)}))}
+        >
+          clear_all
+        </Button>
+      </div>
     {:else}
       <Title>Contacts</Title>
       <Subtitle>Manage your contacts</Subtitle>
