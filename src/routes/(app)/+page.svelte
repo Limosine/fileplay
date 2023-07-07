@@ -40,8 +40,6 @@
 
   let sender_uuid: Writable<string>;
 
-  let addPendingFile = (files: FileList) => {};
-
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
     if (!e?.dataTransfer?.files) {
@@ -84,8 +82,6 @@
 
     const { setup } = await import("$lib/peerjs/main");
     received_chunks = (await import("$lib/peerjs/common")).received_chunks;
-
-    addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
 
     link = (await import("$lib/peerjs/common")).link;
     const messages = (await import("$lib/messages")).default_messages;
@@ -171,9 +167,7 @@
     {#if $files}
       <Card>
         <PrimaryAction
-          on:click={() => {
-            addPendingFile($files);
-          }}
+          on:click={() => select_open.set(true)}
           style="padding: 64px"
         >
           <Icon class="material-icons" style="font-size: 30px">send</Icon>
