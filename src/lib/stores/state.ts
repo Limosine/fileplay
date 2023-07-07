@@ -1,5 +1,14 @@
 import { get, writable } from "svelte/store";
 
+export enum SendState {
+  IDLE = "idle",
+  REQUESTING = "requesting",
+  REJECTED = "rejected",
+  FAILED = "failed",
+  CANCELED = "canceled",
+  SENDING = "sending",
+}
+
 const createMapStore = () => {
   const store = writable<{ [peerID: string]: number }>({});
 
