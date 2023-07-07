@@ -5,11 +5,11 @@ import { connections, link, peer, sender_uuid } from "./common";
 import {
   send,
   sendAccept,
-  sendChunkRequest,
-  sendChunked,
+  sendChunkFinish,
+  sendChunk,
   sendInfos,
 } from "./send";
-import { handleChunk, handleFileInfos, handleFinish } from "./handle";
+import { handleChunk, handleChunkFinish, handleFileInfos, handleFinish } from "./handle";
 
 const openPeer = async (uuid?: string) => {
   if (uuid) {
@@ -58,9 +58,9 @@ export const handleData = (data: any, conn: DataConnection) => {
   // Sender:
   if (data.type == "Accept") {
     sendInfos(conn.peer, data.filetransfer_id);
-    sendChunked(conn.peer, data.filetransfer_id, 0);
-  } else if (data.type == "ChunkRequest") {
-    sendChunked(conn.peer, data.filetransfer_id, data.chunk_id, data.file_id);
+    sendChunk(conn.peer, data.filetransfer_id);
+  } else if (data.type == "ChunkFinished") {
+    handleChunkFinish(conn.peer, data.filetransfer_id, data.file_id, data.chunk_id);
 
     // Receiver:
   } else if (data.type == "Request") {
@@ -69,10 +69,10 @@ export const handleData = (data: any, conn: DataConnection) => {
     handleFileInfos(data);
   } else if (data.type == "Chunk") {
     handleChunk(data.chunk_info.chunk, data.chunk_info.file_id);
-    sendChunkRequest(
+    sendChunkFinish(
       conn.peer,
       data.filetransfer_id,
-      data.chunk_info.chunk_id + 1,
+      data.chunk_info.chunk_id,
       data.chunk_info.file_id
     );
   } else if (data.type == "FileFinished") {

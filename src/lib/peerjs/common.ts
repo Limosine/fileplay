@@ -10,13 +10,15 @@ export const connections = writable<DataConnection[]>([]);
 // Sender Side:
 export let pending_filetransfers = writable<
   {
-    filetransfer_id: string;
-    encrypted: string;
+    filetransfer_id: string,
+    encrypted: string,
+    completed: boolean,
     files: {
-      file: string[];
-      file_name: string;
-      file_id: string;
-    }[];
+      file: string[],
+      chunks: number,
+      file_name: string,
+      file_id: string
+    }[]
   }[]
 >([]);
 
@@ -64,12 +66,13 @@ export const chunkString = (str: string, size: number) => {
 };
 
 export const chunkFiles = (files: FileList, encrypted_files: string[]) => {
-  let chunkedFiles: { file: string[]; file_name: string; file_id: string }[] =
+  let chunkedFiles: { file: string[], chunks: number, file_name: string, file_id: string }[] =
     [];
 
   for (let i = 0; i < encrypted_files.length; i++) {
     chunkedFiles.push({
       file: chunkString(encrypted_files[i], 1000000),
+      chunks: 0,
       file_name: files[i].name,
       file_id: nanoid(16),
     });
