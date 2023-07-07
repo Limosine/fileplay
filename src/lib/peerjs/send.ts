@@ -115,7 +115,7 @@ export const sendRequest = (filetransfer_id: string, peerID: string) => {
   }
 };
 
-export const sendChunkRequest = (
+export const sendChunkFinish = (
   peerID: string,
   filetransfer_id: string,
   chunk_id: number,
@@ -127,7 +127,7 @@ export const sendChunkRequest = (
 
     conn.on("open", function () {
       conn.send({
-        type: "ChunkRequest",
+        type: "ChunkFinished",
         filetransfer_id: filetransfer_id,
         chunk_id,
         file_id,
@@ -141,7 +141,7 @@ export const sendChunkRequest = (
     connections.set([...get(connections), conn]);
   } else {
     connect_return.send({
-      type: "ChunkRequest",
+      type: "ChunkFinished",
       filetransfer_id: filetransfer_id,
       chunk_id,
       file_id,
@@ -149,74 +149,25 @@ export const sendChunkRequest = (
   }
 };
 
-export const sendChunked = (
+export const sendFinish = (
   peerID: string,
-  filetransfer_id: string,
-  chunk_id: number,
-  file_id?: string
+  file_id: string,
+  filetransfer_id?: string
 ) => {
-  let chunk_info:
-    | {
-        file_id: string;
-        chunk_id: number;
-        chunk: string;
-      }
-    | undefined;
-  let file_finished: string | undefined;
-
-  get(pending_filetransfers).forEach((pending_filetransfer) => {
-    if (pending_filetransfer.filetransfer_id == filetransfer_id) {
-      if (file_id === undefined) {
-        chunk_info = {
-          file_id: pending_filetransfer.files[0].file_id,
-          chunk_id: chunk_id,
-          chunk: pending_filetransfer.files[0].file[chunk_id],
-        };
-      }
-      pending_filetransfer.files.forEach((pending_file) => {
-        if (pending_file.file_id == file_id) {
-          if (chunk_id < pending_file.file.length) {
-            chunk_info = {
-              file_id: pending_file.file_id,
-              chunk_id: chunk_id,
-              chunk: pending_file.file[chunk_id],
-            };
-          } else {
-            file_finished = pending_file.file_id;
-            let index = pending_filetransfer.files.indexOf(pending_file) + 1;
-
-            if (index < pending_filetransfer.files.length) {
-              let file = pending_filetransfer.files[index];
-              chunk_info = {
-                file_id: file.file_id,
-                chunk_id: 0,
-                chunk: file.file[0],
-              };
-            }
-          }
-        }
-      });
-    }
-  });
-
   let connect_return = connected(peerID);
   if (connect_return == false) {
     let conn = get(peer).connect(peerID);
 
     conn.on("open", function () {
-      if (file_finished !== undefined) {
-        conn.send({
-          type: "FileFinished",
-          file_id: file_finished,
-        });
+      conn.send({
+        type: "FileFinished",
+        file_id: file_id,
+      });
 
-        sendState.setSendState(mappedIDs.getCid(peerID), SendState.IDLE);
-      }
-      if (chunk_info !== undefined) {
+      if (filetransfer_id !== undefined) {
         conn.send({
-          type: "Chunk",
-          filetransfer_id: filetransfer_id,
-          chunk_info,
+          type: "FiletransferFinished",
+          file_id: file_id,
         });
       }
     });
@@ -227,18 +178,88 @@ export const sendChunked = (
 
     connections.set([...get(connections), conn]);
   } else {
-    if (file_finished !== undefined) {
+    connect_return.send({
+      type: "FileFinished",
+      file_id: file_id,
+    });
+
+    if (filetransfer_id !== undefined) {
       connect_return.send({
-        type: "FileFinished",
-        file_id: file_finished,
+        type: "FiletransferFinished",
+        file_id: file_id,
       });
-      sendState.setSendState(mappedIDs.getCid(peerID), SendState.IDLE);
     }
+  }
+};
+
+export const sendChunk = (
+  peerID: string,
+  filetransfer_id: string,
+  chunk_info?: {
+    file_id: string;
+    chunk_id: number;
+    chunk: string;
+  }
+) => {
+  let initial_chunk_info: {
+    file_id: string;
+    chunk_id: number;
+    chunk: string;
+  } | undefined;
+
+  if (chunk_info === undefined) {
+    get(pending_filetransfers).forEach((pending_filetransfer) => {
+      if (pending_filetransfer.filetransfer_id == filetransfer_id) {
+        initial_chunk_info = {
+          file_id: pending_filetransfer.files[0].file_id,
+          chunk_id: 0,
+          chunk: pending_filetransfer.files[0].file[0]
+        };
+      }
+    });
+
+    if (initial_chunk_info === undefined) {
+      console.log("Filetransfer not found.");
+    }
+  }
+
+  let connect_return = connected(peerID);
+  if (connect_return == false) {
+    let conn = get(peer).connect(peerID);
+
+    conn.on("open", function () {
+      if (chunk_info !== undefined) {
+        conn.send({
+          type: "Chunk",
+          filetransfer_id: filetransfer_id,
+          chunk_info,
+        });
+      } else if (initial_chunk_info !== undefined) {
+        conn.send({
+          type: "Chunk",
+          filetransfer_id: filetransfer_id,
+          chunk_info: initial_chunk_info,
+        });
+      }
+    });
+
+    conn.on("data", function (received_data) {
+      handleData(received_data, conn);
+    });
+
+    connections.set([...get(connections), conn]);
+  } else {
     if (chunk_info !== undefined) {
       connect_return.send({
         type: "Chunk",
         filetransfer_id: filetransfer_id,
         chunk_info,
+      });
+    } else if (initial_chunk_info !== undefined) {
+      connect_return.send({
+        type: "Chunk",
+        filetransfer_id: filetransfer_id,
+        chunk_info: initial_chunk_info,
       });
     }
   }
@@ -251,13 +272,15 @@ export const send = async (
 ) => {
   if (files) {
     let filetransfer_infos: {
-      filetransfer_id: string;
-      encrypted: string;
+      filetransfer_id: string,
+      encrypted: string,
+      completed: boolean,
       files: {
-        file: string[];
-        file_name: string;
-        file_id: string;
-      }[];
+        file: string[],
+        chunks: number,
+        file_name: string,
+        file_id: string,
+      }[],
     };
 
     let encrypted_files: string[];
@@ -266,6 +289,7 @@ export const send = async (
       filetransfer_infos = {
         filetransfer_id: nanoid(16),
         encrypted: "publicKey",
+        completed: false,
         files: chunkFiles(files, encrypted_files),
       };
     } else {
@@ -274,6 +298,7 @@ export const send = async (
       filetransfer_infos = {
         filetransfer_id,
         encrypted: "password",
+        completed: false,
         files: chunkFiles(files, encrypted_files),
       };
     }

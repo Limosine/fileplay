@@ -1,7 +1,78 @@
 import { get } from "svelte/store";
-import { createFileURL, received_chunks } from "./common";
+import { createFileURL, pending_filetransfers, received_chunks } from "./common";
 import { decryptFiles, decryptFilesWithPassword } from "$lib/openpgp";
 import { page } from "$app/stores";
+import { sendChunk, sendFinish } from "./send";
+
+export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_id: string, chunk_id: number) => {
+  let chunk_info:
+    | {
+        file_id: string;
+        chunk_id: number;
+        chunk: string;
+      }
+    | undefined;
+  let file_finished: string | undefined;
+  let file_transfer_finished: string | undefined;
+
+  let next_chunk_id = chunk_id + 1;
+
+  for (let i = 0; i < get(pending_filetransfers).length; i++) {
+    if (get(pending_filetransfers)[i].filetransfer_id == filetransfer_id) {
+      for (let j = 0; j < get(pending_filetransfers)[i].files.length; j++) {
+        let pending_file = get(pending_filetransfers)[i].files[j];
+
+        if (pending_file.file_id == file_id) {
+          if (next_chunk_id < pending_file.file.length) {
+            pending_filetransfers.update((pending_filetransfers_self) => {
+              pending_filetransfers_self[i].files[j].chunks++;
+              return pending_filetransfers_self;
+            });
+
+            chunk_info = {
+              file_id: pending_file.file_id,
+              chunk_id: next_chunk_id,
+              chunk: pending_file.file[next_chunk_id],
+            };
+          } else {
+            pending_filetransfers.update((pending_filetransfers_self) => {
+              pending_filetransfers_self[i].files[j].chunks = pending_filetransfers_self[i].files[j].file.length;
+              return pending_filetransfers_self;
+            });
+
+            file_finished = pending_file.file_id;
+
+            if ((j + 1) < get(pending_filetransfers)[i].files.length) {
+              let next_file = get(pending_filetransfers)[i].files[j+1];
+              chunk_info = {
+                file_id: next_file.file_id,
+                chunk_id: 0,
+                chunk: next_file.file[0],
+              };
+            } else {
+              pending_filetransfers.update((pending_filetransfers_self) => {
+                pending_filetransfers_self[i].completed = true;
+                return pending_filetransfers_self;
+              });
+
+              file_transfer_finished = get(pending_filetransfers)[i].filetransfer_id;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (file_finished !== undefined && file_transfer_finished !== undefined) {
+    sendFinish(peerID, file_finished, file_transfer_finished);
+  } else if (file_finished !== undefined) {
+    sendFinish(peerID, file_finished);
+  }
+
+  if (chunk_info !== undefined) {
+    sendChunk(peerID, filetransfer_id, chunk_info);
+  }
+}
 
 export const handleFinish = async (data: any) => {
   let index = get(received_chunks).findIndex(
@@ -30,7 +101,7 @@ export const handleFinish = async (data: any) => {
 
 export const handleFileInfos = (data: any) => {
   data.files.forEach((file: any) => {
-    let initial_chunk = {
+    let initial_chunk_info = {
       file_id: file.file_id,
       file_name: file.file_name,
       encrypted: data.encrypted,
@@ -38,7 +109,7 @@ export const handleFileInfos = (data: any) => {
       chunks: [],
     };
 
-    received_chunks.set([...get(received_chunks), initial_chunk]);
+    received_chunks.set([...get(received_chunks), initial_chunk_info]);
   });
 };
 
