@@ -267,8 +267,9 @@ export const sendChunk = (
 
 export const send = async (
   files: FileList,
+  cid?: string,
   peerID?: string,
-  publicKey?: string
+  publicKey?: string,
 ) => {
   if (files) {
     let filetransfer_infos: {
@@ -281,6 +282,7 @@ export const send = async (
         file_name: string,
         file_id: string,
       }[],
+      cid?: string,
     };
 
     let encrypted_files: string[];
@@ -291,6 +293,7 @@ export const send = async (
         encrypted: "publicKey",
         completed: false,
         files: chunkFiles(files, encrypted_files),
+        cid,
       };
     } else {
       let filetransfer_id = nanoid(16);
@@ -300,6 +303,7 @@ export const send = async (
         encrypted: "password",
         completed: false,
         files: chunkFiles(files, encrypted_files),
+        cid,
       };
     }
 
