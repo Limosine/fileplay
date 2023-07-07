@@ -11,13 +11,31 @@
   import dayjs from "dayjs";
   import { sentChunksStore } from "$lib/stores/SentFilesStore";
   import { mappedIDs, sendState } from "$lib/stores/state";
+  import CircularProgress from "@smui/circular-progress";
+  import { writable } from "svelte/store";
 
+  let pending_filetransfers = writable<
+    {
+      filetransfer_id: string;
+      encrypted: string;
+      completed: boolean;
+      files: {
+        file: string[];
+        chunks: number;
+        file_name: string;
+        file_id: string;
+      }[];
+      cid?: string;
+    }[]
+  >([]);
   let addPendingFile: (files: FileList) => void;
-  let send: (files: FileList, peerID?: string, publicKey?: string) => void;
+  let send: (files: FileList, cid?: string, peerID?: string, publicKey?: string) => void;
 
   onMount(async () => {
     addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
     send = (await import("$lib/peerjs/send")).send;
+    pending_filetransfers = (await import("$lib/peerjs/common"))
+      .pending_filetransfers;
 
     const messages = (await import("$lib/messages")).default_messages;
     messages.onmessage("share_rejected", (data) => {
@@ -40,7 +58,7 @@
       console.log("sending files");
       mappedIDs.addPair(data.peerJsId, cid);
       console.log(`Adding pair: \npeerID: ${data.peerJsId} \ncid: ${cid}`);
-      send($files, data.peerJsId, data.encryptionPublicKey);
+      send($files, String(cid), data.peerJsId, data.encryptionPublicKey);
 
       delete sharing_ids[data.sid];
     });
@@ -137,6 +155,26 @@
     });
     return progress;
   };
+
+  let progress = writable<{ [cid: string]: number }>({});
+
+  $: {
+    if ($pending_filetransfers.length != 0) {
+      $pending_filetransfers.forEach((pending_filetransfer) => {
+        if (pending_filetransfer.cid !== undefined) {
+          let sent = 0;
+          let total = 0;
+
+          pending_filetransfer.files.forEach((file) => {
+            sent = sent + file.chunks;
+            total = total + file.file.length;
+          });
+
+          $progress[pending_filetransfer.cid] = sent / total;
+        }
+      });
+    }
+  }
 </script>
 
 <svelte:window on:keydown={handleSelectContactKeyDown} />
@@ -164,20 +202,27 @@
                 <Card variant="outlined">
                   <PrimaryAction
                     on:click={() => handleContactClick(contact.cid)}
-                    style="padding-top: 20px;"
                   >
-                    <Media
-                      class="card-media-16x9"
-                      aspectRatio="16x9"
-                      style="background-image: url({getDicebearUrl(
-                        contact.avatarSeed,
-                        150
-                      )}); background-size: contain;"
-                    />
-                    <Content
-                      >{contact.displayName} : {contact.cid in $sendState
-                        ? $sendState[contact.cid]
-                        : "idle"}
+                    <Content>
+                      <div style="text-align: center;">
+                        <CircularProgress
+                          style="height: 120px; width: 120px;
+                          background-image: url({getDicebearUrl(
+                            contact.avatarSeed,
+                            60
+                          )});
+                          background-size: 50% 50%; background-repeat: no-repeat;
+                          background-position: center;"
+                          progress={$progress[contact.cid]}
+                          closed={$progress[contact.cid] == 0 ||
+                            $progress[contact.cid] == 1}
+                        />
+                      </div>
+                      <p>
+                        {contact.displayName} : {contact.cid in $sendState
+                          ? $sendState[contact.cid]
+                          : "idle"}
+                      </p>
                     </Content>
                   </PrimaryAction>
                 </Card>

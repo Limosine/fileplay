@@ -35,11 +35,11 @@
   >([]);
 
   onMount(async () => {
-    const { setup, connectAsListener } = await import("$lib/peerjs/main");
+    const { openPeer, connectAsListener } = await import("$lib/peerjs/main");
     received_chunks = (await import("$lib/peerjs/common")).received_chunks;
 
     pgp_setup();
-    setup();
+    openPeer();
 
     let sender_uuid = $page.params.uuid;
     let filetransferID = $page.params.listen_key;

@@ -80,14 +80,14 @@
     startRefresh();
     sender_uuid = (await import("$lib/peerjs/common")).sender_uuid;
 
-    const { setup } = await import("$lib/peerjs/main");
+    const { openPeer } = await import("$lib/peerjs/main");
     received_chunks = (await import("$lib/peerjs/common")).received_chunks;
 
     link = (await import("$lib/peerjs/common")).link;
     const messages = (await import("$lib/messages")).default_messages;
 
     pgp_setup();
-    setup();
+    openPeer();
 
     messages.onnotificationclick("share_accept", async (data: any) => {
       await fetch("/api/share/answer", {

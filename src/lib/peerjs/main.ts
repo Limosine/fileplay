@@ -11,7 +11,7 @@ import {
 } from "./send";
 import { handleChunk, handleChunkFinish, handleFileInfos, handleFinish } from "./handle";
 
-const openPeer = async (uuid?: string) => {
+export const openPeer = async (uuid?: string) => {
   if (uuid) {
     peer.set(new Peer(uuid, { debug: 3 }));
   } else peer.set(new Peer());
@@ -20,6 +20,7 @@ const openPeer = async (uuid?: string) => {
     peer_self.on("open", (id) => {
       console.log("Peer opened");
       sender_uuid.set(id);
+      listen();
     });
 
     peer_self.on("close", () => {
@@ -41,15 +42,16 @@ export const disconnectPeer = () => {
 };
 
 const listen = () => {
-  peer.set(
-    get(peer).on("connection", (conn) => {
-      connections.set([...get(connections), conn]);
-
+  peer.update((peer) => {
+    peer.on("connection", (conn) => {
       conn.on("data", function (received_data) {
         handleData(received_data, conn);
       });
-    })
-  );
+
+      connections.set([...get(connections), conn]);
+    });
+    return peer;
+  });
 };
 
 export const handleData = (data: any, conn: DataConnection) => {
@@ -119,9 +121,4 @@ export const connectAsListener = (
 
     connections.set([...get(connections), conn]);
   });
-};
-
-export const setup = (uuid?: string) => {
-  openPeer(uuid);
-  listen();
 };

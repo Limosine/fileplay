@@ -17,8 +17,9 @@ export let pending_filetransfers = writable<
       file: string[],
       chunks: number,
       file_name: string,
-      file_id: string
-    }[]
+      file_id: string,
+    }[],
+    cid?: string,
   }[]
 >([]);
 
@@ -66,7 +67,7 @@ export const chunkString = (str: string, size: number) => {
 };
 
 export const chunkFiles = (files: FileList, encrypted_files: string[]) => {
-  let chunkedFiles: { file: string[], chunks: number, file_name: string, file_id: string }[] =
+  let chunkedFiles: { file: string[], chunks: number, file_name: string, file_id: string; }[] =
     [];
 
   for (let i = 0; i < encrypted_files.length; i++) {
