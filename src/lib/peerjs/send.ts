@@ -9,7 +9,7 @@ import {
 import { handleData } from "./main";
 import { encryptFiles, encryptFilesWithPassword } from "$lib/openpgp";
 import { nanoid } from "nanoid";
-import { mappedIDs, sendState } from "$lib/stores/state";
+import { SendState, mappedIDs, sendState } from "$lib/stores/state";
 
 export const sendInfos = (peerID: string, filetransfer_id: string) => {
   let pending_filetransfer = get(pending_filetransfers).find(
@@ -209,6 +209,8 @@ export const sendChunked = (
           type: "FileFinished",
           file_id: file_finished,
         });
+
+        sendState.setSendState(mappedIDs.getCid(peerID), SendState.IDLE);
       }
       if (chunk_info !== undefined) {
         conn.send({

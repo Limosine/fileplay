@@ -16,15 +16,6 @@ declare global {
       };
     }
   }
-
-  enum SendState {
-    IDLE = "idle",
-    REQUESTING = "requesting",
-    REJECTED = "rejected",
-    FAILED = "failed",
-    CANCELED = "canceled",
-    SENDING = "sending",
-  }
   
   interface Contact {
     id: string;
