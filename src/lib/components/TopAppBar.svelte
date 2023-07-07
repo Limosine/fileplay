@@ -20,20 +20,22 @@
     if (open == "Settings") {
       settings_open.set(true);
     } else {
-      if (
-        (open == "Contact" && $drawer_state == "Contact") ||
-        (open == "Notification" && $drawer_state == "Notification")
-      ) {
-        drawer_open.update((open) => (open = !open));
-      } else if ($drawer_state == "") {
+      if (!$drawer_open) {
         drawer_state.set(open);
         drawer_open.set(true);
       } else {
-        drawer_open.set(false);
-        setTimeout(() => {
-          drawer_state.set(open);
-          drawer_open.set(true);
-        }, 300);
+        if (
+          (open == "Contact" && $drawer_state == "Notification") ||
+          (open == "Notification" && $drawer_state == "Contact")
+        ) {
+          drawer_open.set(false);
+          setTimeout(() => {
+            drawer_state.set(open);
+            drawer_open.set(true);
+          }, 300);
+        } else {
+          drawer_open.set(false);
+        }
       }
     }
   };
@@ -82,7 +84,7 @@
 
         <Wrapper>
           <IconButton
-            class="material-icons notify"
+            class="material-icons"
             aria-label="Show notifications"
             on:click={() => open("Notification")}
           >
