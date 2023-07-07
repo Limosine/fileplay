@@ -13,14 +13,27 @@ import { handleChunk, handleFileInfos, handleFinish } from "./handle";
 
 const openPeer = async (uuid?: string) => {
   if (uuid) {
-    peer.set(new Peer(uuid));
+    peer.set(new Peer(uuid, { debug: 3 }));
   } else peer.set(new Peer());
 
-  peer.set(
-    get(peer).on("open", (id) => {
+  peer.update((peer_self) => {
+    peer_self.on("open", (id) => {
+      console.log("Peer opened");
       sender_uuid.set(id);
-    })
-  );
+    });
+
+    peer_self.on("close", () => {
+      console.log("Peer closed");
+      openPeer(get(sender_uuid));
+    });
+
+    peer_self.on("disconnected", () => {
+      console.log("Peer disconnected");
+      openPeer(get(sender_uuid));
+    });
+
+    return peer_self;
+  });
 };
 
 export const disconnectPeer = () => {
