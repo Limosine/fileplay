@@ -34,6 +34,17 @@ const createMapStore = () => {
     getCid: (peerID: string) => {
       return get(store)[peerID];
     },
+    getPeerID: (cid: number) => {
+      const cache = get(store);
+      let peerID = "";
+      Object.keys(cache).forEach((key) => {
+        if (cache[key] == cid) {
+          peerID = key;
+          return;
+        }
+      });
+      return peerID;
+    },
   };
 };
 

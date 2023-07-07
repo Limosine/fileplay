@@ -126,6 +126,17 @@
         break;
     }
   }
+
+  const getInfoFromCID = (cid: number) => {
+    const peerID = mappedIDs.getPeerID(cid);
+    let progress: number = 0;
+    $sentChunksStore.forEach((value) => {
+      if (value.peerID == peerID) {
+        progress = value.sentChunks / value.totalChunks;
+      }
+    });
+    return progress;
+  };
 </script>
 
 <svelte:window on:keydown={handleSelectContactKeyDown} />
