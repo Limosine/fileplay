@@ -12,6 +12,7 @@
 );
 
 @use '@material/card/mixins' as card;
+@use '@material/circular-progress/mixins' as circular-progress;
 
 html,
 body {
@@ -29,4 +30,16 @@ a:visited {
 div.selected {
   @include card.fill-color(#ff400025);
   color: #ff3e00;
+}
+
+.progress-25 {
+  @include circular-progress.color(color-palette.$red-600);
+}
+
+.progress-50 {
+  @include circular-progress.color(color-palette.$yellow-600);
+}
+
+.progress-75 {
+  @include circular-progress.color(color-palette.$green-600);
 }

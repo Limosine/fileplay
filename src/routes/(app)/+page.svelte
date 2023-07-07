@@ -18,13 +18,13 @@
     settings_open,
     active,
     drawer,
-    drawer_open
+    drawer_open,
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
   import { status } from "$lib/messages";
   import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
   import QRCode from "qrcode";
-  import Button, { Group, Label } from "@smui/button";
+  import Button, { Group } from "@smui/button";
   import Tooltip, { Wrapper } from "@smui/tooltip";
 
   let qrCode: string;
@@ -154,6 +154,9 @@
 
 <div class="center">
   <div class="beside">
+    <!-- <div style="display: flex; justify-content: center"> -->
+    <!-- </div> -->
+
     <Card>
       <PrimaryAction on:click={() => $input.click()} style="padding: 64px">
         <Icon class="material-icons" style="font-size: 30px">upload</Icon>
