@@ -10,7 +10,7 @@
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
   import dayjs from "dayjs";
   import { sentChunksStore } from "$lib/stores/SentFilesStore";
-  import { sendState } from "$lib/stores/state";
+  import { mappedIDs, sendState } from "$lib/stores/state";
 
   let addPendingFile: (files: FileList) => void;
   let send: (files: FileList, peerID?: string, publicKey?: string) => void;
@@ -23,17 +23,24 @@
     messages.onmessage("share_rejected", (data) => {
       console.log("share_rejected", data);
       if (!(data.sid in sharing_ids)) return;
-      setSendState(sharing_ids[data.sid], SendState.REJECTED);
+
+      const cid = sharing_ids[data.sid];
+      setSendState(cid, SendState.REJECTED);
+      mappedIDs.deletePair(cid);
       delete sharing_ids[data.sid];
     });
 
     messages.onmessage("share_accepted", (data) => {
       console.log("share_accepted", data);
       if (!(data.sid in sharing_ids)) return;
+
+      const cid = sharing_ids[data.sid];
       setSendState(sharing_ids[data.sid], SendState.SENDING);
       // send files
       console.log("sending files");
+      mappedIDs.addPair(data.peerJsId, cid);
       send($files, data.peerJsId, data.encryptionPublicKey);
+
       delete sharing_ids[data.sid];
     });
   });

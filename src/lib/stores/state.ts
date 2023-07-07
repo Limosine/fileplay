@@ -1,5 +1,33 @@
 import { get, writable } from "svelte/store";
 
+const createMapStore = () => {
+  const store = writable<{ [peerID: string]: number }>({});
+
+  const { subscribe, set, update } = store;
+  return {
+    subscribe,
+    addPair: (peerID: string, cid: number) => {
+      const state = get(store);
+      if (state[peerID]) return;
+      state[peerID] = cid;
+      set(state);
+    },
+    deletePair: (cid: number) => {
+      update((state) => {
+        Object.keys(state).forEach((key) => {
+          if (state[key] == cid) {
+            delete state[key];
+          }
+        });
+        return state;
+      });
+    },
+    getCid: (peerID: string) => {
+      return get(store)[peerID];
+    },
+  };
+};
+
 const createStore = () => {
   const store = writable<{ [cid: number]: SendState }>([]);
   const { subscribe, set } = store;
@@ -26,3 +54,4 @@ const createStore = () => {
 };
 
 export const sendState = createStore();
+export const mappedIDs = createMapStore();
