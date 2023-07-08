@@ -142,6 +142,41 @@
   }
 
   let progress = writable<{ [cid: string]: number }>({});
+  let progress_styles = writable<{ [cid: string]: { class: string, indeterminate: boolean }}>({});
+  $: {
+    if (Object.keys($sendState).length != 0) {
+      for (let [key, value] of Object.entries($sendState)) {
+        switch(value) {
+          case SendState.REQUESTING:
+            $progress_styles[key] = {
+              class: "progress-yellow",
+              indeterminate: true,
+            };
+            break;
+          case SendState.IDLE:
+            $progress[key] = 0;
+            $progress_styles[key] = {
+              class: "",
+              indeterminate: false,
+            };
+            break;
+          case SendState.SENDING:
+            $progress_styles[key] = {
+              class: ($progress[key] == 1) ? "progress-green" : "",
+              indeterminate: false,
+            };
+            break;
+          default:
+            $progress[key] = 1;
+            $progress_styles[key] = {
+              class: "progress-red",
+              indeterminate: true,
+            };
+            break;
+        }
+      }
+    }
+  }
   $: {
     if ($pending_filetransfers.length != 0) {
       $pending_filetransfers.forEach((pending_filetransfer) => {
@@ -197,7 +232,9 @@
                           )});
                           background-size: 50% 50%; background-repeat: no-repeat;
                           background-position: center;"
+                          class={$progress_styles[contact.cid].class}
                           progress={($progress[contact.cid] === undefined) ? 0 : $progress[contact.cid]}
+                          indeterminate={$progress_styles[contact.cid].indeterminate}
                         />
                       </div>
                       <p>

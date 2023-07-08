@@ -32,14 +32,17 @@ div.selected {
   color: #ff3e00;
 }
 
+.progress-red,
 .progress-25 {
   @include circular-progress.color(color-palette.$red-600);
 }
 
+.progress-yellow,
 .progress-50 {
   @include circular-progress.color(color-palette.$yellow-600);
 }
 
+.progress-green,
 .progress-75 {
   @include circular-progress.color(color-palette.$green-600);
 }
