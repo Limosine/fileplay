@@ -7,6 +7,7 @@ export enum SendState {
   FAILED = "failed",
   CANCELED = "canceled",
   SENDING = "sending",
+  SENT = "sent",
 }
 
 const createMapStore = () => {
