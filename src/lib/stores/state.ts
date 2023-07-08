@@ -60,11 +60,11 @@ const createStore = () => {
       const sendState = get(store);
       sendState[cid] = state;
       if (
-        [SendState.FAILED, SendState.REJECTED, SendState.CANCELED].includes(
+        [SendState.FAILED, SendState.REJECTED, SendState.CANCELED, SendState.SENT].includes(
           state
         )
       ) {
-        setTimeout(() => (sendState[cid] = SendState.IDLE), 1000);
+        setTimeout(() => (sendState[cid] = SendState.IDLE), 3000);
       }
       set(sendState);
     },
