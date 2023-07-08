@@ -154,7 +154,7 @@
             break;
           case SendState.SENDING:
             $progress_styles[key] = {
-              class: ($progress[key] == 1) ? "progress-green" : "",
+              class: "",
               indeterminate: false,
             };
             break;
@@ -164,6 +164,7 @@
               class: "progress-green",
               indeterminate: false,
             };
+            break;
           default:
             $progress[key] = 1;
             $progress_styles[key] = {
@@ -234,10 +235,10 @@
                           progress={($progress[contact.cid] === undefined) ? 0 : $progress[contact.cid]}
                           indeterminate={($progress_styles[contact.cid] === undefined) ? false : $progress_styles[contact.cid].indeterminate}
                         />
+                        <p>
+                          {contact.displayName}
+                        </p>
                       </div>
-                      <p>
-                        {contact.displayName}
-                      </p>
                     </Content>
                   </PrimaryAction>
                 </Card>
