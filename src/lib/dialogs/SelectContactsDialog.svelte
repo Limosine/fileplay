@@ -14,22 +14,20 @@
   import CircularProgress from "@smui/circular-progress";
   import { writable } from "svelte/store";
 
-  let pending_filetransfers = writable<
-    {
-      filetransfer_id: string;
-      encrypted: string;
-      completed: boolean;
-      files: {
+  let pending_filetransfers = writable<{
+    filetransfer_id: string;
+    encrypted: string;
+    completed: boolean;
+    files: {
         file: string[];
         chunks: number;
         file_name: string;
         file_id: string;
-      }[];
-      cid?: string;
-    }[]
-  >([]);
-  let addPendingFile: (files: FileList) => void;
-  let send: (files: FileList, cid?: string, peerID?: string, publicKey?: string) => void;
+    }[];
+    cid?: string | undefined;
+  }[]>([]);
+  let addPendingFile: (files: FileList) => {};
+  let send: (files: FileList, cid?: string, peerID?: string, publicKey?: string) => {};
 
   onMount(async () => {
     addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
@@ -145,19 +143,7 @@
     }
   }
 
-  const getInfoFromCID = (cid: number) => {
-    const peerID = mappedIDs.getPeerID(cid);
-    let progress: number = 0;
-    $sentChunksStore.forEach((value) => {
-      if (value.peerID == peerID) {
-        progress = value.sentChunks / value.totalChunks;
-      }
-    });
-    return progress;
-  };
-
   let progress = writable<{ [cid: string]: number }>({});
-
   $: {
     if ($pending_filetransfers.length != 0) {
       $pending_filetransfers.forEach((pending_filetransfer) => {
