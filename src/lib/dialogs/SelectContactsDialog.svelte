@@ -9,7 +9,7 @@
   import { contacts } from "$lib/personal";
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
   import dayjs from "dayjs";
-  import { mappedIDs, sendState } from "$lib/stores/state";
+  import { mappedIDs, sendState, SendState } from "$lib/stores/state";
   import CircularProgress from "@smui/circular-progress";
   import { writable } from "svelte/store";
 
@@ -86,14 +86,6 @@
     $open = false;
   }
 
-  enum SendState {
-    IDLE = "idle",
-    REQUESTING = "requesting",
-    REJECTED = "rejected",
-    FAILED = "failed",
-    CANCELED = "canceled",
-    SENDING = "sending",
-  }
   let sharing_ids: { [sid: number]: number } = {};
 
   function setSendState(cid: number, state: SendState) {
@@ -166,11 +158,17 @@
               indeterminate: false,
             };
             break;
+          case SendState.SENT:
+            $progress[key] = 1;
+            $progress_styles[key] = {
+              class: "progress-green",
+              indeterminate: false,
+            };
           default:
             $progress[key] = 1;
             $progress_styles[key] = {
               class: "progress-red",
-              indeterminate: true,
+              indeterminate: false,
             };
             break;
         }
@@ -238,9 +236,7 @@
                         />
                       </div>
                       <p>
-                        {contact.displayName} : {contact.cid in $sendState
-                          ? $sendState[contact.cid]
-                          : "idle"}
+                        {contact.displayName}
                       </p>
                     </Content>
                   </PrimaryAction>
