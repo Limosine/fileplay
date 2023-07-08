@@ -198,8 +198,6 @@
                           background-size: 50% 50%; background-repeat: no-repeat;
                           background-position: center;"
                           progress={$progress[contact.cid]}
-                          closed={$progress[contact.cid] == 0 ||
-                            $progress[contact.cid] == 1}
                         />
                       </div>
                       <p>
