@@ -232,9 +232,9 @@
                           )});
                           background-size: 50% 50%; background-repeat: no-repeat;
                           background-position: center;"
-                          class={($progress_styles[contact.cid].class === undefined) ? "" : $progress_styles[contact.cid].class}
+                          class={($progress_styles[contact.cid] === undefined) ? "" : $progress_styles[contact.cid].class}
                           progress={($progress[contact.cid] === undefined) ? 0 : $progress[contact.cid]}
-                          indeterminate={($progress_styles[contact.cid].indeterminate === undefined) ? false : $progress_styles[contact.cid].indeterminate}
+                          indeterminate={($progress_styles[contact.cid] === undefined) ? false : $progress_styles[contact.cid].indeterminate}
                         />
                       </div>
                       <p>
