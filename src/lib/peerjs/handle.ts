@@ -2,7 +2,7 @@ import { get } from "svelte/store";
 import { createFileURL, pending_filetransfers, received_chunks } from "./common";
 import { decryptFiles, decryptFilesWithPassword } from "$lib/openpgp";
 import { page } from "$app/stores";
-import { mappedIDs, sendState, SendState } from "$lib/stores/state";
+import { sendState, SendState } from "$lib/stores/state";
 import { sendChunk, sendFinish } from "./send";
 
 export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_id: string, chunk_id: number) => {
@@ -57,6 +57,7 @@ export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_
               });
 
               file_transfer_finished = get(pending_filetransfers)[i].filetransfer_id;
+              sendState.setSendState(Number(get(pending_filetransfers)[i].cid), SendState.SENT);
             }
           }
         }
@@ -65,7 +66,6 @@ export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_
   }
 
   if (file_finished !== undefined && file_transfer_finished !== undefined) {
-    sendState.setSendState(mappedIDs.getCid(peerID), SendState.SENT);
     sendFinish(peerID, file_finished, file_transfer_finished);
   } else if (file_finished !== undefined) {
     sendFinish(peerID, file_finished);
