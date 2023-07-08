@@ -9,7 +9,6 @@
   import { contacts } from "$lib/personal";
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
   import dayjs from "dayjs";
-  import { sentChunksStore } from "$lib/stores/SentFilesStore";
   import { mappedIDs, sendState } from "$lib/stores/state";
   import CircularProgress from "@smui/circular-progress";
   import { writable } from "svelte/store";
@@ -56,7 +55,7 @@
       console.log("sending files");
       mappedIDs.addPair(data.peerJsId, cid);
       console.log(`Adding pair: \npeerID: ${data.peerJsId} \ncid: ${cid}`);
-      send($files, String(cid), data.peerJsId, data.encryptionPublicKey);
+      send($files, cid.toString(), data.peerJsId, data.encryptionPublicKey);
 
       delete sharing_ids[data.sid];
     });
@@ -85,7 +84,6 @@
     }
 
     $open = false;
-    sentChunksStore.freeData();
   }
 
   enum SendState {
