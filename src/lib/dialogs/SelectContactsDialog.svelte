@@ -197,7 +197,7 @@
                           )});
                           background-size: 50% 50%; background-repeat: no-repeat;
                           background-position: center;"
-                          progress={$progress[contact.cid]}
+                          progress={($progress[contact.cid] === undefined) ? 0 : $progress[contact.cid]}
                         />
                       </div>
                       <p>
