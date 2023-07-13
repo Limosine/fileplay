@@ -33,32 +33,6 @@
     send = (await import("$lib/peerjs/send")).send;
     pending_filetransfers = (await import("$lib/peerjs/common"))
       .pending_filetransfers;
-
-    const messages = (await import("$lib/messages")).default_messages;
-    messages.onmessage("share_rejected", (data) => {
-      console.log("share_rejected", data);
-      if (!(data.sid in sharing_ids)) return;
-
-      const cid = sharing_ids[data.sid];
-      setSendState(cid, SendState.REJECTED);
-      mappedIDs.deletePair(cid);
-      delete sharing_ids[data.sid];
-    });
-
-    messages.onmessage("share_accepted", (data) => {
-      console.log("share_accepted", data);
-      if (!(data.sid in sharing_ids)) return;
-
-      const cid = sharing_ids[data.sid];
-      setSendState(sharing_ids[data.sid], SendState.SENDING);
-      // send files
-      console.log("sending files");
-      mappedIDs.addPair(data.peerJsId, cid);
-      console.log(`Adding pair: \npeerID: ${data.peerJsId} \ncid: ${cid}`);
-      send($files, cid.toString(), data.peerJsId, data.encryptionPublicKey);
-
-      delete sharing_ids[data.sid];
-    });
   });
 
   function handleSelectContactKeyDown(event: CustomEvent | KeyboardEvent) {

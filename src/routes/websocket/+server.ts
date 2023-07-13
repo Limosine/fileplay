@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did } = await loadSignedDeviceID(cookies, key, db);
-  if (!did) = throw error(401, "No such device");
+  if (!did) throw error(401, "No such device");
 
   const upgradeHeader = request.headers.get('Upgrade');
   if (!upgradeHeader || upgradeHeader !== 'websocket') {
