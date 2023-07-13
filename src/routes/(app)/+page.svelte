@@ -21,7 +21,6 @@
     drawer_open,
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices } from "$lib/personal";
-  import { status } from "$lib/messages";
   import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
   import QRCode from "qrcode";
   import Button, { Group } from "@smui/button";
@@ -84,56 +83,14 @@
     received_chunks = (await import("$lib/peerjs/common")).received_chunks;
 
     link = (await import("$lib/peerjs/common")).link;
-    const messages = (await import("$lib/messages")).default_messages;
 
     pgp_setup();
     openPeer();
-
-    messages.onnotificationclick("share_accept", async (data: any) => {
-      await fetch("/api/share/answer", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          peerJsId: $sender_uuid,
-          encryptionPublicKey: publicKey_armored,
-          sid: data.sid,
-        }),
-      });
-      console.log("share accept notification click handler");
-    });
-    messages.onnotificationclick("share_reject", async (data: any) => {
-      await fetch("/api/share/answer", {
-        method: "DELETE",
-        body: JSON.stringify({
-          sid: data.sid,
-        }),
-      });
-      console.log("share reject notification click handler");
-    });
-    await messages.init();
-
-    if ("connection" in navigator)
-      //@ts-ignore
-      navigator.connection.onChange = async () => {
-        console.log("connection change");
-        await messages.init();
-      };
   });
 
-  let init_tries = 0;
   $: {
-    // re-init messages if error
     if ($link) {
       generateQRCode($link);
-    }
-    if ($status === "2" && init_tries < 5) {
-      setTimeout(async () => {
-        if ($status === "2")
-          await (await import("$lib/messages")).default_messages.init();
-        init_tries++;
-      }, 1000);
     }
   }
 </script>

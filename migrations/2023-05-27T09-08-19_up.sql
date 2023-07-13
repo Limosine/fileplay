@@ -2,7 +2,7 @@ create table users (
     uid integer primary key autoincrement,
     displayName text not null,
     avatarSeed text not null,
-    createdAt integer not null default (unixepoch('now')),  -- seconds since epoch
+    createdAt integer not null default (unixepoch('now')),
     lastSeenAt integer not null default (unixepoch('now'))
 );
 
@@ -14,9 +14,10 @@ create table devices (
     linkedAt integer,
     createdAt integer not null default (unixepoch('now')),
     lastSeenAt integer not null default (unixepoch('now')),
-    websocketId text,
+    isOnline integer not null default 0,
+    peerJsId text,
+    encryptionPublicKey text not null,
     pushSubscription text,
-    lastUsedConnection text,
     foreign key (uid) references users(uid)
 );
 
@@ -58,9 +59,3 @@ create table sharing (
 
 create index idx_contacts_a on contacts(a);
 create index idx_contacts_b on contacts(b);
-
-create table keepAliveCodes (
-    code text primary key not null,  -- the keep alive code
-    did integer not null,  -- the device id to keep alive
-    foreign key (did) references devices(did)
-);

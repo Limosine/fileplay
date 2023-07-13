@@ -15,7 +15,6 @@
 
   onMount(async () => {
     // update service worker
-    const messages = (await import("$lib/messages")).default_messages;
 
     if (pwaInfo) {
       const update = async (registration: ServiceWorkerRegistration) => {
@@ -45,19 +44,8 @@
         },
       }).needRefresh;
 
-      messages.onnotificationclick("update_sw", () => {
-        navigator.serviceWorker.getRegistration().then((reg) => {
-          reg?.waiting?.postMessage({ type: "skip_waiting" });
-          window.location.reload();
-        });
-      });
     }
 
-    messages.onsystemmessage("reset_client", () => {
-      console.log("resetting client message received");
-      localStorage.removeItem("loggedIn");
-      window.location.reload();
-    });
     console.log("registered reset_client handler on client side");
   });
 
@@ -75,26 +63,6 @@
         },
       ],
     });
-  }
-
-  if (browser) {
-    // resubscribe push notifications on permission change
-    navigator.permissions
-      .query({ name: "notifications" })
-      .then(function (permission) {
-        // Initial status is available at permission.state
-        permission.onchange = async function () {
-          if (localStorage.getItem("loggedIn"))
-            await import("$lib/messages").then(async (m) => {
-              await m.default_messages.init();
-              console.log("initializing messages on notification change");
-            });
-        };
-      });
-
-    // check if service worker is running and handling push
-    // yes --> assume it is handling push notifications and the keepalive
-    // no --> register websocket, send keepalive
   }
 </script>
 

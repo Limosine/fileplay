@@ -3,7 +3,7 @@
   import Badge from "@smui-extra/badge";
   import IconButton, { Icon } from "@smui/icon-button";
   import Tooltip, { Wrapper } from "@smui/tooltip";
-  import { connectionMode, status as current_status } from "$lib/messages";
+  import { status as current_status } from "$lib/websocket";
 
   import {
     drawer_open,
@@ -115,10 +115,7 @@
               style="background-color: {colors[$current_status]}"
             />
           </div>
-          <Tooltip
-            >Connection status: {status[$current_status]}{$connectionMode
-              ? ` (${$connectionMode})`
-              : ""}</Tooltip
+          <Tooltip>Connection status: {status[$current_status]}</Tooltip
           >
         </Wrapper>
 

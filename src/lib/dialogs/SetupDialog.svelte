@@ -5,9 +5,9 @@
   import LinearProgress from "@smui/linear-progress";
   import Select, { Option } from "@smui/select";
 
-  import { get } from "svelte/store";
+  import { get, type Readable } from "svelte/store";
   import { browser } from "$app/environment";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { getContent, withDeviceType } from "$lib/personal";
 
   import {
@@ -21,8 +21,8 @@
   import { NotificationPermission } from "$lib/stores/Dialogs";
   import { DeviceType } from "$lib/common";
 
-  // let socketStore: Readable<any>;
-  // let unsubscribeSocketStore = () => {};
+  let socketStore: Readable<any>;
+  let unsubscribeSocketStore = () => {};
 
   let open: boolean;
 
@@ -123,18 +123,10 @@
     setupLoading.set(false);
 
     getContent();
-    // updatePeerJS_ID();
-    // socketStore = (await import("$lib/websocket")).socketStore;
-    // unsubscribeSocketStore = socketStore.subscribe(() => {});
+    updatePeerJS_ID(); // todo
+    socketStore = (await import("$lib/websocket")).socketStore;
+    unsubscribeSocketStore = socketStore.subscribe(() => {});
 
-    (await import('$lib/messages')).default_messages.init();
-
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.active?.postMessage({
-        type: "save_keep_alive_code",
-        keepAliveCode,
-      });
-    });
   }
 
   onMount(async () => {
@@ -149,14 +141,14 @@
       }
     } else {
       getContent();
-      // socketStore = (await import("$lib/websocket")).socketStore;
-      // unsubscribeSocketStore = socketStore.subscribe(() => {});
+      socketStore = (await import("$lib/websocket")).socketStore;
+      unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
   });
 
-  // onDestroy(() => {
-  //   if (socketStore) unsubscribeSocketStore();
-  // });
+  onDestroy(() => {
+    if (socketStore) unsubscribeSocketStore();
+  });
 </script>
 
 <svelte:window on:keydown={handleSetupKeyDown} />
