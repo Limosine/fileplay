@@ -9,17 +9,18 @@ interface UsersTable {
   lastSeenAt: ColumnType<number, undefined, number>;
 }
 
-interface DevicesTable {
+interface DecivesTable {
   did: Generated<number>;
   uid: number | null; // indexed, foreign key users.id
   linkedAt: number | null;
   displayName: string;
+  isOnline: ColumnType<number, undefined, number>;
   type: DeviceType;
   createdAt: ColumnType<number, undefined, undefined>;
   lastSeenAt: ColumnType<number, undefined, number>;
-  websocketId: string | null;
-  lastUsedConnection: "websocket" | "push" | null;
-  pushSubscription: string | null;
+  peerJsId: string | null;
+  encryptionPublicKey: string;
+  pushSubscription: string | null; // foreign key pushSubcriptions.pid
 }
 
 interface ContactsTable {
@@ -50,19 +51,13 @@ interface SharingTable {
   expires: ColumnType<number, number, undefined>;
 }
 
-interface keepAliveCodesTable {
-  code: string; // indexed, primary
-  did: number; // foreign key devices.id
-}
-
 export interface DB {
   users: UsersTable;
-  devices: DevicesTable;
+  devices: DecivesTable;
   contacts: ContactsTable;
   devicesLinkCodes: DevicesLinkCodesTable;
   contactsLinkCodes: ContactsLinkCodesTable;
   sharing: SharingTable;
-  keepAliveCodes: keepAliveCodesTable;
 }
 
 export type Database = Kysely<DB>;

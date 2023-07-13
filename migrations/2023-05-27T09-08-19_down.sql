@@ -2,8 +2,6 @@ drop table if exists devicesLinkCodes;
 
 drop table if exists contactsLinkCodes;
 
-drop table if exists keepAliveCodes;
-
 drop table if exists sharing;
 
 drop table if exists contacts;

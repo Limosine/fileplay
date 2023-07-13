@@ -127,27 +127,26 @@ export const deviceInfos = writable<
 >();
 export const deviceInfos_loaded = writable(false);
 
-// TODO remove @Limosine
-// export async function getDeviceInfos(): Promise<
-//   {
-//     did: number;
-//     type: string;
-//     displayName: string;
-//     peerJsId: string;
-//     encryptionPublicKey: string;
-//   }[]
-// > {
-//   const res = await fetch("/api/contacts/devices", {
-//     method: "GET",
-//   });
+export async function getDeviceInfos(): Promise<
+  {
+    did: number;
+    type: string;
+    displayName: string;
+    peerJsId: string;
+    encryptionPublicKey: string;
+  }[]
+> {
+  const res = await fetch("/api/contacts/devices", {
+    method: "GET",
+  });
 
-//   const deviceInfos_new: any = await res.json();
+  const deviceInfos_new: any = await res.json();
 
-//   deviceInfos.set(deviceInfos_new);
-//   if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
+  deviceInfos.set(deviceInfos_new);
+  if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
 
-//   return deviceInfos_new;
-// }
+  return deviceInfos_new;
+}
 
 export function withDeviceType(name: string): { type: string; name: string } {
   // @ts-ignore

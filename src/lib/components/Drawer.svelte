@@ -34,42 +34,7 @@
   async function handleNotificationClick(n: INotification, action: string) {
     deleteNotification(n.tag);
     if (action == "close") return null;
-    const messages = (await import("$lib/messages")).default_messages;
-    messages.dispatchNotificationClick({
-      type: action,
-      data: n.data,
-    });
   }
-
-  onMount(async () => {
-    const messages = (await import("$lib/messages")).default_messages;
-    messages.onmessage("sharing_request", (data) => {
-      console.log("sharing_request", data);
-      addNotification({
-        title: "Sharing Request",
-        body: `${data.sender} wants to share files with you. Click to accept.`,
-        actions: [
-          {
-            title: "Accept",
-            action: "share_accept",
-          },
-          {
-            title: "Reject",
-            action: "share_reject",
-          },
-        ],
-        tag: data.tag,
-        data: data,
-      });
-      setTimeout(() => {
-        deleteNotification(data.tag);
-      }, SHARING_TIMEOUT);
-    });
-    messages.onmessage("sharing_cancel", (data) => {
-      console.log("sharing_cancel", data);
-      deleteNotification(data.tag);
-    });
-  });
 
   async function deleteContact(cid: number) {
     await fetch(`/api/contacts?cid=${cid}`, {

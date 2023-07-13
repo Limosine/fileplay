@@ -33,7 +33,7 @@
     }
 
     console.log("initializing messages after notification permission request");
-    await (await import("$lib/messages")).default_messages.init();
+    await (await import("$lib/messages.ts.bak")).default_messages.init();
   }
 </script>
 
