@@ -1,7 +1,7 @@
 import { readable, writable } from "svelte/store";
 
 function createWebSocket() {
-  let websocket = new WebSocket("wss://app.fileplay.me/websocket");
+  let websocket = new WebSocket("wss://dev.fileplay.pages.dev/websocket");
   websocket.onopen = (event) => {
     websocket.send("isOnline");
   };
