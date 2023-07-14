@@ -6,7 +6,7 @@
   import { onMount } from "svelte";
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
-  import { contacts, deviceInfos_loaded, getDeviceInfos, type IContact } from "$lib/personal";
+  import { contacts, deviceInfos, deviceInfos_loaded, getDeviceInfos, type IContact } from "$lib/personal";
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
   import dayjs from "dayjs";
   import { sendState, SendState } from "$lib/stores/state";
@@ -82,18 +82,18 @@
         setSendState(contact.cid, SendState.CANCELED);
         break;
       default: // IDLE, CANCELED, FAILED, REJECTED
-        // request sharing to contact
-
         if (!deviceInfos_loaded) getDeviceInfos();
 
-        send($files, contact.cid.toString(), deviceInfos)
+        const result = await $deviceInfos;
 
+        let devices = result.filter((item) => item.cid == contact.cid);
 
-        // after sending request
-        setSendState(contact.cid, SendState.REQUESTING);
+        devices.forEach((device) => {
+          send($files, contact.cid.toString(), device.peerJsId, device.encryptionPublicKey);
+        });
 
-        // on fail
-        setSendState(contact.cid, SendState.FAILED);
+        setSendState(contact.cid, SendState.SENDING);
+
         break;
     }
   }
@@ -184,7 +184,7 @@
                   .unix()}
                 <Card variant="outlined">
                   <PrimaryAction
-                    on:click={() => handleContactClick(contact.cid)}
+                    on:click={() => handleContactClick(contact)}
                   >
                     <Content>
                       <div style="text-align: center;">

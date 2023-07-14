@@ -118,10 +118,11 @@ export const deviceInfos = writable<
   Promise<
     {
       did: number;
-      type: string;
       displayName: string;
+      type: string;
       peerJsId: string;
       encryptionPublicKey: string;
+      cid: number;
     }[]
   >
 >();
@@ -130,10 +131,11 @@ export const deviceInfos_loaded = writable(false);
 export async function getDeviceInfos(): Promise<
   {
     did: number;
-    type: string;
     displayName: string;
+    type: string;
     peerJsId: string;
     encryptionPublicKey: string;
+    cid: number;
   }[]
 > {
   const res = await fetch("/api/contacts/devices", {
