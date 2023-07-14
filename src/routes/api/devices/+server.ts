@@ -51,6 +51,7 @@ export const POST: RequestHandler = async ({
   const updateObject: {
     displayName?: string;
     type?: DeviceType;
+    peerJsId?: string;
   } = await request.json();
 
   const res = await db
