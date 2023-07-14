@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const contacts = await db
+  const devices = await db
     .selectFrom("contacts")
     .innerJoin("users", "contacts.a", "users.uid")
     .select([
@@ -27,12 +27,9 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
         ])
         .where("contacts.a", "=", uid)
     )
-    .execute();
-
-  const devices = await db
-    .selectFrom("devices")
-    .select(["did", "type", "displayName", "peerJsId", "encryptionPublicKey"])
-    .where(({ and, cmpr }) => and([cmpr("uid", "in", contacts.map(contact => contact.uid)), cmpr("devices.isOnline", "=", 1), cmpr("devices.lastSeenAt", ">", (dayjs().unix() - 30))]))
+    .innerJoin("devices", "users.uid", "devices.uid")
+    .select(["cid", "did", "type", "displayName", "peerJsId", "encryptionPublicKey"])
+    .where(({ and, cmpr }) => and([cmpr("devices.isOnline", "=", 1), cmpr("devices.lastSeenAt", ">", (dayjs().unix() - 30))]))
     .orderBy("displayName")
     .execute();
 
