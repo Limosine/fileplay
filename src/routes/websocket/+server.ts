@@ -9,11 +9,14 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did } = await loadSignedDeviceID(cookies, key, db);
-  if (!did) throw error(401, "No such device");
+
+  console.log("New WebSocket connection, did: ", did)
 
   const upgradeHeader = request.headers.get('Upgrade');
   if (!upgradeHeader || upgradeHeader !== 'websocket') {
     return new Response('Expected Upgrade: websocket', { status: 426 });
+  } else if (!did) {
+    return new Response('No such device', { status: 401 });
   }
 
   const onlineStatus = async (status: number) => {
@@ -51,7 +54,9 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   const webSocketPair = new WebSocketPair();
   const [client, server] = Object.values(webSocketPair);
 
+  // @ts-ignore
   server.accept();
+
   onlineStatus(1);
 
   server.addEventListener('close', async () => {
