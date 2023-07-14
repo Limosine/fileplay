@@ -6,10 +6,10 @@
   import { onMount } from "svelte";
   import { files } from "$lib/components/Input.svelte";
   import { open } from "$lib/stores/SelectContactStore";
-  import { contacts } from "$lib/personal";
+  import { contacts, deviceInfos_loaded, getDeviceInfos, type IContact } from "$lib/personal";
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/common";
   import dayjs from "dayjs";
-  import { mappedIDs, sendState, SendState } from "$lib/stores/state";
+  import { sendState, SendState } from "$lib/stores/state";
   import CircularProgress from "@smui/circular-progress";
   import { writable } from "svelte/store";
 
@@ -71,38 +71,29 @@
     }
   }
 
-  async function handleContactClick(cid: number) {
-    switch ($sendState[cid]) {
+  async function handleContactClick(contact: IContact) {
+    switch ($sendState[contact.cid]) {
       case SendState.REQUESTING:
         // cancel sharing request
-        await fetch(`/api/share/request?cid=${cid}`, { method: "DELETE" });
-        setSendState(cid, SendState.CANCELED);
-        // remove sharing id
-        sharing_ids = Object.fromEntries(
-          Object.entries(sharing_ids).filter(([sid, _cid]) => _cid !== cid)
-        );
+        setSendState(contact.cid, SendState.CANCELED);
         break;
       case SendState.SENDING:
         // cancel sharing in progress
-        setSendState(cid, SendState.CANCELED);
-        // remove sharing id
-        sharing_ids = Object.fromEntries(
-          Object.entries(sharing_ids).filter(([sid, _cid]) => _cid !== cid)
-        );
+        setSendState(contact.cid, SendState.CANCELED);
         break;
       default: // IDLE, CANCELED, FAILED, REJECTED
         // request sharing to contact
-        await fetch(`/api/share/request?cid=${cid}`)
-          .then(async (res) => {
-            if (!res.ok) throw new Error("Request failed");
-            setSendState(cid, SendState.REQUESTING);
-            sharing_ids[((await res.json()) as any).sid] = cid;
-            console.log("Sharing Ids: ", sharing_ids);
-          })
-          .catch(() => {
-            setSendState(cid, SendState.FAILED);
-          });
-        // handle error in await, update sid
+
+        if (!deviceInfos_loaded) getDeviceInfos();
+
+        send($files, contact.cid.toString(), deviceInfos)
+
+
+        // after sending request
+        setSendState(contact.cid, SendState.REQUESTING);
+
+        // on fail
+        setSendState(contact.cid, SendState.FAILED);
         break;
     }
   }
