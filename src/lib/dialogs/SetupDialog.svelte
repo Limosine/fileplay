@@ -66,7 +66,6 @@
 
   async function handleConfirm() {
     if (actionDisabled) return;
-    let keepAliveCode: string;
     setupLoading.set(true);
     // setup device if not already done so
     let storedDeviceParams = localStorage.getItem("deviceParams");
@@ -91,8 +90,6 @@
         handleResponseError(res);
         return;
       }
-      keepAliveCode = ((await res.json()) as any).keepAliveCode;
-      localStorage.setItem("keepAliveCode", keepAliveCode);
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
     }
     if (newUser) {
