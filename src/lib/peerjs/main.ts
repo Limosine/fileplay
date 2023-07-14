@@ -10,6 +10,7 @@ import {
   sendInfos,
 } from "./send";
 import { handleChunk, handleChunkFinish, handleFileInfos, handleFinish } from "./handle";
+import { updatePeerJS_ID } from "$lib/personal";
 
 export const openPeer = async (uuid?: string) => {
   if (uuid) {
@@ -21,6 +22,10 @@ export const openPeer = async (uuid?: string) => {
       console.log("Peer opened");
       sender_uuid.set(id);
       listen();
+      // @ts-ignore
+      if (localStorage.getItem("loggedIn")) {
+        updatePeerJS_ID();
+      }
     });
 
     peer_self.on("close", () => {

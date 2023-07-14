@@ -8,7 +8,7 @@
   import { get, type Readable } from "svelte/store";
   import { browser } from "$app/environment";
   import { onMount, onDestroy } from "svelte";
-  import { getContent, withDeviceType } from "$lib/personal";
+  import { getContent, updatePeerJS_ID, withDeviceType } from "$lib/personal";
 
   import {
     deviceParams,
@@ -18,7 +18,6 @@
   } from "$lib/stores/Dialogs";
   import Username from "$lib/components/Username.svelte";
   import { publicKey_armored } from "$lib/openpgp";
-  import { NotificationPermission } from "$lib/stores/Dialogs";
   import { DeviceType } from "$lib/common";
 
   let socketStore: Readable<any>;
@@ -120,7 +119,7 @@
     setupLoading.set(false);
 
     getContent();
-    updatePeerJS_ID(); // todo
+    updatePeerJS_ID();
     socketStore = (await import("$lib/websocket")).socketStore;
     unsubscribeSocketStore = socketStore.subscribe(() => {});
 

@@ -204,6 +204,17 @@ export const loadInfos = (
   device_edit_loaded.set(true);
 };
 
+export async function updatePeerJS_ID() {
+  const sender_uuid = (await import("./peerjs/common")).sender_uuid;
+
+  await fetch("/api/devices", {
+    method: "POST",
+    body: JSON.stringify({
+      peerJsId: get(sender_uuid),
+    }),
+  });
+};
+
 export function getContent() {
   getUserInfo();
   updateContactsAsync();
