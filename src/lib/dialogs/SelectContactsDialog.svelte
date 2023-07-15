@@ -82,9 +82,13 @@
         setSendState(contact.cid, SendState.CANCELED);
         break;
       default: // IDLE, CANCELED, FAILED, REJECTED
-        if (!deviceInfos_loaded) getDeviceInfos();
+        let result;
 
-        const result = await $deviceInfos;
+        if (!deviceInfos_loaded) {
+          result = await getDeviceInfos();
+        } else {
+          result = await $deviceInfos;
+        }
 
         let devices = result.filter((item) => item.cid == contact.cid);
 
