@@ -20,7 +20,7 @@
     drawer,
     drawer_open,
   } from "$lib/stores/Dialogs";
-  import { updateContacts, getDevices } from "$lib/personal";
+  import { updateContacts, getDevices, getDeviceInfos } from "$lib/personal";
   import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
   import QRCode from "qrcode";
   import Button, { Group } from "@smui/button";
@@ -63,7 +63,10 @@
 
   function startRefresh() {
     refresh_interval = setInterval(async () => {
-      if ($select_open) updateContacts();
+      if ($select_open) {
+        updateContacts();
+        getDeviceInfos();
+      };
       if ($settings_open && $active == "Devices") getDevices();
       if ($drawer_open && $drawer == "Contact") updateContacts();
     }, 5000);

@@ -130,6 +130,7 @@ export const deviceInfos_loaded = writable(false);
 
 export async function getDeviceInfos(): Promise<
   {
+    uid: number;
     did: number;
     displayName: string;
     type: string;
