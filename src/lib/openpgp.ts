@@ -19,8 +19,11 @@ export async function generateKey() {
 
   convertPrivateKey();
 
+  // @ts-ignore
   localStorage.setItem("encryptionPrivateKey", privateKey_armored);
+  // @ts-ignore
   localStorage.setItem("encryptionPublicKey", publicKey_armored);
+  // @ts-ignore
   localStorage.setItem(
     "encryptionRevocationCertificate",
     revocationCertificate_top
@@ -157,8 +160,11 @@ export const setup = () => {
     !publicKey_armored ||
     !revocationCertificate_top
   ) {
+    // @ts-ignore
     const privateKey = localStorage.getItem("encryptionPrivateKey");
+    // @ts-ignore
     const publicKey = localStorage.getItem("encryptionPublicKey");
+    // @ts-ignore
     const revocationCertificate = localStorage.getItem(
       "encryptionRevocationCertificate"
     );
