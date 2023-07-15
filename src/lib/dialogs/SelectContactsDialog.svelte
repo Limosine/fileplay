@@ -82,15 +82,7 @@
         setSendState(contact.cid, SendState.CANCELED);
         break;
       default: // IDLE, CANCELED, FAILED, REJECTED
-        let result;
-
-        if (!deviceInfos_loaded) {
-          result = await getDeviceInfos();
-        } else {
-          result = await $deviceInfos;
-        }
-
-        let devices = result.filter((item) => item.cid == contact.cid);
+        let devices = (await getDeviceInfos()).filter((item) => item.cid == contact.cid);
 
         devices.forEach((device) => {
           send($files, contact.cid.toString(), device.peerJsId, device.encryptionPublicKey);

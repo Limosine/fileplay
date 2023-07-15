@@ -14,11 +14,17 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const devices = await db
     .selectFrom("contacts")
     .innerJoin("users", "contacts.a", "users.uid")
+    .select([
+      "users.uid",
+    ])
     .where("contacts.b", "=", uid)
     .union(
       db
         .selectFrom("contacts")
         .innerJoin("users", "contacts.b", "users.uid")
+        .select([
+          "users.uid",
+        ])
         .where("contacts.a", "=", uid)
     )
     .innerJoin("devices", "users.uid", "devices.uid")
