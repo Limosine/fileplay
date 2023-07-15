@@ -11,8 +11,7 @@ declare global {
     // interface PageData {}
     interface Platform {
       env?: {
-        DATABASE: D1Database;
-        MESSAGE_WS: DurableObjectNamespace;
+        DATABASE: D1Database
       };
     }
   }
