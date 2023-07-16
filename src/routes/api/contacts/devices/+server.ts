@@ -25,12 +25,8 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
       encryptionPublicKey: string;
     }[]>`SELECT "cid", "devices"."type", "devices"."displayName", "devices"."peerJsId", "devices"."encryptionPublicKey" FROM (SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."a" WHERE "contacts"."b" = ${uid} UNION SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."b" WHERE "contacts"."a" = ${uid}) AS U INNER JOIN "devices" ON "U".uid = "devices"."uid" WHERE "devices"."isOnline" = 1 AND "devices"."lastSeenAt" > ${dayjs().unix() - 30} ORDER BY "devices"."displayName"`.execute(db);
 
-    console.log(devices);
-
-    return json(devices, { status: 200 });
+    return json(devices.rows, { status: 200 });
   } catch (e: any) {
-    console.log(e);
-
     return new Response(e, { status: 500 });
   }
 };
