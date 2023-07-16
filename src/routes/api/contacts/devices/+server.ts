@@ -11,27 +11,36 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const devices = await db
-    .selectFrom("contacts")
-    .innerJoin("users", "contacts.a", "users.uid")
-    .select([
-      "users.uid",
-    ])
-    .where("contacts.b", "=", uid)
-    .union(
-      db
-        .selectFrom("contacts")
-        .innerJoin("users", "contacts.b", "users.uid")
-        .select([
-          "users.uid",
-        ])
-        .where("contacts.a", "=", uid)
-    )
-    .innerJoin("devices", "users.uid", "devices.uid")
-    .select(["cid", "did", "type", "displayName", "peerJsId", "encryptionPublicKey"])
-    .where(({ and, cmpr }) => and([cmpr("devices.isOnline", "=", 1), cmpr("devices.lastSeenAt", ">", (dayjs().unix() - 30))]))
-    .orderBy("displayName")
-    .execute();
+  try {
+    const devices = await db
+      .selectFrom("contacts")
+      .innerJoin("users", "contacts.a", "users.uid")
+      .select([
+        "users.uid",
+      ])
+      .where("contacts.b", "=", uid)
+      .union(
+        db
+          .selectFrom("contacts")
+          .innerJoin("users", "contacts.b", "users.uid")
+          .select([
+            "users.uid",
+          ])
+          .where("contacts.a", "=", uid)
+      )
+      .innerJoin("devices", "users.uid", "devices.uid")
+      .select(["cid", "did", "type", "displayName", "peerJsId", "encryptionPublicKey"])
+      .where(({ and, cmpr }) => and([cmpr("devices.isOnline", "=", 1), cmpr("devices.lastSeenAt", ">", (dayjs().unix() - 30))]))
+      .orderBy("displayName")
+      .execute();
 
-  return json(devices, { status: 200 });
+      return json(devices, { status: 200 });
+  } catch (e: any) {
+    console.log({
+      message: e.message,
+      cause: e.cause.message,
+    });
+
+    return new Response("e.cause.message", { status: 200 });
+  }
 };
