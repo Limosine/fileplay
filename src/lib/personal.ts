@@ -117,12 +117,11 @@ export async function getUserInfo(): Promise<{
 export const deviceInfos = writable<
   Promise<
     {
-      did: number;
-      displayName: string;
+      cid: number;
       type: string;
+      displayName: string;
       peerJsId: string;
       encryptionPublicKey: string;
-      cid: number;
     }[]
   >
 >();
@@ -130,13 +129,11 @@ export const deviceInfos_loaded = writable(false);
 
 export async function getDeviceInfos(): Promise<
   {
-    uid: number;
-    did: number;
-    displayName: string;
+    cid: number;
     type: string;
+    displayName: string;
     peerJsId: string;
     encryptionPublicKey: string;
-    cid: number;
   }[]
 > {
   const res = await fetch("/api/contacts/devices", {
@@ -151,7 +148,7 @@ export async function getDeviceInfos(): Promise<
   return deviceInfos_new;
 }
 
-export function withDeviceType(name: string): { type: string; name: string } {
+export function withDeviceType(name: string): { type: string; name: string; } {
   // @ts-ignore
   return { name, type: DeviceType[name] as string };
 }
@@ -177,12 +174,12 @@ export const loadInfos = (
 ) => {
   let device:
     | {
-        did: number;
-        type: string;
-        displayName: string;
-        createdAt: number;
-        lastSeenAt: number;
-      }
+      did: number;
+      type: string;
+      displayName: string;
+      createdAt: number;
+      lastSeenAt: number;
+    }
     | undefined;
 
   if (devices.self.did == did) {
