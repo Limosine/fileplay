@@ -4,6 +4,7 @@ import { get, writable } from "svelte/store";
 
 // Stores:
 export const peer = writable<Peer>();
+export const peer_disconnected = writable(false);
 export const sender_uuid = writable<string>();
 export const connections = writable<DataConnection[]>([]);
 

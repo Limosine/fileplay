@@ -32,5 +32,8 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         manifest: await import("./static/manifest.json"),
       }),
     ],
+    ssr: {
+      noExternal: ['beercss']
+    },
   };
 }

@@ -1,11 +1,13 @@
 <script lang="ts">
-  import TopAppBar from "$lib/components/TopAppBar-guest.svelte";
+  import "beercss";
+  import "material-dynamic-colors";
+  import { onMount } from "svelte";
 
-  import '$lib/../theme/typography.scss'
+  onMount(() => {
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      ui("mode", "dark");
+    }
+  });
 </script>
 
-<div on:touchmove={(e) => e.preventDefault}>
-  <TopAppBar>
-    <slot/>
-  </TopAppBar>
-</div>
+<slot />

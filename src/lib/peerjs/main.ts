@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import Peer, { type DataConnection } from "peerjs";
 
-import { connections, link, peer, sender_uuid } from "./common";
+import { connections, link, peer, peer_disconnected, sender_uuid } from "./common";
 import {
   send,
   sendAccept,
@@ -30,12 +30,16 @@ export const openPeer = async (uuid?: string) => {
 
     peer_self.on("close", () => {
       console.log("Peer closed");
-      openPeer(get(sender_uuid));
+      if (!get(peer_disconnected)) {
+        openPeer(get(sender_uuid));
+      }
     });
 
     peer_self.on("disconnected", () => {
       console.log("Peer disconnected");
-      openPeer(get(sender_uuid));
+      if (!get(peer_disconnected)) {
+        openPeer(get(sender_uuid));
+      }
     });
 
     return peer_self;
@@ -43,6 +47,7 @@ export const openPeer = async (uuid?: string) => {
 };
 
 export const disconnectPeer = () => {
+  peer_disconnected.set(true);
   get(peer).disconnect();
 };
 

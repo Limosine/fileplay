@@ -92,7 +92,9 @@
   },
   "type": "module",
   "dependencies": {
+    "beercss": "^3.2.13",
     "headless-qr": "^1.0.3",
+    "material-dynamic-colors": "^1.0.1",
     "qrcode": "^1.5.3",
     "svelte-qrcode": "^1.0.0",
     "uuid": "^9.0.0"
