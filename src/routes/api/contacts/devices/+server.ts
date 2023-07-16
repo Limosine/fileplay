@@ -29,7 +29,7 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
           .where("contacts.a", "=", uid)
       )
       .innerJoin("devices", "users.uid", "devices.uid")
-      .select(["cid", "did", "type", "displayName", "peerJsId", "encryptionPublicKey"])
+      .select(["contacts.cid", "devices.did", "devices.type", "devices.displayName", "devices.peerJsId", "devices.encryptionPublicKey"])
       .where(({ and, cmpr }) => and([cmpr("devices.isOnline", "=", 1), cmpr("devices.lastSeenAt", ">", (dayjs().unix() - 30))]))
       .orderBy("displayName")
       .execute();
@@ -41,6 +41,6 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
       cause: e.cause.message,
     });
 
-    return new Response("e.cause.message", { status: 200 });
+    return new Response(e.cause.message, { status: 200 });
   }
 };
