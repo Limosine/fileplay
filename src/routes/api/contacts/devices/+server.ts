@@ -17,11 +17,8 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
 
     return json(devices, { status: 200 });
   } catch (e: any) {
-    console.log({
-      message: e.message,
-      cause: e.cause.message,
-    });
+    console.log(e);
 
-    return new Response(e.cause.message, { status: 500 });
+    return new Response(e, { status: 500 });
   }
 };
