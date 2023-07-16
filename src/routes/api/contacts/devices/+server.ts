@@ -4,6 +4,7 @@ import { createKysely } from "$lib/server/db";
 import { json } from "@sveltejs/kit";
 import dayjs from "dayjs";
 import type { RequestHandler } from "./$types";
+import { sql } from "kysely";
 
 export const GET: RequestHandler = async ({ cookies, platform }) => {
   // get all devices linked to this account (requires cookie auth)
@@ -12,27 +13,7 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const { uid } = await loadSignedDeviceID(cookies, key, db);
 
   try {
-    const devices = await db
-      .selectFrom("contacts")
-      .innerJoin("users", "contacts.a", "users.uid")
-      .select([
-        "contacts.cid"
-      ])
-      .where("contacts.b", "=", uid)
-      .union(
-        db
-          .selectFrom("contacts")
-          .innerJoin("users", "contacts.b", "users.uid")
-          .select([
-            "contacts.cid"
-          ])
-          .where("contacts.a", "=", uid)
-      )
-      .innerJoin("devices", "users.uid", "devices.uid")
-      .select(["devices.did", "devices.type", "devices.displayName", "devices.peerJsId", "devices.encryptionPublicKey"])
-      .where(({ and, cmpr }) => and([cmpr("devices.isOnline", "=", 1), cmpr("devices.lastSeenAt", ">", (dayjs().unix() - 30))]))
-      .orderBy("displayName")
-      .execute();
+    const devices = await sql`SELECT "cid", "devices"."type", "devices"."displayName", "devices"."peerJsId", "devices"."encryptionPublicKey" FROM (SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."a" WHERE "contacts"."b" = "1" UNION SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."b" WHERE "contacts"."a" = "1") AS U INNER JOIN "devices" ON "U".uid = "devices"."uid" WHERE "devices"."isOnline" = 1 AND "devices"."lastSeenAt" > 1 ORDER BY "devices"."displayName"`.execute(db);
 
     return json(devices, { status: 200 });
   } catch (e: any) {
