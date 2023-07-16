@@ -13,6 +13,10 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const { uid } = await loadSignedDeviceID(cookies, key, db);
 
   try {
+    (BigInt.prototype as any).toJSON = function () {
+      return this.toString();
+    };
+
     const devices = await sql<{
       cid: number;
       type: string;
