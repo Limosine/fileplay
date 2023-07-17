@@ -1,18 +1,11 @@
 <script lang="ts">
-  import { Icon } from "@smui/common";
-  import Card, { PrimaryAction } from "@smui/card";
   import Input, { input, files } from "$lib/components/Input.svelte";
-  import SetupDialog from "$lib/dialogs/SetupDialog.svelte";
   import { onDestroy, onMount } from "svelte";
   import { writable, type Writable } from "svelte/store";
 
-  import SelectContactsDialog from "$lib/dialogs/SelectContactsDialog.svelte";
   import { open as select_open } from "$lib/stores/SelectContactStore";
 
-  import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
-  import { setup as pgp_setup, publicKey_armored } from "$lib/openpgp";
-
-  import SettingsDialog from "$lib/dialogs/SettingsDialog.svelte";
+  import { setup as pgp_setup } from "$lib/openpgp";
 
   import {
     settings_open,
@@ -21,10 +14,8 @@
     drawer_open,
   } from "$lib/stores/Dialogs";
   import { updateContacts, getDevices, getDeviceInfos } from "$lib/personal";
-  import LinearProgress from "@smui/linear-progress/src/LinearProgress.svelte";
   import QRCode from "qrcode";
-  import Button, { Group } from "@smui/button";
-  import Tooltip, { Wrapper } from "@smui/tooltip";
+  import { status as current_status} from "$lib/websocket";
 
   let qrCode: string;
   const generateQRCode = async (link: string) => {
@@ -66,7 +57,7 @@
       if ($select_open) {
         updateContacts();
         getDeviceInfos();
-      };
+      }
       if ($settings_open && $active == "Devices") getDevices();
       if ($drawer_open && $drawer == "Contact") updateContacts();
     }, 5000);
@@ -96,6 +87,30 @@
       generateQRCode($link);
     }
   }
+
+  let current = "Home";
+
+  async function notificationPermission() {
+    if ("Notification" in window) {
+      if (Notification.permission === "granted") {
+        return true;
+      } else if (Notification.permission !== "denied") {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") return true;
+      }
+    }
+    return false;
+  }
+
+  async function sendNotification(text: string) {
+    if (await notificationPermission()) {
+      const notification = new Notification(text);
+    }
+  }
+
+  // topbar
+  const colors = ["yellow", "green", "red"];
+  const status = ["Connecting", "Online", "Error"];
 </script>
 
 <svelte:head>
@@ -106,16 +121,82 @@
 
 <Input />
 
-<SelectContactsDialog />
-<AddContactDialog />
-<SettingsDialog />
+<div class="box">
+  <header class="layout fill fixed">
+    <nav>
+      <p class="s bold large-text">{current}</p>
+      <div class="max" />
+      <div>
+        <div
+          class="connection-status"
+          style="background-color: {colors[$current_status]}"
+        />
+        <div class="tooltip bottom">{status[$current_status]}</div>
+      </div>
+      <div class="s">
+        <img class="circle" src="/favicon.png" alt="Fileplay" />
+        <div class="tooltip bottom">Fileplay</div>
+      </div>
+      <button class="l m circle transparent">
+        <i>settings</i>
+        <div class="tooltip bottom">Settings</div>
+      </button>
+    </nav>
+  </header>
 
-<SetupDialog />
+  <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+  <nav class="m l left">
+    <a>
+      <img class="circle" src="/favicon.png" />
+    </a>
+    <a>
+      <i>contacts</i>
+      <span>Contacts</span>
+    </a>
+    <a>
+      <i>notifications</i>
+      <span>Notifications</span>
+    </a>
+  </nav>
 
-<div class="center">
+  <div class="section">
+    {#if current == "Home"}
+      <button on:click={() => sendNotification("Hi!")} class="s extra">
+        <i>share</i>
+        <span>Share</span>
+      </button>
+    {/if}
+  </div>
+
+  <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+  <nav class="s bottom bar" style="position: relative;">
+    <a
+      class={current == "Home" ? "active" : ""}
+      on:click={() => (current = "Home")}
+    >
+      <i>home</i>
+      <span>Home</span>
+    </a>
+    <a
+      class={current == "Contacts" ? "active" : ""}
+      on:click={() => (current = "Contacts")}
+    >
+      <i>Contacts</i>
+      <span>Contacts</span>
+    </a>
+    <a
+      class={current == "Settings" ? "active" : ""}
+      on:click={() => (current = "Settings")}
+    >
+      <i>settings</i>
+      <span>Settings</span>
+    </a>
+  </nav>
+</div>
+
+<!-- <div class="center">
   <div class="beside">
-    <!-- <div style="display: flex; justify-content: center"> -->
-    <!-- </div> -->
+    <div style="display: flex; justify-content: center" />
 
     <Card>
       <PrimaryAction on:click={() => $input.click()} style="padding: 64px">
@@ -214,10 +295,37 @@
       {/each}
     </Card>
   {/if}
-</div>
+</div> -->
 
 <style>
-  p.small {
+  .box {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+  }
+
+  .box > header,
+  .box > .bar {
+    flex: 0 1 auto;
+  }
+
+  .box > .section {
+    flex: 1 1 auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .connection-status {
+    margin: 10px;
+    border-radius: 50%;
+    border: 3px solid #cac4d0;
+    height: 20px;
+    width: 20px;
+  }
+
+  /* p.small {
     line-height: 0.2;
   }
   .beside {
@@ -243,5 +351,5 @@
   }
   * :global(.card) {
     padding: 30px;
-  }
+  } */
 </style>

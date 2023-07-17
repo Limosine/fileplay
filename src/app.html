@@ -2,27 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <link rel="icon" href="/favicon.png">
+    <link rel="icon" href="%sveltekit.assets%/favicon.png" />
     <meta name="viewport" content="width=device-width">
-
-    <!-- SMUI Styles -->
-    <link rel="stylesheet" href="/smui.css" media="(prefers-color-scheme: light)">
-    <link rel="stylesheet" href="/smui-dark.css" media="screen and (prefers-color-scheme: dark)">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    
-    <!-- Material Icons -->
-    <link rel="stylesheet preload prefetch" as="style"
-      href="https://fonts.googleapis.com/icon?family=Material+Icons&amp;display=swap">
-    
-    <!-- Roboto -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,600,700&amp;display=swap">
-    
-    <!-- Roboto Mono -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono&amp;display=swap">
-
     %sveltekit.head%
 
     <!-- PWA-Assets -->
@@ -93,13 +74,15 @@
     <link rel="apple-touch-startup-image" href="/pwa-assets/apple-splash-dark-1136-640.jpg"
       media="(prefers-color-scheme: dark) and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
   </head>
+
   <body data-sveltekit-preload-data="hover">
     <div style="display: contents">%sveltekit.body%</div>
-    <style>
-      * {
-        margin: 0;
-        font-family: 'Roboto', sans-serif;
-      }
-    </style>
   </body>
 </html>
+
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+</style>

@@ -13,7 +13,7 @@
     }
   ],
   "rules": {
-    // ...
+    "svelte/a11y-missing-attribute": "off"
   },
   "extends": [
     // then, enable whichever type-aware rules you want to use

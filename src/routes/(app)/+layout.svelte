@@ -2,10 +2,9 @@
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
 
-  import TopAppBar from "$lib/components/TopAppBar.svelte";
-  import Drawer from "$lib/components/Drawer.svelte";
+  import "beercss";
+  import "material-dynamic-colors";
 
-  import "$lib/../theme/typography.scss";
   import { browser } from "$app/environment";
   import { useRegisterSW } from "virtual:pwa-register/svelte";
   import type { Writable } from "svelte/store";
@@ -14,8 +13,11 @@
   let needRefresh: Writable<boolean>;
 
   onMount(async () => {
-    // update service worker
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      ui("mode", "dark");
+    }
 
+    // update service worker
     if (pwaInfo) {
       const update = async (registration: ServiceWorkerRegistration) => {
         // check if sw is installing or navigator is offline
@@ -70,8 +72,4 @@
   {@html webManifest}
 </svelte:head>
 
-<TopAppBar />
-
-<Drawer>
-  <slot />
-</Drawer>
+<slot />
