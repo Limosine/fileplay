@@ -85,6 +85,7 @@
           {#if received_file_chunks.url}
             <article class="border left-round" style="width: 80%; height: 50px;">
               <span>{(received_file_chunks.file_name.length > 25) ? returnSubstring(received_file_chunks.file_name) : received_file_chunks.file_name}</span>
+              <div class="tooltip">{received_file_chunks.file_name}</div>
             </article>
             <a
               href={received_file_chunks.url}
@@ -110,6 +111,7 @@
                   id={received_file_chunks.file_id}
                 />
               <span>{(received_file_chunks.file_name.length > 25) ? returnSubstring(received_file_chunks.file_name) : received_file_chunks.file_name}</span>
+              <div class="tooltip">{received_file_chunks.file_name}</div>
             </article>
           {/if}
         </div>
