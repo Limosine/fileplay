@@ -12,10 +12,19 @@
     active,
     drawer,
     drawer_open,
+    notifications,
+    deleteNotification,
+    type INotification,
   } from "$lib/stores/Dialogs";
-  import { updateContacts, getDevices, getDeviceInfos } from "$lib/personal";
+  import {
+    contacts,
+    updateContacts,
+    getDevices,
+    getDeviceInfos,
+  } from "$lib/personal";
   import QRCode from "qrcode";
-  import { status as current_status} from "$lib/websocket";
+  import { status as current_status } from "$lib/websocket";
+  import { getDicebearUrl } from "$lib/common";
 
   let qrCode: string;
   const generateQRCode = async (link: string) => {
@@ -54,12 +63,11 @@
 
   function startRefresh() {
     refresh_interval = setInterval(async () => {
-      if ($select_open) {
+      if (current == "Contacts" || $select_open) {
         updateContacts();
-        getDeviceInfos();
+        if ($select_open) getDeviceInfos();
       }
-      if ($settings_open && $active == "Devices") getDevices();
-      if ($drawer_open && $drawer == "Contact") updateContacts();
+      if (current == "Settings" && $active == "Devices") getDevices();
     }, 5000);
   }
 
@@ -70,7 +78,7 @@
   onDestroy(stopRefresh);
 
   onMount(async () => {
-    startRefresh();
+    // startRefresh();
     sender_uuid = (await import("$lib/peerjs/common")).sender_uuid;
 
     const { openPeer } = await import("$lib/peerjs/main");
@@ -111,6 +119,20 @@
   // topbar
   const colors = ["yellow", "green", "red"];
   const status = ["Connecting", "Online", "Error"];
+
+  // contacts
+  async function deleteContact(cid: number) {
+    await fetch(`/api/contacts?cid=${cid}`, {
+      method: "DELETE",
+    });
+    await updateContacts();
+  }
+
+  // notifications
+  async function handleNotificationClick(n: INotification, action: string) {
+    deleteNotification(n.tag);
+    if (action == "close") return null;
+  }
 </script>
 
 <svelte:head>
@@ -120,6 +142,35 @@
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
 <Input />
+
+<dialog class="right" id="dialog-notifications">
+  <nav>
+    <!-- svelte-ignore missing-declaration -->
+    <button
+      on:click={() => ui("#dialog-notifications")}
+      class="transparent circle large"
+    >
+      <i>close</i>
+    </button>
+    <h5 class="max">Notifications</h5>
+  </nav>
+  <div class="section-contacts">
+    {#each $notifications as n}
+        <article class="border">
+          <div class="row">
+            <h6>{n.title}</h6>
+            <p>{n.body}</p>
+            <nav>
+              {#each n.actions ?? [] as action}
+                <button on:click={() => handleNotificationClick(n, action.action)}>{action.title}</button>
+              {/each}
+              <button on:click={() => deleteNotification(n.tag)}>Close</button>
+            </nav>
+          </div>
+        </article>
+    {/each}
+  </div>
+</dialog>
 
 <div class="box">
   <header class="layout fill fixed">
@@ -133,10 +184,14 @@
         />
         <div class="tooltip bottom">{status[$current_status]}</div>
       </div>
-      <div class="s">
-        <img class="circle" src="/favicon.png" alt="Fileplay" />
-        <div class="tooltip bottom">Fileplay</div>
-      </div>
+      <!-- svelte-ignore missing-declaration -->
+      <button
+        class="s circle transparent"
+        on:click={() => ui("#dialog-notifications")}
+      >
+        <i>notifications</i>
+        <div class="tooltip bottom">Notifications</div>
+      </button>
       <button class="l m circle transparent">
         <i>settings</i>
         <div class="tooltip bottom">Settings</div>
@@ -161,15 +216,48 @@
 
   <div class="section">
     {#if current == "Home"}
-      <button on:click={() => sendNotification("Hi!")} class="s extra">
-        <i>share</i>
-        <span>Share</span>
-      </button>
+      <div class="section-center">
+        <button on:click={() => sendNotification("Hi!")} class="s extra">
+          <i>share</i>
+          <span>Share</span>
+        </button>
+      </div>
+    {:else if current == "Contacts"}
+      {#await $contacts}
+        <p>Contacts are loading...</p>
+      {:then contacts_}
+        {#each contacts_ as contact}
+          <div class="section-contacts">
+            <article>
+              <div class="row">
+                <img
+                  class="circle medium"
+                  src={getDicebearUrl(contact.avatarSeed, 100)}
+                  alt="Avatar"
+                />
+                <div class="max">
+                  <p class="large-text">{contact.displayName}</p>
+                </div>
+                <button
+                  class="right transparent circle"
+                  on:click={() => deleteContact(contact.cid)}
+                >
+                  <i>delete</i>
+                  <div class="tooltip bottom">Delete contact</div>
+                </button>
+              </div>
+            </article>
+          </div>
+        {/each}
+      {/await}
     {/if}
   </div>
 
   <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
-  <nav class="s bottom bar" style="position: relative;">
+  <nav
+    class="s bottom bar"
+    style={current == "Home" ? "position: relative;" : ""}
+  >
     <a
       class={current == "Home" ? "active" : ""}
       on:click={() => (current = "Home")}
@@ -194,109 +282,6 @@
   </nav>
 </div>
 
-<!-- <div class="center">
-  <div class="beside">
-    <div style="display: flex; justify-content: center" />
-
-    <Card>
-      <PrimaryAction on:click={() => $input.click()} style="padding: 64px">
-        <Icon class="material-icons" style="font-size: 30px">upload</Icon>
-        Select file(s)
-      </PrimaryAction>
-    </Card>
-
-    {#if $files}
-      <Card>
-        <PrimaryAction
-          on:click={() => select_open.set(true)}
-          style="padding: 64px"
-        >
-          <Icon class="material-icons" style="font-size: 30px">send</Icon>
-          Send file(s)
-        </PrimaryAction>
-      </Card>
-    {/if}
-  </div>
-
-  {#if $link}
-    <Card class="card">
-      <div class="link">
-        {#if qrCode}
-          <img src={qrCode} alt="QR Code" />
-        {/if}
-
-        <div>
-          <h6>Link</h6>
-          <br />
-          <Group variant="unelevated">
-            <Wrapper>
-              <Button
-                variant="outlined"
-                class="material-icons"
-                on:click={() => navigator.clipboard.writeText($link)}
-                >content_copy</Button
-              >
-              <Tooltip>Copy link</Tooltip>
-            </Wrapper>
-            <Wrapper>
-              <Button
-                variant="outlined"
-                class="material-icons"
-                on:click={() =>
-                  navigator.share({
-                    url: $link,
-                  })}>share</Button
-              >
-              <Tooltip>Share link</Tooltip>
-            </Wrapper>
-          </Group>
-        </div>
-      </div>
-    </Card>
-  {/if}
-
-  {#if $files}
-    <Card padded>
-      <h6>Selected file(s):</h6>
-      <p class="small"><br /></p>
-
-      {#each Array.from($files) as file}
-        <p>{file.name}</p>
-      {/each}
-    </Card>
-  {/if}
-
-  {#if $received_chunks.length != 0 && $received_chunks.at(-1)}
-    <Card padded>
-      <h6>Received file(s):</h6>
-      <p class="small"><br /></p>
-
-      {#each $received_chunks as received_file_chunks}
-        <div style="margin-bottom: 5px;">
-          <LinearProgress
-            style="text-align: left"
-            progress={received_file_chunks.chunks.length /
-              received_file_chunks.chunk_number}
-            closed={!!received_file_chunks.url}
-          />
-          <Card padded>
-            {#if received_file_chunks.url}
-              <a
-                href={received_file_chunks.url}
-                download={received_file_chunks.file_name}
-              >
-                {received_file_chunks.file_name}
-              </a>
-            {:else}
-              {received_file_chunks.file_name}
-            {/if}
-          </Card>
-        </div>
-      {/each}
-    </Card>
-  {/if}
-</div> -->
-
 <style>
   .box {
     display: flex;
@@ -311,10 +296,20 @@
 
   .box > .section {
     flex: 1 1 auto;
+  }
 
+  .box > .section > .section-center {
     display: flex;
+    height: 100%;
     justify-content: center;
     align-items: center;
+  }
+
+  .box > .section > .section-contacts {
+    display: flex;
+    flex-flow: column;
+    gap: 10px;
+    padding: 7px;
   }
 
   .connection-status {
