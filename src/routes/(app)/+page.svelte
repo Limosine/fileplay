@@ -79,7 +79,7 @@
   onDestroy(stopRefresh);
 
   onMount(async () => {
-    startRefresh();
+    // startRefresh();
     sender_uuid = (await import("$lib/peerjs/common")).sender_uuid;
 
     const { openPeer } = await import("$lib/peerjs/main");
@@ -115,10 +115,6 @@
     }
   }
 
-  // topbar
-  const colors = ["yellow", "green", "red"];
-  const status = ["Connecting", "Online", "Error"];
-
   // contacts
   async function deleteContact(cid: number) {
     await fetch(`/api/contacts?cid=${cid}`, {
@@ -126,17 +122,7 @@
     });
     await updateContacts();
   }
-
-  // notifications
-  async function handleNotificationClick(n: INotification, action: string) {
-    deleteNotification(n.tag);
-    if (action == "close") return null;
-  }
 </script>
-
-<svelte:head>
-  <title>Fileplay</title>
-</svelte:head>
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
 
@@ -153,9 +139,9 @@
   {#await $contacts}
     <p>Contacts are loading...</p>
   {:then contacts_}
-    {#each contacts_ as contact}
-      <div class="section-contacts">
-        <article>
+    <div id="contacts">
+      {#each contacts_ as contact}
+        <article style="margin: 0;">
           <div class="row">
             <img
               class="circle medium"
@@ -174,8 +160,8 @@
             </button>
           </div>
         </article>
-      </div>
-    {/each}
+      {/each}
+    </div>
   {/await}
 {/if}
 
@@ -187,14 +173,14 @@
     align-items: center;
   }
 
-  /* .box > .section > .section-contacts {
+  #contacts {
     display: flex;
     flex-flow: column;
-    gap: 5px;
+    gap: 7px;
     padding: 7px;
   }
   
-  p.small {
+  /* p.small {
     line-height: 0.2;
   }
   .beside {

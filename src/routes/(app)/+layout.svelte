@@ -48,6 +48,10 @@
     }
 
     console.log("registered reset_client handler on client side");
+
+    addNotification({title: "Test", body: "Test notification body"});
+    addNotification({title: "Test", body: "Test notification body"});
+    addNotification({title: "Test", body: "Test notification body"});
   });
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
