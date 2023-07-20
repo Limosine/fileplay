@@ -49,9 +49,9 @@
 
     console.log("registered reset_client handler on client side");
 
-    addNotification({title: "Test", body: "Test notification body"});
-    addNotification({title: "Test", body: "Test notification body"});
-    addNotification({title: "Test", body: "Test notification body"});
+    addNotification({ title: "Test", body: "Test notification body" });
+    addNotification({ title: "Test", body: "Test notification body" });
+    addNotification({ title: "Test", body: "Test notification body" });
   });
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
@@ -81,7 +81,6 @@
   } from "$lib/stores/Dialogs";
   import { status as current_status } from "$lib/websocket";
   import { current } from "$lib/UI";
-
 
   async function notificationPermission() {
     if ("Notification" in window) {
@@ -128,19 +127,29 @@
     </button>
     <h5 class="max">Notifications</h5>
   </nav>
-  <div class="section-contacts">
+  <div id="notifications">
     {#each $notifications as n}
-      <article class="border">
-        <div class="row">
+      <article
+        class="border"
+        style="margin: 0; padding: 0; position: relative;"
+      >
+        <button
+          on:click={() => deleteNotification(n.tag)}
+          class="transparent circle large"
+          style="position: absolute; right: 0; margin: 0;"
+        >
+          <i>close</i>
+        </button>
+
+        <div style="padding: 16px;">
           <h6>{n.title}</h6>
           <p>{n.body}</p>
-          <nav>
+          <nav class="right-align">
             {#each n.actions ?? [] as action}
               <button on:click={() => handleNotificationClick(n, action.action)}
                 >{action.title}</button
               >
             {/each}
-            <button on:click={() => deleteNotification(n.tag)}>Close</button>
           </nav>
         </div>
       </article>
@@ -260,6 +269,13 @@
     border: 3px solid #cac4d0;
     height: 20px;
     width: 20px;
+  }
+
+  #notifications {
+    display: flex;
+    flex-flow: column;
+    gap: 10px;
+    padding-top: 7px;
   }
 
   /* .box > .section > .section-contacts {
