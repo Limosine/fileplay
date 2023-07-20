@@ -1,10 +1,4 @@
 <script lang="ts">
-  import Dialog, { Title, Content } from "@smui/dialog";
-  import Button, { Group, Label } from "@smui/button";
-  import Textfield from "@smui/textfield";
-  import LinearProgress from "@smui/linear-progress";
-  import Select, { Option } from "@smui/select";
-
   import { get, type Readable } from "svelte/store";
   import { browser } from "$app/environment";
   import { onMount, onDestroy } from "svelte";
@@ -115,21 +109,20 @@
 
     localStorage.removeItem("deviceParams");
     localStorage.setItem("loggedIn", "true");
-    open = false;
+    ui("#dialog-setup");
     setupLoading.set(false);
 
     getContent();
     updatePeerJS_ID();
     socketStore = (await import("$lib/websocket")).socketStore;
     unsubscribeSocketStore = socketStore.subscribe(() => {});
-
   }
 
   onMount(async () => {
     if (!browser) return;
     // if device is not set up, open dialog
     if (!localStorage.getItem("loggedIn")) {
-      open = true;
+      ui("#dialog-setup");
       // if setup was partially completed, load values
       const storedDeviceParams = localStorage.getItem("deviceParams");
       if (storedDeviceParams) {
@@ -149,72 +142,79 @@
 
 <svelte:window on:keydown={handleSetupKeyDown} />
 
-<Dialog
-  bind:open
-  scrimClickAction=""
-  escapeKeyAction=""
+<dialog
+  id="dialog-setup"
+  class="modal"
   aria-labelledby="title"
   aria-describedby="content"
+  style="padding: 0;"
 >
   {#if $setupLoading}
-    <LinearProgress indeterminate />
+    <!-- indeterminate progress -->
   {/if}
-  <Title id="title">Setup</Title>
-  <Content>
-    <h6>Device</h6>
-    <div id="content">
-      <div id="content-device">
-        <Textfield
-          bind:value={$deviceParams.displayName}
-          label="Device Name"
-          bind:disabled={$setupLoading}
-          input$maxlength={32}
-        />
-        <Select
-          bind:value={$deviceParams.type}
-          label="Device Type"
-          bind:disabled={$setupLoading}
-        >
-          {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-            <Option value={type}>{name}</Option>
-          {/each}
-        </Select>
+  <h6 id="title" style="padding: 16px 16px 0px 16px;">Setup</h6>
+  <div class="medium-divider"></div>
+  <div style="padding: 0px 16px 16px 16px;">
+    <p class="bold" style="font-size: large">Device</p>
+    <div id="content" style="padding-bottom: 30px;">
+      <div id="content-device" class="row">
+        <div class="field label">
+          <input
+            bind:value={$deviceParams.displayName}
+            disabled={$setupLoading}
+            maxlength={32}
+          />
+          <!-- svelte-ignore a11y-label-has-associated-control-->
+          <label>Device Name</label>
+        </div>
+
+        <div class="field label suffix">
+          <select
+            class="active"
+            bind:value={$deviceParams.type}
+            disabled={$setupLoading}
+            style="min-width: 200px;"
+          >
+            {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+              <option value={type}>{name}</option>
+            {/each}
+          </select>
+          <!-- svelte-ignore a11y-label-has-associated-control-->
+          <label class="active">Device Type</label>
+          <i>arrow_drop_down</i>
+        </div>
       </div>
     </div>
     <br />
-    <h6>User</h6>
-    <div id="content">
-      <Group variant="outlined">
+    <p class="bold" style="font-size: large">User</p>
+    <div id="content" style="padding-bottom: 20px;">
+      <nav class="no-space center-align">
         {#if newUser}
-          <Button variant="unelevated" bind:disabled={$setupLoading}>
-            <Label>New</Label>
-          </Button>
-          <Button
-            bind:disabled={$setupLoading}
+          <button class="left-round" disabled={$setupLoading}>New</button>
+          <button
+            class="right-round border"
+            disabled={$setupLoading}
             on:click={() => {
               newUser = false;
               setupError = "";
             }}
-            variant="outlined"
           >
-            <Label>Connect to existing</Label>
-          </Button>
+            Connect to existing
+          </button>
         {:else}
-          <Button
-            bind:disabled={$setupLoading}
+          <button
+            class="left-round border"
+            disabled={$setupLoading}
             on:click={() => {
               newUser = true;
               setupError = "";
-            }}
-            variant="outlined"
+            }}>New</button
           >
-            <Label>New</Label>
-          </Button>
-          <Button variant="unelevated" bind:disabled={$setupLoading}>
-            <Label>Connect to existing</Label>
-          </Button>
+          <button class="right-round" disabled={$setupLoading}>
+            Connect to existing
+          </button>
         {/if}
-      </Group>
+      </nav>
     </div>
     {#if newUser}
       <Username />
@@ -226,35 +226,35 @@
           <strong>Settings</strong> > <strong>Devices</strong> >
           <strong>Generate linking code</strong>.
         </p>
-        <Textfield
-          label="Linking Code"
-          input$maxlength={6}
-          bind:value={linkingCode}
-          bind:disabled={$setupLoading}
-          input$placeholder="6-digit code"
-        />
+        <div class="field label">
+          <input
+            bind:value={linkingCode}
+            disabled={$setupLoading}
+            maxlength={6}
+          />
+          <!-- svelte-ignore a11y-label-has-associated-control-->
+          <label>Linking Code</label>
+        </div>
       </div>
     {/if}
-    <div class="actions">
+    <nav class="right-align" style="margin-top: 40px;">
       {#if actionDisabled}
-        <Button disabled={true} on:click={handleConfirm} variant="outlined">
-          <Label>Finish</Label>
-        </Button>
+        <button disabled={true} on:click={handleConfirm} class="border"
+          >Finish</button
+        >
       {:else}
-        <Button disabled={false} on:click={handleConfirm} variant="raised">
-          <Label>Finish</Label>
-        </Button>
+        <button disabled={false} on:click={handleConfirm}>Finish</button>
       {/if}
 
       {#if setupError}
         <p style="color:red">{setupError}</p>
       {/if}
-    </div>
-  </Content>
-</Dialog>
+    </nav>
+  </div>
+</dialog>
 
 <style>
-  .actions {
+  /* .actions {
     display: flex;
     flex-flow: row-reverse;
     justify-content: space-between;
@@ -272,5 +272,5 @@
     display: flex;
     flex-flow: row;
     gap: 7px;
-  }
+  } */
 </style>

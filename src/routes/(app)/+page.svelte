@@ -79,7 +79,7 @@
   onDestroy(stopRefresh);
 
   onMount(async () => {
-    // startRefresh();
+    startRefresh();
     sender_uuid = (await import("$lib/peerjs/common")).sender_uuid;
 
     const { openPeer } = await import("$lib/peerjs/main");

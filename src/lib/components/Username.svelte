@@ -1,8 +1,5 @@
 <script lang="ts">
   import { nanoid } from "nanoid";
-  import { Icon } from "@smui/common";
-  import Fab from "@smui/fab";
-  import Textfield from "@smui/textfield";
 
   import {
     userParams,
@@ -43,38 +40,39 @@
   {/if}
 </div>
 
-<div class="user">
-  <Textfield
-    bind:value={$userParams.displayName}
-    bind:invalid={$profaneUsername.profane}
-    bind:disabled={$setupLoading}
-    on:focusout={() => updateIsProfaneUsername()}
-    label="Username"
-    input$maxlength={32}
-  />
-  <div class="vflex">
-    <h6>Avatar</h6>
-    <div class="avatar">
+<div id="user">
+  <div class="field label {$profaneUsername.profane ? 'invalid' : ''}">
+    <input
+      bind:value={$userParams.displayName}
+      disabled={$setupLoading}
+      on:focusout={() => updateIsProfaneUsername()}
+      maxlength={32}
+    />
+    <!-- svelte-ignore a11y-label-has-associated-control-->
+    <label>Username</label>
+  </div>
+  <div id="vflex">
+    <p class="bold" style="font-size: large">Avatar</p>
+    <div id="avatar">
       <img
         src={getDicebearUrl($userParams.avatarSeed, 150)}
         alt="Your Avatar"
       />
-      <div class="fab">
-        <Fab
-          color="primary"
+      <div id="fab">
+        <button
+          class="circle"
           on:click={() => ($userParams.avatarSeed = nanoid(8))}
-          bind:disabled={$setupLoading}
-          mini
+          disabled={$setupLoading}
         >
-          <Icon class="material-icons">refresh</Icon>
-        </Fab>
+          <i>refresh</i>
+        </button>
       </div>
     </div>
   </div>
 </div>
 
 <style>
-  .user {
+  #user {
     margin: 1em 0em 1.5em 0em;
     display: grid;
     grid-template-columns: auto auto;
@@ -86,20 +84,20 @@
     aspect-ratio: 1/1;
   }
 
-  .vflex {
+  #vflex {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  .avatar {
+  #avatar {
     margin-top: 0.7em;
     position: relative;
   }
 
-  .fab {
+  #fab {
     position: absolute;
-    bottom: 0;
-    right: 0;
+    bottom: -5px;
+    right: -5px;
   }
 </style>
