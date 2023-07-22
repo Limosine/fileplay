@@ -5,6 +5,8 @@
   import "beercss";
   import "material-dynamic-colors";
 
+  import logo from "$lib/assets/Fileplay.png";
+
   import { browser } from "$app/environment";
   import { useRegisterSW } from "virtual:pwa-register/svelte";
   import type { Writable } from "svelte/store";
@@ -72,15 +74,49 @@
   <title>Fileplay</title>
 </svelte:head>
 
-<!-- Dialogs -->
-<Notifications />
-<Setup />
+  <div id="logo">
+    <img id="logo-image" src={logo} alt="Fileplay" />
+  </div>
+  <div id="start">
+    <div class="center-align">
+      <!-- svelte-ignore a11y-missing-attribute a11y-missing-content -->
+      <a class="loader medium"></a>
+    </div>
+  </div>
 
-<Layout>
-  <slot />
-</Layout>
+{#if browser && localStorage.getItem("loggedIn")}
+  <Notifications />
+  <Setup />
 
-<style>  
+  <Layout>
+    <slot />
+  </Layout>
+{/if}
+
+<style>
+  #logo {
+    position: absolute;
+    width: 100%;
+    height: 50%;
+    top: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #start {
+    position: absolute;
+    width: 100%;
+    height: 50%;
+    bottom: 0;
+  }
+
+  img#logo-image {
+    width: 300px;
+    height: auto;
+  }
+
   /* p.small {
     line-height: 0.2;
   }

@@ -206,8 +206,6 @@
   <div id="logo">
     <img id="logo-image" src={logo} alt="Fileplay" />
   </div>
-{/if}
-{#if progress == 0}
   <div id="start">
     <button on:click={() => (progress = 1)} class="extra center">
       <i>login</i>
@@ -283,7 +281,8 @@
       {:else}
         <div>
           <p>
-            Please generate a linking code on a device already connected to the user by going to <br />
+            Please generate a linking code on a device already connected to the
+            user by going to <br />
             <strong>Settings</strong> > <strong>Devices</strong> >
             <strong>Generate linking code</strong>.
           </p>
