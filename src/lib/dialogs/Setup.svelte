@@ -122,6 +122,7 @@
     if (!browser) return;
     // if device is not set up, open dialog
     if (!localStorage.getItem("loggedIn")) {
+      // testing:
       ui("#dialog-setup");
       // if setup was partially completed, load values
       const storedDeviceParams = localStorage.getItem("deviceParams");
@@ -141,117 +142,6 @@
 </script>
 
 <svelte:window on:keydown={handleSetupKeyDown} />
-
-<dialog
-  id="dialog-setup"
-  class="modal"
-  aria-labelledby="title"
-  aria-describedby="content"
-  style="padding: 0;"
->
-  {#if $setupLoading}
-    <!-- indeterminate progress -->
-  {/if}
-  <h6 id="title" style="padding: 16px 16px 0px 16px;">Setup</h6>
-  <div class="medium-divider"></div>
-  <div style="padding: 0px 16px 16px 16px;">
-    <p class="bold" style="font-size: large">Device</p>
-    <div id="content" style="padding-bottom: 30px;">
-      <div id="content-device" class="row">
-        <div class="field label">
-          <input
-            bind:value={$deviceParams.displayName}
-            disabled={$setupLoading}
-            maxlength={32}
-          />
-          <!-- svelte-ignore a11y-label-has-associated-control-->
-          <label>Device Name</label>
-        </div>
-
-        <div class="field label suffix">
-          <select
-            class="active"
-            bind:value={$deviceParams.type}
-            disabled={$setupLoading}
-            style="min-width: 200px;"
-          >
-            {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-              <option value={type}>{name}</option>
-            {/each}
-          </select>
-          <!-- svelte-ignore a11y-label-has-associated-control-->
-          <label class="active">Device Type</label>
-          <i>arrow_drop_down</i>
-        </div>
-      </div>
-    </div>
-    <br />
-    <p class="bold" style="font-size: large">User</p>
-    <div id="content" style="padding-bottom: 20px;">
-      <nav class="no-space center-align">
-        {#if newUser}
-          <button class="left-round" disabled={$setupLoading}>New</button>
-          <button
-            class="right-round border"
-            disabled={$setupLoading}
-            on:click={() => {
-              newUser = false;
-              setupError = "";
-            }}
-          >
-            Connect to existing
-          </button>
-        {:else}
-          <button
-            class="left-round border"
-            disabled={$setupLoading}
-            on:click={() => {
-              newUser = true;
-              setupError = "";
-            }}>New</button
-          >
-          <button class="right-round" disabled={$setupLoading}>
-            Connect to existing
-          </button>
-        {/if}
-      </nav>
-    </div>
-    {#if newUser}
-      <Username />
-    {:else}
-      <div>
-        <p>
-          Please generate a linking code on a device already <br />
-          connected to the user by going to <br />
-          <strong>Settings</strong> > <strong>Devices</strong> >
-          <strong>Generate linking code</strong>.
-        </p>
-        <div class="field label">
-          <input
-            bind:value={linkingCode}
-            disabled={$setupLoading}
-            maxlength={6}
-          />
-          <!-- svelte-ignore a11y-label-has-associated-control-->
-          <label>Linking Code</label>
-        </div>
-      </div>
-    {/if}
-    <nav class="right-align" style="margin-top: 40px;">
-      {#if actionDisabled}
-        <button disabled={true} on:click={handleConfirm} class="border"
-          >Finish</button
-        >
-      {:else}
-        <button disabled={false} on:click={handleConfirm}>Finish</button>
-      {/if}
-
-      {#if setupError}
-        <p style="color:red">{setupError}</p>
-      {/if}
-    </nav>
-  </div>
-</dialog>
 
 <style>
   /* .actions {

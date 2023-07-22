@@ -17,10 +17,6 @@
   let needRefresh: Writable<boolean>;
 
   onMount(async () => {
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      ui("mode", "dark");
-    }
-
     // update service worker
     if (pwaInfo) {
       const update = async (registration: ServiceWorkerRegistration) => {
