@@ -74,17 +74,20 @@
   <title>Fileplay</title>
 </svelte:head>
 
-  <div id="logo">
-    <img id="logo-image" src={logo} alt="Fileplay" />
+
+<div id="logo">
+  <img id="logo-image" src={logo} alt="Fileplay" />
+</div>
+<div id="start">
+  <div class="center-align">
+    <!-- svelte-ignore a11y-missing-attribute a11y-missing-content -->
+    <a class="loader medium" />
   </div>
-  <div id="start">
-    <div class="center-align">
-      <!-- svelte-ignore a11y-missing-attribute a11y-missing-content -->
-      <a class="loader medium"></a>
-    </div>
-  </div>
+</div>
 
 {#if browser && localStorage.getItem("loggedIn")}
+  <div id="overlay"/>
+
   <Notifications />
   <Setup />
 
@@ -94,8 +97,17 @@
 {/if}
 
 <style>
+  #overlay {
+    position: absolute;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--background);
+  }
+
   #logo {
     position: absolute;
+    z-index: -1;
     width: 100%;
     height: 50%;
     top: 0;
@@ -107,6 +119,7 @@
 
   #start {
     position: absolute;
+    z-index: -1;
     width: 100%;
     height: 50%;
     bottom: 0;
