@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
@@ -9,16 +9,33 @@
 
   import { browser } from "$app/environment";
   import { useRegisterSW } from "virtual:pwa-register/svelte";
-  import type { Writable } from "svelte/store";
+  import { writable, type Readable, type Writable } from "svelte/store";
   import { addNotification } from "$lib/stores/Dialogs";
   import Layout from "$lib/components/Layout.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
-  import SetupDialog from "$lib/dialogs/Setup.svelte";
   import Setup from "$lib/dialogs/Setup.svelte";
+  import { status } from "$lib/websocket";
+  import { setup as pgp_setup } from "$lib/openpgp";
+
+  let peer_open = writable(false);
+  let socketStore: Readable<any>;
+  let unsubscribeSocketStore = () => {};
 
   let needRefresh: Writable<boolean>;
+  let loading = true;
 
   onMount(async () => {
+    if (localStorage.getItem("loggedIn")) {
+      peer_open = (await import("$lib/peerjs/common")).peer_open;
+      const { openPeer } = await import("$lib/peerjs/main");
+
+      pgp_setup();
+      openPeer();
+
+      socketStore = (await import("$lib/websocket")).socketStore;
+      unsubscribeSocketStore = socketStore.subscribe(() => {});
+    }
+
     // update service worker
     if (pwaInfo) {
       const update = async (registration: ServiceWorkerRegistration) => {
@@ -52,6 +69,17 @@
     console.log("registered reset_client handler on client side");
   });
 
+  onDestroy(() => {
+    if (socketStore) unsubscribeSocketStore();
+  });
+
+  $: {
+    if (browser) {
+      loading =
+        !$peer_open || !localStorage.getItem("loggedIn") || $status != "1";
+    }
+  }
+
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
   $: if ($needRefresh) {
     console.log("need refresh SW");
@@ -74,7 +102,6 @@
   <title>Fileplay</title>
 </svelte:head>
 
-
 <div id="logo">
   <img id="logo-image" src={logo} alt="Fileplay" />
 </div>
@@ -85,8 +112,8 @@
   </div>
 </div>
 
-{#if browser && localStorage.getItem("loggedIn")}
-  <div id="overlay"/>
+{#if !loading}
+  <div id="overlay" />
 
   <Notifications />
   <Setup />
