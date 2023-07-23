@@ -21,6 +21,8 @@
   import { getDicebearUrl } from "$lib/common";
   import Edit from "$lib/dialogs/Edit.svelte";
 
+  let settings_page: "main" | "devices" = "devices";
+
   let qrCode: string;
   const generateQRCode = async (link: string) => {
     try {
@@ -157,73 +159,88 @@
       {/each}
     </div>
   {/await}
-{:else if $current == "Settings" && $user_loaded}
+{:else if $current == "Settings"}
   <Edit />
 
-  {#await $user}
-    <p>User infos are loading...</p>
-  {:then user}
-    <p
-      class="bold"
-      style="color: var(--secondary); margin: 20px 0px 5px 0px; padding: 0px 20px 0px 20px;"
-    >
-      User
-    </p>
+  {#if settings_page == "main"}
+    {#await $user}
+      <p>User infos are loading...</p>
+    {:then user}
+      <p
+        class="bold"
+        style="color: var(--secondary); margin: 20px 0px 5px 0px; padding: 0px 20px 0px 20px;"
+      >
+        User
+      </p>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
-    <a
-      class="chip border responsive row"
-      style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("username", "Username")}
-    >
-      <div class="column">
-        <p style="font-size: large; margin-bottom: 2px;">Username</p>
+      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+      <a
+        class="chip border responsive row"
+        style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
+        on:click={() => openDialog("username", "Username")}
+      >
+        <div class="column">
+          <p style="font-size: large; margin-bottom: 2px;">Username</p>
           <p style="font-size: small; margin-top: 0;">
             {user.displayName}
           </p>
-      </div>
-    </a>
+        </div>
+      </a>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
-    <a
-      class="chip border responsive row"
-      style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("avatar", "Avatar")}
-    >
-      <div class="column">
-        <p style="font-size: large; margin-bottom: 2px;">Avatar</p>
-        <p style="font-size: small; margin-top: 0;">Choose your Avatar</p>
-      </div>
-      <span class="max" />
-      <img
-        class="responsive"
-        style="height: auto;"
-        src={getDicebearUrl(user.avatarSeed, 150)}
-        alt="Avatar"
-      />
-    </a>
+      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+      <a
+        class="chip border responsive row"
+        style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
+        on:click={() => openDialog("avatar", "Avatar")}
+      >
+        <div class="column">
+          <p style="font-size: large; margin-bottom: 2px;">Avatar</p>
+          <p style="font-size: small; margin-top: 0;">Choose your Avatar</p>
+        </div>
+        <span class="max" />
+        <img
+          class="responsive"
+          style="height: auto;"
+          src={getDicebearUrl(user.avatarSeed, 150)}
+          alt="Avatar"
+        />
+      </a>
 
-    <p
-      class="bold"
-      style="color: var(--secondary); margin: 20px 0px 5px 0px; padding: 0px 20px 0px 20px;"
-    >
-      Devices
-    </p>
+      <p
+        class="bold"
+        style="color: var(--secondary); margin: 20px 0px 5px 0px; padding: 0px 20px 0px 20px;"
+      >
+        Devices
+      </p>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
-    <a
-      class="chip border responsive row"
-      style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("deviceType", "Device type")}
-    >
-      <div class="column">
-        <p style="font-size: large; margin-bottom: 2px;">Devices</p>
-        <p style="font-size: small; margin-top: 0;">Manage devices</p>
-      </div>
-    </a>
-  {:catch}
-    <p>Failed to load user infos.</p>
-  {/await}
+      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+      <a
+        class="chip border responsive row"
+        style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
+        on:click={() => openDialog("deviceType", "Device type")}
+      >
+        <div class="column">
+          <p style="font-size: large; margin-bottom: 2px;">Devices</p>
+          <p style="font-size: small; margin-top: 0;">Manage devices</p>
+        </div>
+      </a>
+    {:catch}
+      <p>Failed to load user infos.</p>
+    {/await}
+  {:else if settings_page == "devices"}
+    <div id="settings-secondary">
+      <nav>
+        <!-- svelte-ignore missing-declaration -->
+        <button
+          on:click={() => ui("#dialog-notifications")}
+          class="transparent circle large"
+        >
+          <i>arrow_back</i>
+        </button>
+        <h5 class="max">Devices</h5>
+      </nav>
+    </div>
+  {/if}
 {/if}
 
 <style>
@@ -239,6 +256,16 @@
     flex-flow: column;
     gap: 7px;
     padding: 7px;
+  }
+
+  #settings-secondary {
+    position: absolute;
+    top: -80px;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    overflow: auto;
+    background: white;
   }
 
   /* p.small {

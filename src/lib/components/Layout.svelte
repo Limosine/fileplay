@@ -31,9 +31,9 @@
 </div>
 
 <div id="header">
-  <header class="fill fixed">
+  <header class="fixed">
     <nav>
-      <p class="large-text">{$current}</p>
+      <p style="font-size: large; font-weight: 600;">{$current}</p>
       <div class="max" />
       <div>
         <div
@@ -65,7 +65,7 @@
 </div>
 <div id="footer" class="s">
   <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute -->
-  <nav class="bottom">
+  <nav class="bottom" style="background-color: var(--inverse-on-surface); z-index: 99;">
     <a
       class={$current == "Home" ? "active" : ""}
       on:click={() => ($current = "Home")}

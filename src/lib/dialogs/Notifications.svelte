@@ -7,7 +7,7 @@
   }
 </script>
 
-<dialog class="right" id="dialog-notifications" style="z-index: 102;">
+<dialog class="right" id="dialog-notifications">
   <nav>
     <!-- svelte-ignore missing-declaration -->
     <button
