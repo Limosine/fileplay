@@ -112,7 +112,7 @@
   </div>
 </div>
 
-{#if loading}
+{#if !loading}
   <div id="overlay" />
 
   <Notifications />
