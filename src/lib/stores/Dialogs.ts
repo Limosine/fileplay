@@ -1,8 +1,5 @@
 import { get, writable } from "svelte/store";
 import { browser } from "$app/environment";
-import type TopAppBar from "@smui/top-app-bar";
-
-export const topAppBar = writable<TopAppBar>();
 
 export const drawer_open = writable(false);
 export const drawer = writable<"Contact" | "Notification" | "">("");
