@@ -18,6 +18,15 @@ export const openPeer = async (uuid?: string) => {
   } else peer.set(new Peer());
 
   peer.update((peer_self) => {
+    peer_self.on('error', (err) => {
+      console.log(err);
+
+      // @ts-ignore
+      if (err.type == 'unavailable-id') {
+        peer_self.destroy();
+      }
+    });
+
     peer_self.on("open", (id) => {
       console.log("Peer opened");
       peer_open.set(true);
@@ -33,7 +42,7 @@ export const openPeer = async (uuid?: string) => {
       console.log("Peer closed");
       peer_open.set(false);
       if (!get(peer_disconnected)) {
-        openPeer(get(sender_uuid));
+        openPeer();
       }
     });
 
@@ -41,13 +50,18 @@ export const openPeer = async (uuid?: string) => {
       console.log("Peer disconnected");
       peer_open.set(false);
       if (!get(peer_disconnected)) {
-        openPeer(get(sender_uuid));
+        reconnectPeer();
       }
     });
 
     return peer_self;
   });
 };
+
+export const reconnectPeer = () => {
+  peer_disconnected.set(false);
+  get(peer).reconnect();
+}
 
 export const disconnectPeer = () => {
   peer_disconnected.set(true);
