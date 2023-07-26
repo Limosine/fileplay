@@ -215,7 +215,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => $settings_page = "devices"}
+        on:click={() => ($settings_page = "devices")}
       >
         <div class="column">
           <p style="font-size: large; margin-bottom: 2px;">Devices</p>
@@ -226,18 +226,18 @@
       <p>Failed to load user infos.</p>
     {/await}
   {:else if $settings_page == "devices"}
-    <div id="settings-secondary">
-      <nav>
-        <!-- svelte-ignore missing-declaration -->
-        <button
-          on:click={() => $settings_page = "main"}
-          class="transparent circle large"
-        >
-          <i>arrow_back</i>
-        </button>
-        <h5 class="max">Devices</h5>
-      </nav>
-    </div>
+    <button
+      on:click={() => ($settings_page = "main")}
+      class="transparent circle"
+      style="margin: 8px;"
+    >
+      <i>arrow_back</i>
+    </button>
+    <h3
+      style="margin-bottom: 30px; padding: 0px 20px 0px 20px;"
+    >
+      Devices
+    </h3>
   {/if}
 {/if}
 
@@ -254,16 +254,6 @@
     flex-flow: column;
     gap: 7px;
     padding: 7px;
-  }
-
-  #settings-secondary {
-    position: absolute;
-    top: -80px;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    overflow: auto;
-    background: white;
   }
 
   /* p.small {

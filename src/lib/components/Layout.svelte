@@ -1,6 +1,7 @@
 <script lang="ts">
   import { status as current_status } from "$lib/websocket";
   import { current, settings_page } from "$lib/UI";
+  import { getUserInfo, updateContacts } from "$lib/personal";
 
   // Top app bar
   const colors = ["yellow", "green", "red"];
@@ -34,7 +35,7 @@
   <div id="header">
     <header class="fixed">
       <nav>
-        <p style="font-size: large; font-weight: 600;">{$current}</p>
+        <p class="s" style="font-size: large; font-weight: 600;">{$current}</p>
         <div class="max" />
         <div>
           <div
@@ -58,10 +59,14 @@
       </nav>
     </header>
   </div>
+  <div id="content-small-header" class="s">
+    <slot />
+  </div>
+{:else}
+  <div id="content-small" class="s">
+    <slot />
+  </div>
 {/if}
-<div id="content-small" class="s">
-  <slot />
-</div>
 <div id="content-large" class="l m">
   <slot />
 </div>
@@ -77,14 +82,14 @@
     </a>
     <a
       class={$current == "Contacts" ? "active" : ""}
-      on:click={() => ($current = "Contacts")}
+      on:click={() => {updateContacts(); $current = "Contacts";}}
     >
       <i>Contacts</i>
       <span>Contacts</span>
     </a>
     <a
       class={$current == "Settings" ? "active" : ""}
-      on:click={() => ($current = "Settings")}
+      on:click={() => {getUserInfo(); $current = "Settings";}}
     >
       <i>settings</i>
       <span>Settings</span>
@@ -97,12 +102,18 @@
   #rail,
   #footer,
   #content-small,
+  #content-small-header,
   #content-large {
     position: absolute;
     left: 0;
     width: 100%;
   }
   #content-small {
+    top: 0;
+    bottom: 80px;
+    overflow: auto;
+  }
+  #content-small-header {
     top: 64px;
     bottom: 80px;
     overflow: auto;
