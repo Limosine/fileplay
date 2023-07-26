@@ -175,7 +175,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("username", "Username")}
+        on:click={() => openDialog("username", "Username", user.displayName)}
       >
         <div class="column">
           <p style="font-size: large; margin-bottom: 2px;">Username</p>
@@ -189,7 +189,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("avatar", "Avatar")}
+        on:click={() => openDialog("avatar", "Avatar", user.avatarSeed)}
       >
         <div class="column">
           <p style="font-size: large; margin-bottom: 2px;">Avatar</p>

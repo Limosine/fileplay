@@ -1,13 +1,65 @@
 <script lang="ts">
   import { nanoid } from "nanoid";
 
-  import { edit_current as current, title, linkingCode } from "$lib/UI";
+  import {
+    edit_current as current,
+    title,
+    linkingCode,
+    original_value,
+    did,
+  } from "$lib/UI";
   import { DeviceType, getDicebearUrl } from "$lib/common";
   import { withDeviceType } from "$lib/personal";
   import { deviceParams, userParams } from "$lib/stores/Dialogs";
+  import { onMount } from "svelte";
+  import { page } from "$app/stores";
+
+  let edit: HTMLDialogElement;
+
+  async function updateDeviceInfo(did: number) {
+    await fetch(`/api/devices?${did}`, {
+      method: "POST",
+      body: JSON.stringify({
+        displayName: $deviceParams.displayName,
+        type: $deviceParams.type,
+      }),
+    });
+  }
+
+  async function updateUserInfo() {
+    await fetch("/api/user", {
+      method: "POST",
+      body: JSON.stringify({
+        displayName: $userParams.displayName,
+        avatarSeed: $userParams.avatarSeed,
+      }),
+    });
+  }
+
+  onMount(() => {
+    edit.addEventListener("close", () => {
+      if ($page.url.pathname == "/") {
+        switch ($current) {
+          case "username":
+            if ($original_value != $userParams.displayName) updateUserInfo();
+            break;
+          case "avatar":
+            if ($original_value != $userParams.avatarSeed) updateUserInfo();
+            break;
+          case "deviceName":
+            if ($original_value != $deviceParams.displayName) updateDeviceInfo($did);
+            break;
+          case "deviceType":
+            if ($original_value != $deviceParams.type) updateDeviceInfo($did);
+            break;
+        }
+      }
+    });
+  });
 </script>
 
 <dialog
+  bind:this={edit}
   id="dialog-edit"
   style={$current == "deviceType"
     ? "min-height: 250px;"
