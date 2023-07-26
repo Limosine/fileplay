@@ -1,6 +1,6 @@
 <script lang="ts">
   import { status as current_status } from "$lib/websocket";
-  import { current } from "$lib/UI";
+  import { current, settings_page } from "$lib/UI";
 
   // Top app bar
   const colors = ["yellow", "green", "red"];
@@ -9,7 +9,7 @@
 
 <div id="rail" class="l m">
   <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
-  <nav class="left">
+  <nav class="left" style="z-index: 99;">
     <a>
       <img class="circle" src="/favicon.png" />
     </a>
@@ -30,33 +30,35 @@
   </nav>
 </div>
 
-<div id="header">
-  <header class="fixed">
-    <nav>
-      <p style="font-size: large; font-weight: 600;">{$current}</p>
-      <div class="max" />
-      <div>
-        <div
-          class="connection-status"
-          style="background-color: {colors[$current_status]}"
-        />
-        <div class="tooltip bottom">{status[$current_status]}</div>
-      </div>
-      <!-- svelte-ignore missing-declaration -->
-      <button
-        class="circle transparent"
-        on:click={() => ui("#dialog-notifications")}
-      >
-        <i>notifications</i>
-        <div class="tooltip bottom">Notifications</div>
-      </button>
-      <button class="l m circle transparent">
-        <i>settings</i>
-        <div class="tooltip bottom">Settings</div>
-      </button>
-    </nav>
-  </header>
-</div>
+{#if $current != "Settings" || $settings_page == "main"}
+  <div id="header">
+    <header class="fixed">
+      <nav>
+        <p style="font-size: large; font-weight: 600;">{$current}</p>
+        <div class="max" />
+        <div>
+          <div
+            class="connection-status"
+            style="background-color: {colors[$current_status]}"
+          />
+          <div class="tooltip bottom">{status[$current_status]}</div>
+        </div>
+        <!-- svelte-ignore missing-declaration -->
+        <button
+          class="circle transparent"
+          on:click={() => ui("#dialog-notifications")}
+        >
+          <i>notifications</i>
+          <div class="tooltip bottom">Notifications</div>
+        </button>
+        <button class="l m circle transparent">
+          <i>settings</i>
+          <div class="tooltip bottom">Settings</div>
+        </button>
+      </nav>
+    </header>
+  </div>
+{/if}
 <div id="content-small" class="s">
   <slot />
 </div>
@@ -65,7 +67,7 @@
 </div>
 <div id="footer" class="s">
   <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute -->
-  <nav class="bottom" style="background-color: var(--inverse-on-surface); z-index: 99;">
+  <nav class="bottom" style="z-index: 99;">
     <a
       class={$current == "Home" ? "active" : ""}
       on:click={() => ($current = "Home")}

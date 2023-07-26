@@ -6,7 +6,7 @@
   import { open as select_open } from "$lib/stores/SelectContactStore";
 
   import { setup as pgp_setup } from "$lib/openpgp";
-  import { current, openDialog, ValueToName } from "$lib/UI";
+  import { current, openDialog, settings_page, ValueToName } from "$lib/UI";
 
   import { active, deviceParams, userParams } from "$lib/stores/Dialogs";
   import {
@@ -20,8 +20,6 @@
   import QRCode from "qrcode";
   import { getDicebearUrl } from "$lib/common";
   import Edit from "$lib/dialogs/Edit.svelte";
-
-  let settings_page: "main" | "devices" = "devices";
 
   let qrCode: string;
   const generateQRCode = async (link: string) => {
@@ -159,10 +157,10 @@
       {/each}
     </div>
   {/await}
-{:else if $current == "Settings"}
+{:else if $current == "Settings" && $user_loaded}
   <Edit />
 
-  {#if settings_page == "main"}
+  {#if $settings_page == "main"}
     {#await $user}
       <p>User infos are loading...</p>
     {:then user}
@@ -217,7 +215,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("deviceType", "Device type")}
+        on:click={() => $settings_page = "devices"}
       >
         <div class="column">
           <p style="font-size: large; margin-bottom: 2px;">Devices</p>
@@ -227,12 +225,12 @@
     {:catch}
       <p>Failed to load user infos.</p>
     {/await}
-  {:else if settings_page == "devices"}
+  {:else if $settings_page == "devices"}
     <div id="settings-secondary">
       <nav>
         <!-- svelte-ignore missing-declaration -->
         <button
-          on:click={() => ui("#dialog-notifications")}
+          on:click={() => $settings_page = "main"}
           class="transparent circle large"
         >
           <i>arrow_back</i>

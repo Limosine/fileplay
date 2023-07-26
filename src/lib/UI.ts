@@ -2,6 +2,7 @@ import { writable } from "svelte/store";
 import { DeviceType } from "./common";
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
+export const settings_page = writable<"main" | "devices">("main");
 
 // Edit dialog
 export type edit_options = "deviceName" | "deviceType" | "username" | "linkingCode" | "avatar";
