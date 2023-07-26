@@ -17,23 +17,39 @@
   let edit: HTMLDialogElement;
 
   async function updateDeviceInfo(did: number) {
-    await fetch(`/api/devices?${did}`, {
-      method: "POST",
-      body: JSON.stringify({
-        displayName: $deviceParams.displayName,
-        type: $deviceParams.type,
-      }),
-    });
+    let update = {};
+
+    if ($deviceParams.displayName) {
+      update = { displayName: $deviceParams.displayName };
+    }
+    if ($deviceParams.type) {
+      update = { ...update, type: $deviceParams.type };
+    }
+
+    if (Object.keys(update).length) {
+      await fetch(`/api/devices?${did}`, {
+        method: "POST",
+        body: JSON.stringify(update),
+      });
+    }
   }
 
   async function updateUserInfo() {
-    await fetch("/api/user", {
-      method: "POST",
-      body: JSON.stringify({
-        displayName: $userParams.displayName,
-        avatarSeed: $userParams.avatarSeed,
-      }),
-    });
+    let update = {};
+
+    if ($userParams.displayName) {
+      update = { displayName: $userParams.displayName };
+    }
+    if ($userParams.avatarSeed) {
+      update = { ...update, avatarSeed: $userParams.avatarSeed };
+    }
+
+    if (Object.keys(update).length) {
+      await fetch("/api/user", {
+        method: "POST",
+        body: JSON.stringify(update),
+      });
+    }
   }
 
   onMount(() => {
