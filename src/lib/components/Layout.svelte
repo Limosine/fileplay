@@ -23,7 +23,7 @@
     </a>
     <a
       class={$current == "Contacts" ? "active" : ""}
-      on:click={() => ($current = "Contacts")}
+      on:click={() => {updateContacts(); $current = "Contacts";}}
     >
       <i>Contacts</i>
       <span>Contacts</span>

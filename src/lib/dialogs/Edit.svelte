@@ -9,7 +9,7 @@
     did,
   } from "$lib/UI";
   import { DeviceType, getDicebearUrl } from "$lib/common";
-  import { withDeviceType } from "$lib/personal";
+  import { getDevices, getUserInfo, withDeviceType } from "$lib/personal";
   import { deviceParams, userParams } from "$lib/stores/Dialogs";
   import { onMount } from "svelte";
   import { page } from "$app/stores";
@@ -31,6 +31,7 @@
         method: "POST",
         body: JSON.stringify(update),
       });
+      await getDevices();
     }
   }
 
@@ -49,6 +50,7 @@
         method: "POST",
         body: JSON.stringify(update),
       });
+      await getUserInfo();
     }
   }
 
