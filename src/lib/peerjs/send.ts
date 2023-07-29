@@ -61,7 +61,7 @@ export const sendInfos = (peerID: string, filetransfer_id: string) => {
       });
     }
   } else {
-    console.log("Wrong filetransfer id.");
+    console.log("PeerJS: Wrong filetransfer id.");
   }
 };
 
@@ -219,7 +219,7 @@ export const sendChunk = (
     });
 
     if (initial_chunk_info === undefined) {
-      console.log("Filetransfer not found.");
+      console.log("PeerJS: Filetransfer not found.");
     }
   }
 

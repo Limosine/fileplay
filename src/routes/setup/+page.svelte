@@ -208,13 +208,11 @@
         </div>
       {/if}
       <nav class="right-align" style="margin-top: 40px;">
-        {#if actionDisabled}
-          <button disabled={true} on:click={handleConfirm} class="border"
-            >Finish</button
-          >
-        {:else}
-          <button disabled={false} on:click={handleConfirm}>Finish</button>
-        {/if}
+        <button
+          disabled={actionDisabled}
+          on:click={handleConfirm}
+          class={actionDisabled ? "border" : ""}>Finish</button
+        >
 
         {#if setupError}
           <p style="color:red">{setupError}</p>

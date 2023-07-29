@@ -27,10 +27,11 @@
   onMount(async () => {
     if (localStorage.getItem("loggedIn")) {
       peer_open = (await import("$lib/peerjs/common")).peer_open;
-      const { openPeer } = await import("$lib/peerjs/main");
+      const { openPeer, listen } = await import("$lib/peerjs/main");
 
       pgp_setup();
       openPeer();
+      listen();
 
       socketStore = (await import("$lib/websocket")).socketStore;
       unsubscribeSocketStore = socketStore.subscribe(() => {});

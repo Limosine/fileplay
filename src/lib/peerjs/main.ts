@@ -19,19 +19,19 @@ export const openPeer = async (uuid?: string) => {
 
   peer.update((peer_self) => {
     peer_self.on('error', (err) => {
-      console.log(err);
-
       // @ts-ignore
       if (err.type == 'unavailable-id') {
+        console.log("PeerJS: ID unavailable")
         peer_self.destroy();
+      } else {
+        console.log("PeerJS: Error", err);
       }
     });
 
     peer_self.on("open", (id) => {
-      console.log("Peer opened");
+      console.log("PeerJS: Peer opened");
       peer_open.set(true);
       sender_uuid.set(id);
-      listen();
       // @ts-ignore
       if (localStorage.getItem("loggedIn")) {
         updatePeerJS_ID();
@@ -39,15 +39,16 @@ export const openPeer = async (uuid?: string) => {
     });
 
     peer_self.on("close", () => {
-      console.log("Peer closed");
+      console.log("PeerJS: Peer closed");
       peer_open.set(false);
       if (!get(peer_disconnected)) {
         openPeer();
+        listen();
       }
     });
 
     peer_self.on("disconnected", () => {
-      console.log("Peer disconnected");
+      console.log("PeerJS: Peer disconnected");
       peer_open.set(false);
       if (!get(peer_disconnected)) {
         reconnectPeer();
@@ -68,7 +69,7 @@ export const disconnectPeer = () => {
   get(peer).disconnect();
 };
 
-const listen = () => {
+export const listen = () => {
   peer.update((peer) => {
     peer.on("connection", (conn) => {
       conn.on("data", function (received_data) {
@@ -106,7 +107,7 @@ export const handleData = (data: any, conn: DataConnection) => {
     );
   } else if (data.type == "FileFinished") {
     handleFinish(data);
-  } else {
+  } else if (data.type != "FiletransferFinished") {
     console.log(data);
   }
 };

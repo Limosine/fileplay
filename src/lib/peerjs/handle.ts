@@ -126,6 +126,6 @@ export const handleChunk = (chunk: string, file_id: string) => {
       return received_chunks;
     });
   } else {
-    console.log("No such file");
+    console.log("PeerJS: No such file");
   }
 };

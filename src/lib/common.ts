@@ -16,6 +16,6 @@ export const SHARING_TIMEOUT = 3 * 60 * 1000; // 3 minutes
 export const ONLINE_STATUS_TIMEOUT = 1.5 * 60 * 1000;
 export const ONLINE_STATUS_REFRESH_TIME = 1 * 60 * 1000;
 
-export function getDicebearUrl(seed: string, size: number): string {
-  return `https://api.dicebear.com/6.x/adventurer/svg?seed=${seed}&radius=50&backgroundColor=b6e3f4&width=${size}&height=${size}`;
+export function getDicebearUrl(seed: string, size: number, radius: number = 50): string {
+  return `https://api.dicebear.com/6.x/adventurer/svg?seed=${seed}&radius=${radius}&backgroundColor=b6e3f4&width=${size}&height=${size}`;
 }
