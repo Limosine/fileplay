@@ -1,18 +1,6 @@
 import { get, writable } from "svelte/store";
 import { browser } from "$app/environment";
-
-export const drawer_open = writable(false);
-export const drawer = writable<"Contact" | "Notification" | "">("");
-
-export const select_open = writable(false);
-
-export const add_open = writable(false);
-export const NotificationPermission = writable(false);
-
-export const settings_open = writable(false);
-export const device_edit_loaded = writable(false);
-export const active = writable("Account");
-export const editDevice_open = writable(false);
+import { userParams } from "$lib/UI";
 
 export const codehostname = writable("");
 
@@ -55,32 +43,12 @@ export const deleteNotification = (tag: string) => {
   );
 };
 
-export const deviceParams = writable({
-  displayName: "",
-  type: "",
-  encryptionPublicKey: "",
-});
-
-export const userParams = writable({
-  displayName: "",
-  avatarSeed: "",
-});
-
-export const original_username = writable<string>("");
-export const original_avatarSeed = writable<string>("");
-export const original_displayName = writable<string>("");
-export const original_type = writable<string>("");
-export const deviceID = writable<number>();
-export const deviceIsSelf = writable<boolean>(false);
-
 export const profaneUsername = writable<{ loading: boolean; profane: boolean }>(
   {
     loading: false,
     profane: false,
   }
 );
-
-export const setupLoading = writable(false);
 
 export function updateIsProfaneUsername() {
   if (!browser || !get(userParams).displayName) return;

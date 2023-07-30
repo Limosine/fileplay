@@ -1,13 +1,9 @@
-import type { MaybePromise } from "@sveltejs/kit";
-import { get, writable } from "svelte/store";
-import {
-  deviceParams,
-  device_edit_loaded,
-  original_displayName,
-  original_type,
-} from "./stores/Dialogs";
+import { get } from "svelte/store";
+import { contacts, deviceInfos, deviceInfos_loaded, deviceParams, devices, devices_loaded, user, user_loaded } from "./UI";
 import { DeviceType } from "./common";
+import { own_did } from "./UI";
 
+// contacts
 export interface IContact {
   cid: number;
   displayName: string;
@@ -16,7 +12,6 @@ export interface IContact {
   lastSeenAt: number;
 }
 
-// contacts
 async function getContacts(): Promise<IContact[]> {
   return fetch("/api/contacts", {
     method: "GET",
@@ -28,8 +23,6 @@ async function getContacts(): Promise<IContact[]> {
     .catch(() => [] as IContact[]);
 }
 
-export const contacts = writable<MaybePromise<IContact[]>>([]);
-
 export async function updateContacts(): Promise<void> {
   contacts.set(await getContacts());
 }
@@ -38,7 +31,8 @@ export function updateContactsAsync(): void {
   contacts.set(getContacts());
 }
 
-export const devices = writable<{
+// devices
+export interface IDevices {
   self: {
     did: number;
     type: string;
@@ -53,30 +47,16 @@ export const devices = writable<{
     createdAt: number;
     lastSeenAt: number;
   }[];
-}>();
-export const devices_loaded = writable(false);
+};
 
-export async function getDevices(): Promise<{
-  self: {
-    did: number;
-    type: string;
-    displayName: string;
-    createdAt: number;
-    lastSeenAt: number;
-  };
-  others: {
-    did: number;
-    type: string;
-    displayName: string;
-    createdAt: number;
-    lastSeenAt: number;
-  }[];
-}> {
+export async function getDevices(): Promise<IDevices> {
   const res = await fetch("/api/devices", {
     method: "GET",
   });
 
   const devices_new: any = await res.json();
+
+  own_did.set(devices_new.self.did);
 
   devices.set(devices_new);
   if (!get(devices_loaded)) devices_loaded.set(true);
@@ -84,58 +64,16 @@ export async function getDevices(): Promise<{
   return devices_new;
 }
 
-export const user = writable<
-  Promise<{
-    uid: number;
-    displayName: string;
-    avatarSeed: string;
-    createdAt: number;
-    lastSeenAt: number;
-  }>
->();
-export const user_loaded = writable(false);
-
-export async function getUserInfo(): Promise<{
-  uid: number;
+// device infos
+export interface IDeviceInfos {
+  cid: number;
+  type: string;
   displayName: string;
-  avatarSeed: string;
-  createdAt: number;
-  lastSeenAt: number;
-}> {
-  const res = await fetch("/api/user", {
-    method: "GET",
-  });
+  peerJsId: string;
+  encryptionPublicKey: string;
+}[];
 
-  const user_new: any = await res.json();
-
-  user.set(user_new);
-  if (!get(user_loaded)) user_loaded.set(true);
-
-  return user_new;
-}
-
-export const deviceInfos = writable<
-  Promise<
-    {
-      cid: number;
-      type: string;
-      displayName: string;
-      peerJsId: string;
-      encryptionPublicKey: string;
-    }[]
-  >
->();
-export const deviceInfos_loaded = writable(false);
-
-export async function getDeviceInfos(): Promise<
-  {
-    cid: number;
-    type: string;
-    displayName: string;
-    peerJsId: string;
-    encryptionPublicKey: string;
-  }[]
-> {
+export async function getDeviceInfos(): Promise<IDeviceInfos> {
   const res = await fetch("/api/contacts/devices", {
     method: "GET",
   });
@@ -153,23 +91,40 @@ export function withDeviceType(name: string): { type: string; name: string; } {
   return { name, type: DeviceType[name] as string };
 }
 
+// user
+export interface IUser {
+  uid: number;
+  displayName: string;
+  avatarSeed: string;
+  createdAt: number;
+  lastSeenAt: number;
+};
+
+export async function getUserInfo(): Promise<IUser> {
+  const res = await fetch("/api/user", {
+    method: "GET",
+  });
+
+  const user_new: any = await res.json();
+
+  user.set(user_new);
+  if (!get(user_loaded)) user_loaded.set(true);
+
+  return user_new;
+}
+
+export async function getPeerJsId(did: number): Promise<string> {
+  const res = await fetch(`/api/guest?did=${did}`, {
+    method: "GET",
+  });
+
+  const peerJsId: any = await res.json();
+
+  return peerJsId;
+};
+
 export const loadInfos = (
-  devices: {
-    self: {
-      did: number;
-      type: string;
-      displayName: string;
-      createdAt: number;
-      lastSeenAt: number;
-    };
-    others: {
-      did: number;
-      type: string;
-      displayName: string;
-      createdAt: number;
-      lastSeenAt: number;
-    }[];
-  },
+  devices: IDevices,
   did: number
 ) => {
   let device:
@@ -198,10 +153,10 @@ export const loadInfos = (
     return deviceParams;
   });
 
-  original_displayName.set(device.displayName);
-  original_type.set(device.type);
+  // original_displayName.set(device.displayName);
+  // original_type.set(device.type);
 
-  device_edit_loaded.set(true);
+  // device_edit_loaded.set(true);
 };
 
 export async function updatePeerJS_ID() {

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { openDialog, settings_page } from "$lib/UI";
   import { getDicebearUrl } from "$lib/common";
-  import { user } from "$lib/personal";
+  import { user } from "$lib/UI";
 
 </script>
 

@@ -15,7 +15,6 @@
 
   import Layout from "$lib/components/Layout.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
-  import Setup from "$lib/dialogs/Setup.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
   import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
 
@@ -123,7 +122,6 @@
   <div id="overlay" />
 
   <Notifications />
-  <Setup />
 
   <Layout>
     <slot />

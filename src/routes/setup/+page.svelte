@@ -8,12 +8,8 @@
 
   import { DeviceType, getDicebearUrl } from "$lib/common";
   import { withDeviceType } from "$lib/personal";
-  import {
-    deviceParams,
-    profaneUsername,
-    userParams,
-    setupLoading,
-  } from "$lib/stores/Dialogs";
+  import { profaneUsername } from "$lib/stores/Dialogs";
+  import { deviceParams, userParams } from "$lib/UI";
   import { publicKey_armored, setup as pgp_setup } from "$lib/openpgp";
   import { get } from "svelte/store";
   import Username from "$lib/components/Username.svelte";
@@ -130,11 +126,7 @@
       <p class="bold" style="font-size: large">Device</p>
       <div id="content" class="row center-align" style="padding-bottom: 30px;">
         <div class="field label">
-          <input
-            bind:value={$deviceParams.displayName}
-            disabled={$setupLoading}
-            maxlength={32}
-          />
+          <input bind:value={$deviceParams.displayName} maxlength={32} />
           <!-- svelte-ignore a11y-label-has-associated-control-->
           <label>Device Name</label>
         </div>
@@ -143,7 +135,6 @@
           <select
             class="active"
             bind:value={$deviceParams.type}
-            disabled={$setupLoading}
             style="min-width: 200px;"
           >
             {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
@@ -160,10 +151,9 @@
       <div id="content" style="padding-bottom: 20px;">
         <nav class="no-space center-align">
           {#if !existing}
-            <button class="left-round" disabled={$setupLoading}>New</button>
+            <button class="left-round">New</button>
             <button
               class="right-round border"
-              disabled={$setupLoading}
               on:click={() => {
                 existing = true;
                 setupError = "";
@@ -174,15 +164,12 @@
           {:else}
             <button
               class="left-round border"
-              disabled={$setupLoading}
               on:click={() => {
                 existing = false;
                 setupError = "";
               }}>New</button
             >
-            <button class="right-round" disabled={$setupLoading}>
-              Connect to existing
-            </button>
+            <button class="right-round"> Connect to existing </button>
           {/if}
         </nav>
       </div>
@@ -197,26 +184,22 @@
             <strong>Generate linking code</strong>.
           </p>
           <div class="field label">
-            <input
-              bind:value={linkingCode}
-              disabled={$setupLoading}
-              maxlength={6}
-            />
+            <input bind:value={linkingCode} maxlength={6} />
             <!-- svelte-ignore a11y-label-has-associated-control-->
             <label>Linking Code</label>
           </div>
         </div>
       {/if}
       <nav class="right-align" style="margin-top: 40px;">
+        {#if setupError}
+          <p style="color:red">{setupError}</p>
+        {/if}
+
         <button
           disabled={actionDisabled}
           on:click={handleConfirm}
           class={actionDisabled ? "border" : ""}>Finish</button
         >
-
-        {#if setupError}
-          <p style="color:red">{setupError}</p>
-        {/if}
       </nav>
     </div>
   </article>

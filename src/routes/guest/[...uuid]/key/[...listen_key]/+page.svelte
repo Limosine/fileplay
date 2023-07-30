@@ -6,7 +6,7 @@
   import { writable } from "svelte/store";
   import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/openpgp";
-  import { goto } from "$app/navigation";
+  import { getPeerJsId } from "$lib/personal";
 
   let waitingTemplateString = "Waiting for files";
   let finalString = waitingTemplateString;
@@ -45,7 +45,9 @@
     pgp_setup();
     openPeer();
 
-    connectAsListener($page.params.uuid, $page.params.listen_key);
+    const peerJsId = await getPeerJsId(Number($page.params.uuid));
+
+    connectAsListener(peerJsId, $page.params.listen_key);
   });
 
   const returnProgress = (file_id: string, progress: number) => {

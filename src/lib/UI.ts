@@ -1,18 +1,47 @@
 import { writable } from "svelte/store";
 import { DeviceType } from "./common";
-import { deviceParams, userParams } from "./stores/Dialogs";
+import type { MaybePromise } from "@sveltejs/kit";
+import type { IContact, IDeviceInfos, IDevices, IUser } from "./personal";
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
 export const settings_page = writable<"main" | "devices">("main");
 
+// Setup values:
+export const linkingCode = writable("");
+
+// Personal infos:
+export const own_did = writable<number>();
+
+export const deviceParams = writable({
+  displayName: "",
+  type: "",
+  encryptionPublicKey: "",
+});
+
+export const userParams = writable({
+  displayName: "",
+  avatarSeed: "",
+});
+
+export const contacts = writable<MaybePromise<IContact[]>>([]);
+
+export const devices = writable<IDevices>();
+export const devices_loaded = writable(false);
+
+export const deviceInfos = writable<Promise<IDeviceInfos>>();
+export const deviceInfos_loaded = writable(false);
+
+export const user = writable<Promise<IUser>>();
+export const user_loaded = writable(false);
+
 // Edit dialog
 export type edit_options = "deviceName" | "deviceType" | "username" | "linkingCode" | "avatar";
-
 export const edit_current = writable<edit_options>("deviceName");
+
 export const title = writable("");
-export const original_value = writable("");
 export const did = writable<number>();
-export const linkingCode = writable("");
+
+export const original_value = writable("");
 
 export const openDialog = (currentU: edit_options, titleU: string, original_valueU?: string, didU?: number) => {
   edit_current.set(currentU);
@@ -52,6 +81,7 @@ export const openDialog = (currentU: edit_options, titleU: string, original_valu
   ui("#dialog-edit");
 };
 
+// Setup/Settings page:
 export const ValueToName = (value: string) => {
   for (var key in DeviceType) {
     if (DeviceType.hasOwnProperty(key)) {

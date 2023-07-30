@@ -197,17 +197,20 @@
   onMount(() => (updateInterval = setInterval(updateExpiresIn, 1000)));
   onDestroy(() => clearInterval(updateInterval));
   // TODO button 'regenerate encryption keys'
+
+  const loadInfosFunc = async () => {
+    loadInfos(await $devices, $deviceID)
+  }
+
+  $: {
+    if ($devices_loaded && $deviceID && !$device_edit_loaded) {
+      loadInfosFunc();
+    }
+
+  }
 </script>
 
 <svelte:window on:keydown={handleSettingsKeyDown} />
-
-<div style="display: none">
-  {#if $devices_loaded && $deviceID && !$device_edit_loaded}
-    {#await $devices then devices}
-      {loadInfos(devices, $deviceID)}
-    {/await}
-  {/if}
-</div>
 
 <Dialog
   bind:open={$settings_open}

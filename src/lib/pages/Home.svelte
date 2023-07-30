@@ -4,12 +4,11 @@
   import QRCode from "qrcode";
   import { onMount } from "svelte";
   import {
-    contacts,
     getDeviceInfos,
     updateContacts,
     type IContact,
   } from "$lib/personal";
-  import { current } from "$lib/UI";
+  import { current, contacts } from "$lib/UI";
   import { getDicebearUrl } from "$lib/common";
   import { sendState, SendState } from "$lib/stores/state";
 
@@ -62,11 +61,11 @@
         setSendState(contact.cid, SendState.CANCELED);
         break;
       default: // IDLE, CANCELED, FAILED, REJECTED
-        let devices = (await getDeviceInfos()).filter(
-          (item) => item.cid == contact.cid
+        let devices = (await getDeviceInfos() as any).filter(
+          (item: any) => item.cid == contact.cid
         );
 
-        devices.forEach((device) => {
+        devices.forEach((device: any) => {
           send(
             $files,
             contact.cid.toString(),

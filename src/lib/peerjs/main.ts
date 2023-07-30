@@ -11,6 +11,7 @@ import {
 } from "./send";
 import { handleChunk, handleChunkFinish, handleFileInfos, handleFinish } from "./handle";
 import { updatePeerJS_ID } from "$lib/personal";
+import { own_did } from "$lib/UI";
 
 export const openPeer = async (uuid?: string) => {
   if (uuid) {
@@ -122,7 +123,7 @@ export const addPendingFile = async (files: FileList) => {
         ":" +
         location.port +
         "/guest/" +
-        get(sender_uuid) +
+        get(own_did) +
         "/key/" +
         filetransfer_id
     );

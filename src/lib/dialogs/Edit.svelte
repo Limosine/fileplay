@@ -10,7 +10,7 @@
   } from "$lib/UI";
   import { DeviceType, getDicebearUrl } from "$lib/common";
   import { getDevices, getUserInfo, withDeviceType } from "$lib/personal";
-  import { deviceParams, userParams } from "$lib/stores/Dialogs";
+  import { deviceParams, userParams } from "$lib/UI";
   import { onMount } from "svelte";
   import { page } from "$app/stores";
 

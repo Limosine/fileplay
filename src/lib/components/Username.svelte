@@ -2,14 +2,11 @@
   import { nanoid } from "nanoid";
 
   import {
-    userParams,
     profaneUsername,
     updateIsProfaneUsername,
-    setupLoading,
-    original_username,
-    original_avatarSeed,
   } from "$lib/stores/Dialogs";
-  import { user_loaded, user } from "$lib/personal";
+  import { userParams } from "$lib/UI";
+  import { user_loaded, user } from "$lib/UI";
   import { getDicebearUrl } from "$lib/common";
 
   const loadInfos = (user: {
@@ -21,8 +18,8 @@
   }) => {
     $userParams.displayName = user.displayName;
     $userParams.avatarSeed = user.avatarSeed;
-    $original_username = user.displayName;
-    $original_avatarSeed = user.avatarSeed;
+    // $original_username = user.displayName;
+    // $original_avatarSeed = user.avatarSeed;
   };
 
   const generateAvatar = () => {
@@ -44,7 +41,6 @@
   <div class="field label {$profaneUsername.profane ? 'invalid' : ''}">
     <input
       bind:value={$userParams.displayName}
-      disabled={$setupLoading}
       on:focusout={() => updateIsProfaneUsername()}
       maxlength={32}
     />
@@ -62,7 +58,6 @@
         <button
           class="circle"
           on:click={() => ($userParams.avatarSeed = nanoid(8))}
-          disabled={$setupLoading}
         >
           <i>refresh</i>
         </button>

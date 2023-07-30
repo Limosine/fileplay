@@ -10,7 +10,7 @@ export async function generateKey() {
     await openpgp.generateKey({
       type: "ecc",
       curve: "curve25519",
-      userIDs: [{ name: "Jon Smith" }], // displayName
+      userIDs: [{ name: "Fileplay" }], // displayName
     });
 
   privateKey_armored = privateKey;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { add_open, codehostname } from "$lib/stores/Dialogs";
+  import { codehostname } from "$lib/stores/Dialogs";
   import { onDestroy, onMount } from "svelte";
   import dayjs from "dayjs";
   import { updateContacts } from "$lib/personal";
