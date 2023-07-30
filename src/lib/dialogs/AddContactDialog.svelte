@@ -63,7 +63,7 @@
 <dialog
   id="dialog-add"
 >
-  <p style="font-size: large; margin-bottom: 2px;">Add contact</p>
+  <p style="font-size: large; margin-bottom: 10px;">Add contact</p>
   <div id="content">
     <nav class="no-space center-align">
       {#if redeemCode_section}
@@ -120,11 +120,12 @@
       on:click={() => ui("#dialog-add")}
       >Cancel</button
     >
+    <!-- svelte-ignore missing-declaration -->
     <button
       disabled={code == ""}
       class="border"
       style="border: 0;"
-      on:click={() => {setHostname(); redeemCode();}}
+      on:click={() => {setHostname(); redeemCode(); ui("#dialog-add")}}
       >Add</button
     >
   </nav>

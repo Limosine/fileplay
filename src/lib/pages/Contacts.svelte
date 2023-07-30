@@ -1,6 +1,5 @@
 <script lang="ts">
   import { getDicebearUrl } from "$lib/common";
-  import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
   import { contacts, updateContacts } from "$lib/personal";
 
   async function deleteContact(cid: number) {
@@ -10,8 +9,6 @@
     await updateContacts();
   }
 </script>
-
-<AddContactDialog />
 
 {#await $contacts}
   <p>Contacts are loading...</p>

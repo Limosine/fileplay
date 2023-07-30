@@ -1,21 +1,23 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
+  import { browser } from "$app/environment";
+  import { useRegisterSW } from "virtual:pwa-register/svelte";
+  import { writable, type Readable, type Writable } from "svelte/store";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
   import "material-dynamic-colors";
 
   import logo from "$lib/assets/Fileplay.png";
-
-  import { browser } from "$app/environment";
-  import { useRegisterSW } from "virtual:pwa-register/svelte";
-  import { writable, type Readable, type Writable } from "svelte/store";
   import { addNotification } from "$lib/stores/Dialogs";
+  import { status } from "$lib/websocket";
+  import { setup as pgp_setup } from "$lib/openpgp";
+
   import Layout from "$lib/components/Layout.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import Setup from "$lib/dialogs/Setup.svelte";
-  import { status } from "$lib/websocket";
-  import { setup as pgp_setup } from "$lib/openpgp";
+  import Edit from "$lib/dialogs/Edit.svelte";
+  import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
 
   let peer_open = writable(false);
   let socketStore: Readable<any>;
@@ -114,6 +116,10 @@
 </div>
 
 {#if !loading}
+  <!-- Dialogs -->
+  <Edit />
+  <AddContactDialog />
+
   <div id="overlay" />
 
   <Notifications />

@@ -3,10 +3,7 @@
   import { getDicebearUrl } from "$lib/common";
   import { user } from "$lib/personal";
 
-  import Edit from "$lib/dialogs/Edit.svelte";
 </script>
-
-<Edit />
 
 {#if $settings_page == "main"}
   {#await $user}
