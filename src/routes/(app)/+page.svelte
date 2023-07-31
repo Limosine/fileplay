@@ -7,6 +7,7 @@
     updateContacts,
     getDevices,
     getDeviceInfos,
+    getContent,
   } from "$lib/personal";
 
   import Home from "$lib/pages/Home.svelte";
@@ -41,7 +42,8 @@
 
   onDestroy(stopRefresh);
 
-  onMount(async () => {
+  onMount(() => {
+    getContent();
     startRefresh();
   });
 

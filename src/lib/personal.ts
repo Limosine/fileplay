@@ -174,4 +174,5 @@ export function getContent() {
   getUserInfo();
   updateContactsAsync();
   getDevices();
+  getDeviceInfos();
 }

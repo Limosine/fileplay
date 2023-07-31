@@ -22,6 +22,18 @@
       url?: string | undefined;
     }[]
   >([]);
+  let pending_filetransfers = writable<{
+    filetransfer_id: string;
+    encrypted: string;
+    completed: boolean;
+    files: {
+        file: string[];
+        chunks: number;
+        file_name: string;
+        file_id: string;
+    }[];
+    cid?: string | undefined;
+  }[]>([]);
   let link = writable("");
   let sender_uuid: Writable<string>;
   let addPendingFile = (files: FileList) => {};
@@ -80,10 +92,72 @@
     }
   }
 
+  let progress = writable<{ [cid: string]: number }>({});
+  let progress_styles = writable<{ [cid: string]: { class: string, indeterminate: boolean }}>({});
+  $: {
+    if (Object.keys($sendState).length != 0) {
+      for (let [key, value] of Object.entries($sendState)) {
+        switch(value) {
+          case SendState.REQUESTING:
+            $progress_styles[key] = {
+              class: "progress-yellow",
+              indeterminate: true,
+            };
+            break;
+          case SendState.IDLE:
+            $progress[key] = 0;
+            $progress_styles[key] = {
+              class: "",
+              indeterminate: false,
+            };
+            break;
+          case SendState.SENDING:
+            $progress_styles[key] = {
+              class: "",
+              indeterminate: false,
+            };
+            break;
+          case SendState.SENT:
+            $progress[key] = 1;
+            $progress_styles[key] = {
+              class: "progress-green",
+              indeterminate: false,
+            };
+            break;
+          default:
+            $progress[key] = 1;
+            $progress_styles[key] = {
+              class: "progress-red",
+              indeterminate: false,
+            };
+            break;
+        }
+      }
+    }
+  }
+  $: {
+    if ($pending_filetransfers.length != 0) {
+      $pending_filetransfers.forEach((pending_filetransfer) => {
+        if (pending_filetransfer.cid !== undefined) {
+          let sent = 0;
+          let total = 0;
+
+          pending_filetransfer.files.forEach((file) => {
+            sent = sent + file.chunks;
+            total = total + file.file.length;
+          });
+
+          $progress[pending_filetransfer.cid] = sent / total;
+        }
+      });
+    }
+  }
+
   onMount(async () => {
     sender_uuid = (await import("$lib/peerjs/common")).sender_uuid;
 
     addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
+    pending_filetransfers = (await import("$lib/peerjs/common")).pending_filetransfers;
     send = (await import("$lib/peerjs/send")).send;
     received_chunks = (await import("$lib/peerjs/common")).received_chunks;
 
@@ -212,6 +286,7 @@
           {#each contacts as contact}
             <button
               class="border small-round"
+              style="border: {($progress[contact.cid] === undefined) ? "1" : ($progress[contact.cid] < 0.25) ? "0" : ($progress[contact.cid] < 0.5) ? "1 0 0 0" : ($progress[contact.cid] < 0.75) ? "1 1 0 0" : ($progress[contact.cid] < 1) ? "1 1 1 0" : "1"};"
               on:click={() => handleContactClick(contact)}
             >
               <img
