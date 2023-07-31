@@ -1,11 +1,12 @@
 import { readable, writable } from "svelte/store";
+import { PUBLIC_FILEPLAY_DOMAIN } from "$env/static/public";
 
 function createWebSocket() {
-  let websocket = new WebSocket("wss://dev.fileplay.pages.dev/websocket");
-  websocket.onopen = (event) => {
+  let websocket = new WebSocket(`wss://${PUBLIC_FILEPLAY_DOMAIN}/websocket`);
+  websocket.onopen = () => {
     websocket.send("isOnline");
   };
-  websocket.onclose = (event) => {
+  websocket.onclose = () => {
     status.set("0");
     console.log("WebSocket connection closed, retrying in 5 seconds.");
     setTimeout(() => { websocket = createWebSocket(); }, 5000);

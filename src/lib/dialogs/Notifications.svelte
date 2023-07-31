@@ -4,12 +4,53 @@
     deleteNotification,
     type INotification,
   } from "$lib/lib/UI";
+  import { onMount } from "svelte";
+  import { writable } from "svelte/store";
+
+  let received_chunks = writable<
+    {
+      file_id: string;
+      file_name: string;
+      encrypted: string;
+      chunk_number: number;
+      chunks: string[];
+      url?: string | undefined;
+    }[]
+  >();
 
   async function handleNotificationClick(n: INotification, action: string) {
     if (action == "download") {
       window.location.href = n.data;
     }
   }
+
+  const returnProgress = (
+    file_id: string,
+    received_chunks: {
+      file_id: string;
+      file_name: string;
+      encrypted: string;
+      chunk_number: number;
+      chunks: string[];
+      url?: string;
+    }[]
+  ) => {
+    const file = received_chunks.find(
+      (received_chunk) => received_chunk.file_id === file_id
+    );
+
+    if (file !== undefined) {
+      const progress = (file.chunks.length / file.chunk_number) * 100;
+
+      ui(`#file-${file_id}`, progress);
+    }
+
+    return "";
+  };
+
+  onMount(async () => {
+    received_chunks = (await import("$lib/peerjs/common")).received_chunks;
+  });
 </script>
 
 <dialog class="right" id="dialog-notifications">
@@ -29,6 +70,15 @@
         class="border"
         style="margin: 0; padding: 0; position: relative;"
       >
+        {#if n.title == "Receiving file"}
+          <div
+            class="progress left {returnProgress(
+              n.data.file_id,
+              $received_chunks
+            )}"
+            id="file-{n.data.file_id}"
+          />
+        {/if}
         <button
           on:click={() => deleteNotification(n.tag)}
           class="transparent circle large"

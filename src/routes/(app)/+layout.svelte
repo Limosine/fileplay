@@ -16,7 +16,7 @@
   import Layout from "$lib/components/Layout.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
-  import AddContactDialog from "$lib/dialogs/AddContactDialog.svelte";
+  import AddContact from "$lib/dialogs/AddContact.svelte";
 
   let peer_open = writable(false);
   let socketStore: Readable<any>;
@@ -117,7 +117,7 @@
 {#if !loading}
   <!-- Dialogs -->
   <Edit />
-  <AddContactDialog />
+  <AddContact />
 
   <div id="overlay" />
 
