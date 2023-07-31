@@ -92,7 +92,7 @@
     }
   }
 
-  let progress = writable<{ [cid: string]: number }>({});
+  let progress = writable<{ [cid: string]: string }>({});
   let progress_styles = writable<{ [cid: string]: { class: string, indeterminate: boolean }}>({});
   $: {
     if (Object.keys($sendState).length != 0) {
@@ -105,7 +105,6 @@
             };
             break;
           case SendState.IDLE:
-            $progress[key] = 0;
             $progress_styles[key] = {
               class: "",
               indeterminate: false,
@@ -118,14 +117,12 @@
             };
             break;
           case SendState.SENT:
-            $progress[key] = 1;
             $progress_styles[key] = {
               class: "progress-green",
               indeterminate: false,
             };
             break;
           default:
-            $progress[key] = 1;
             $progress_styles[key] = {
               class: "progress-red",
               indeterminate: false,
@@ -147,7 +144,21 @@
             total = total + file.file.length;
           });
 
-          $progress[pending_filetransfer.cid] = sent / total;
+          const progress_number = sent / total;
+
+          if (progress_number < 0.25) {
+            $progress[pending_filetransfer.cid] = "0";
+          } else if (progress_number < 0.5) {
+            $progress[pending_filetransfer.cid] = "0px 1px 0px 0px";
+          } else if (progress_number < 0.75) {
+            $progress[pending_filetransfer.cid] = "0px 1px 1px 0px";
+          } else if (progress_number < 1) {
+            $progress[pending_filetransfer.cid] = "0px 1px 1px 1px";
+          } else {
+            $progress[pending_filetransfer.cid] = "1px";
+          }
+
+          console.log(progress_number, $progress[pending_filetransfer.cid]);
         }
       });
     }
@@ -286,7 +297,7 @@
           {#each contacts as contact}
             <button
               class="border small-round"
-              style="border: {($progress[contact.cid] === undefined) ? "1" : ($progress[contact.cid] < 0.25) ? "0" : ($progress[contact.cid] < 0.5) ? "1 0 0 0" : ($progress[contact.cid] < 0.75) ? "1 1 0 0" : ($progress[contact.cid] < 1) ? "1 1 1 0" : "1"};"
+              style="border: {($progress[contact.cid] === undefined) ? "1px" : $progress[contact.cid]};"
               on:click={() => handleContactClick(contact)}
             >
               <img
