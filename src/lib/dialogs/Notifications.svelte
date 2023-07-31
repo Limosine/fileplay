@@ -1,9 +1,14 @@
 <script lang="ts">
-  import { notifications, deleteNotification, type INotification } from "$lib/stores/Dialogs";
+  import {
+    notifications,
+    deleteNotification,
+    type INotification,
+  } from "$lib/stores/Dialogs";
 
   async function handleNotificationClick(n: INotification, action: string) {
-    deleteNotification(n.tag);
-    if (action == "close") return null;
+    if (action == "download") {
+      window.location.href = n.data;
+    }
   }
 </script>
 
@@ -37,9 +42,21 @@
           <p>{n.body}</p>
           <nav class="right-align">
             {#each n.actions ?? [] as action}
-              <button on:click={() => handleNotificationClick(n, action.action)}
-                >{action.title}</button
-              >
+              {#if action.action == "download"}
+                <a
+                  class="chip round primary"
+                  href={n.data.url}
+                  download={n.data.filename}
+                >
+                  <span>Download</span>
+                </a>
+              {:else}
+                <button
+                  on:click={() => handleNotificationClick(n, action.action)}
+                >
+                  {action.title}
+                </button>
+              {/if}
             {/each}
           </nav>
         </div>

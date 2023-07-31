@@ -157,8 +157,6 @@
           } else {
             $progress[pending_filetransfer.cid] = "var(--primary)";
           }
-
-          console.log(progress_number, $progress[pending_filetransfer.cid]);
         }
       });
     }

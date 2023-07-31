@@ -4,6 +4,7 @@ import { decryptFiles, decryptFilesWithPassword } from "$lib/openpgp";
 import { page } from "$app/stores";
 import { sendState, SendState } from "$lib/stores/state";
 import { sendChunk, sendFinish } from "./send";
+import { addNotification } from "$lib/stores/Dialogs";
 
 export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_id: string, chunk_id: number) => {
   let chunk_info:
@@ -99,6 +100,8 @@ export const handleFinish = async (data: any) => {
     received_chunks[index].url = url;
     return received_chunks;
   });
+
+  addNotification({title: "File received", body: `The file '${get(received_chunks)[index].file_name}' was received.`, actions: [{title: "Download", action: "download"}], data: { filename: get(received_chunks)[index].file_name, url: url}});
 };
 
 export const handleFileInfos = (data: any) => {
