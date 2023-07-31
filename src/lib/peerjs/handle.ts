@@ -1,10 +1,10 @@
 import { get } from "svelte/store";
 import { createFileURL, pending_filetransfers, received_chunks } from "./common";
-import { decryptFiles, decryptFilesWithPassword } from "$lib/openpgp";
+import { decryptFiles, decryptFilesWithPassword } from "$lib/lib/openpgp";
 import { page } from "$app/stores";
-import { sendState, SendState } from "$lib/stores/state";
+import { sendState, SendState } from "$lib/lib/sendstate";
 import { sendChunk, sendFinish } from "./send";
-import { addNotification } from "$lib/stores/Dialogs";
+import { addNotification, deleteNotification } from "$lib/lib/UI";
 
 export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_id: string, chunk_id: number) => {
   let chunk_info:
@@ -101,7 +101,8 @@ export const handleFinish = async (data: any) => {
     return received_chunks;
   });
 
-  addNotification({title: "File received", body: `The file '${get(received_chunks)[index].file_name}' was received.`, actions: [{title: "Download", action: "download"}], data: { filename: get(received_chunks)[index].file_name, url: url}});
+  deleteNotification(`file-${get(received_chunks)[index].file_id}`);
+  addNotification({title: "File received", body: `The file '${get(received_chunks)[index].file_name}' was received.`, tag: `file-${get(received_chunks)[index].file_id}`, actions: [{title: "Download", action: "download"}], data: { filename: get(received_chunks)[index].file_name, url: url}});
 };
 
 export const handleFileInfos = (data: any) => {
@@ -115,6 +116,8 @@ export const handleFileInfos = (data: any) => {
     };
 
     received_chunks.set([...get(received_chunks), initial_chunk_info]);
+
+    addNotification({title: "Receiving file", body: `The file '${file.file_name}' is being received.`, tag: `file-${file.file_id}`, actions: [{title: "Cancel", action: "cancel"}], data: { file_id: file.file_id}});
   });
 };
 

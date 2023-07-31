@@ -3,7 +3,7 @@
     notifications,
     deleteNotification,
     type INotification,
-  } from "$lib/stores/Dialogs";
+  } from "$lib/lib/UI";
 
   async function handleNotificationClick(n: INotification, action: string) {
     if (action == "download") {

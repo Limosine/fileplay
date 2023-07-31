@@ -2,12 +2,13 @@
   import { nanoid } from "nanoid";
 
   import {
+    userParams,
+    user,
+    user_loaded,
     profaneUsername,
     updateIsProfaneUsername,
-  } from "$lib/stores/Dialogs";
-  import { userParams } from "$lib/UI";
-  import { user_loaded, user } from "$lib/UI";
-  import { getDicebearUrl } from "$lib/common";
+  } from "$lib/lib/UI";
+  import { getDicebearUrl } from "$lib/lib/common";
 
   const loadInfos = (user: {
     uid: number;

@@ -19,6 +19,7 @@
 		"./src/**/*.js",
 		"./src/**/*.ts",
     "./src/lib/*.ts",
+    "./src/lib/lib/*.ts",
 		"./src/**/*.svelte",
 		"./tests/**/*.js",
 		"./tests/**/*.ts",

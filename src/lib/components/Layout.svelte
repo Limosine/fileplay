@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { status as current_status } from "$lib/websocket";
-  import { current, settings_page } from "$lib/UI";
-  import { getUserInfo, updateContacts } from "$lib/personal";
+  import { status as current_status } from "$lib/lib/websocket";
+  import { current, settings_page } from "$lib/lib/UI";
+  import { getUserInfo, updateContacts } from "$lib/lib/fetchers";
+  import { notifications } from "$lib/lib/UI";
 
   // Top app bar
   const colors = ["yellow", "green", "red"];
@@ -50,6 +51,9 @@
           on:click={() => ui("#dialog-notifications")}
         >
           <i>notifications</i>
+          {#if $notifications.length != 0}
+            <span class="badge circle">{$notifications.length}</span>
+          {/if}
           <div class="tooltip bottom">Notifications</div>
         </button>
         <button class="l m circle transparent">

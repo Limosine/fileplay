@@ -2,13 +2,13 @@
   import { onDestroy, onMount } from "svelte";
 
   import Input, { files } from "$lib/components/Input.svelte";
-  import { current, settings_page, user_loaded } from "$lib/UI";
+  import { current, settings_page, user_loaded } from "$lib/lib/UI";
   import {
     updateContacts,
     getDevices,
     getDeviceInfos,
     getContent,
-  } from "$lib/personal";
+  } from "$lib/lib/fetchers";
 
   import Home from "$lib/pages/Home.svelte";
   import Contacts from "$lib/pages/Contacts.svelte";

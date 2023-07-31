@@ -6,15 +6,14 @@
 
   import logo from "$lib/assets/Fileplay.png";
 
-  import { DeviceType, getDicebearUrl } from "$lib/common";
-  import { withDeviceType } from "$lib/personal";
-  import { profaneUsername } from "$lib/stores/Dialogs";
-  import { deviceParams, userParams } from "$lib/UI";
-  import { publicKey_armored, setup as pgp_setup } from "$lib/openpgp";
+  import { DeviceType, getDicebearUrl } from "$lib/lib/common";
+  import { withDeviceType } from "$lib/lib/fetchers";
+  import { deviceParams, userParams, profaneUsername } from "$lib/lib/UI";
+  import { publicKey_armored, setup as pgp_setup } from "$lib/lib/openpgp";
   import { get } from "svelte/store";
   import Username from "$lib/components/Username.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
-  import { ValueToName, openDialog } from "$lib/UI";
+  import { ValueToName, openDialog } from "$lib/lib/UI";
 
   let progress = 0;
   let setupError: string;

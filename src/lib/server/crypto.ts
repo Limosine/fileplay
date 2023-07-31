@@ -1,7 +1,7 @@
 import { error, type Cookies } from "@sveltejs/kit";
 import { arrayBufferToHex, hexToArrayBuffer } from "./utils";
 import type { CookieSerializeOptions } from "cookie";
-import type { Database } from "$lib/db";
+import type { Database } from "$lib/lib/db";
 import dayjs from "dayjs";
 
 export async function saveSignedDeviceID(

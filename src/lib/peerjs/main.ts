@@ -10,8 +10,8 @@ import {
   sendInfos,
 } from "./send";
 import { handleChunk, handleChunkFinish, handleFileInfos, handleFinish } from "./handle";
-import { updatePeerJS_ID } from "$lib/personal";
-import { own_did } from "$lib/UI";
+import { updatePeerJS_ID } from "$lib/lib/fetchers";
+import { own_did } from "$lib/lib/UI";
 
 export const openPeer = async (uuid?: string) => {
   if (uuid) {

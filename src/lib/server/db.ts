@@ -1,4 +1,4 @@
-import type { DB, Database } from "$lib/db";
+import type { DB, Database } from "$lib/lib/db";
 import { error } from "@sveltejs/kit";
 import { Kysely } from "kysely";
 import { D1Dialect } from "kysely-d1";

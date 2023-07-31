@@ -3,7 +3,7 @@ import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { LINKING_EXPIRY_TIME, LINKING_REFRESH_TIME } from "$lib/common";
+import { LINKING_EXPIRY_TIME, LINKING_REFRESH_TIME } from "$lib/lib/common";
 import dayjs from "dayjs";
 
 export const GET: RequestHandler = async ({ platform, cookies }) => {

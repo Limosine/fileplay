@@ -7,10 +7,10 @@
     linkingCode,
     original_value,
     did,
-  } from "$lib/UI";
-  import { DeviceType, getDicebearUrl } from "$lib/common";
-  import { getDevices, getUserInfo, withDeviceType } from "$lib/personal";
-  import { deviceParams, userParams } from "$lib/UI";
+  } from "$lib/lib/UI";
+  import { DeviceType, getDicebearUrl } from "$lib/lib/common";
+  import { getDevices, getUserInfo, withDeviceType } from "$lib/lib/fetchers";
+  import { deviceParams, userParams } from "$lib/lib/UI";
   import { onMount } from "svelte";
   import { page } from "$app/stores";
 

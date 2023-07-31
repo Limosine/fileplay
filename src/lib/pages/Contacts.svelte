@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { getDicebearUrl } from "$lib/common";
-  import { updateContacts } from "$lib/personal";
-  import { contacts } from "$lib/UI";
+  import { getDicebearUrl } from "$lib/lib/common";
+  import { updateContacts } from "$lib/lib/fetchers";
+  import { contacts } from "$lib/lib/UI";
 
   async function deleteContact(cid: number) {
     await fetch(`/api/contacts?cid=${cid}`, {

@@ -5,8 +5,8 @@
   import { onDestroy, onMount } from "svelte";
   import { writable } from "svelte/store";
   import { page } from "$app/stores";
-  import { setup as pgp_setup } from "$lib/openpgp";
-  import { getPeerJsId } from "$lib/personal";
+  import { setup as pgp_setup } from "$lib/lib/openpgp";
+  import { getPeerJsId } from "$lib/lib/fetchers";
 
   let waitingTemplateString = "Waiting for files";
   let finalString = waitingTemplateString;

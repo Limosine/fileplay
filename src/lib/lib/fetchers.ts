@@ -160,7 +160,7 @@ export const loadInfos = (
 };
 
 export async function updatePeerJS_ID() {
-  const sender_uuid = (await import("./peerjs/common")).sender_uuid;
+  const sender_uuid = (await import("../peerjs/common")).sender_uuid;
 
   await fetch("/api/devices", {
     method: "POST",

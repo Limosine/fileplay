@@ -7,9 +7,8 @@ import {
   pending_filetransfers,
 } from "./common";
 import { handleData } from "./main";
-import { encryptFiles, encryptFilesWithPassword } from "$lib/openpgp";
+import { encryptFiles, encryptFilesWithPassword } from "$lib/lib/openpgp";
 import { nanoid } from "nanoid";
-import { SendState, mappedIDs, sendState } from "$lib/stores/state";
 
 export const sendInfos = (peerID: string, filetransfer_id: string) => {
   let pending_filetransfer = get(pending_filetransfers).find(

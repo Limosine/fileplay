@@ -9,9 +9,9 @@
   import "material-dynamic-colors";
 
   import logo from "$lib/assets/Fileplay.png";
-  import { addNotification } from "$lib/stores/Dialogs";
-  import { status } from "$lib/websocket";
-  import { setup as pgp_setup } from "$lib/openpgp";
+  import { addNotification } from "$lib/lib/UI";
+  import { status } from "$lib/lib/websocket";
+  import { setup as pgp_setup } from "$lib/lib/openpgp";
 
   import Layout from "$lib/components/Layout.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
@@ -34,7 +34,7 @@
       openPeer();
       listen();
 
-      socketStore = (await import("$lib/websocket")).socketStore;
+      socketStore = (await import("$lib/lib/websocket")).socketStore;
       unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
 

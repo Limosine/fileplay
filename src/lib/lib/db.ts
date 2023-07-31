@@ -1,4 +1,4 @@
-import type { DeviceType } from "$lib/common";
+import type { DeviceType } from "$lib/lib/common";
 import type { Kysely, Generated, ColumnType } from "kysely";
 
 interface UsersTable {

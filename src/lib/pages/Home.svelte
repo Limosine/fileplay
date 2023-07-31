@@ -7,10 +7,10 @@
     getDeviceInfos,
     updateContacts,
     type IContact,
-  } from "$lib/personal";
-  import { current, contacts } from "$lib/UI";
-  import { getDicebearUrl } from "$lib/common";
-  import { sendState, SendState } from "$lib/stores/state";
+  } from "$lib/lib/fetchers";
+  import { current, contacts } from "$lib/lib/UI";
+  import { getDicebearUrl } from "$lib/lib/common";
+  import { sendState, SendState } from "$lib/lib/sendstate";
 
   let received_chunks = writable<
     {

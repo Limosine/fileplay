@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { codehostname } from "$lib/stores/Dialogs";
+  import { codehostname } from "$lib/lib/UI";
   import { onDestroy, onMount } from "svelte";
   import dayjs from "dayjs";
-  import { updateContacts } from "$lib/personal";
+  import { updateContacts } from "$lib/lib/fetchers";
 
   let hostname: string;
   let code = "";
