@@ -147,15 +147,15 @@
           const progress_number = sent / total;
 
           if (progress_number < 0.25) {
-            $progress[pending_filetransfer.cid] = "0";
+            $progress[pending_filetransfer.cid] = "var(--surface)";
           } else if (progress_number < 0.5) {
-            $progress[pending_filetransfer.cid] = "0px 1px 0px 0px";
+            $progress[pending_filetransfer.cid] = "var(--surface) var(--primary) var(--surface) var(--surface)";
           } else if (progress_number < 0.75) {
-            $progress[pending_filetransfer.cid] = "0px 1px 1px 0px";
+            $progress[pending_filetransfer.cid] = "var(--surface) var(--primary) var(--primary) var(--surface)";
           } else if (progress_number < 1) {
-            $progress[pending_filetransfer.cid] = "0px 1px 1px 1px";
+            $progress[pending_filetransfer.cid] = "var(--surface) var(--primary) var(--primary) var(--primary)";
           } else {
-            $progress[pending_filetransfer.cid] = "1px";
+            $progress[pending_filetransfer.cid] = "var(--primary)";
           }
 
           console.log(progress_number, $progress[pending_filetransfer.cid]);
@@ -297,7 +297,7 @@
           {#each contacts as contact}
             <button
               class="border small-round"
-              style="border: {($progress[contact.cid] === undefined) ? "1px" : $progress[contact.cid]};"
+              style="border-color: {($progress[contact.cid] !== undefined) ? $progress[contact.cid] : "var(--primary)"};"
               on:click={() => handleContactClick(contact)}
             >
               <img
