@@ -5,11 +5,11 @@
     "project": ["./tsconfig.json"],
     "extraFileExtensions": [".svelte"]
   },
-  "plugins": ["svelte3", "@typescript-eslint"],
+  "plugins": ["svelte4", "@typescript-eslint"],
   "overrides": [
     {
       "files": ["*.svelte"],
-      "processor": "svelte3/svelte3"
+      "processor": "svelte4/svelte4"
     }
   ],
   "rules": {
@@ -23,7 +23,7 @@
     "plugin:@typescript-eslint/recommended-requiring-type-checking"
   ],
   "settings": {
-    "svelte3/typescript": true // load TypeScript as peer dependency
+    "svelte4/typescript": true // load TypeScript as peer dependency
     // ...
   }
 }

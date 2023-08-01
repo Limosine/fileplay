@@ -6,7 +6,6 @@
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
-  import "material-dynamic-colors";
 
   import logo from "$lib/assets/Fileplay.png";
   import { addNotification } from "$lib/lib/UI";

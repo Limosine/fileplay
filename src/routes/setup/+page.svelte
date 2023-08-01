@@ -2,7 +2,6 @@
   import { onMount } from "svelte";
 
   import "beercss";
-  import "material-dynamic-colors";
 
   import logo from "$lib/assets/Fileplay.png";
 

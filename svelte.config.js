@@ -19,6 +19,9 @@ const config = {
     csrf: {
       checkOrigin: false,
     },
+    serviceWorker: {
+      register: false
+    }
   },
 };
 
