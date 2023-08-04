@@ -94,30 +94,30 @@ export const openDialog = (currentU: edit_options, titleU: string, original_valu
     original_value.set(original_valueU);
 
     switch (currentU) {
-      case "username":
-        userParams.update((user) => {
-          user.displayName = original_valueU;
-          return user;
-        });
-        break;
-      case "avatar":
-        userParams.update((user) => {
-          user.avatarSeed = original_valueU;
-          return user;
-        });
-        break;
-      case "deviceName":
-        deviceParams.update((device) => {
-          device.displayName = original_valueU;
-          return device;
-        });
-        break;
-      case "deviceType":
-        deviceParams.update((device) => {
-          device.type = original_valueU;
-          return device;
-        });
-        break;
+    case "username":
+      userParams.update((user) => {
+        user.displayName = original_valueU;
+        return user;
+      });
+      break;
+    case "avatar":
+      userParams.update((user) => {
+        user.avatarSeed = original_valueU;
+        return user;
+      });
+      break;
+    case "deviceName":
+      deviceParams.update((device) => {
+        device.displayName = original_valueU;
+        return device;
+      });
+      break;
+    case "deviceType":
+      deviceParams.update((device) => {
+        device.type = original_valueU;
+        return device;
+      });
+      break;
     }
   }
   ui("#dialog-edit");
@@ -125,7 +125,8 @@ export const openDialog = (currentU: edit_options, titleU: string, original_valu
 
 // Setup/Settings page:
 export const ValueToName = (value: string) => {
-  for (var key in DeviceType) {
+  for (const key in DeviceType) {
+    // eslint-disable-next-line no-prototype-builtins
     if (DeviceType.hasOwnProperty(key)) {
       // @ts-ignore
       if (DeviceType[key] == value) {

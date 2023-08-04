@@ -17,12 +17,12 @@ export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_
   let file_finished: string | undefined;
   let file_transfer_finished: string | undefined;
 
-  let next_chunk_id = chunk_id + 1;
+  const next_chunk_id = chunk_id + 1;
 
   for (let i = 0; i < get(pending_filetransfers).length; i++) {
     if (get(pending_filetransfers)[i].filetransfer_id == filetransfer_id) {
       for (let j = 0; j < get(pending_filetransfers)[i].files.length; j++) {
-        let pending_file = get(pending_filetransfers)[i].files[j];
+        const pending_file = get(pending_filetransfers)[i].files[j];
 
         if (pending_file.file_id == file_id) {
           if (next_chunk_id < pending_file.file.length) {
@@ -45,7 +45,7 @@ export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_
             file_finished = pending_file.file_id;
 
             if ((j + 1) < get(pending_filetransfers)[i].files.length) {
-              let next_file = get(pending_filetransfers)[i].files[j+1];
+              const next_file = get(pending_filetransfers)[i].files[j+1];
               chunk_info = {
                 file_id: next_file.file_id,
                 chunk_id: 0,
@@ -75,14 +75,14 @@ export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_
   if (chunk_info !== undefined) {
     sendChunk(peerID, filetransfer_id, chunk_info);
   }
-}
+};
 
 export const handleFinish = async (data: any) => {
-  let index = get(received_chunks).findIndex(
+  const index = get(received_chunks).findIndex(
     (received_file_chunks) => received_file_chunks.file_id == data.file_id
   );
 
-  let file = get(received_chunks)[index].chunks.join("");
+  const file = get(received_chunks)[index].chunks.join("");
 
   let decrypted_file;
   if (get(received_chunks)[index].encrypted == "publicKey") {
@@ -94,7 +94,7 @@ export const handleFinish = async (data: any) => {
     );
   }
 
-  let url = createFileURL(decrypted_file[0]);
+  const url = createFileURL(decrypted_file[0]);
 
   received_chunks.update((received_chunks) => {
     received_chunks[index].url = url;
@@ -107,7 +107,7 @@ export const handleFinish = async (data: any) => {
 
 export const handleFileInfos = (data: any) => {
   data.files.forEach((file: any) => {
-    let initial_chunk_info = {
+    const initial_chunk_info = {
       file_id: file.file_id,
       file_name: file.file_name,
       encrypted: data.encrypted,
@@ -122,7 +122,7 @@ export const handleFileInfos = (data: any) => {
 };
 
 export const handleChunk = (chunk: string, file_id: string) => {
-  let index = get(received_chunks).findIndex(
+  const index = get(received_chunks).findIndex(
     (received_file_chunks) => received_file_chunks.file_id == file_id
   );
 

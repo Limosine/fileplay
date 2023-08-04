@@ -19,10 +19,10 @@ export const openPeer = async (uuid?: string) => {
   } else peer.set(new Peer());
 
   peer.update((peer_self) => {
-    peer_self.on('error', (err) => {
+    peer_self.on("error", (err) => {
       // @ts-ignore
-      if (err.type == 'unavailable-id') {
-        console.log("PeerJS: ID unavailable")
+      if (err.type == "unavailable-id") {
+        console.log("PeerJS: ID unavailable");
         peer_self.destroy();
       } else {
         console.log("PeerJS: Error", err);
@@ -63,7 +63,7 @@ export const openPeer = async (uuid?: string) => {
 export const reconnectPeer = () => {
   peer_disconnected.set(false);
   get(peer).reconnect();
-}
+};
 
 export const disconnectPeer = () => {
   peer_disconnected.set(true);
@@ -114,7 +114,7 @@ export const handleData = (data: any, conn: DataConnection) => {
 };
 
 export const addPendingFile = async (files: FileList) => {
-  let filetransfer_id = await send(files);
+  const filetransfer_id = await send(files);
 
   if (filetransfer_id !== undefined) {
     link.set(
@@ -134,8 +134,8 @@ export const connectAsListener = (
   receiver_uuid: string,
   filetransfer_id: string
 ) => {
-  get(peer).on("open", (id) => {
-    let conn = get(peer).connect(receiver_uuid);
+  get(peer).on("open", () => {
+    const conn = get(peer).connect(receiver_uuid);
 
     conn.on("open", function () {
       conn.send({

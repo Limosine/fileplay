@@ -10,7 +10,7 @@ export const sender_uuid = writable<string>();
 export const connections = writable<DataConnection[]>([]);
 
 // Sender Side:
-export let pending_filetransfers = writable<
+export const pending_filetransfers = writable<
   {
     filetransfer_id: string,
     encrypted: string,
@@ -50,8 +50,8 @@ export function connected(receiver_uuid: string): DataConnection | false {
 }
 
 export const createFileURL = (file: any) => {
-  var blob = new Blob([file]);
-  var url = URL.createObjectURL(blob);
+  const blob = new Blob([file]);
+  const url = URL.createObjectURL(blob);
   return url;
 };
 
@@ -69,7 +69,7 @@ export const chunkString = (str: string, size: number) => {
 };
 
 export const chunkFiles = (files: FileList, encrypted_files: string[]) => {
-  let chunkedFiles: { file: string[], chunks: number, file_name: string, file_id: string; }[] =
+  const chunkedFiles: { file: string[], chunks: number, file_name: string, file_id: string; }[] =
     [];
 
   for (let i = 0; i < encrypted_files.length; i++) {

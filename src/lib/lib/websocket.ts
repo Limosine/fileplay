@@ -12,7 +12,7 @@ function createWebSocket() {
     setTimeout(() => { websocket = createWebSocket(); }, 5000);
   };
   return websocket;
-};
+}
 
 export const socketStore = readable<"0" | "1" | "2">("0", set => {
   let store = createWebSocket();

@@ -47,7 +47,7 @@
     startRefresh();
   });
 
-  async function notificationPermission() {
+  /* async function notificationPermission() {
     if ("Notification" in window) {
       if (Notification.permission === "granted") {
         return true;
@@ -61,9 +61,9 @@
 
   async function sendNotification(text: string) {
     if (await notificationPermission()) {
-      const notification = new Notification(text);
+      new Notification(text);
     }
-  }
+  } */
 </script>
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />

@@ -47,7 +47,7 @@ export interface IDevices {
     createdAt: number;
     lastSeenAt: number;
   }[];
-};
+}
 
 export async function getDevices(): Promise<IDevices> {
   const res = await fetch("/api/devices", {
@@ -98,7 +98,7 @@ export interface IUser {
   avatarSeed: string;
   createdAt: number;
   lastSeenAt: number;
-};
+}
 
 export async function getUserInfo(): Promise<IUser> {
   const res = await fetch("/api/user", {
@@ -121,7 +121,7 @@ export async function getPeerJsId(did: number): Promise<string> {
   const peerJsId: any = await res.json();
 
   return peerJsId;
-};
+}
 
 export const loadInfos = (
   devices: IDevices,
@@ -168,7 +168,7 @@ export async function updatePeerJS_ID() {
       peerJsId: get(sender_uuid),
     }),
   });
-};
+}
 
 export function getContent() {
   getUserInfo();

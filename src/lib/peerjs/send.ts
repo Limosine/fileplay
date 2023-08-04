@@ -11,13 +11,13 @@ import { encryptFiles, encryptFilesWithPassword } from "$lib/lib/openpgp";
 import { nanoid } from "nanoid";
 
 export const sendInfos = (peerID: string, filetransfer_id: string) => {
-  let pending_filetransfer = get(pending_filetransfers).find(
+  const pending_filetransfer = get(pending_filetransfers).find(
     (pending_filetransfer) =>
       pending_filetransfer.filetransfer_id == filetransfer_id
   );
 
   if (pending_filetransfer !== undefined) {
-    let files: {
+    const files: {
       file_name: string;
       file_id: string;
       chunk_number: number;
@@ -31,9 +31,9 @@ export const sendInfos = (peerID: string, filetransfer_id: string) => {
       });
     });
 
-    let connect_return = connected(peerID);
+    const connect_return = connected(peerID);
     if (connect_return == false) {
-      let conn = get(peer).connect(peerID);
+      const conn = get(peer).connect(peerID);
 
       conn.on("open", function () {
         if (pending_filetransfer !== undefined) {
@@ -65,9 +65,9 @@ export const sendInfos = (peerID: string, filetransfer_id: string) => {
 };
 
 export const sendAccept = (peerID: string, filetransfer_id: string) => {
-  let connect_return = connected(peerID);
+  const connect_return = connected(peerID);
   if (connect_return == false) {
-    let conn = get(peer).connect(peerID);
+    const conn = get(peer).connect(peerID);
 
     conn.on("open", function () {
       conn.send({
@@ -90,9 +90,9 @@ export const sendAccept = (peerID: string, filetransfer_id: string) => {
 };
 
 export const sendRequest = (filetransfer_id: string, peerID: string) => {
-  let connect_return = connected(peerID);
+  const connect_return = connected(peerID);
   if (connect_return == false) {
-    let conn = get(peer).connect(peerID);
+    const conn = get(peer).connect(peerID);
 
     conn.on("open", function () {
       conn.send({
@@ -120,9 +120,9 @@ export const sendChunkFinish = (
   chunk_id: number,
   file_id: string
 ) => {
-  let connect_return = connected(peerID);
+  const connect_return = connected(peerID);
   if (connect_return == false) {
-    let conn = get(peer).connect(peerID);
+    const conn = get(peer).connect(peerID);
 
     conn.on("open", function () {
       conn.send({
@@ -153,9 +153,9 @@ export const sendFinish = (
   file_id: string,
   filetransfer_id?: string
 ) => {
-  let connect_return = connected(peerID);
+  const connect_return = connected(peerID);
   if (connect_return == false) {
-    let conn = get(peer).connect(peerID);
+    const conn = get(peer).connect(peerID);
 
     conn.on("open", function () {
       conn.send({
@@ -222,9 +222,9 @@ export const sendChunk = (
     }
   }
 
-  let connect_return = connected(peerID);
+  const connect_return = connected(peerID);
   if (connect_return == false) {
-    let conn = get(peer).connect(peerID);
+    const conn = get(peer).connect(peerID);
 
     conn.on("open", function () {
       if (chunk_info !== undefined) {
@@ -295,7 +295,7 @@ export const send = async (
         cid,
       };
     } else {
-      let filetransfer_id = nanoid(16);
+      const filetransfer_id = nanoid(16);
       encrypted_files = await encryptFilesWithPassword(files, filetransfer_id);
       filetransfer_infos = {
         filetransfer_id,

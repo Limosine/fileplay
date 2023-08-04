@@ -9,24 +9,30 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "types": ["vite-plugin-pwa/client", "@cloudflare/workers-types"],
-    "lib": ["DOM", "ESNext"]
+    "types": [
+      "vite-plugin-pwa/client",
+      "@cloudflare/workers-types"
+    ],
+    "lib": [
+      "DOM",
+      "ESNext"
+    ]
   },
   "include": [
-		"./.svelte-kit/ambient.d.ts",
-		"./.svelte-kit/types/**/$types.d.ts",
-		"./vite.config.ts",
-		"./src/**/*.js",
-		"./src/**/*.ts",
+    "./.svelte-kit/ambient.d.ts",
+    "./.svelte-kit/types/**/$types.d.ts",
+    "./vite.config.ts",
+    "./src/**/*.js",
+    "./src/**/*.ts",
     "./src/lib/*.ts",
     "./src/lib/lib/*.ts",
-		"./src/**/*.svelte",
-		"./tests/**/*.js",
-		"./tests/**/*.ts",
-		"./tests/**/*.svelte",
+    "./src/**/*.svelte",
+    "./tests/**/*.js",
+    "./tests/**/*.ts",
+    "./tests/**/*.svelte",
     "./env.d.ts",
     "./app.d.ts"
-	],
+  ],
   // Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
   //
   // If you want to overwrite includes/excludes, make sure to copy over the relevant includes/excludes

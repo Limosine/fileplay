@@ -39,7 +39,7 @@
 </div>
 
 <div id="user">
-  <div class="field label {$profaneUsername.profane ? 'invalid' : ''}">
+  <div class="field label {$profaneUsername.profane ? "invalid" : ""}">
     <input
       bind:value={$userParams.displayName}
       on:focusout={() => updateIsProfaneUsername()}

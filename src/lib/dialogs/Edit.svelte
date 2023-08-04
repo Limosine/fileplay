@@ -58,18 +58,18 @@
     edit.addEventListener("close", () => {
       if ($page.url.pathname == "/") {
         switch ($current) {
-          case "username":
-            if ($original_value != $userParams.displayName) updateUserInfo();
-            break;
-          case "avatar":
-            if ($original_value != $userParams.avatarSeed) updateUserInfo();
-            break;
-          case "deviceName":
-            if ($original_value != $deviceParams.displayName) updateDeviceInfo($did);
-            break;
-          case "deviceType":
-            if ($original_value != $deviceParams.type) updateDeviceInfo($did);
-            break;
+        case "username":
+          if ($original_value != $userParams.displayName) updateUserInfo();
+          break;
+        case "avatar":
+          if ($original_value != $userParams.avatarSeed) updateUserInfo();
+          break;
+        case "deviceName":
+          if ($original_value != $deviceParams.displayName) updateDeviceInfo($did);
+          break;
+        case "deviceType":
+          if ($original_value != $deviceParams.type) updateDeviceInfo($did);
+          break;
         }
       }
     });
@@ -82,8 +82,8 @@
   style={$current == "deviceType"
     ? "min-height: 250px;"
     : $current == "avatar"
-    ? "min-height: 240px;"
-    : ""}
+      ? "min-height: 240px;"
+      : ""}
 >
   <p style="font-size: large; margin-bottom: 2px;">{$title}</p>
   <div class="field">

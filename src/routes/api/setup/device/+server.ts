@@ -9,7 +9,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   // post device info here, create a new device (sets cookie auth)
   const db = createKysely(platform);
 
-   const { displayName, type, encryptionPublicKey } = (await request.json()) as {
+  const { displayName, type, encryptionPublicKey } = (await request.json()) as {
     displayName: string;
     type: DeviceType;
     encryptionPublicKey: string;

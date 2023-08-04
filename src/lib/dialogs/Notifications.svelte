@@ -42,6 +42,7 @@
     if (file !== undefined) {
       const progress = (file.chunks.length / file.chunk_number) * 100;
 
+      // eslint-disable-next-line no-undef
       ui(`#file-${file_id}`, progress);
     }
 
@@ -55,6 +56,7 @@
 
 <dialog class="right" id="dialog-notifications">
   <nav>
+    <!-- eslint-disable no-undef -->
     <!-- svelte-ignore missing-declaration -->
     <button
       on:click={() => ui("#dialog-notifications")}
@@ -62,6 +64,7 @@
     >
       <i>close</i>
     </button>
+    <!-- eslint-enable no-undef -->
     <h5 class="max">Notifications</h5>
   </nav>
   <div id="notifications">

@@ -51,6 +51,7 @@
   });
 
   const returnProgress = (file_id: string, progress: number) => {
+    // eslint-disable-next-line no-undef
     ui(`#${file_id}`, progress);
     return "";
   };

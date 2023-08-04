@@ -109,6 +109,7 @@ export async function encryptFilesWithPassword(
 // return type?
 export async function decryptFiles(encrypted_files: string[]) {
   const filePromises = Array.from(encrypted_files).map((file) => {
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise<openpgp.MaybeStream<openpgp.Data>>(async (resolve) => {
       const message = await openpgp.readMessage({
         armoredMessage: file,
@@ -133,6 +134,7 @@ export async function decryptFilesWithPassword(
   password: string
 ) {
   const filePromises = Array.from(encrypted_files).map((file) => {
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise<openpgp.MaybeStream<openpgp.Data>>(async (resolve) => {
       const message = await openpgp.readMessage({
         armoredMessage: file,

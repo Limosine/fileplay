@@ -232,8 +232,8 @@
         <p style="font-size: large; margin-bottom: 2px;">Device name</p>
         <p
           style="font-size: small; margin-top: 0; {!$deviceParams.displayName
-            ? 'font-style: italic;'
-            : ''}"
+            ? "font-style: italic;"
+            : ""}"
         >
           {$deviceParams.displayName
             ? $deviceParams.displayName

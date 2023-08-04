@@ -113,6 +113,7 @@
     {/if}
   </div>
   <nav class="right-align" style="padding: 10px 0 0 0;">
+    <!-- eslint-disable no-undef -->
     <!-- svelte-ignore missing-declaration -->
     <button
       class="border"
@@ -125,9 +126,10 @@
       disabled={code == ""}
       class="border"
       style="border: 0;"
-      on:click={() => {setHostname(); redeemCode(); ui("#dialog-add")}}
+      on:click={() => {setHostname(); redeemCode(); ui("#dialog-add");}}
       >Add</button
     >
+    <!-- eslint-enable no-undef -->
   </nav>
 </dialog>
 

@@ -45,6 +45,7 @@
           />
           <div class="tooltip bottom">{status[$current_status]}</div>
         </div>
+        <!-- eslint-disable no-undef -->
         <!-- svelte-ignore missing-declaration -->
         <button
           class="circle transparent"
@@ -56,6 +57,7 @@
           {/if}
           <div class="tooltip bottom">Notifications</div>
         </button>
+        <!-- eslint-enable no-undef -->
         <button class="l m circle transparent">
           <i>settings</i>
           <div class="tooltip bottom">Settings</div>

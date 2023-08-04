@@ -10,13 +10,13 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did } = await loadSignedDeviceID(cookies, key, db);
 
-  console.log("New WebSocket connection, did: ", did)
+  console.log("New WebSocket connection, did: ", did);
 
-  const upgradeHeader = request.headers.get('Upgrade');
-  if (!upgradeHeader || upgradeHeader !== 'websocket') {
-    return new Response('Expected Upgrade: websocket', { status: 426 });
+  const upgradeHeader = request.headers.get("Upgrade");
+  if (!upgradeHeader || upgradeHeader !== "websocket") {
+    return new Response("Expected Upgrade: websocket", { status: 426 });
   } else if (!did) {
-    return new Response('No such device', { status: 401 });
+    return new Response("No such device", { status: 401 });
   }
 
   const onlineStatus = async (status: number) => {
@@ -59,15 +59,15 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
 
   onlineStatus(1);
 
-  server.addEventListener('close', async () => {
+  server.addEventListener("close", async () => {
     onlineStatus(0);
   });
 
-  server.addEventListener('error', async () => {
+  server.addEventListener("error", async () => {
     onlineStatus(0);
   });
 
-  server.addEventListener('message', async (event) => {
+  server.addEventListener("message", async (event) => {
     if (event.data == "ping") {
       lastSeen();
     }

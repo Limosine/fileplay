@@ -38,6 +38,7 @@
     {/each}
   </div>
 
+  <!-- eslint-disable no-undef -->
   <!-- svelte-ignore missing-declaration -->
   <button id="add-mobile" class="s square round extra" on:click={() => ui("#dialog-add")}>
     <i>add</i>
@@ -47,6 +48,7 @@
   <button id="add-desktop" class="l m square round extra" on:click={() => ui("#dialog-add")}>
     <i>add</i>
   </button>
+  <!-- eslint-enable no-undef -->
 {/await}
 
 <style>

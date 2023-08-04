@@ -1,6 +1,6 @@
 <script lang="ts">
   import { input, files } from "$lib/components/Input.svelte";
-  import { writable, type Writable } from "svelte/store";
+  import { writable } from "svelte/store";
   import QRCode from "qrcode";
   import { onMount } from "svelte";
   import {
@@ -12,16 +12,6 @@
   import { getDicebearUrl } from "$lib/lib/common";
   import { sendState, SendState } from "$lib/lib/sendstate";
 
-  let received_chunks = writable<
-    {
-      file_id: string;
-      file_name: string;
-      encrypted: string;
-      chunk_number: number;
-      chunks: string[];
-      url?: string | undefined;
-    }[]
-  >([]);
   let pending_filetransfers = writable<{
     filetransfer_id: string;
     encrypted: string;
@@ -32,17 +22,17 @@
         file_name: string;
         file_id: string;
     }[];
-    cid?: string | undefined;
+    cid?: string;
   }[]>([]);
   let link = writable("");
-  let sender_uuid: Writable<string>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let addPendingFile = (files: FileList) => {};
   let send: (
     files: FileList,
     cid?: string,
     peerID?: string,
     publicKey?: string
-  ) => {};
+  ) => Promise<string | undefined>;
 
   let qrCode: string;
   const generateQRCode = async (link: string) => {
@@ -64,31 +54,31 @@
 
   async function handleContactClick(contact: IContact) {
     switch ($sendState[contact.cid]) {
-      case SendState.REQUESTING:
-        // cancel sharing request
-        setSendState(contact.cid, SendState.CANCELED);
-        break;
-      case SendState.SENDING:
-        // cancel sharing in progress
-        setSendState(contact.cid, SendState.CANCELED);
-        break;
-      default: // IDLE, CANCELED, FAILED, REJECTED
-        let devices = (await getDeviceInfos() as any).filter(
-          (item: any) => item.cid == contact.cid
+    case SendState.REQUESTING:
+      // cancel sharing request
+      setSendState(contact.cid, SendState.CANCELED);
+      break;
+    case SendState.SENDING:
+      // cancel sharing in progress
+      setSendState(contact.cid, SendState.CANCELED);
+      break;
+    default: // IDLE, CANCELED, FAILED, REJECTED
+      let devices = (await getDeviceInfos() as any).filter(
+        (item: any) => item.cid == contact.cid
+      );
+
+      devices.forEach((device: any) => {
+        send(
+          $files,
+          contact.cid.toString(),
+          device.peerJsId,
+          device.encryptionPublicKey
         );
+      });
 
-        devices.forEach((device: any) => {
-          send(
-            $files,
-            contact.cid.toString(),
-            device.peerJsId,
-            device.encryptionPublicKey
-          );
-        });
+      setSendState(contact.cid, SendState.SENDING);
 
-        setSendState(contact.cid, SendState.SENDING);
-
-        break;
+      break;
     }
   }
 
@@ -98,36 +88,36 @@
     if (Object.keys($sendState).length != 0) {
       for (let [key, value] of Object.entries($sendState)) {
         switch(value) {
-          case SendState.REQUESTING:
-            $progress_styles[key] = {
-              class: "progress-yellow",
-              indeterminate: true,
-            };
-            break;
-          case SendState.IDLE:
-            $progress_styles[key] = {
-              class: "",
-              indeterminate: false,
-            };
-            break;
-          case SendState.SENDING:
-            $progress_styles[key] = {
-              class: "",
-              indeterminate: false,
-            };
-            break;
-          case SendState.SENT:
-            $progress_styles[key] = {
-              class: "progress-green",
-              indeterminate: false,
-            };
-            break;
-          default:
-            $progress_styles[key] = {
-              class: "progress-red",
-              indeterminate: false,
-            };
-            break;
+        case SendState.REQUESTING:
+          $progress_styles[key] = {
+            class: "progress-yellow",
+            indeterminate: true,
+          };
+          break;
+        case SendState.IDLE:
+          $progress_styles[key] = {
+            class: "",
+            indeterminate: false,
+          };
+          break;
+        case SendState.SENDING:
+          $progress_styles[key] = {
+            class: "",
+            indeterminate: false,
+          };
+          break;
+        case SendState.SENT:
+          $progress_styles[key] = {
+            class: "progress-green",
+            indeterminate: false,
+          };
+          break;
+        default:
+          $progress_styles[key] = {
+            class: "progress-red",
+            indeterminate: false,
+          };
+          break;
         }
       }
     }
@@ -163,12 +153,9 @@
   }
 
   onMount(async () => {
-    sender_uuid = (await import("$lib/peerjs/common")).sender_uuid;
-
     addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
     pending_filetransfers = (await import("$lib/peerjs/common")).pending_filetransfers;
     send = (await import("$lib/peerjs/send")).send;
-    received_chunks = (await import("$lib/peerjs/common")).received_chunks;
 
     link = (await import("$lib/peerjs/common")).link;
   });
