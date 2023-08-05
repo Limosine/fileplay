@@ -26,7 +26,7 @@
 
   function startRefresh() {
     refresh_interval = setInterval(async () => {
-      if ($current == "Contacts") {
+      if ($current == "Home" || $current == "Contacts") {
         updateContacts();
         if ($files !== undefined && $files.length != 0) {
           getDeviceInfos();

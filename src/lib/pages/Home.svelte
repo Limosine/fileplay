@@ -259,7 +259,7 @@
         <p class="bold" style="margin: 0;">Available contacts:</p>
         <div class="max" />
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute -->
-        <a on:click={() => getDeviceInfos()} style="color: var(--secondary)"
+        <a on:click={() => {updateContacts(); getDeviceInfos()}} style="color: var(--secondary)"
           >Refresh</a
         >
       </div>

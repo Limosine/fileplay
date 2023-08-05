@@ -58,8 +58,8 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
       .where("uid", "=", uid)
       .execute();
 
-    cookies.delete("did_sig");
-    cookies.delete("did");
+    cookies.delete("did_sig", {path: "/", });
+    cookies.delete("did", {path: "/", });
     return new Response(null, { status: 200 });
   } catch (e: any) {
     return new Response(e, { status: 500 });
