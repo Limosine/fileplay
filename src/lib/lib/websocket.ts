@@ -1,5 +1,6 @@
 import { readable, writable } from "svelte/store";
 import { PUBLIC_FILEPLAY_DOMAIN } from "$env/static/public";
+import { ONLINE_STATUS_REFRESH_TIME } from "./common";
 
 function createWebSocket() {
   let websocket = new WebSocket(`wss://${PUBLIC_FILEPLAY_DOMAIN}/websocket`);
@@ -39,7 +40,7 @@ export const socketStore = readable<"0" | "1" | "2">("0", set => {
     } else {
       store.send("ping");
     }
-  }, 25000);
+  }, (ONLINE_STATUS_REFRESH_TIME * 1000));
 
   return () => store.close();
 });

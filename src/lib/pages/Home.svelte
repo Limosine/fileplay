@@ -9,8 +9,9 @@
     type IContact,
   } from "$lib/lib/fetchers";
   import { current, contacts } from "$lib/lib/UI";
-  import { getDicebearUrl } from "$lib/lib/common";
+  import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/lib/common";
   import { sendState, SendState } from "$lib/lib/sendstate";
+  import dayjs from "dayjs";
 
   let pending_filetransfers = writable<{
     filetransfer_id: string;
@@ -266,9 +267,9 @@
         {#await $contacts}
           <p class="center">Contacts are loading...</p>
         {:then contacts}
-          {#if contacts.length == 0}
+          {#if contacts.length == 0 || contacts.find((contact) => contact.lastSeenAt > (dayjs().unix() - ONLINE_STATUS_TIMEOUT)) === undefined}
             <p class="center padding">
-              No contacts. Add a new contact on the
+              No contact available. Add a new contact on the
               <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
               <a
                 on:click={() => {
@@ -280,6 +281,7 @@
             </p>
           {/if}
           {#each contacts as contact}
+            {#if contact.lastSeenAt > (dayjs().unix() - ONLINE_STATUS_TIMEOUT)}
             <button
               class="border small-round"
               style="border-color: {($progress[contact.cid] !== undefined) ? $progress[contact.cid] : "var(--primary)"};"
@@ -292,6 +294,7 @@
               />
               <span>{contact.displayName}</span>
             </button>
+            {/if}
           {/each}
         {:catch}
           <p>Failed to load contacts.</p>

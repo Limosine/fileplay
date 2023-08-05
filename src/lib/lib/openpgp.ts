@@ -1,3 +1,4 @@
+import { browser } from "$app/environment";
 import * as openpgp from "openpgp";
 
 let privateKey_object: openpgp.PrivateKey;
@@ -19,15 +20,14 @@ export async function generateKey() {
 
   convertPrivateKey();
 
-  // @ts-ignore
-  localStorage.setItem("encryptionPrivateKey", privateKey_armored);
-  // @ts-ignore
-  localStorage.setItem("encryptionPublicKey", publicKey_armored);
-  // @ts-ignore
-  localStorage.setItem(
-    "encryptionRevocationCertificate",
-    revocationCertificate_top
-  );
+  if (browser) {
+    localStorage.setItem("encryptionPrivateKey", privateKey_armored);
+    localStorage.setItem("encryptionPublicKey", publicKey_armored);
+    localStorage.setItem(
+      "encryptionRevocationCertificate",
+      revocationCertificate_top
+    );
+  }
 }
 
 async function convertPrivateKey() {
@@ -162,22 +162,21 @@ export const setup = () => {
     !publicKey_armored ||
     !revocationCertificate_top
   ) {
-    // @ts-ignore
-    const privateKey = localStorage.getItem("encryptionPrivateKey");
-    // @ts-ignore
-    const publicKey = localStorage.getItem("encryptionPublicKey");
-    // @ts-ignore
-    const revocationCertificate = localStorage.getItem(
-      "encryptionRevocationCertificate"
-    );
+    if (browser) {
+      const privateKey = localStorage.getItem("encryptionPrivateKey");
+      const publicKey = localStorage.getItem("encryptionPublicKey");
+      const revocationCertificate = localStorage.getItem(
+        "encryptionRevocationCertificate"
+      );
 
-    if (privateKey && publicKey && revocationCertificate) {
-      privateKey_armored = privateKey;
-      publicKey_armored = publicKey;
-      revocationCertificate_top = revocationCertificate;
-      convertPrivateKey();
-    } else {
-      generateKey();
+      if (privateKey && publicKey && revocationCertificate) {
+        privateKey_armored = privateKey;
+        publicKey_armored = publicKey;
+        revocationCertificate_top = revocationCertificate;
+        convertPrivateKey();
+      } else {
+        generateKey();
+      }
     }
   }
 };

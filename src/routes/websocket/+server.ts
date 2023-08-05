@@ -1,14 +1,13 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
-import { createKysely } from "$lib/server/db";
-import dayjs from "dayjs";
+import { correctOnlineStatus, createKysely, updateLastSeen, updateOnlineStatus } from "$lib/server/db";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   // establish WebSocket connection (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const { did } = await loadSignedDeviceID(cookies, key, db);
+  const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
   console.log("New WebSocket connection, did: ", did);
 
@@ -20,32 +19,16 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   }
 
   const onlineStatus = async (status: number) => {
-    const update = {isOnline: status};
-
-    const res = await db
-      .updateTable("devices")
-      .set(update)
-      .where(({ cmpr }) =>
-        cmpr("did", "=", did)
-      )
-      .returning("isOnline")
-      .executeTakeFirst();
+    const res = await updateOnlineStatus(db, did, status);
 
     if (status != 0) {
-      if (!res) server.send("2");
-      else server.send(res.isOnline.toString());
+      if (res) server.send("1");
+      else server.send("2");
     }
   };
 
   const lastSeen = async () => {
-    const res = await db
-      .updateTable("devices")
-      .set({lastSeenAt: dayjs().unix()})
-      .where(({ cmpr }) =>
-        cmpr("did", "=", did)
-      )
-      .returning("lastSeenAt")
-      .executeTakeFirst();
+    const res = await updateLastSeen(db, uid, did);
 
     if (!res) server.send("2");
     else server.send("1");
@@ -70,6 +53,7 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   server.addEventListener("message", async (event) => {
     if (event.data == "ping") {
       lastSeen();
+      correctOnlineStatus(db);
     }
   });
 

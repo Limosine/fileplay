@@ -30,7 +30,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
       }),
     ],
     ssr: {
-      noExternal: ['beercss']
+      noExternal: ["beercss"]
     },
   };
 }
