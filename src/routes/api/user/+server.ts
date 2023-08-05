@@ -1,6 +1,6 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
-import { createKysely } from "$lib/server/db";
+import { createKysely, getUser } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
@@ -9,14 +9,15 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
+  if (!uid) throw error(401, "No user associated with this device");
 
-  const userInfo = await db
-    .selectFrom("users")
-    .select(["uid", "displayName", "avatarSeed", "createdAt", "lastSeenAt"])
-    .where("uid", "=", uid)
-    .executeTakeFirstOrThrow();
+  const user = await getUser(db, uid);
 
-  return json(userInfo);
+  if (user.success) {
+    return json(user.response, { status: 200 });
+  } else {
+    return new Response(user.response, { status: 500 });
+  }
 };
 
 export const POST: RequestHandler = async ({ platform, cookies, request }) => {

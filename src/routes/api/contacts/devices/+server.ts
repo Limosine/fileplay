@@ -1,33 +1,21 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
-import { createKysely } from "$lib/server/db";
-import { json } from "@sveltejs/kit";
-import dayjs from "dayjs";
+import { createKysely, getDeviceInfos } from "$lib/server/db";
+import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { sql } from "kysely";
-import { ONLINE_STATUS_TIMEOUT } from "$lib/lib/common";
 
 export const GET: RequestHandler = async ({ cookies, platform }) => {
   // get all devices linked to this account (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
+  if (!uid) throw error(401, "No user associated with this device");
 
-  try {
-    (BigInt.prototype as any).toJSON = function () {
-      return this.toString();
-    };
+  const devices = await getDeviceInfos(db, uid);
 
-    const devices = await sql<{
-      cid: number;
-      type: string;
-      displayName: string;
-      peerJsId: string;
-      encryptionPublicKey: string;
-    }[]>`SELECT "cid", "devices"."type", "devices"."displayName", "devices"."peerJsId", "devices"."encryptionPublicKey" FROM (SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."a" WHERE "contacts"."b" = ${uid} UNION SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."b" WHERE "contacts"."a" = ${uid}) AS U INNER JOIN "devices" ON "U".uid = "devices"."uid" WHERE "devices"."isOnline" = 1 AND "devices"."lastSeenAt" > ${dayjs().unix() - ONLINE_STATUS_TIMEOUT} ORDER BY "devices"."displayName"`.execute(db);
-
-    return json(devices.rows, { status: 200 });
-  } catch (e: any) {
-    return new Response(e, { status: 500 });
+  if (devices.success) {
+    return json(devices.response, { status: 200 });
+  } else {
+    return new Response(devices.response, { status: 500 });
   }
 };

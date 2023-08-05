@@ -1,13 +1,13 @@
 <script lang="ts">
   import { getDicebearUrl } from "$lib/lib/common";
-  import { updateContacts } from "$lib/lib/fetchers";
+  import { getCombined } from "$lib/lib/fetchers";
   import { contacts } from "$lib/lib/UI";
 
   async function deleteContact(cid: number) {
     await fetch(`/api/contacts?cid=${cid}`, {
       method: "DELETE",
     });
-    await updateContacts();
+    await getCombined(["contacts"]);
   }
 </script>
 

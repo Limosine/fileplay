@@ -4,9 +4,7 @@
   import Input, { files } from "$lib/components/Input.svelte";
   import { current, settings_page, user_loaded } from "$lib/lib/UI";
   import {
-    updateContacts,
-    getDevices,
-    getDeviceInfos,
+  getCombined,
     getContent,
   } from "$lib/lib/fetchers";
 
@@ -26,13 +24,7 @@
 
   function startRefresh() {
     refresh_interval = setInterval(async () => {
-      if ($current == "Home" || $current == "Contacts") {
-        updateContacts();
-        if ($files !== undefined && $files.length != 0) {
-          getDeviceInfos();
-        }
-      }
-      if ($current == "Settings" && $settings_page == "devices") getDevices();
+      getCombined(["user", "devices", "deviceInfos", "contacts"]);
     }, 5000);
   }
 

@@ -4,11 +4,10 @@
   import QRCode from "qrcode";
   import { onMount } from "svelte";
   import {
-    getDeviceInfos,
-    updateContacts,
+  getCombined,
     type IContact,
   } from "$lib/lib/fetchers";
-  import { current, contacts } from "$lib/lib/UI";
+  import { current, contacts, deviceInfos } from "$lib/lib/UI";
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/lib/common";
   import { sendState, SendState } from "$lib/lib/sendstate";
   import dayjs from "dayjs";
@@ -64,7 +63,7 @@
       setSendState(contact.cid, SendState.CANCELED);
       break;
     default: // IDLE, CANCELED, FAILED, REJECTED
-      let devices = (await getDeviceInfos() as any).filter(
+      let devices = (await $deviceInfos as any).filter(
         (item: any) => item.cid == contact.cid
       );
 
@@ -259,7 +258,7 @@
         <p class="bold" style="margin: 0;">Available contacts:</p>
         <div class="max" />
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute -->
-        <a on:click={() => {updateContacts(); getDeviceInfos()}} style="color: var(--secondary)"
+        <a on:click={() => {  getCombined(["deviceInfos", "contacts"])}} style="color: var(--secondary)"
           >Refresh</a
         >
       </div>
@@ -273,7 +272,7 @@
               <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
               <a
                 on:click={() => {
-                  updateContacts();
+                  getCombined(["contacts"]);
                   $current = "Contacts";
                 }}
                 style="color: var(--primary)">contact page</a

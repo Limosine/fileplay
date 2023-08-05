@@ -29,10 +29,10 @@ export const contacts = writable<MaybePromise<IContact[]>>([]);
 export const devices = writable<IDevices>();
 export const devices_loaded = writable(false);
 
-export const deviceInfos = writable<Promise<IDeviceInfos>>();
+export const deviceInfos = writable<MaybePromise<IDeviceInfos>>();
 export const deviceInfos_loaded = writable(false);
 
-export const user = writable<Promise<IUser>>();
+export const user = writable<MaybePromise<IUser>>();
 export const user_loaded = writable(false);
 
 // Notifications

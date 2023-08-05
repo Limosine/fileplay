@@ -141,7 +141,7 @@
             <!-- eslint-disable svelte/valid-compile -->
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-              <a on:mousedown={() => {ui("#menu-deviceType"); $deviceParams.type = type}}>{name}</a>
+              <a on:mousedown={() => {ui("#menu-deviceType"); $deviceParams.type = type;}}>{name}</a>
             {/each}
             <!-- eslint-enable svelte/valid-compile -->
           </menu>

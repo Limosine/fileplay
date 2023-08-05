@@ -2,7 +2,7 @@
   import { codehostname } from "$lib/lib/UI";
   import { onDestroy, onMount } from "svelte";
   import dayjs from "dayjs";
-  import { updateContacts } from "$lib/lib/fetchers";
+  import { getCombined } from "$lib/lib/fetchers";
 
   let hostname: string;
   let code = "";
@@ -28,7 +28,7 @@
       method: "POST",
       body: JSON.stringify({ code: code }),
     });
-    await updateContacts();
+    await getCombined(["contacts"]);
   }
 
   async function generateCode(): Promise<{

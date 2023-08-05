@@ -9,7 +9,7 @@
     did,
   } from "$lib/lib/UI";
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
-  import { getDevices, getUserInfo, withDeviceType } from "$lib/lib/fetchers";
+  import { getCombined, withDeviceType } from "$lib/lib/fetchers";
   import { deviceParams, userParams } from "$lib/lib/UI";
   import { onMount } from "svelte";
   import { page } from "$app/stores";
@@ -31,7 +31,7 @@
         method: "POST",
         body: JSON.stringify(update),
       });
-      await getDevices();
+      await getCombined(["devices"]);
     }
   }
 
@@ -50,7 +50,7 @@
         method: "POST",
         body: JSON.stringify(update),
       });
-      await getUserInfo();
+      await getCombined(["user"]);
     }
   }
 

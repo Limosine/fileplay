@@ -1,7 +1,7 @@
 <script lang="ts">
   import { status as current_status } from "$lib/lib/websocket";
   import { current, settings_page } from "$lib/lib/UI";
-  import { getUserInfo, updateContacts } from "$lib/lib/fetchers";
+  import { getCombined } from "$lib/lib/fetchers";
   import { notifications } from "$lib/lib/UI";
 
   // Top app bar
@@ -24,7 +24,7 @@
     </a>
     <a
       class={$current == "Contacts" ? "active" : ""}
-      on:click={() => {updateContacts(); $current = "Contacts";}}
+      on:click={() => {getCombined(["contacts"]); $current = "Contacts";}}
     >
       <i>Contacts</i>
       <span>Contacts</span>
@@ -88,14 +88,14 @@
     </a>
     <a
       class={$current == "Contacts" ? "active" : ""}
-      on:click={() => {updateContacts(); $current = "Contacts";}}
+      on:click={() => {getCombined(["contacts"]); $current = "Contacts";}}
     >
       <i>Contacts</i>
       <span>Contacts</span>
     </a>
     <a
       class={$current == "Settings" ? "active" : ""}
-      on:click={() => {getUserInfo(); $current = "Settings";}}
+      on:click={() => {getCombined(["user"]); $current = "Settings";}}
     >
       <i>settings</i>
       <span>Settings</span>

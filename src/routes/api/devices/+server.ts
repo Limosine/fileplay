@@ -1,6 +1,6 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
-import { createKysely } from "$lib/server/db";
+import { createKysely, getDevices } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import type { DeviceType } from "$lib/lib/common";
@@ -10,23 +10,15 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
+  if (!uid) throw error(401, "No user associated with this device");
 
-  const d_self = await db
-    .selectFrom("devices")
-    .select(["did", "type", "displayName", "createdAt", "lastSeenAt"])
-    .where("did", "=", did)
-    .executeTakeFirstOrThrow();
+  const devices = await getDevices(db, uid, did);
 
-  const d_others = await db
-    .selectFrom("devices")
-    .select(["did", "type", "displayName", "createdAt", "lastSeenAt"])
-    .where(({ and, cmpr }) =>
-      and([cmpr("did", "!=", did), cmpr("uid", "=", uid)])
-    )
-    .orderBy("displayName")
-    .execute();
-
-  return json({ self: d_self, others: d_others }, { status: 200 });
+  if (devices.success) {
+    return json(devices.response, { status: 200 });
+  } else {
+    return new Response(devices.response, { status: 500 });
+  }
 };
 
 export const POST: RequestHandler = async ({

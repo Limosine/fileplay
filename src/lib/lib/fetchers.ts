@@ -14,7 +14,7 @@ export interface IContact {
   lastSeenAt: number;
 }
 
-async function getContacts(): Promise<IContact[]> {
+/* async function getContacts(): Promise<IContact[]> {
   return fetch("/api/contacts", {
     method: "GET",
     headers: {
@@ -25,14 +25,14 @@ async function getContacts(): Promise<IContact[]> {
     .catch(() => [] as IContact[]);
 }
 
-export async function updateContacts(): Promise<void> {
+async function updateContacts(): Promise<void> {
   contacts.set(await getContacts());
 }
 
-export function updateContactsAsync(): void {
+function updateContactsAsync(): void {
   contacts.set(getContacts());
 }
-
+ */
 // devices
 export interface IDevices {
   self: {
@@ -51,7 +51,7 @@ export interface IDevices {
   }[];
 }
 
-export async function getDevices(): Promise<IDevices> {
+/* async function getDevices(): Promise<IDevices> {
   const res = await fetch("/api/devices", {
     method: "GET",
   });
@@ -64,7 +64,7 @@ export async function getDevices(): Promise<IDevices> {
   if (!get(devices_loaded)) devices_loaded.set(true);
 
   return devices_new;
-}
+} */
 
 // device infos
 export interface IDeviceInfos {
@@ -75,7 +75,7 @@ export interface IDeviceInfos {
   encryptionPublicKey: string;
 }[];
 
-export async function getDeviceInfos(): Promise<IDeviceInfos> {
+/* async function getDeviceInfos(): Promise<IDeviceInfos> {
   const res = await fetch("/api/contacts/devices", {
     method: "GET",
   });
@@ -86,7 +86,7 @@ export async function getDeviceInfos(): Promise<IDeviceInfos> {
   if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
 
   return deviceInfos_new;
-}
+} */
 
 export function withDeviceType(name: string): { type: string; name: string; } {
   // @ts-ignore
@@ -102,7 +102,7 @@ export interface IUser {
   lastSeenAt: number;
 }
 
-export async function getUserInfo(): Promise<IUser> {
+/* async function getUser(): Promise<IUser> {
   const res = await fetch("/api/user", {
     method: "GET",
   });
@@ -113,7 +113,7 @@ export async function getUserInfo(): Promise<IUser> {
   if (!get(user_loaded)) user_loaded.set(true);
 
   return user_new;
-}
+} */
 
 export async function getPeerJsId(did: number): Promise<string> {
   const res = await fetch(`/api/guest?did=${did}`, {
@@ -186,9 +186,35 @@ export async function deleteAccount() {
   }
 }
 
+interface ICombined {
+  user?: IUser,
+  devices?: IDevices,
+  deviceInfos?: IDeviceInfos,
+  contacts?: IContact[],
+}
+
+export async function getCombined(request: string[]) {
+  const res = await fetch(`/api/combined?request=${request.toString()}`, {
+    method: "GET",
+  });
+
+  const result: ICombined = await res.json();
+
+  if (result.user)
+    user.set(result.user);
+  if (result.devices)
+    devices.set(result.devices);
+  if (result.deviceInfos)
+    deviceInfos.set(result.deviceInfos);
+  if (result.contacts)
+    contacts.set(result.contacts);
+}
+
 export function getContent() {
-  getUserInfo();
+  getCombined(["user", "devices", "deviceInfos", "contacts"]);
+
+  /* getUserInfo();
   updateContactsAsync();
   getDevices();
-  getDeviceInfos();
+  getDeviceInfos(); */
 }

@@ -1,6 +1,6 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
-import { createKysely } from "$lib/server/db";
+import { createKysely, getContacts } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
@@ -9,36 +9,15 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
-  if (!uid) throw error(400, "No user associated with this device");
+  if (!uid) throw error(401, "No user associated with this device");
 
-  const contacts = await db
-    .selectFrom("contacts")
-    .innerJoin("users", "contacts.a", "users.uid")
-    .select([
-      "contacts.cid",
-      "users.displayName",
-      "users.avatarSeed",
-      "contacts.createdAt as linkedAt",
-      "users.lastSeenAt",
-    ])
-    .where("contacts.b", "=", uid)
-    .union(
-      db
-        .selectFrom("contacts")
-        .innerJoin("users", "contacts.b", "users.uid")
-        .select([
-          "contacts.cid",
-          "users.displayName",
-          "users.avatarSeed",
-          "contacts.createdAt as linkedAt",
-          "users.lastSeenAt",
-        ])
-        .where("contacts.a", "=", uid)
-    )
-    .orderBy("displayName")
-    .execute();
+  const contacts = await getContacts(db, uid);
 
-  return json(contacts);
+  if (contacts.success) {
+    return json(contacts.response, { status: 200 });
+  } else {
+    return new Response(contacts.response, { status: 500 });
+  }
 };
 
 export const DELETE: RequestHandler = async ({ platform, url, cookies }) => {
