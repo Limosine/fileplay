@@ -41,7 +41,27 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
   return new Response(null, { status: 200 });
 };
 
-export const DELETE: RequestHandler = async () => {
+export const DELETE: RequestHandler = async ({ platform, cookies }) => {
   // completely remove user and all devices (requires cookie auth)
-  throw new Error("Not implemented");
+  const db = createKysely(platform);
+  const key = await loadKey(COOKIE_SIGNING_SECRET);
+  const { uid } = await loadSignedDeviceID(cookies, key, db);
+
+  const res_devices = await db
+    .deleteFrom("devices")
+    .where("devices.uid", "=", uid)
+    .execute();
+
+  const res_user = await db
+    .deleteFrom("users")
+    .where("uid", "=", uid)
+    .execute();
+
+  if (!res_devices || !res_user) {
+    throw error(500, "Failed to delete user or devices");
+  }
+
+  cookies.delete("did_sig");
+  cookies.delete("did");
+  return new Response(null, { status: 200 });
 };

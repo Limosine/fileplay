@@ -1,4 +1,6 @@
 import { get } from "svelte/store";
+import { browser } from "$app/environment";
+
 import { contacts, deviceInfos, deviceInfos_loaded, deviceParams, devices, devices_loaded, user, user_loaded } from "./UI";
 import { DeviceType } from "./common";
 import { own_did } from "./UI";
@@ -168,6 +170,16 @@ export async function updatePeerJS_ID() {
       peerJsId: get(sender_uuid),
     }),
   });
+}
+
+export async function deleteAccount() {
+  const res = await fetch("/api/user", {
+    method: "DELETE",
+  });
+
+  if (browser && res) {
+    window.location.href = "/setup";
+  }
 }
 
 export function getContent() {

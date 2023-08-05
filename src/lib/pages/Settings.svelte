@@ -2,6 +2,7 @@
   import { openDialog, settings_page } from "$lib/lib/UI";
   import { getDicebearUrl } from "$lib/lib/common";
   import { user } from "$lib/lib/UI";
+  import { deleteAccount } from "$lib/lib/fetchers";
 
 </script>
 
@@ -67,6 +68,25 @@
         <p style="font-size: small; margin-top: 0;">Manage devices</p>
       </div>
     </a>
+
+    <p
+      class="bold"
+      style="color: var(--secondary); margin: 20px 0px 5px 0px; padding: 0px 20px 0px 20px;"
+    >
+      Account
+    </p>
+
+     <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+    <a
+     class="chip border responsive row"
+     style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
+     on:click={() => (deleteAccount())}
+   >
+     <div class="column" style="color: red;">
+       <p style="font-size: large; margin-bottom: 2px;">Delete account</p>
+       <p style="font-size: small; margin-top: 0;">Removes user and all devices from database</p>
+     </div>
+   </a>
   {:catch}
     <p>Failed to load user infos.</p>
   {/await}

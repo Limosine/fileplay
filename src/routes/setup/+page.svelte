@@ -17,6 +17,8 @@
   let progress = 0;
   let setupError: string;
 
+  let selectDeviceType: HTMLSelectElement;
+
   let actionDisabled: boolean;
   $: {
     if (!$deviceParams.displayName || !$deviceParams.type)
@@ -131,16 +133,26 @@
 
         <div class="field label suffix">
           <select
-            class="active"
-            bind:value={$deviceParams.type}
             style="min-width: 200px;"
-          >
+            on:mousedown|preventDefault
+            on:click={() => ui("#menu-deviceType")}
+          />
+          <menu id="menu-deviceType">
+            <!-- eslint-disable svelte/valid-compile -->
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
             {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-              <option value={type}>{name}</option>
+              <a on:mousedown={() => {ui("#menu-deviceType"); $deviceParams.type = type}}>{name}</a>
             {/each}
-          </select>
+            <!-- eslint-enable svelte/valid-compile -->
+          </menu>
           <!-- svelte-ignore a11y-label-has-associated-control-->
-          <label class="active">Device Type</label>
+          <label>
+            {#if $deviceParams.type == ""}
+              Device Type
+            {:else}
+              {ValueToName($deviceParams.type)}
+            {/if}
+          </label>
           <i>arrow_drop_down</i>
         </div>
       </div>
