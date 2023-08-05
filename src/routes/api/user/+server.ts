@@ -47,21 +47,21 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
 
-  const res_devices = await db
-    .deleteFrom("devices")
-    .where("devices.uid", "=", uid)
-    .execute();
+  try {
+    await db
+      .deleteFrom("devices")
+      .where("devices.uid", "=", uid)
+      .execute();
 
-  const res_user = await db
-    .deleteFrom("users")
-    .where("uid", "=", uid)
-    .execute();
+    await db
+      .deleteFrom("users")
+      .where("uid", "=", uid)
+      .execute();
 
-  if (!res_devices || !res_user) {
-    throw error(500, "Failed to delete user or devices");
+    cookies.delete("did_sig");
+    cookies.delete("did");
+    return new Response(null, { status: 200 });
+  } catch (e: any) {
+    return new Response(e, { status: 500 });
   }
-
-  cookies.delete("did_sig");
-  cookies.delete("did");
-  return new Response(null, { status: 200 });
 };
