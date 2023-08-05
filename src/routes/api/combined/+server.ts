@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ cookies, platform, url }) => {
   // get all devices linked to this account (requires cookie auth)
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const { uid, did} = await loadSignedDeviceID(cookies, key, db);
+  const { uid, did } = await loadSignedDeviceID(cookies, key, db);
   if (!uid) throw error(401, "No user associated with this device");
 
   console.log(url.searchParams.get("request"));
@@ -17,40 +17,35 @@ export const GET: RequestHandler = async ({ cookies, platform, url }) => {
 
   let result = {};
 
-  let temporary_value;
+  if (requested !== undefined) {
+    for (let i = 0; i < requested.length; i++) {
+      if (requested[i] == "user") {
+        const user = await getUser(db, uid);
 
-  requested?.forEach(async (request) => {
-    switch (request) {
-    case "user":
-      temporary_value = await getUser(db, uid);
+        if (user.success) {
+          result = { ...result, user: user.response };
+        }
+      } else if (requested[i] == "devices") {
+        const devices = await getDevices(db, uid, did);
 
-      if (temporary_value.success) {
-        result = { ...result, user: temporary_value.response};
-      }
-      break;
-    case "devices":
-      temporary_value = await getDevices(db, uid, did);
-  
-      if (temporary_value.success) {
-        result = { ...result, devices: temporary_value.response};
-      }
-      break;
-    case "deviceInfos":
-      temporary_value = await getDeviceInfos(db, uid);
+        if (devices.success) {
+          result = { ...result, devices: devices.response };
+        }
+      } else if (requested[i] == "deviceInfos") {
+        const deviceInfos = await getDeviceInfos(db, uid);
 
-      if (temporary_value.success) {
-        result = { ...result, deviceInfos: temporary_value.response};
-      }
-      break;
-    case "contacts":
-      temporary_value = await getContacts(db, uid);
+        if (deviceInfos.success) {
+          result = { ...result, deviceInfos: deviceInfos.response };
+        }
+      } else if (requested[i] == "contacts") {
+        const contacts = await getContacts(db, uid);
 
-      if (temporary_value.success) {
-        result = { ...result, contacts: temporary_value.response};
+        if (contacts.success) {
+          result = { ...result, contacts: contacts.response };
+        }
       }
-      break;
     }
-  });
+  }
 
   console.log(result);
 
