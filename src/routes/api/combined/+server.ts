@@ -11,7 +11,9 @@ export const GET: RequestHandler = async ({ cookies, platform, url }) => {
   const { uid, did} = await loadSignedDeviceID(cookies, key, db);
   if (!uid) throw error(401, "No user associated with this device");
 
+  console.log(url.searchParams.get("request"));
   const requested = url.searchParams.get("request")?.split(",");
+  console.log(requested);
 
   let result = {};
 
@@ -49,6 +51,8 @@ export const GET: RequestHandler = async ({ cookies, platform, url }) => {
       break;
     }
   });
+
+  console.log(result);
 
   return json(result, { status: 200 });
 };
