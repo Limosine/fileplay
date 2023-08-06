@@ -7,6 +7,7 @@ import {
   sendAccept,
   sendChunkFinish,
   sendChunk,
+  sendRequest,
 } from "./send";
 import { handleRequest, handleChunk, handleChunkFinish, handleFileFinish, handleFileTransferFinished } from "./handle";
 import { getCombined, updatePeerJS_ID } from "$lib/lib/fetchers";
@@ -123,6 +124,7 @@ export const handleData = async (data: any, conn: DataConnection) => {
   } else if (await authenticated(conn.peer, data.filetransfer_id)) {
     // Sender:
     if (data.type == "Accept") {
+      if (data.guest == true) sendRequest(conn.peer, data.filetransfer_id);
       sendChunk(conn.peer, data.filetransfer_id);
     } else if (data.type == "ChunkFinished") {
       handleChunkFinish(conn.peer, data.filetransfer_id, data.file_id, data.chunk_id);
@@ -177,6 +179,7 @@ export const connectAsListener = (
       conn.send({
         type: "Accept",
         filetransfer_id,
+        guest: true,
       });
     });
 

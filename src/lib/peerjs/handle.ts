@@ -5,11 +5,33 @@ import { page } from "$app/stores";
 import { sendState, SendState } from "$lib/lib/sendstate";
 import { sendChunk, sendFinish } from "./send";
 import { addNotification, deleteNotification } from "$lib/lib/UI";
+import { browser } from "$app/environment";
+import dayjs from "dayjs";
 
 export const handleRequest = (peerID: string, filetransfer_id: string, encrypted: "password" | "publicKey", files: IFileInfo[], did?: number) => {
   const filenames = files.map(file => file.file_name);
 
-  addNotification({ title: "File request", body: `The file(s) ${filenames.toString()} can be received.`, tag: `filetransfer-${filetransfer_id}`, actions: [{ title: "Accept", action: "accept" }, { title: "Cancel", action: "cancel" }], data: { peerID: peerID, filetransfer_id: filetransfer_id, files: files, encrypted: encrypted, did: did} });
+  if (browser && window.location.pathname.slice(0, 6) == "/guest") {
+    files.forEach((file: IFileInfo) => {
+      const initial_chunk_info = {
+        file_id: file.file_id,
+        file_name: file.file_name,
+        encrypted: encrypted,
+        chunk_number: file.chunk_number,
+        chunks: [],
+      };
+
+      received_chunks.set([...get(received_chunks), initial_chunk_info]);
+    });
+
+    incoming_filetransfers.set([...get(incoming_filetransfers), {
+      filetransfer_id: filetransfer_id,
+      acceptedAt: dayjs().unix(),
+      did: did,
+    }]);
+  } else {
+    addNotification({ title: "File request", body: `The file(s) ${filenames.toString()} can be received.`, tag: `filetransfer-${filetransfer_id}`, actions: [{ title: "Accept", action: "accept" }, { title: "Cancel", action: "cancel" }], data: { peerID: peerID, filetransfer_id: filetransfer_id, files: files, encrypted: encrypted, did: did } });
+  }
 };
 
 export const handleChunk = (chunk: string, file_id: string) => {
