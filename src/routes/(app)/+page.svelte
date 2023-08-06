@@ -3,10 +3,7 @@
 
   import Input, { files } from "$lib/components/Input.svelte";
   import { current, settings_page, user_loaded } from "$lib/lib/UI";
-  import {
-  getCombined,
-    getContent,
-  } from "$lib/lib/fetchers";
+  import { getCombined } from "$lib/lib/fetchers";
 
   import Home from "$lib/pages/Home.svelte";
   import Contacts from "$lib/pages/Contacts.svelte";
@@ -24,7 +21,15 @@
 
   function startRefresh() {
     refresh_interval = setInterval(async () => {
-      getCombined(["user", "devices", "deviceInfos", "contacts"]);
+      if ($current == "Settings" && $settings_page == "devices") {
+        getCombined(["user", "devices"]);
+      } else if ($current == "Settings") {
+        getCombined(["user"]);
+      } else if ($current == "Contacts") {
+        getCombined(["contacts"]);
+      } else if ($files !== undefined && $files.length != 0) {
+        getCombined(["contacts", "deviceInfos"]);
+      }
     }, 5000);
   }
 
@@ -35,27 +40,9 @@
   onDestroy(stopRefresh);
 
   onMount(() => {
-    getContent();
+    getCombined(["user", "devices", "deviceInfos", "contacts"]);
     startRefresh();
   });
-
-  /* async function notificationPermission() {
-    if ("Notification" in window) {
-      if (Notification.permission === "granted") {
-        return true;
-      } else if (Notification.permission !== "denied") {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") return true;
-      }
-    }
-    return false;
-  }
-
-  async function sendNotification(text: string) {
-    if (await notificationPermission()) {
-      new Notification(text);
-    }
-  } */
 </script>
 
 <svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
