@@ -85,14 +85,13 @@ export const listen = () => {
 
 const authenticated = async (peerID: string, filetransfer_id?: string): Promise<boolean> => {
   // skip as guest
-  if (browser && window.location.href.slice(0, 6) == "/guest") {
+  if (browser && window.location.pathname.slice(0, 6) == "/guest") {
     return true;
   } else if (filetransfer_id !== undefined) {
     const filetransfer = get(pending_filetransfers).find((filetransfer) => filetransfer.filetransfer_id == filetransfer_id && filetransfer.cid === undefined);
 
     if (filetransfer !== undefined) return true;
   }
-
 
   // PeerJsId changes, did remains the same
   let device = (await get(deviceInfos)).find((device) => device.peerJsId == peerID);
@@ -160,7 +159,7 @@ export const addPendingFile = async (files: FileList) => {
       ":" +
       location.port +
       "/guest/" +
-      get(own_did) +
+      await get(own_did) +
       "/key/" +
       filetransfer_id
     );
