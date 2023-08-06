@@ -4,8 +4,10 @@
     deleteNotification,
     type INotification,
   } from "$lib/lib/UI";
+  import { incoming_filetransfers } from "$lib/peerjs/common";
+  import dayjs from "dayjs";
   import { onMount } from "svelte";
-  import { writable } from "svelte/store";
+  import { get, writable } from "svelte/store";
 
   let received_chunks = writable<
     {
@@ -17,10 +19,17 @@
       url?: string | undefined;
     }[]
   >();
+  let sendAccept: (peerID: string, filetransfer_id: string) => void;
 
   async function handleNotificationClick(n: INotification, action: string) {
     if (action == "download") {
       window.location.href = n.data;
+    } else if (action == "accept") {
+      acceptFileTransfer(n);
+    }
+
+    if (action != "download") {
+      deleteNotification(n.tag);
     }
   }
 
@@ -49,8 +58,31 @@
     return "";
   };
 
+  const acceptFileTransfer = (notification: INotification) => {
+    notification.data.files.forEach((file: IFileInfo) => {
+      const initial_chunk_info = {
+        file_id: file.file_id,
+        file_name: file.file_name,
+        encrypted: notification.data.encrypted,
+        chunk_number: file.chunk_number,
+        chunks: [],
+      };
+
+      received_chunks.set([...get(received_chunks), initial_chunk_info]);
+    });
+
+    incoming_filetransfers.set([ ...get(incoming_filetransfers), {
+      filetransfer_id: notification.data.filetransfer_id,
+      acceptedAt: dayjs().unix(),
+      did: notification.data.did,
+    }]);
+
+    sendAccept(notification.data.peerID, notification.data.filetransfer_id);
+  };
+
   onMount(async () => {
     received_chunks = (await import("$lib/peerjs/common")).received_chunks;
+    sendAccept = (await import("$lib/peerjs/send")).sendAccept;
   });
 </script>
 

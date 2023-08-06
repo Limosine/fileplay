@@ -22,10 +22,18 @@ export const pending_filetransfers = writable<
       file_id: string,
     }[],
     cid?: string,
+    did?: number,
   }[]
 >([]);
 
 // Receiver Side:
+export const incoming_filetransfers = writable<
+  {
+    filetransfer_id: string,
+    acceptedAt: number,
+    did?: number,
+  }[]
+>([]);
 export const received_chunks = writable<
   {
     file_id: string;

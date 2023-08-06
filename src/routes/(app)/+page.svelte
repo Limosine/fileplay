@@ -29,6 +29,8 @@
         getCombined(["contacts"]);
       } else if ($files !== undefined && $files.length != 0) {
         getCombined(["contacts", "deviceInfos"]);
+      } else {
+        getCombined(["deviceInfos"]);
       }
     }, 5000);
   }

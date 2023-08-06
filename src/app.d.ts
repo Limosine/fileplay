@@ -20,6 +20,12 @@ declare global {
     id: string;
     name: string;
   }
+
+  interface IFileInfo {
+    file_name: string,
+    file_id: string,
+    chunk_number: number,
+  }
 }
 
 export {};

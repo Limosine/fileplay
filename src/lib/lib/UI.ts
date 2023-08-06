@@ -1,7 +1,7 @@
 import { get, writable } from "svelte/store";
 import { DeviceType } from "./common";
 import type { MaybePromise } from "@sveltejs/kit";
-import type { IContact, IDeviceInfos, IDevices, IUser } from "./fetchers";
+import type { IContact, IDeviceInfo, IDevices, IUser } from "./fetchers";
 import { browser } from "$app/environment";
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
@@ -29,7 +29,7 @@ export const contacts = writable<MaybePromise<IContact[]>>([]);
 export const devices = writable<IDevices>();
 export const devices_loaded = writable(false);
 
-export const deviceInfos = writable<MaybePromise<IDeviceInfos>>();
+export const deviceInfos = writable<MaybePromise<IDeviceInfo[]>>();
 export const deviceInfos_loaded = writable(false);
 
 export const user = writable<MaybePromise<IUser>>();

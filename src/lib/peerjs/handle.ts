@@ -1,18 +1,39 @@
 import { get } from "svelte/store";
-import { createFileURL, pending_filetransfers, received_chunks } from "./common";
+import { createFileURL, incoming_filetransfers, pending_filetransfers, received_chunks } from "./common";
 import { decryptFiles, decryptFilesWithPassword } from "$lib/lib/openpgp";
 import { page } from "$app/stores";
 import { sendState, SendState } from "$lib/lib/sendstate";
 import { sendChunk, sendFinish } from "./send";
 import { addNotification, deleteNotification } from "$lib/lib/UI";
 
+export const handleRequest = (peerID: string, filetransfer_id: string, encrypted: "password" | "publicKey", files: IFileInfo[], did?: number) => {
+  const filenames = files.map(file => file.file_name);
+
+  addNotification({ title: "File request", body: `The file(s) ${filenames.toString()} can be received.`, tag: `filetransfer-${filetransfer_id}`, actions: [{ title: "Accept", action: "accept" }, { title: "Cancel", action: "cancel" }], data: { peerID: peerID, filetransfer_id: filetransfer_id, files: files, encrypted: encrypted, did: did} });
+};
+
+export const handleChunk = (chunk: string, file_id: string) => {
+  const index = get(received_chunks).findIndex(
+    (received_file_chunks) => received_file_chunks.file_id == file_id
+  );
+
+  if (index !== undefined) {
+    received_chunks.update((received_chunks) => {
+      received_chunks[index].chunks.push(chunk);
+      return received_chunks;
+    });
+  } else {
+    console.log("PeerJS: No such file");
+  }
+};
+
 export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_id: string, chunk_id: number) => {
   let chunk_info:
     | {
-        file_id: string;
-        chunk_id: number;
-        chunk: string;
-      }
+      file_id: string;
+      chunk_id: number;
+      chunk: string;
+    }
     | undefined;
   let file_finished: string | undefined;
   let file_transfer_finished: string | undefined;
@@ -45,7 +66,7 @@ export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_
             file_finished = pending_file.file_id;
 
             if ((j + 1) < get(pending_filetransfers)[i].files.length) {
-              const next_file = get(pending_filetransfers)[i].files[j+1];
+              const next_file = get(pending_filetransfers)[i].files[j + 1];
               chunk_info = {
                 file_id: next_file.file_id,
                 chunk_id: 0,
@@ -77,7 +98,7 @@ export const handleChunkFinish = (peerID: string, filetransfer_id: string, file_
   }
 };
 
-export const handleFinish = async (data: any) => {
+export const handleFileFinish = async (data: any) => {
   const index = get(received_chunks).findIndex(
     (received_file_chunks) => received_file_chunks.file_id == data.file_id
   );
@@ -102,36 +123,11 @@ export const handleFinish = async (data: any) => {
   });
 
   deleteNotification(`file-${get(received_chunks)[index].file_id}`);
-  addNotification({title: "File received", body: `The file '${get(received_chunks)[index].file_name}' was received.`, tag: `file-${get(received_chunks)[index].file_id}`, actions: [{title: "Download", action: "download"}], data: { filename: get(received_chunks)[index].file_name, url: url}});
+  addNotification({ title: "File received", body: `The file '${get(received_chunks)[index].file_name}' was received.`, tag: `file-${get(received_chunks)[index].file_id}`, actions: [{ title: "Download", action: "download" }], data: { filename: get(received_chunks)[index].file_name, url: url } });
 };
 
-export const handleFileInfos = (data: any) => {
-  data.files.forEach((file: any) => {
-    const initial_chunk_info = {
-      file_id: file.file_id,
-      file_name: file.file_name,
-      encrypted: data.encrypted,
-      chunk_number: file.chunk_number,
-      chunks: [],
-    };
-
-    received_chunks.set([...get(received_chunks), initial_chunk_info]);
-
-    addNotification({title: "Receiving file", body: `The file '${file.file_name}' is being received.`, tag: `file-${file.file_id}`, actions: [{title: "Cancel", action: "cancel"}], data: { file_id: file.file_id}});
-  });
-};
-
-export const handleChunk = (chunk: string, file_id: string) => {
-  const index = get(received_chunks).findIndex(
-    (received_file_chunks) => received_file_chunks.file_id == file_id
+export const handleFileTransferFinished = (filetransfer_id: string) => {
+  incoming_filetransfers.update((filetransfers) =>
+    filetransfers.filter((filetransfer) => filetransfer.filetransfer_id != filetransfer_id)
   );
-
-  if (index !== undefined) {
-    received_chunks.update((received_chunks) => {
-      received_chunks[index].chunks.push(chunk);
-      return received_chunks;
-    });
-  } else {
-    console.log("PeerJS: No such file");
-  }
 };

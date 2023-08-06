@@ -6,6 +6,7 @@
   import {
   getCombined,
     type IContact,
+    type IDeviceInfo,
   } from "$lib/lib/fetchers";
   import { current, contacts, deviceInfos } from "$lib/lib/UI";
   import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/lib/common";
@@ -30,6 +31,7 @@
   let send: (
     files: FileList,
     cid?: string,
+    did?: number,
     peerID?: string,
     publicKey?: string
   ) => Promise<string | undefined>;
@@ -67,10 +69,11 @@
         (item: any) => item.cid == contact.cid
       );
 
-      devices.forEach((device: any) => {
+      devices.forEach((device: IDeviceInfo) => {
         send(
           $files,
           contact.cid.toString(),
+          device.did,
           device.peerJsId,
           device.encryptionPublicKey
         );

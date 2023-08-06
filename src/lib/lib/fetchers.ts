@@ -32,13 +32,14 @@ export interface IDevices {
 }
 
 // device infos
-export interface IDeviceInfos {
+export interface IDeviceInfo {
   cid: number;
+  did: number;
   type: string;
   displayName: string;
   peerJsId: string;
   encryptionPublicKey: string;
-}[];
+}
 
 // user
 export interface IUser {
@@ -128,7 +129,7 @@ export async function deleteAccount() {
 interface ICombined {
   user?: IUser,
   devices?: IDevices,
-  deviceInfos?: IDeviceInfos,
+  deviceInfos?: IDeviceInfo[],
   contacts?: IContact[],
 }
 
