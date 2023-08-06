@@ -11,7 +11,7 @@ export const settings_page = writable<"main" | "devices">("main");
 export const linkingCode = writable("");
 
 // Personal infos:
-export const own_did = writable<number>();
+export const own_did = writable<MaybePromise<number>>();
 
 export const deviceParams = writable({
   displayName: "",

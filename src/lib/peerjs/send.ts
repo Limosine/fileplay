@@ -71,7 +71,7 @@ export const send = async (
   }
 };
 
-export const sendRequest = (peerID: string, filetransfer_id: string) => {
+export const sendRequest = async (peerID: string, filetransfer_id: string) => {
   const pending_filetransfer = get(pending_filetransfers).find(
     (pending_filetransfer) =>
       pending_filetransfer.filetransfer_id == filetransfer_id
@@ -96,11 +96,11 @@ export const sendRequest = (peerID: string, filetransfer_id: string) => {
     if (connect_return == false) {
       const conn = get(peer).connect(peerID);
 
-      conn.on("open", function () {
+      conn.on("open", async function () {
         if (pending_filetransfer !== undefined) {
           conn.send({
             type: "Request",
-            did: get(own_did),
+            did: await get(own_did),
             filetransfer_id: pending_filetransfer.filetransfer_id,
             encrypted: pending_filetransfer.encrypted,
             files,
@@ -116,7 +116,7 @@ export const sendRequest = (peerID: string, filetransfer_id: string) => {
     } else {
       connect_return.send({
         type: "Request",
-        did: get(own_did),
+        did: await get(own_did),
         filetransfer_id: pending_filetransfer.filetransfer_id,
         encrypted: pending_filetransfer.encrypted,
         files,

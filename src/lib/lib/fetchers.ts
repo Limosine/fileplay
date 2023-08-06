@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { browser } from "$app/environment";
 
-import { contacts, deviceInfos, deviceInfos_loaded, deviceParams, devices, devices_loaded, user, user_loaded } from "./UI";
+import { contacts, deviceInfos, deviceInfos_loaded, deviceParams, devices, devices_loaded, own_did, user, user_loaded } from "./UI";
 import { DeviceType } from "./common";
 
 // contacts
@@ -147,6 +147,10 @@ export async function getCombined(request: string[]) {
   if (result.devices) {
     devices.set(result.devices);
     if (!get(devices_loaded)) devices_loaded.set(true);
+
+    own_did.set(result.devices.self.did);
+    // to be removed:
+    console.log(get(devices));
   }
   if (result.deviceInfos) {
     deviceInfos.set(result.deviceInfos);
