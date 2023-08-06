@@ -3,7 +3,7 @@ import { createFileURL, incoming_filetransfers, pending_filetransfers, received_
 import { decryptFiles, decryptFilesWithPassword } from "$lib/lib/openpgp";
 import { page } from "$app/stores";
 import { sendState, SendState } from "$lib/lib/sendstate";
-import { sendChunk, sendFinish } from "./send";
+import { sendAccept, sendChunk, sendFinish } from "./send";
 import { addNotification, deleteNotification } from "$lib/lib/UI";
 import { browser } from "$app/environment";
 import dayjs from "dayjs";
@@ -29,6 +29,8 @@ export const handleRequest = (peerID: string, filetransfer_id: string, encrypted
       acceptedAt: dayjs().unix(),
       did: did,
     }]);
+
+    sendAccept(peerID, filetransfer_id);
   } else {
     addNotification({ title: "File request", body: `The file(s) ${filenames.toString()} can be received.`, tag: `filetransfer-${filetransfer_id}`, actions: [{ title: "Accept", action: "accept" }, { title: "Cancel", action: "cancel" }], data: { peerID: peerID, filetransfer_id: filetransfer_id, files: files, encrypted: encrypted, did: did } });
   }

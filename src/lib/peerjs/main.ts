@@ -125,7 +125,7 @@ export const handleData = async (data: any, conn: DataConnection) => {
     // Sender:
     if (data.type == "Accept") {
       if (data.guest == true) sendRequest(conn.peer, data.filetransfer_id);
-      sendChunk(conn.peer, data.filetransfer_id);
+      else sendChunk(conn.peer, data.filetransfer_id);
     } else if (data.type == "ChunkFinished") {
       handleChunkFinish(conn.peer, data.filetransfer_id, data.file_id, data.chunk_id);
 
