@@ -26,6 +26,35 @@ declare global {
     file_id: string,
     chunk_number: number,
   }
+
+  interface IOutgoingFileTransfer {
+    filetransfer_id: string,
+    encrypted: "password" | "publicKey",
+    completed: boolean,
+    files: {
+      file: string[],
+      chunks: number,
+      file_name: string,
+      file_id: string,
+    }[],
+    cid?: number, // not always defined (--> via link)
+    did?: number,
+  }
+
+  interface IIncomingFiletransfer {
+    filetransfer_id: string,
+    encrypted: "password" | "publicKey",
+    completed: boolean,
+    files: {
+      file_id: string,
+      file_name: string,
+      chunk_number: number,
+      chunks: string[],
+      url?: string, // generated at the end
+    }[],
+    did: number,
+    cid?: number, // no access to cid on guest page
+  }
 }
 
 export {};

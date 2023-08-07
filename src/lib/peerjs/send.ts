@@ -1,10 +1,10 @@
 import { get } from "svelte/store";
 import {
+  addListeners,
   chunkFiles,
   connected,
-  connections,
   peer,
-  pending_filetransfers,
+  outgoing_filetransfers,
 } from "./common";
 import { handleData } from "./main";
 import { encryptFiles, encryptFilesWithPassword } from "$lib/lib/openpgp";
@@ -14,25 +14,13 @@ import { own_did } from "$lib/lib/UI";
 // Sender:
 export const send = async (
   files: FileList,
-  cid?: string,
+  cid?: number,
   did?: number,
   peerID?: string,
   publicKey?: string,
 ) => {
   if (files) {
-    let filetransfer_infos: {
-      filetransfer_id: string,
-      encrypted: string,
-      completed: boolean,
-      files: {
-        file: string[],
-        chunks: number,
-        file_name: string,
-        file_id: string,
-      }[],
-      cid?: string,
-      did?: number,
-    };
+    let filetransfer_infos: IOutgoingFileTransfer;
 
     let encrypted_files: string[];
     if (publicKey !== undefined) {
@@ -58,8 +46,8 @@ export const send = async (
       };
     }
 
-    pending_filetransfers.set([
-      ...get(pending_filetransfers),
+    outgoing_filetransfers.set([
+      ...get(outgoing_filetransfers),
       filetransfer_infos,
     ]);
 
@@ -72,19 +60,19 @@ export const send = async (
 };
 
 export const sendRequest = async (peerID: string, filetransfer_id: string) => {
-  const pending_filetransfer = get(pending_filetransfers).find(
-    (pending_filetransfer) =>
-      pending_filetransfer.filetransfer_id == filetransfer_id
+  const outgoing_filetransfer = get(outgoing_filetransfers).find(
+    (outgoing_filetransfer) =>
+      outgoing_filetransfer.filetransfer_id == filetransfer_id
   );
 
-  if (pending_filetransfer !== undefined) {
+  if (outgoing_filetransfer !== undefined) {
     const files: {
       file_name: string;
       file_id: string;
       chunk_number: number;
     }[] = [];
 
-    pending_filetransfer.files.forEach((file) => {
+    outgoing_filetransfer.files.forEach((file) => {
       files.push({
         file_name: file.file_name,
         file_id: file.file_id,
@@ -97,28 +85,24 @@ export const sendRequest = async (peerID: string, filetransfer_id: string) => {
       const conn = get(peer).connect(peerID);
 
       conn.on("open", async function () {
-        if (pending_filetransfer !== undefined) {
+        if (outgoing_filetransfer !== undefined) {
           conn.send({
             type: "Request",
             did: await get(own_did),
-            filetransfer_id: pending_filetransfer.filetransfer_id,
-            encrypted: pending_filetransfer.encrypted,
+            filetransfer_id: outgoing_filetransfer.filetransfer_id,
+            encrypted: outgoing_filetransfer.encrypted,
             files,
           });
         }
       });
 
-      conn.on("data", function (received_data) {
-        handleData(received_data, conn);
-      });
-
-      connections.set([...get(connections), conn]);
+      addListeners(conn);
     } else {
       connect_return.send({
         type: "Request",
         did: await get(own_did),
-        filetransfer_id: pending_filetransfer.filetransfer_id,
-        encrypted: pending_filetransfer.encrypted,
+        filetransfer_id: outgoing_filetransfer.filetransfer_id,
+        encrypted: outgoing_filetransfer.encrypted,
         files,
       });
     }
@@ -127,7 +111,7 @@ export const sendRequest = async (peerID: string, filetransfer_id: string) => {
   }
 };
 
-export const sendChunk = (
+export const sendChunk = async (
   peerID: string,
   filetransfer_id: string,
   chunk_info?: {
@@ -143,12 +127,12 @@ export const sendChunk = (
   } | undefined;
 
   if (chunk_info === undefined) {
-    get(pending_filetransfers).forEach((pending_filetransfer) => {
-      if (pending_filetransfer.filetransfer_id == filetransfer_id) {
+    get(outgoing_filetransfers).forEach((outgoing_filetransfer) => {
+      if (outgoing_filetransfer.filetransfer_id == filetransfer_id) {
         initial_chunk_info = {
-          file_id: pending_filetransfer.files[0].file_id,
+          file_id: outgoing_filetransfer.files[0].file_id,
           chunk_id: 0,
-          chunk: pending_filetransfer.files[0].file[0]
+          chunk: outgoing_filetransfer.files[0].file[0]
         };
       }
     });
@@ -162,37 +146,37 @@ export const sendChunk = (
   if (connect_return == false) {
     const conn = get(peer).connect(peerID);
 
-    conn.on("open", function () {
+    conn.on("open", async function () {
       if (chunk_info !== undefined) {
         conn.send({
           type: "Chunk",
+          did: await get(own_did),
           filetransfer_id: filetransfer_id,
           chunk_info,
         });
       } else if (initial_chunk_info !== undefined) {
         conn.send({
           type: "Chunk",
+          did: await get(own_did),
           filetransfer_id: filetransfer_id,
           chunk_info: initial_chunk_info,
         });
       }
     });
 
-    conn.on("data", function (received_data) {
-      handleData(received_data, conn);
-    });
-
-    connections.set([...get(connections), conn]);
+    addListeners(conn);
   } else {
     if (chunk_info !== undefined) {
       connect_return.send({
         type: "Chunk",
+        did: await get(own_did),
         filetransfer_id: filetransfer_id,
         chunk_info,
       });
     } else if (initial_chunk_info !== undefined) {
       connect_return.send({
         type: "Chunk",
+        did: await get(own_did),
         filetransfer_id: filetransfer_id,
         chunk_info: initial_chunk_info,
       });
@@ -200,80 +184,87 @@ export const sendChunk = (
   }
 };
 
-export const sendFinish = (
+export const sendFinish = async (
   peerID: string,
+  filetransfer_id: string,
   file_id: string,
-  filetransfer_id?: string
+  filetransfer_finished?: boolean
 ) => {
   const connect_return = connected(peerID);
   if (connect_return == false) {
     const conn = get(peer).connect(peerID);
 
-    conn.on("open", function () {
+    conn.on("open", async function () {
       conn.send({
         type: "FileFinished",
-        file_id: file_id,
+        did: await get(own_did),
+        filetransfer_id,
+        file_id,
       });
 
-      if (filetransfer_id !== undefined) {
+      if (filetransfer_finished) {
         conn.send({
           type: "FiletransferFinished",
-          file_id: file_id,
+          did: await get(own_did),
+          filetransfer_id,
+          file_id,
         });
       }
     });
 
-    conn.on("data", function (received_data) {
-      handleData(received_data, conn);
-    });
-
-    connections.set([...get(connections), conn]);
+    addListeners(conn);
   } else {
     connect_return.send({
       type: "FileFinished",
-      file_id: file_id,
+      did: await get(own_did),
+      filetransfer_id,
+      file_id,
     });
 
     if (filetransfer_id !== undefined) {
       connect_return.send({
         type: "FiletransferFinished",
-        filetransfer_id: filetransfer_id,
+        did: await get(own_did),
+        filetransfer_id,
+        file_id,
       });
 
-      pending_filetransfers.update((filetransfers) =>
-        filetransfers.filter((filetransfer) => filetransfer.filetransfer_id != filetransfer_id)
-      );
+      const filetransfer = get(outgoing_filetransfers).find(filetransfer => filetransfer.filetransfer_id == filetransfer_id);
+
+      if (filetransfer !== undefined && filetransfer.cid !== undefined) {
+        outgoing_filetransfers.update((filetransfers) =>
+          filetransfers.filter((filetransfer) => filetransfer.filetransfer_id != filetransfer_id)
+        );
+      }
     }
   }
 };
 
 // Receiver:
-export const sendAccept = (peerID: string, filetransfer_id: string) => {
+export const sendAccept = async (peerID: string, filetransfer_id: string) => {
   const connect_return = connected(peerID);
   if (connect_return == false) {
     const conn = get(peer).connect(peerID);
 
-    conn.on("open", function () {
+    conn.on("open", async function () {
       conn.send({
         type: "Accept",
+        did: await get(own_did),
         filetransfer_id,
       });
     });
 
-    conn.on("data", function (received_data) {
-      handleData(received_data, conn);
-    });
-
-    connections.set([...get(connections), conn]);
+    addListeners(conn);
   } else {
     connect_return.send({
       type: "Accept",
+      did: await get(own_did),
       filetransfer_id,
     });
   }
 };
 
-export const sendChunkFinish = (
+export const sendChunkFinish = async (
   peerID: string,
   filetransfer_id: string,
   chunk_id: number,
@@ -283,26 +274,24 @@ export const sendChunkFinish = (
   if (connect_return == false) {
     const conn = get(peer).connect(peerID);
 
-    conn.on("open", function () {
+    conn.on("open", async function () {
       conn.send({
         type: "ChunkFinished",
-        filetransfer_id: filetransfer_id,
-        chunk_id,
+        did: await get(own_did),
+        filetransfer_id,
         file_id,
+        chunk_id,
       });
     });
 
-    conn.on("data", function (received_data) {
-      handleData(received_data, conn);
-    });
-
-    connections.set([...get(connections), conn]);
+    addListeners(conn);
   } else {
     connect_return.send({
       type: "ChunkFinished",
-      filetransfer_id: filetransfer_id,
-      chunk_id,
+      did: await get(own_did),
+      filetransfer_id,
       file_id,
+      chunk_id,
     });
   }
 };

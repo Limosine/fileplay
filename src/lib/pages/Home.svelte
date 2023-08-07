@@ -13,28 +13,11 @@
   import { sendState, SendState } from "$lib/lib/sendstate";
   import dayjs from "dayjs";
 
-  let pending_filetransfers = writable<{
-    filetransfer_id: string;
-    encrypted: string;
-    completed: boolean;
-    files: {
-        file: string[];
-        chunks: number;
-        file_name: string;
-        file_id: string;
-    }[];
-    cid?: string;
-  }[]>([]);
+  let outgoing_filetransfers = writable<IOutgoingFileTransfer[]>([]);
   let link = writable("");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let addPendingFile = (files: FileList) => {};
-  let send: (
-    files: FileList,
-    cid?: string,
-    did?: number,
-    peerID?: string,
-    publicKey?: string
-  ) => Promise<string | undefined>;
+  let send: (files: FileList, cid?: number, did?: number, peerID?: string, publicKey?: string) => Promise<string | undefined>;
 
   let qrCode: string;
   const generateQRCode = async (link: string) => {
@@ -72,7 +55,7 @@
       devices.forEach((device: IDeviceInfo) => {
         send(
           $files,
-          contact.cid.toString(),
+          contact.cid,
           device.did,
           device.peerJsId,
           device.encryptionPublicKey
@@ -126,13 +109,13 @@
     }
   }
   $: {
-    if ($pending_filetransfers.length != 0) {
-      $pending_filetransfers.forEach((pending_filetransfer) => {
-        if (pending_filetransfer.cid !== undefined) {
+    if ($outgoing_filetransfers.length != 0) {
+      $outgoing_filetransfers.forEach((outgoing_filetransfer) => {
+        if (outgoing_filetransfer.cid !== undefined) {
           let sent = 0;
           let total = 0;
 
-          pending_filetransfer.files.forEach((file) => {
+          outgoing_filetransfer.files.forEach((file) => {
             sent = sent + file.chunks;
             total = total + file.file.length;
           });
@@ -140,15 +123,15 @@
           const progress_number = sent / total;
 
           if (progress_number < 0.25) {
-            $progress[pending_filetransfer.cid] = "var(--surface)";
+            $progress[outgoing_filetransfer.cid] = "var(--surface)";
           } else if (progress_number < 0.5) {
-            $progress[pending_filetransfer.cid] = "var(--surface) var(--primary) var(--surface) var(--surface)";
+            $progress[outgoing_filetransfer.cid] = "var(--surface) var(--primary) var(--surface) var(--surface)";
           } else if (progress_number < 0.75) {
-            $progress[pending_filetransfer.cid] = "var(--surface) var(--primary) var(--primary) var(--surface)";
+            $progress[outgoing_filetransfer.cid] = "var(--surface) var(--primary) var(--primary) var(--surface)";
           } else if (progress_number < 1) {
-            $progress[pending_filetransfer.cid] = "var(--surface) var(--primary) var(--primary) var(--primary)";
+            $progress[outgoing_filetransfer.cid] = "var(--surface) var(--primary) var(--primary) var(--primary)";
           } else {
-            $progress[pending_filetransfer.cid] = "var(--primary)";
+            $progress[outgoing_filetransfer.cid] = "var(--primary)";
           }
         }
       });
@@ -157,7 +140,7 @@
 
   onMount(async () => {
     addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
-    pending_filetransfers = (await import("$lib/peerjs/common")).pending_filetransfers;
+    outgoing_filetransfers = (await import("$lib/peerjs/common")).outgoing_filetransfers;
     send = (await import("$lib/peerjs/send")).send;
 
     link = (await import("$lib/peerjs/common")).link;

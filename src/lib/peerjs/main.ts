@@ -1,18 +1,18 @@
 import { get } from "svelte/store";
 import Peer, { type DataConnection } from "peerjs";
 
-import { connections, incoming_filetransfers, link, peer, peer_disconnected, peer_open, pending_filetransfers, sender_uuid } from "./common";
+import { addListeners, incoming_filetransfers, link, outgoing_filetransfers, peer, peer_disconnected, peer_open, sender_uuid } from "./common";
 import {
   send,
-  sendAccept,
   sendChunkFinish,
   sendChunk,
   sendRequest,
 } from "./send";
 import { handleRequest, handleChunk, handleChunkFinish, handleFileFinish, handleFileTransferFinished } from "./handle";
-import { getCombined, updatePeerJS_ID } from "$lib/lib/fetchers";
+import { getCombined, getPeerJsId, updatePeerJS_ID } from "$lib/lib/fetchers";
 import { deviceInfos, own_did } from "$lib/lib/UI";
 import { browser } from "$app/environment";
+import { page } from "$app/stores";
 
 export const openPeer = async (uuid?: string) => {
   if (uuid) {
@@ -66,37 +66,38 @@ export const reconnectPeer = () => {
   get(peer).reconnect();
 };
 
-export const disconnectPeer = () => {
+export const disconnectPeer = (destroy?: boolean) => {
   peer_disconnected.set(true);
-  get(peer).disconnect();
+  if (destroy) get(peer).destroy();
+  else get(peer).disconnect();
 };
 
 export const listen = () => {
   peer.update((peer) => {
     peer.on("connection", (conn) => {
-      conn.on("data", function (received_data) {
-        handleData(received_data, conn);
-      });
-
-      connections.set([...get(connections), conn]);
+      addListeners(conn);
     });
     return peer;
   });
 };
 
-const authenticated = async (peerID: string, filetransfer_id?: string): Promise<boolean> => {
-  // skip as guest
+const authenticated = async (peerID: string, filetransfer_id: string, type: string): Promise<boolean> => {
+  // Guest page
   if (browser && window.location.pathname.slice(0, 6) == "/guest") {
-    return true;
-  } else if (filetransfer_id !== undefined) {
-    const filetransfer = get(pending_filetransfers).find((filetransfer) => filetransfer.filetransfer_id == filetransfer_id && filetransfer.cid === undefined);
+    if (await getPeerJsId(Number(get(page).params.did)) == peerID) {
+      return true;
+    } else return false;
+  }
+
+  // Home page - Skip if sending via link
+  if (filetransfer_id !== undefined) {
+    const filetransfer = get(outgoing_filetransfers).find((filetransfer) => filetransfer.filetransfer_id == filetransfer_id && filetransfer.cid === undefined);
 
     if (filetransfer !== undefined) return true;
   }
 
-  // PeerJsId changes, did remains the same
+  // Home page - Get device of PeerJsId
   let device = (await get(deviceInfos)).find((device) => device.peerJsId == peerID);
-
   if (device === undefined) {
     await getCombined(["deviceInfos"]);
     device = (await get(deviceInfos)).find((device) => device.peerJsId == peerID);
@@ -106,8 +107,13 @@ const authenticated = async (peerID: string, filetransfer_id?: string): Promise<
     }
   }
 
+  if (type == "Request") {
+    return true;
+  }
+
+  // Home page - Get filetransfer (did + filetransfer_id)
   // @ts-ignore
-  if (get(pending_filetransfers).find((filetransfer) => filetransfer.did == device.did) === undefined && get(incoming_filetransfers).find((filetransfer) => filetransfer.did == device.did) === undefined) {
+  if (get(outgoing_filetransfers).find((filetransfer) => filetransfer.did == device.did && filetransfer.filetransfer_id == filetransfer_id) === undefined && get(incoming_filetransfers).find((filetransfer) => filetransfer.did == device.did && filetransfer.filetransfer_id == filetransfer_id) === undefined) {
     return false;
   } else {
     return true;
@@ -117,11 +123,9 @@ const authenticated = async (peerID: string, filetransfer_id?: string): Promise<
 export const handleData = async (data: any, conn: DataConnection) => {
   console.log(data);
 
-  if (data.type == "Request") {
-    handleRequest(conn.peer, data.filetransfer_id, data.encrypted, data.files, data.did);
-  } else if (data.type == "Error") {
-    console.warn(data.body);
-  } else if (await authenticated(conn.peer, data.filetransfer_id)) {
+  if (data.type == "Error") {
+    console.warn(`PeerJS: ${data.body}`);
+  } else if (await authenticated(conn.peer, data.filetransfer_id, data.type)) {
     // Sender:
     if (data.type == "Accept") {
       if (data.guest == true) sendRequest(conn.peer, data.filetransfer_id);
@@ -130,8 +134,10 @@ export const handleData = async (data: any, conn: DataConnection) => {
       handleChunkFinish(conn.peer, data.filetransfer_id, data.file_id, data.chunk_id);
 
       // Receiver:
+    } else if (data.type == "Request") {
+      handleRequest(conn.peer, data.filetransfer_id, data.encrypted, data.files, data.did);
     } else if (data.type == "Chunk") {
-      handleChunk(data.chunk_info.chunk, data.chunk_info.file_id);
+      handleChunk(data.filetransfer_id, data.chunk_info.file_id, data.chunk_info.chunk);
       sendChunkFinish(
         conn.peer,
         data.filetransfer_id,
@@ -139,14 +145,14 @@ export const handleData = async (data: any, conn: DataConnection) => {
         data.chunk_info.file_id
       );
     } else if (data.type == "FileFinished") {
-      handleFileFinish(data);
+      handleFileFinish(data.filetransfer_id, data.file_id);
     } else if (data.type == "FiletransferFinished") {
       handleFileTransferFinished(data.filetransfer_id);
     }
   } else {
     conn.send({
       type: "Error",
-      body: "401",
+      body: "401 Unauthorized",
     });
   }
 };
@@ -169,11 +175,11 @@ export const addPendingFile = async (files: FileList) => {
 };
 
 export const connectAsListener = (
-  receiver_uuid: string,
+  did: number,
   filetransfer_id: string
 ) => {
-  get(peer).on("open", () => {
-    const conn = get(peer).connect(receiver_uuid);
+  get(peer).on("open", async () => {
+    const conn = get(peer).connect(await getPeerJsId(did));
 
     conn.on("open", function () {
       conn.send({
@@ -183,10 +189,6 @@ export const connectAsListener = (
       });
     });
 
-    conn.on("data", function (received_data) {
-      handleData(received_data, conn);
-    });
-
-    connections.set([...get(connections), conn]);
+    addListeners(conn);
   });
 };

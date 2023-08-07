@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import type { DataConnection, Peer } from "peerjs";
 import { get, writable } from "svelte/store";
+import { handleData } from "./main";
 
 // Stores:
 export const peer = writable<Peer>();
@@ -10,41 +11,11 @@ export const sender_uuid = writable<string>();
 export const connections = writable<DataConnection[]>([]);
 
 // Sender Side:
-export const pending_filetransfers = writable<
-  {
-    filetransfer_id: string,
-    encrypted: string,
-    completed: boolean,
-    files: {
-      file: string[],
-      chunks: number,
-      file_name: string,
-      file_id: string,
-    }[],
-    cid?: string,
-    did?: number,
-  }[]
->([]);
+export const outgoing_filetransfers = writable<IOutgoingFileTransfer[]>([]);
+export const link = writable("");
 
 // Receiver Side:
-export const incoming_filetransfers = writable<
-  {
-    filetransfer_id: string,
-    acceptedAt: number,
-    did?: number,
-  }[]
->([]);
-export const received_chunks = writable<
-  {
-    file_id: string;
-    file_name: string;
-    encrypted: string;
-    chunk_number: number;
-    chunks: string[];
-    url?: string;
-  }[]
->([]);
-export const link = writable("");
+export const incoming_filetransfers = writable<IIncomingFiletransfer[]>([]);
 
 // Functions:
 
@@ -55,6 +26,18 @@ export function connected(receiver_uuid: string): DataConnection | false {
   }
 
   return false;
+}
+
+export function addListeners(conn: DataConnection) {
+  conn.on("data", function (received_data) {
+    handleData(received_data, conn);
+  });
+
+  conn.on("close", () => {
+    connections.update((connections) => connections.filter((connection) => connection.peer != conn.peer));
+  });
+
+  connections.set([...get(connections), conn]);
 }
 
 export const createFileURL = (file: any) => {

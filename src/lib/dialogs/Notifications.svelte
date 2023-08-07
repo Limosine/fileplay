@@ -3,22 +3,13 @@
     notifications,
     deleteNotification,
     type INotification,
+    deviceInfos,
+    addNotification,
   } from "$lib/lib/UI";
   import { incoming_filetransfers } from "$lib/peerjs/common";
-  import dayjs from "dayjs";
   import { onMount } from "svelte";
   import { get, writable } from "svelte/store";
 
-  let received_chunks = writable<
-    {
-      file_id: string;
-      file_name: string;
-      encrypted: string;
-      chunk_number: number;
-      chunks: string[];
-      url?: string | undefined;
-    }[]
-  >();
   let sendAccept: (peerID: string, filetransfer_id: string) => void;
 
   async function handleNotificationClick(n: INotification, action: string) {
@@ -34,54 +25,62 @@
   }
 
   const returnProgress = (
-    file_id: string,
-    received_chunks: {
-      file_id: string;
-      file_name: string;
-      encrypted: string;
-      chunk_number: number;
-      chunks: string[];
-      url?: string;
-    }[]
+    filetransfer_id: string,
   ) => {
-    const file = received_chunks.find(
-      (received_chunk) => received_chunk.file_id === file_id
+    const filetransfer = $incoming_filetransfers.find(
+      (filetransfer) => filetransfer.filetransfer_id === filetransfer_id
     );
+    
+    if (filetransfer !== undefined) {
+      let received_chunks = 0;
+      let total_chunks = 0;
 
-    if (file !== undefined) {
-      const progress = (file.chunks.length / file.chunk_number) * 100;
+      filetransfer.files.forEach((file) => {
+        received_chunks = received_chunks + file.chunks.length;
+        total_chunks = total_chunks + file.chunk_number;
+      });
+
+      const progress = (received_chunks/ total_chunks) * 100;
 
       // eslint-disable-next-line no-undef
-      ui(`#file-${file_id}`, progress);
+      ui(`#filetransfer-${filetransfer_id}`, progress);
     }
 
     return "";
   };
 
-  const acceptFileTransfer = (notification: INotification) => {
+  const acceptFileTransfer = async (notification: INotification) => {
+    let files: IIncomingFiletransfer["files"] = [];
+
     notification.data.files.forEach((file: IFileInfo) => {
-      const initial_chunk_info = {
+      files.push({
         file_id: file.file_id,
         file_name: file.file_name,
-        encrypted: notification.data.encrypted,
         chunk_number: file.chunk_number,
         chunks: [],
-      };
-
-      received_chunks.set([...get(received_chunks), initial_chunk_info]);
+      });
     });
 
-    incoming_filetransfers.set([ ...get(incoming_filetransfers), {
+    const contact = (await $deviceInfos).find((device) => device.did == notification.data.did);
+    const cid = (contact !== undefined) ? contact.cid : undefined;
+
+    const filetransfer: IIncomingFiletransfer = {
       filetransfer_id: notification.data.filetransfer_id,
-      acceptedAt: dayjs().unix(),
+      encrypted: notification.data.encrypted,
+      completed: false,
+      files,
       did: notification.data.did,
-    }]);
+      cid,
+    };
+
+    incoming_filetransfers.set([ ...get(incoming_filetransfers), filetransfer]);
 
     sendAccept(notification.data.peerID, notification.data.filetransfer_id);
+
+    addNotification({title: "Receiving file(s)", body: `The file(s) '${filetransfer.files.map(file => file.file_name).toString()}' is/are being received.`, tag: `filetransfer-${filetransfer.filetransfer_id}`, actions: [{title: "Cancel", action: "cancel"}], data: { filetransfer_id: filetransfer.filetransfer_id }});
   };
 
   onMount(async () => {
-    received_chunks = (await import("$lib/peerjs/common")).received_chunks;
     sendAccept = (await import("$lib/peerjs/send")).sendAccept;
   });
 </script>
@@ -105,13 +104,12 @@
         class="border"
         style="margin: 0; padding: 0; position: relative;"
       >
-        {#if n.title == "Receiving file"}
+        {#if n.title == "Receiving file(s)"}
           <div
             class="progress left {returnProgress(
-              n.data.file_id,
-              $received_chunks
+              n.data.filetransfer_id,
             )}"
-            id="file-{n.data.file_id}"
+            id="filetransfer-{n.data.filetransfer_id}"
           />
         {/if}
         <button
