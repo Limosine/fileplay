@@ -4,7 +4,7 @@
   import QRCode from "qrcode";
   import { onMount } from "svelte";
   import {
-  getCombined,
+    getCombined,
     type IContact,
     type IDeviceInfo,
   } from "$lib/lib/fetchers";
@@ -244,7 +244,7 @@
         <p class="bold" style="margin: 0;">Available contacts:</p>
         <div class="max" />
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute -->
-        <a on:click={() => {  getCombined(["deviceInfos", "contacts"])}} style="color: var(--secondary)"
+        <a on:click={() => {  getCombined(["deviceInfos", "contacts"]);}} style="color: var(--secondary)"
           >Refresh</a
         >
       </div>

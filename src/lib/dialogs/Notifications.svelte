@@ -17,6 +17,10 @@
       window.location.href = n.data;
     } else if (action == "accept") {
       acceptFileTransfer(n);
+    } else if (action == "cancel") {
+      incoming_filetransfers.update((filetransfers) =>
+        filetransfers.filter((filetransfer) => filetransfer.filetransfer_id != n.data.filetransfer_id)
+      );
     }
 
     if (action != "download") {
@@ -26,8 +30,9 @@
 
   const returnProgress = (
     filetransfer_id: string,
+    filetransfers: IIncomingFiletransfer[]
   ) => {
-    const filetransfer = $incoming_filetransfers.find(
+    const filetransfer = filetransfers.find(
       (filetransfer) => filetransfer.filetransfer_id === filetransfer_id
     );
     
@@ -108,6 +113,7 @@
           <div
             class="progress left {returnProgress(
               n.data.filetransfer_id,
+              $incoming_filetransfers
             )}"
             id="filetransfer-{n.data.filetransfer_id}"
           />

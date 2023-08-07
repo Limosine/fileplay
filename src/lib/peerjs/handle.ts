@@ -168,6 +168,8 @@ export const handleFileTransferFinished = (filetransfer_id: string) => {
     return filetransfers;
   });
 
+  deleteNotification(`filetransfer-${filetransfer_id}`);
+
   if (browser && window.location.pathname.slice(0, 6) == "/guest") {
     disconnectPeer(true);
   }
