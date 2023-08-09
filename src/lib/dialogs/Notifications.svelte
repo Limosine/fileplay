@@ -47,7 +47,7 @@
       });
 
       const progress = (received_chunks/total_chunks) * 100;
-      console.log(process);
+      console.log(progress);
 
       // eslint-disable-next-line no-undef
       ui(`#filetransfer-${filetransfer_id}`, progress);
