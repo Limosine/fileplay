@@ -51,7 +51,7 @@ export const handleChunk = (filetransfer_id: string, file_id: string, chunk: str
     if (file_index != -1) {
       incoming_filetransfers.update((filetransfers) => {
         filetransfers[filetransfer_index].files[file_index].chunks.push(chunk);
-        console.log("New chunk", filetransfers[filetransfer_index].files[file_index]);
+        console.log(`New chunk: ${filetransfers[filetransfer_index].files[file_index].chunks.length}/${filetransfers[filetransfer_index].files[file_index].chunk_number}`);
         return filetransfers;
       });
     } else console.log("PeerJS: No such file");

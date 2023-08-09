@@ -43,9 +43,11 @@
       filetransfer.files.forEach((file) => {
         received_chunks = received_chunks + file.chunks.length;
         total_chunks = total_chunks + file.chunk_number;
+        console.log(received_chunks, total_chunks);
       });
 
-      const progress = (received_chunks/ total_chunks) * 100;
+      const progress = (received_chunks/total_chunks) * 100;
+      console.log(process);
 
       // eslint-disable-next-line no-undef
       ui(`#filetransfer-${filetransfer_id}`, progress);
