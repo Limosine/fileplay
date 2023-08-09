@@ -19,6 +19,7 @@ export const handleRequest = (peerID: string, filetransfer_id: string, encrypted
         chunk_number: file.chunk_number,
         chunks: [],
       });
+      console.log("New request", file);
     });
 
     const filetransfer: IIncomingFiletransfer = {
@@ -50,6 +51,7 @@ export const handleChunk = (filetransfer_id: string, file_id: string, chunk: str
     if (file_index != -1) {
       incoming_filetransfers.update((filetransfers) => {
         filetransfers[filetransfer_index].files[file_index].chunks.push(chunk);
+        console.log("New chunk", filetransfers[filetransfer_index].files[file_index]);
         return filetransfers;
       });
     } else console.log("PeerJS: No such file");
@@ -152,6 +154,7 @@ export const handleFileFinish = async (filetransfer_id: string, file_id: string)
 
       incoming_filetransfers.update((filetransfers) => {
         filetransfers[filetransfer_index].files[file_index].url = url;
+        console.log("File finished", filetransfers[filetransfer_index].files[file_index]);
         return filetransfers;
       });
 

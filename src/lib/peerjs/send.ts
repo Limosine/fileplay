@@ -78,6 +78,7 @@ export const sendRequest = async (peerID: string, filetransfer_id: string) => {
         file_id: file.file_id,
         chunk_number: file.file.length,
       });
+      console.log(file);
     });
 
     const connect_return = connected(peerID);

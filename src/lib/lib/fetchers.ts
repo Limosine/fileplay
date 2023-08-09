@@ -158,4 +158,6 @@ export async function getCombined(request: string[]) {
   }
   if (result.contacts)
     contacts.set(result.contacts);
+
+  return result;
 }

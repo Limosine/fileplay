@@ -3,7 +3,6 @@
   import { getDicebearUrl } from "$lib/lib/common";
   import { user } from "$lib/lib/UI";
   import { deleteAccount } from "$lib/lib/fetchers";
-
 </script>
 
 {#if $settings_page == "main"}

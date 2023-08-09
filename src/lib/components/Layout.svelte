@@ -114,16 +114,19 @@
     left: 0;
     width: 100%;
   }
+
   #content-small {
     top: 0;
     bottom: 80px;
     overflow: auto;
   }
+
   #content-small-header {
     top: 64px;
     bottom: 80px;
     overflow: auto;
   }
+
   #content-large {
     height: calc(100% - 64px);
     width: calc(100% - 80px);
@@ -135,7 +138,7 @@
   .connection-status {
     margin: 10px;
     border-radius: 50%;
-    border: 3px solid #cac4d0;
+    border: 3px solid var(--on-background);
     height: 20px;
     width: 20px;
   }

@@ -8,7 +8,7 @@
   } from "$lib/lib/UI";
   import { incoming_filetransfers } from "$lib/peerjs/common";
   import { onMount } from "svelte";
-  import { get, writable } from "svelte/store";
+  import { get } from "svelte/store";
 
   let sendAccept: (peerID: string, filetransfer_id: string) => void;
 
