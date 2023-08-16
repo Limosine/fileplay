@@ -1,16 +1,18 @@
 <script lang="ts">
+  import { get, writable } from "svelte/store";
+  import { onMount } from "svelte";
+
   import {
     notifications,
     deleteNotification,
     type INotification,
     deviceInfos,
     addNotification,
+    returnProgress,
   } from "$lib/lib/UI";
-  import { incoming_filetransfers } from "$lib/peerjs/common";
-  import { onMount } from "svelte";
-  import { get } from "svelte/store";
 
   let sendAccept: (peerID: string, filetransfer_id: string) => void;
+  let incoming_filetransfers = writable<IIncomingFiletransfer[]>([]);
 
   async function handleNotificationClick(n: INotification, action: string) {
     if (action == "download") {
@@ -19,7 +21,10 @@
       acceptFileTransfer(n);
     } else if (action == "cancel") {
       incoming_filetransfers.update((filetransfers) =>
-        filetransfers.filter((filetransfer) => filetransfer.filetransfer_id != n.data.filetransfer_id)
+        filetransfers.filter(
+          (filetransfer) =>
+            filetransfer.filetransfer_id != n.data.filetransfer_id,
+        ),
       );
     }
 
@@ -27,34 +32,6 @@
       deleteNotification(n.tag);
     }
   }
-
-  const returnProgress = (
-    filetransfer_id: string,
-    filetransfers: IIncomingFiletransfer[]
-  ) => {
-    const filetransfer = filetransfers.find(
-      (filetransfer) => filetransfer.filetransfer_id === filetransfer_id
-    );
-    
-    if (filetransfer !== undefined) {
-      let received_chunks = 0;
-      let total_chunks = 0;
-
-      filetransfer.files.forEach((file) => {
-        received_chunks = received_chunks + file.chunks.length;
-        total_chunks = total_chunks + file.chunk_number;
-        console.log(received_chunks, total_chunks);
-      });
-
-      const progress = (received_chunks/total_chunks) * 100;
-      console.log(progress);
-
-      // eslint-disable-next-line no-undef
-      ui(`#filetransfer-${filetransfer_id}`, progress);
-    }
-
-    return "";
-  };
 
   const acceptFileTransfer = async (notification: INotification) => {
     let files: IIncomingFiletransfer["files"] = [];
@@ -68,8 +45,10 @@
       });
     });
 
-    const contact = (await $deviceInfos).find((device) => device.did == notification.data.did);
-    const cid = (contact !== undefined) ? contact.cid : undefined;
+    const contact = (await $deviceInfos).find(
+      (device) => device.did == notification.data.did,
+    );
+    const cid = contact !== undefined ? contact.cid : undefined;
 
     const filetransfer: IIncomingFiletransfer = {
       filetransfer_id: notification.data.filetransfer_id,
@@ -80,15 +59,25 @@
       cid,
     };
 
-    incoming_filetransfers.set([ ...get(incoming_filetransfers), filetransfer]);
+    incoming_filetransfers.set([...get(incoming_filetransfers), filetransfer]);
 
     sendAccept(notification.data.peerID, notification.data.filetransfer_id);
 
-    addNotification({title: "Receiving file(s)", body: `The file(s) '${filetransfer.files.map(file => file.file_name).toString()}' is/are being received.`, tag: `filetransfer-${filetransfer.filetransfer_id}`, actions: [{title: "Cancel", action: "cancel"}], data: { filetransfer_id: filetransfer.filetransfer_id }});
+    addNotification({
+      title: "Receiving file(s)",
+      body: `The file(s) '${filetransfer.files
+        .map((file) => file.file_name)
+        .toString()}' is/are being received.`,
+      tag: `filetransfer-${filetransfer.filetransfer_id}`,
+      actions: [{ title: "Cancel", action: "cancel" }],
+      data: { filetransfer_id: filetransfer.filetransfer_id },
+    });
   };
 
   onMount(async () => {
     sendAccept = (await import("$lib/peerjs/send")).sendAccept;
+    incoming_filetransfers = (await import("$lib/peerjs/common"))
+      .incoming_filetransfers;
   });
 </script>
 
@@ -112,24 +101,27 @@
         style="margin: 0; padding: 0; position: relative;"
       >
         {#if n.title == "Receiving file(s)"}
-          <div
-            class="progress left {returnProgress(
+          <progress
+            style="margin-top: 7px;"
+            class="left"
+            value={returnProgress(
               n.data.filetransfer_id,
-              $incoming_filetransfers
-            )}"
-            id="filetransfer-{n.data.filetransfer_id}"
+              $incoming_filetransfers,
+            )}
           />
         {/if}
-        <button
-          on:click={() => deleteNotification(n.tag)}
-          class="transparent circle large"
-          style="position: absolute; right: 0; margin: 0;"
-        >
-          <i>close</i>
-        </button>
 
-        <div style="padding: 16px;">
-          <h6>{n.title}</h6>
+        <div style="padding: {(n.title == "Receiving file(s)") ? "0" : "16px"} 16px 16px 16px;">
+          <div class="row">
+            <h6>{n.title}</h6>
+            <div class="max" />
+            <button
+              class="transparent circle large"
+              on:click={() => deleteNotification(n.tag)}
+            >
+              <i>close</i>
+            </button>
+          </div>
           <p>{n.body}</p>
           <nav class="right-align">
             {#each n.actions ?? [] as action}

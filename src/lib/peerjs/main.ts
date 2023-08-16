@@ -137,13 +137,15 @@ export const handleData = async (data: any, conn: DataConnection) => {
     } else if (data.type == "Request") {
       handleRequest(conn.peer, data.filetransfer_id, data.encrypted, data.files, data.did);
     } else if (data.type == "Chunk") {
-      await handleChunk(data.filetransfer_id, data.chunk_info.file_id, data.chunk_info.chunk);
-      sendChunkFinish(
-        conn.peer,
-        data.filetransfer_id,
-        data.chunk_info.chunk_id,
-        data.chunk_info.file_id
-      );
+      handleChunk(data.filetransfer_id, data.chunk_info.file_id, data.chunk_info.chunk);
+      setTimeout(() => {
+        sendChunkFinish(
+          conn.peer,
+          data.filetransfer_id,
+          data.chunk_info.chunk_id,
+          data.chunk_info.file_id
+        );
+      }, 400);
     } else if (data.type == "FileFinished") {
       handleFileFinish(data.filetransfer_id, data.file_id);
     } else if (data.type == "FiletransferFinished") {
@@ -179,7 +181,7 @@ export const connectAsListener = (
   filetransfer_id: string
 ) => {
   get(peer).on("open", async () => {
-    const conn = get(peer).connect(await getPeerJsId(did));
+    const conn = get(peer).connect(await getPeerJsId(did), {});
 
     conn.on("open", function () {
       conn.send({

@@ -39,7 +39,7 @@ async function convertPrivateKey() {
 // return type?
 export async function encryptFiles(files: FileList, armoredKey: string) {
   const filePromises = Array.from(files).map((file) => {
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<openpgp.WebStream<string>>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -75,7 +75,7 @@ export async function encryptFilesWithPassword(
   password: string
 ) {
   const filePromises = Array.from(files).map((file) => {
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<openpgp.WebStream<string>>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async () => {
         try {

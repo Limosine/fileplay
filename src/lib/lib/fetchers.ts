@@ -1,8 +1,19 @@
 import { get } from "svelte/store";
 import { browser } from "$app/environment";
 
-import { contacts, deviceInfos, deviceInfos_loaded, deviceParams, devices, devices_loaded, own_did, user, user_loaded } from "./UI";
+import {
+  contacts,
+  deviceInfos,
+  deviceInfos_loaded,
+  deviceParams,
+  devices,
+  devices_loaded,
+  own_did,
+  user,
+  user_loaded,
+} from "./UI";
 import { DeviceType } from "./common";
+import { page } from "$app/stores";
 
 // contacts
 export interface IContact {
@@ -50,12 +61,14 @@ export interface IUser {
   lastSeenAt: number;
 }
 
-export function withDeviceType(name: string): { type: string; name: string; } {
+export function withDeviceType(name: string): { type: string; name: string } {
   // @ts-ignore
   return { name, type: DeviceType[name] as string };
 }
 
 export async function getPeerJsId(did: number): Promise<string> {
+  if (get(page).url.hostname == "localhost") return "";
+
   const res = await fetch(`/api/guest?did=${did}`, {
     method: "GET",
   });
@@ -65,18 +78,15 @@ export async function getPeerJsId(did: number): Promise<string> {
   return peerJsId;
 }
 
-export const loadInfos = (
-  devices: IDevices,
-  did: number
-) => {
+export const loadInfos = (devices: IDevices, did: number) => {
   let device:
     | {
-      did: number;
-      type: string;
-      displayName: string;
-      createdAt: number;
-      lastSeenAt: number;
-    }
+        did: number;
+        type: string;
+        displayName: string;
+        createdAt: number;
+        lastSeenAt: number;
+      }
     | undefined;
 
   if (devices.self.did == did) {
@@ -102,6 +112,8 @@ export const loadInfos = (
 };
 
 export async function updatePeerJS_ID() {
+  if (get(page).url.hostname == "localhost") return;
+
   const sender_uuid = (await import("../peerjs/common")).sender_uuid;
 
   await fetch("/api/devices", {
@@ -113,6 +125,8 @@ export async function updatePeerJS_ID() {
 }
 
 export async function deleteAccount() {
+  if (get(page).url.hostname == "localhost") return;
+
   const res = await fetch("/api/user", {
     method: "DELETE",
   });
@@ -127,13 +141,15 @@ export async function deleteAccount() {
 }
 
 interface ICombined {
-  user?: IUser,
-  devices?: IDevices,
-  deviceInfos?: IDeviceInfo[],
-  contacts?: IContact[],
+  user?: IUser;
+  devices?: IDevices;
+  deviceInfos?: IDeviceInfo[];
+  contacts?: IContact[];
 }
 
 export async function getCombined(request: string[]) {
+  if (get(page).url.hostname == "localhost") return [];
+
   const res = await fetch(`/api/combined?request=${request.toString()}`, {
     method: "GET",
   });
@@ -156,8 +172,7 @@ export async function getCombined(request: string[]) {
     deviceInfos.set(result.deviceInfos);
     if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
   }
-  if (result.contacts)
-    contacts.set(result.contacts);
+  if (result.contacts) contacts.set(result.contacts);
 
   return result;
 }

@@ -17,7 +17,13 @@
   let link = writable("");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let addPendingFile = (files: FileList) => {};
-  let send: (files: FileList, cid?: number, did?: number, peerID?: string, publicKey?: string) => Promise<string | undefined>;
+  let send: (
+    files: FileList,
+    cid?: number,
+    did?: number,
+    peerID?: string,
+    publicKey?: string,
+  ) => Promise<string | undefined>;
 
   let qrCode: string;
   const generateQRCode = async (link: string) => {
@@ -47,9 +53,10 @@
       // cancel sharing in progress
       setSendState(contact.cid, SendState.CANCELED);
       break;
-    default: // IDLE, CANCELED, FAILED, REJECTED
-      let devices = (await $deviceInfos as any).filter(
-        (item: any) => item.cid == contact.cid
+    default: {
+      // IDLE, CANCELED, FAILED, REJECTED
+      const devices = (await $deviceInfos).filter(
+        (item) => item.cid == contact.cid,
       );
 
       devices.forEach((device: IDeviceInfo) => {
@@ -58,7 +65,7 @@
           contact.cid,
           device.did,
           device.peerJsId,
-          device.encryptionPublicKey
+          device.encryptionPublicKey,
         );
       });
 
@@ -66,14 +73,17 @@
 
       break;
     }
+    }
   }
 
   let progress = writable<{ [cid: string]: string }>({});
-  let progress_styles = writable<{ [cid: string]: { class: string, indeterminate: boolean }}>({});
+  let progress_styles = writable<{
+    [cid: string]: { class: string; indeterminate: boolean };
+  }>({});
   $: {
     if (Object.keys($sendState).length != 0) {
       for (let [key, value] of Object.entries($sendState)) {
-        switch(value) {
+        switch (value) {
         case SendState.REQUESTING:
           $progress_styles[key] = {
             class: "progress-yellow",
@@ -125,11 +135,14 @@
           if (progress_number < 0.25) {
             $progress[outgoing_filetransfer.cid] = "var(--surface)";
           } else if (progress_number < 0.5) {
-            $progress[outgoing_filetransfer.cid] = "var(--surface) var(--primary) var(--surface) var(--surface)";
+            $progress[outgoing_filetransfer.cid] =
+              "var(--surface) var(--primary) var(--surface) var(--surface)";
           } else if (progress_number < 0.75) {
-            $progress[outgoing_filetransfer.cid] = "var(--surface) var(--primary) var(--primary) var(--surface)";
+            $progress[outgoing_filetransfer.cid] =
+              "var(--surface) var(--primary) var(--primary) var(--surface)";
           } else if (progress_number < 1) {
-            $progress[outgoing_filetransfer.cid] = "var(--surface) var(--primary) var(--primary) var(--primary)";
+            $progress[outgoing_filetransfer.cid] =
+              "var(--surface) var(--primary) var(--primary) var(--primary)";
           } else {
             $progress[outgoing_filetransfer.cid] = "var(--primary)";
           }
@@ -140,14 +153,15 @@
 
   onMount(async () => {
     addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
-    outgoing_filetransfers = (await import("$lib/peerjs/common")).outgoing_filetransfers;
+    outgoing_filetransfers = (await import("$lib/peerjs/common"))
+      .outgoing_filetransfers;
     send = (await import("$lib/peerjs/send")).send;
 
     link = (await import("$lib/peerjs/common")).link;
   });
 
   $: {
-    if ($link) {
+    if ($files && $link) {
       generateQRCode($link);
     }
   }
@@ -166,7 +180,7 @@
       <div class="row">
         <p class="bold" style="margin: 0;">Selected files:</p>
         <div class="max" />
-        <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute -->
+        <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
         <a on:click={() => $input.click()} style="color: var(--secondary)"
           >Change</a
         >
@@ -201,7 +215,7 @@
         </summary>
         {#if !$link}
           <p>
-            <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <a
               on:click={() => addPendingFile($files)}
               style="color: var(--secondary)">Generate a QR-Code</a
@@ -243,19 +257,22 @@
       <div class="row">
         <p class="bold" style="margin: 0;">Available contacts:</p>
         <div class="max" />
-        <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute -->
-        <a on:click={() => {  getCombined(["deviceInfos", "contacts"]);}} style="color: var(--secondary)"
-          >Refresh</a
+        <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
+        <a
+          on:click={() => {
+            getCombined(["deviceInfos", "contacts"]);
+          }}
+          style="color: var(--secondary)">Refresh</a
         >
       </div>
       <div class="row wrap">
         {#await $contacts}
           <p class="center">Contacts are loading...</p>
         {:then contacts}
-          {#if contacts.length == 0 || contacts.find((contact) => contact.lastSeenAt > (dayjs().unix() - ONLINE_STATUS_TIMEOUT)) === undefined}
+          {#if contacts.length == 0 || contacts.find((contact) => contact.lastSeenAt > dayjs().unix() - ONLINE_STATUS_TIMEOUT) === undefined}
             <p class="center padding">
               No contact available. Add a new contact on the
-              <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+              <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
               <a
                 on:click={() => {
                   getCombined(["contacts"]);
@@ -266,19 +283,21 @@
             </p>
           {/if}
           {#each contacts as contact}
-            {#if contact.lastSeenAt > (dayjs().unix() - ONLINE_STATUS_TIMEOUT)}
-            <button
-              class="border small-round"
-              style="border-color: {($progress[contact.cid] !== undefined) ? $progress[contact.cid] : "var(--primary)"};"
-              on:click={() => handleContactClick(contact)}
-            >
-              <img
-                class="responsive"
-                src={getDicebearUrl(contact.avatarSeed, 40, 0)}
-                alt="{contact.displayName}'s avatar"
-              />
-              <span>{contact.displayName}</span>
-            </button>
+            {#if contact.lastSeenAt > dayjs().unix() - ONLINE_STATUS_TIMEOUT}
+              <button
+                class="border small-round"
+                style="border-color: {$progress[contact.cid] !== undefined
+                  ? $progress[contact.cid]
+                  : "var(--primary)"};"
+                on:click={() => handleContactClick(contact)}
+              >
+                <img
+                  class="responsive"
+                  src={getDicebearUrl(contact.avatarSeed, 40, 0)}
+                  alt="{contact.displayName}'s avatar"
+                />
+                <span>{contact.displayName}</span>
+              </button>
             {/if}
           {/each}
         {:catch}

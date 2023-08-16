@@ -66,8 +66,6 @@
         },
       }).needRefresh;
     }
-
-    console.log("registered reset_client handler on client side");
   });
 
   onDestroy(() => {
@@ -83,7 +81,6 @@
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
   $: if ($needRefresh) {
-    console.log("need refresh SW");
     addNotification({
       title: "New version available",
       body: "Click here to update",
@@ -110,7 +107,7 @@
 <div id="start">
   <div class="center-align">
     <!-- svelte-ignore a11y-missing-attribute a11y-missing-content -->
-    <a class="loader medium" />
+    <progress class="circle medium" />
   </div>
 </div>
 

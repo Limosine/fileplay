@@ -169,3 +169,29 @@ export function updateIsProfaneUsername() {
       profaneUsername.set({ loading: false, profane: false });
     });
 }
+
+// Progress calculation:
+export const returnProgress = (
+  filetransfer_id: string,
+  filetransfers: IIncomingFiletransfer[]
+) => {
+  const filetransfer = filetransfers.find(
+    (filetransfer) => filetransfer.filetransfer_id === filetransfer_id
+  );
+  
+  if (filetransfer !== undefined) {
+    let received_chunks = 0;
+    let total_chunks = 0;
+
+    filetransfer.files.forEach((file) => {
+      received_chunks = received_chunks + file.chunks.length;
+      total_chunks = total_chunks + file.chunk_number;
+    });
+
+    const progress = received_chunks / total_chunks;
+
+    return progress;
+  } else {
+    return 0;
+  }
+};

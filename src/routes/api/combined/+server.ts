@@ -47,7 +47,5 @@ export const GET: RequestHandler = async ({ cookies, platform, url }) => {
     }
   }
 
-  console.log(result);
-
   return json(result, { status: 200 });
 };

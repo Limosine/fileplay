@@ -6,6 +6,7 @@
   import { writable } from "svelte/store";
   import { page } from "$app/stores";
   import { setup as pgp_setup } from "$lib/lib/openpgp";
+  import { returnProgress } from "$lib/lib/UI";
 
   let waitingTemplateString = "Waiting for files";
   let finalString = waitingTemplateString;
@@ -37,12 +38,6 @@
 
     connectAsListener(Number($page.params.did), $page.params.filetransfer_id);
   });
-
-  const returnProgress = (file_id: string, progress: number) => {
-    // eslint-disable-next-line no-undef
-    ui(`#${file_id}`, progress);
-    return "";
-  };
 
   const returnSubstring = (file_name: string) => {
     let position = file_name.lastIndexOf(".");
@@ -98,10 +93,8 @@
             <article class="border round" style="width: 100%; height: 50px;">
               <div
                 class="progress left {returnProgress(
-                  file.file_id,
-                  (file.chunks.length /
-                  file.chunk_number) *
-                  100
+                  filetransfer.filetransfer_id,
+                  $incoming_filetransfers
                 )}"
                 id={file.file_id}
               />

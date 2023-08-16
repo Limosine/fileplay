@@ -1,6 +1,7 @@
+import { get, writable } from "svelte/store";
 import { nanoid } from "nanoid";
 import type { DataConnection, Peer } from "peerjs";
-import { get, writable } from "svelte/store";
+
 import { handleData } from "./main";
 
 // Stores:

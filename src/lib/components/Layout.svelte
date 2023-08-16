@@ -5,7 +5,7 @@
   import { notifications } from "$lib/lib/UI";
 
   // Top app bar
-  const colors = ["yellow", "green", "red"];
+  const colors = ["orange", "green", "red"];
   const status = ["Connecting", "Online", "Error"];
 </script>
 
@@ -138,7 +138,7 @@
   .connection-status {
     margin: 10px;
     border-radius: 50%;
-    border: 3px solid var(--on-background);
+    border: 2px solid var(--on-background);
     height: 20px;
     width: 20px;
   }

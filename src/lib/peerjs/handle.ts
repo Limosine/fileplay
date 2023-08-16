@@ -1,12 +1,14 @@
 import { get } from "svelte/store";
-import { createFileURL, incoming_filetransfers, outgoing_filetransfers } from "./common";
-import { decryptFiles, decryptFilesWithPassword } from "$lib/lib/openpgp";
 import { page } from "$app/stores";
-import { sendState, SendState } from "$lib/lib/sendstate";
-import { sendAccept, sendChunk, sendFinish } from "./send";
-import { addNotification, deleteNotification } from "$lib/lib/UI";
 import { browser } from "$app/environment";
+
+import { decryptFiles, decryptFilesWithPassword } from "$lib/lib/openpgp";
+import { sendState, SendState } from "$lib/lib/sendstate";
+import { addNotification, deleteNotification } from "$lib/lib/UI";
+
+import { createFileURL, incoming_filetransfers, outgoing_filetransfers } from "./common";
 import { disconnectPeer } from "./main";
+import { sendAccept, sendChunk, sendFinish } from "./send";
 
 export const handleRequest = (peerID: string, filetransfer_id: string, encrypted: "password" | "publicKey", files_unformatted: IFileInfo[], did: number) => {
   if (browser && window.location.pathname.slice(0, 6) == "/guest") {
@@ -19,7 +21,6 @@ export const handleRequest = (peerID: string, filetransfer_id: string, encrypted
         chunk_number: file.chunk_number,
         chunks: [],
       });
-      console.log("New request", file);
     });
 
     const filetransfer: IIncomingFiletransfer = {
@@ -51,7 +52,6 @@ export const handleChunk = (filetransfer_id: string, file_id: string, chunk: str
     if (file_index != -1) {
       incoming_filetransfers.update((filetransfers) => {
         filetransfers[filetransfer_index].files[file_index].chunks.push(chunk);
-        console.log(`New chunk: ${filetransfers[filetransfer_index].files[file_index].chunks.length}/${filetransfers[filetransfer_index].files[file_index].chunk_number}`);
         return filetransfers;
       });
     } else console.log("PeerJS: No such file");
@@ -154,7 +154,6 @@ export const handleFileFinish = async (filetransfer_id: string, file_id: string)
 
       incoming_filetransfers.update((filetransfers) => {
         filetransfers[filetransfer_index].files[file_index].url = url;
-        console.log("File finished", filetransfers[filetransfer_index].files[file_index]);
         return filetransfers;
       });
 
