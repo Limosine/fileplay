@@ -1,6 +1,11 @@
 import { COOKIE_SIGNING_SECRET } from "$env/static/private";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
-import { correctOnlineStatus, createKysely, updateLastSeen, updateOnlineStatus } from "$lib/server/db";
+import {
+  correctOnlineStatus,
+  createKysely,
+  updateLastSeen,
+  updateOnlineStatus,
+} from "$lib/server/db";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ request, cookies, platform }) => {
@@ -8,8 +13,6 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
-
-  console.log("New WebSocket connection, did: ", did);
 
   const upgradeHeader = request.headers.get("Upgrade");
   if (!upgradeHeader || upgradeHeader !== "websocket") {
@@ -21,26 +24,38 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   const onlineStatus = async (status: number) => {
     const res = await updateOnlineStatus(db, did, status);
 
-    if (status != 0) {
+    if (status == 0) {
+      const devices = await db
+        .selectFrom("devices")
+        .select("did")
+        .where("isOnline", "=", 1)
+        .execute();
+
+      if (devices.length == 0 && uid) {
+        await db
+          .updateTable("users")
+          .set({ isOnline: 0 })
+          .where("uid", "=", uid)
+          .returning("isOnline")
+          .executeTakeFirst();
+      }
+    } else {
       if (res) server.send("1");
       else server.send("2");
     }
   };
 
   const lastSeen = async () => {
-    const res = await updateLastSeen(db, uid, did);
+    const res = await updateLastSeen(db, did);
 
     if (!res) server.send("2");
     else server.send("1");
   };
 
-  const webSocketPair = new WebSocketPair();
-  const [client, server] = Object.values(webSocketPair);
+  const { 0: client, 1: server } = new WebSocketPair();
 
   // @ts-ignore
   server.accept();
-
-  onlineStatus(1);
 
   server.addEventListener("close", async () => {
     onlineStatus(0);

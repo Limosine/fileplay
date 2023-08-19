@@ -49,11 +49,8 @@ export const POST: RequestHandler = async ({
   const res = await db
     .updateTable("devices")
     .set(updateObject)
-    .where(({ and, or, cmpr }) =>
-      and([
-        cmpr("did", "=", did),
-        or([cmpr("did", "=", own_did), cmpr("uid", "=", uid)]),
-      ])
+    .where((eb) =>
+      eb("did", "=", did).and(eb("did", "=", own_did).or("uid", "=", uid)),
     )
     .returning("did")
     .executeTakeFirst();
@@ -80,11 +77,8 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
   // delete device mapping
   const res1 = await db
     .deleteFrom("devices")
-    .where(({ and, or, cmpr }) =>
-      and([
-        cmpr("did", "=", did),
-        or([cmpr("did", "=", own_did), cmpr("uid", "=", uid)]),
-      ])
+    .where((eb) =>
+      eb("did", "=", did).and(eb("did", "=", own_did).or("uid", "=", uid)),
     )
     .returning("did")
     .executeTakeFirst();

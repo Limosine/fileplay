@@ -20,8 +20,8 @@ const config = {
       checkOrigin: false,
     },
     serviceWorker: {
-      register: false
-    }
+      register: false,
+    },
   },
 };
 

@@ -35,7 +35,9 @@ export function addListeners(conn: DataConnection) {
   });
 
   conn.on("close", () => {
-    connections.update((connections) => connections.filter((connection) => connection.peer != conn.peer));
+    connections.update((connections) =>
+      connections.filter((connection) => connection.peer != conn.peer),
+    );
   });
 
   connections.set([...get(connections), conn]);
@@ -61,8 +63,12 @@ export const chunkString = (str: string, size: number) => {
 };
 
 export const chunkFiles = (files: FileList, encrypted_files: string[]) => {
-  const chunkedFiles: { file: string[], chunks: number, file_name: string, file_id: string; }[] =
-    [];
+  const chunkedFiles: {
+    file: string[];
+    chunks: number;
+    file_name: string;
+    file_id: string;
+  }[] = [];
 
   for (let i = 0; i < encrypted_files.length; i++) {
     chunkedFiles.push({

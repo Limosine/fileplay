@@ -10,12 +10,14 @@ function createWebSocket() {
   websocket.onclose = () => {
     status.set("0");
     console.log("WebSocket connection closed, retrying in 5 seconds.");
-    setTimeout(() => { websocket = createWebSocket(); }, 5000);
+    setTimeout(() => {
+      websocket = createWebSocket();
+    }, 5000);
   };
   return websocket;
 }
 
-export const socketStore = readable<"0" | "1" | "2">("0", set => {
+export const socketStore = readable<"0" | "1" | "2">("0", (set) => {
   let store = createWebSocket();
   store.onmessage = (event) => {
     if (event.data == "1" || event.data == "2") {
@@ -40,7 +42,7 @@ export const socketStore = readable<"0" | "1" | "2">("0", set => {
     } else {
       store.send("ping");
     }
-  }, (ONLINE_STATUS_REFRESH_TIME * 1000));
+  }, ONLINE_STATUS_REFRESH_TIME * 1000);
 
   return () => store.close();
 });

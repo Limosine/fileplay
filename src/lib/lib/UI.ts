@@ -54,7 +54,7 @@ export interface INotification {
 export const notifications = writable<INotification[]>([]);
 
 export const addNotification = (
-  notification: PartialBy<INotification, "tag">
+  notification: PartialBy<INotification, "tag">,
 ) => {
   // replace notifications with the same tag
   if ("tag" in notification && notification.tag)
@@ -68,8 +68,8 @@ export const addNotification = (
 };
 
 export const deleteNotification = (tag: string) => {
-  notifications.update((notifications) => 
-    notifications.filter((n) => n.tag != tag)
+  notifications.update((notifications) =>
+    notifications.filter((n) => n.tag != tag),
   );
 };
 
@@ -77,7 +77,12 @@ export const deleteNotification = (tag: string) => {
 export const codehostname = writable("");
 
 // Edit dialog
-export type edit_options = "deviceName" | "deviceType" | "username" | "linkingCode" | "avatar";
+export type edit_options =
+  | "deviceName"
+  | "deviceType"
+  | "username"
+  | "linkingCode"
+  | "avatar";
 export const edit_current = writable<edit_options>("deviceName");
 
 export const title = writable("");
@@ -85,7 +90,12 @@ export const did = writable<number>();
 
 export const original_value = writable("");
 
-export const openDialog = (currentU: edit_options, titleU: string, original_valueU?: string, didU?: number) => {
+export const openDialog = (
+  currentU: edit_options,
+  titleU: string,
+  original_valueU?: string,
+  didU?: number,
+) => {
   edit_current.set(currentU);
   title.set(titleU);
 
@@ -94,30 +104,30 @@ export const openDialog = (currentU: edit_options, titleU: string, original_valu
     original_value.set(original_valueU);
 
     switch (currentU) {
-    case "username":
-      userParams.update((user) => {
-        user.displayName = original_valueU;
-        return user;
-      });
-      break;
-    case "avatar":
-      userParams.update((user) => {
-        user.avatarSeed = original_valueU;
-        return user;
-      });
-      break;
-    case "deviceName":
-      deviceParams.update((device) => {
-        device.displayName = original_valueU;
-        return device;
-      });
-      break;
-    case "deviceType":
-      deviceParams.update((device) => {
-        device.type = original_valueU;
-        return device;
-      });
-      break;
+      case "username":
+        userParams.update((user) => {
+          user.displayName = original_valueU;
+          return user;
+        });
+        break;
+      case "avatar":
+        userParams.update((user) => {
+          user.avatarSeed = original_valueU;
+          return user;
+        });
+        break;
+      case "deviceName":
+        deviceParams.update((device) => {
+          device.displayName = original_valueU;
+          return device;
+        });
+        break;
+      case "deviceType":
+        deviceParams.update((device) => {
+          device.type = original_valueU;
+          return device;
+        });
+        break;
     }
   }
   ui("#dialog-edit");
@@ -141,7 +151,7 @@ export const profaneUsername = writable<{ loading: boolean; profane: boolean }>(
   {
     loading: false,
     profane: false,
-  }
+  },
 );
 
 export function updateIsProfaneUsername() {
@@ -173,12 +183,12 @@ export function updateIsProfaneUsername() {
 // Progress calculation:
 export const returnProgress = (
   filetransfer_id: string,
-  filetransfers: IIncomingFiletransfer[]
+  filetransfers: IIncomingFiletransfer[],
 ) => {
   const filetransfer = filetransfers.find(
-    (filetransfer) => filetransfer.filetransfer_id === filetransfer_id
+    (filetransfer) => filetransfer.filetransfer_id === filetransfer_id,
   );
-  
+
   if (filetransfer !== undefined) {
     let received_chunks = 0;
     let total_chunks = 0;

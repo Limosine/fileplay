@@ -35,7 +35,7 @@ export const DELETE: RequestHandler = async ({ platform, url, cookies }) => {
   const res1 = await db
     .deleteFrom("contacts")
     .where("cid", "=", cid)
-    .where(({ or, cmpr }) => or([cmpr("a", "=", uid), cmpr("b", "=", uid)]))
+    .where((eb) => eb("a", "=", uid).or("b", "=", uid))
     .returning("cid")
     .executeTakeFirst();
 

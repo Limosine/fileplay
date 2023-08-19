@@ -7,6 +7,7 @@ interface UsersTable {
   avatarSeed: string;
   createdAt: ColumnType<number, undefined, undefined>;
   lastSeenAt: ColumnType<number, undefined, number>;
+  isOnline: ColumnType<number, undefined, number>;
 }
 
 interface DecivesTable {

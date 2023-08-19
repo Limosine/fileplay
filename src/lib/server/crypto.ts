@@ -2,12 +2,12 @@ import { error, type Cookies } from "@sveltejs/kit";
 import { arrayBufferToHex, hexToArrayBuffer } from "./utils";
 import type { CookieSerializeOptions } from "cookie";
 import type { Database } from "$lib/lib/db";
-import dayjs from "dayjs";
+import { updateLastSeen } from "./db";
 
 export async function saveSignedDeviceID(
   did: number,
   cookies: Cookies,
-  key: CryptoKey
+  key: CryptoKey,
 ): Promise<void> {
   const id = did.toString();
   const signature = await sign(id, key);
@@ -22,7 +22,7 @@ export async function saveSignedDeviceID(
 export async function loadSignedDeviceID(
   cookies: Cookies,
   key: CryptoKey,
-  db: Database
+  db: Database,
 ): Promise<{ did: number; uid: number | null }> {
   const did_s = cookies.get("did");
   const signature = cookies.get("did_sig");
@@ -30,22 +30,10 @@ export async function loadSignedDeviceID(
   if (!(await verify(did_s, signature, key)))
     throw error(401, "Wrong authentication signature");
   const did_i = parseInt(did_s);
-  const now = dayjs().unix();
-  const res1 = await db
-    .updateTable("devices")
-    .set({ lastSeenAt: now })
-    .where("did", "=", did_i)
-    .returning(["did", "uid"])
-    .executeTakeFirst();
-  if (!res1) throw error(401, "Device not found");
-  const res2 = await db
-    .updateTable("users")
-    .set({ lastSeenAt: now })
-    .where("uid", "=", res1.uid)
-    .returning("uid")
-    .executeTakeFirst();
 
-  return { did: res1.did, uid: res2?.uid ?? null };
+  const result = await updateLastSeen(db, did_i);
+
+  return { did: result.did, uid: result.uid };
 }
 
 export async function sign(data: string, key: CryptoKey): Promise<string> {
@@ -56,7 +44,7 @@ export async function sign(data: string, key: CryptoKey): Promise<string> {
 export async function verify(
   data: string,
   signature: string,
-  key: CryptoKey
+  key: CryptoKey,
 ): Promise<boolean> {
   const dataBuffer = new TextEncoder().encode(data);
   const signatureBuffer = hexToArrayBuffer(signature);
@@ -72,6 +60,6 @@ export async function loadKey(key: string): Promise<CryptoKey> {
       hash: "SHA-256",
     },
     true,
-    ["sign", "verify"]
+    ["sign", "verify"],
   );
 }

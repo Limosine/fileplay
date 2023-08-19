@@ -11,7 +11,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
     define: {
       '">PUBLIC_VAPID_KEY<"': JSON.stringify(process.env.PUBLIC_VAPID_KEY),
       '">ONLINE_STATUS_REFRESH_TIME<"': JSON.stringify(
-        ONLINE_STATUS_REFRESH_TIME
+        ONLINE_STATUS_REFRESH_TIME,
       ),
     },
     plugins: [
@@ -30,7 +30,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
       }),
     ],
     ssr: {
-      noExternal: ["beercss"]
+      noExternal: ["beercss"],
     },
   };
 }

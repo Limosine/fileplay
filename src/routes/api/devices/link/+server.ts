@@ -53,7 +53,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did } = await loadSignedDeviceID(cookies, key, db);
-  const { code: code_any } = await request.json() as any;
+  const { code: code_any } = (await request.json()) as any;
   const code = (code_any as string).toUpperCase().replaceAll("O", "0"); // normalize code
 
   // get uid to link to

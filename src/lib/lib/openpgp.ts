@@ -25,7 +25,7 @@ export async function generateKey() {
     localStorage.setItem("encryptionPublicKey", publicKey_armored);
     localStorage.setItem(
       "encryptionRevocationCertificate",
-      revocationCertificate_top
+      revocationCertificate_top,
     );
   }
 }
@@ -72,7 +72,7 @@ export async function encryptFiles(files: FileList, armoredKey: string) {
 
 export async function encryptFilesWithPassword(
   files: FileList,
-  password: string
+  password: string,
 ) {
   const filePromises = Array.from(files).map((file) => {
     return new Promise<openpgp.WebStream<string>>((resolve, reject) => {
@@ -131,7 +131,7 @@ export async function decryptFiles(encrypted_files: string[]) {
 
 export async function decryptFilesWithPassword(
   encrypted_files: string[],
-  password: string
+  password: string,
 ) {
   const filePromises = Array.from(encrypted_files).map((file) => {
     // eslint-disable-next-line no-async-promise-executor
@@ -166,7 +166,7 @@ export const setup = () => {
       const privateKey = localStorage.getItem("encryptionPrivateKey");
       const publicKey = localStorage.getItem("encryptionPublicKey");
       const revocationCertificate = localStorage.getItem(
-        "encryptionRevocationCertificate"
+        "encryptionRevocationCertificate",
       );
 
       if (privateKey && publicKey && revocationCertificate) {

@@ -1,14 +1,24 @@
 import { get } from "svelte/store";
 import Peer, { type DataConnection } from "peerjs";
 
-import { addListeners, incoming_filetransfers, link, outgoing_filetransfers, peer, peer_disconnected, peer_open, sender_uuid } from "./common";
 import {
-  send,
-  sendChunkFinish,
-  sendChunk,
-  sendRequest,
-} from "./send";
-import { handleRequest, handleChunk, handleChunkFinish, handleFileFinish, handleFileTransferFinished } from "./handle";
+  addListeners,
+  incoming_filetransfers,
+  link,
+  outgoing_filetransfers,
+  peer,
+  peer_disconnected,
+  peer_open,
+  sender_uuid,
+} from "./common";
+import { send, sendChunkFinish, sendChunk, sendRequest } from "./send";
+import {
+  handleRequest,
+  handleChunk,
+  handleChunkFinish,
+  handleFileFinish,
+  handleFileTransferFinished,
+} from "./handle";
 import { getCombined, getPeerJsId, updatePeerJS_ID } from "$lib/lib/fetchers";
 import { deviceInfos, own_did } from "$lib/lib/UI";
 import { browser } from "$app/environment";
@@ -81,26 +91,38 @@ export const listen = () => {
   });
 };
 
-const authenticated = async (peerID: string, filetransfer_id: string, type: string): Promise<boolean> => {
+const authenticated = async (
+  peerID: string,
+  filetransfer_id: string,
+  type: string,
+): Promise<boolean> => {
   // Guest page
   if (browser && window.location.pathname.slice(0, 6) == "/guest") {
-    if (await getPeerJsId(Number(get(page).params.did)) == peerID) {
+    if ((await getPeerJsId(Number(get(page).params.did))) == peerID) {
       return true;
     } else return false;
   }
 
   // Home page - Skip if sending via link
   if (filetransfer_id !== undefined) {
-    const filetransfer = get(outgoing_filetransfers).find((filetransfer) => filetransfer.filetransfer_id == filetransfer_id && filetransfer.cid === undefined);
+    const filetransfer = get(outgoing_filetransfers).find(
+      (filetransfer) =>
+        filetransfer.filetransfer_id == filetransfer_id &&
+        filetransfer.cid === undefined,
+    );
 
     if (filetransfer !== undefined) return true;
   }
 
   // Home page - Get device of PeerJsId
-  let device = (await get(deviceInfos)).find((device) => device.peerJsId == peerID);
+  let device = (await get(deviceInfos)).find(
+    (device) => device.peerJsId == peerID,
+  );
   if (device === undefined) {
     await getCombined(["deviceInfos"]);
-    device = (await get(deviceInfos)).find((device) => device.peerJsId == peerID);
+    device = (await get(deviceInfos)).find(
+      (device) => device.peerJsId == peerID,
+    );
 
     if (device === undefined) {
       return false;
@@ -113,7 +135,18 @@ const authenticated = async (peerID: string, filetransfer_id: string, type: stri
 
   // Home page - Get filetransfer (did + filetransfer_id)
   // @ts-ignore
-  if (get(outgoing_filetransfers).find((filetransfer) => filetransfer.did == device.did && filetransfer.filetransfer_id == filetransfer_id) === undefined && get(incoming_filetransfers).find((filetransfer) => filetransfer.did == device.did && filetransfer.filetransfer_id == filetransfer_id) === undefined) {
+  if (
+    get(outgoing_filetransfers).find(
+      (filetransfer) =>
+        filetransfer.did == device.did &&
+        filetransfer.filetransfer_id == filetransfer_id,
+    ) === undefined &&
+    get(incoming_filetransfers).find(
+      (filetransfer) =>
+        filetransfer.did == device.did &&
+        filetransfer.filetransfer_id == filetransfer_id,
+    ) === undefined
+  ) {
     return false;
   } else {
     return true;
@@ -131,19 +164,34 @@ export const handleData = async (data: any, conn: DataConnection) => {
       if (data.guest == true) sendRequest(conn.peer, data.filetransfer_id);
       else sendChunk(conn.peer, data.filetransfer_id);
     } else if (data.type == "ChunkFinished") {
-      handleChunkFinish(conn.peer, data.filetransfer_id, data.file_id, data.chunk_id);
+      handleChunkFinish(
+        conn.peer,
+        data.filetransfer_id,
+        data.file_id,
+        data.chunk_id,
+      );
 
       // Receiver:
     } else if (data.type == "Request") {
-      handleRequest(conn.peer, data.filetransfer_id, data.encrypted, data.files, data.did);
+      handleRequest(
+        conn.peer,
+        data.filetransfer_id,
+        data.encrypted,
+        data.files,
+        data.did,
+      );
     } else if (data.type == "Chunk") {
-      handleChunk(data.filetransfer_id, data.chunk_info.file_id, data.chunk_info.chunk);
+      handleChunk(
+        data.filetransfer_id,
+        data.chunk_info.file_id,
+        data.chunk_info.chunk,
+      );
       setTimeout(() => {
         sendChunkFinish(
           conn.peer,
           data.filetransfer_id,
           data.chunk_info.chunk_id,
-          data.chunk_info.file_id
+          data.chunk_info.file_id,
         );
       }, 400);
     } else if (data.type == "FileFinished") {
@@ -165,21 +213,18 @@ export const addPendingFile = async (files: FileList) => {
   if (filetransfer_id !== undefined) {
     link.set(
       "http://" +
-      location.hostname +
-      ":" +
-      location.port +
-      "/guest/" +
-      await get(own_did) +
-      "/key/" +
-      filetransfer_id
+        location.hostname +
+        ":" +
+        location.port +
+        "/guest/" +
+        (await get(own_did)) +
+        "/key/" +
+        filetransfer_id,
     );
   }
 };
 
-export const connectAsListener = (
-  did: number,
-  filetransfer_id: string
-) => {
+export const connectAsListener = (did: number, filetransfer_id: string) => {
   get(peer).on("open", async () => {
     const conn = get(peer).connect(await getPeerJsId(did), {});
 

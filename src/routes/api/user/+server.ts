@@ -49,18 +49,12 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
   const { uid } = await loadSignedDeviceID(cookies, key, db);
 
   try {
-    await db
-      .deleteFrom("devices")
-      .where("devices.uid", "=", uid)
-      .execute();
+    await db.deleteFrom("devices").where("devices.uid", "=", uid).execute();
 
-    await db
-      .deleteFrom("users")
-      .where("uid", "=", uid)
-      .execute();
+    await db.deleteFrom("users").where("uid", "=", uid).execute();
 
-    cookies.delete("did_sig", {path: "/", });
-    cookies.delete("did", {path: "/", });
+    cookies.delete("did_sig", { path: "/" });
+    cookies.delete("did", { path: "/" });
     return new Response(null, { status: 200 });
   } catch (e: any) {
     return new Response(e, { status: 500 });

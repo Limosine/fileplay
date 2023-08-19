@@ -8,13 +8,11 @@ export const GET: RequestHandler = async ({ platform, url }) => {
 
   const peerJsId = await db
     .selectFrom("devices")
-    .select([
-      "devices.peerJsId"
-    ])
+    .select(["devices.peerJsId"])
     .where("devices.did", "=", did)
     .executeTakeFirst();
 
-  if (!peerJsId || peerJsId.peerJsId == null ) {
+  if (!peerJsId || peerJsId.peerJsId == null) {
     throw error(400, "No such device or no peerJsId available");
   }
 

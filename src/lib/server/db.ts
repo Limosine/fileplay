@@ -14,46 +14,41 @@ export function createKysely(platform: App.Platform | undefined): Database {
   return kys;
 }
 
-export async function updateLastSeen(db: Database, uid: number | null, did: number) {
-  let res_user: {
-    lastSeenAt: number;
-  } | undefined;
+export async function updateLastSeen(db: Database, did: number) {
+  const res_device = await db
+    .updateTable("devices")
+    .set({ lastSeenAt: dayjs().unix(), isOnline: 1 })
+    .where("did", "=", did)
+    .returning(["did", "uid"])
+    .executeTakeFirst();
 
-  if (uid != null) {
-    res_user = await db
+  if (!res_device) throw error(401, "Device not found");
+
+  if (res_device.uid != null) {
+    await db
       .updateTable("users")
-      .set({ lastSeenAt: dayjs().unix() })
-      .where(({ cmpr }) =>
-        cmpr("uid", "=", uid)
-      )
-      .returning("lastSeenAt")
+      .set({ lastSeenAt: dayjs().unix(), isOnline: 1 })
+      .where("uid", "=", res_device.uid)
+      .returning("uid")
       .executeTakeFirst();
   }
 
-  const res_device = await db
-    .updateTable("devices")
-    .set({ lastSeenAt: dayjs().unix() })
-    .where(({ cmpr }) =>
-      cmpr("did", "=", did)
-    )
-    .returning("lastSeenAt")
-    .executeTakeFirst();
-
-  if (res_user && res_device) return true;
-  else return false;
+  return { did: res_device.did, uid: res_device.uid };
 }
 
 // WebSocket server status codes: 0 (Offline | Error), 1 (Online)
 // WebSocket client status codes: 0 (Offline), 1 (Online), 2 (Error)
-export async function updateOnlineStatus(db: Database, did: number, status: number) {
+export async function updateOnlineStatus(
+  db: Database,
+  did: number,
+  status: number,
+) {
   const update = { isOnline: status };
 
   const res = await db
     .updateTable("devices")
     .set(update)
-    .where(({ cmpr }) =>
-      cmpr("did", "=", did)
-    )
+    .where("did", "=", did)
     .returning("isOnline")
     .executeTakeFirst();
 
@@ -67,9 +62,7 @@ export async function correctOnlineStatus(db: Database) {
   const res = await db
     .updateTable("devices")
     .set(offline)
-    .where(({ cmpr }) =>
-      cmpr("lastSeenAt", "<", dayjs().unix() - ONLINE_STATUS_TIMEOUT)
-    )
+    .where("lastSeenAt", "<", dayjs().unix() - ONLINE_STATUS_TIMEOUT)
     .returning("isOnline")
     .executeTakeFirst();
 
@@ -83,14 +76,18 @@ export async function getDeviceInfos(db: Database, uid: number) {
       return this.toString();
     };
 
-    const devices = await sql<{
-      cid: number;
-      did: number;
-      type: string;
-      displayName: string;
-      peerJsId: string;
-      encryptionPublicKey: string;
-    }[]>`SELECT "cid", "devices"."did", "devices"."type", "devices"."displayName", "devices"."peerJsId", "devices"."encryptionPublicKey" FROM (SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."a" WHERE "contacts"."b" = ${uid} UNION SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."b" WHERE "contacts"."a" = ${uid}) AS U INNER JOIN "devices" ON "U".uid = "devices"."uid" WHERE "devices"."isOnline" = 1 AND "devices"."lastSeenAt" > ${dayjs().unix() - ONLINE_STATUS_TIMEOUT} ORDER BY "devices"."displayName"`.execute(db);
+    const devices = await sql<
+      {
+        cid: number;
+        did: number;
+        type: string;
+        displayName: string;
+        peerJsId: string;
+        encryptionPublicKey: string;
+      }[]
+    >`SELECT "cid", "devices"."did", "devices"."type", "devices"."displayName", "devices"."peerJsId", "devices"."encryptionPublicKey" FROM (SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."a" WHERE "contacts"."b" = ${uid} UNION SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."b" WHERE "contacts"."a" = ${uid}) AS U INNER JOIN "devices" ON "U".uid = "devices"."uid" WHERE "devices"."isOnline" = 1 AND "devices"."lastSeenAt" > ${
+      dayjs().unix() - ONLINE_STATUS_TIMEOUT
+    } ORDER BY "devices"."displayName"`.execute(db);
 
     return { success: true, response: devices.rows };
   } catch (e: any) {
@@ -122,7 +119,7 @@ export async function getContacts(db: Database, uid: number) {
             "contacts.createdAt as linkedAt",
             "users.lastSeenAt",
           ])
-          .where("contacts.a", "=", uid)
+          .where("contacts.a", "=", uid),
       )
       .orderBy("displayName")
       .execute();
@@ -144,9 +141,7 @@ export async function getDevices(db: Database, uid: number, did: number) {
     const d_others = await db
       .selectFrom("devices")
       .select(["did", "type", "displayName", "createdAt", "lastSeenAt"])
-      .where(({ and, cmpr }) =>
-        and([cmpr("did", "!=", did), cmpr("uid", "=", uid)])
-      )
+      .where((eb) => eb("did", "!=", did).and("uid", "=", uid))
       .orderBy("displayName")
       .execute();
 

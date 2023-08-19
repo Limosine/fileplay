@@ -23,7 +23,9 @@ export const send = async (
 
     let encrypted_files: string[];
     if (publicKey !== undefined) {
-      encrypted_files = (await encryptFiles(files, publicKey)).map(file => file.toString());
+      encrypted_files = (await encryptFiles(files, publicKey)).map((file) =>
+        file.toString(),
+      );
       filetransfer_infos = {
         filetransfer_id: nanoid(16),
         encrypted: "publicKey",
@@ -34,7 +36,9 @@ export const send = async (
       };
     } else {
       const filetransfer_id = nanoid(16);
-      encrypted_files = (await encryptFilesWithPassword(files, filetransfer_id)).map(file => file.toString());
+      encrypted_files = (
+        await encryptFilesWithPassword(files, filetransfer_id)
+      ).map((file) => file.toString());
       filetransfer_infos = {
         filetransfer_id,
         encrypted: "password",
@@ -61,7 +65,7 @@ export const send = async (
 export const sendRequest = async (peerID: string, filetransfer_id: string) => {
   const outgoing_filetransfer = get(outgoing_filetransfers).find(
     (outgoing_filetransfer) =>
-      outgoing_filetransfer.filetransfer_id == filetransfer_id
+      outgoing_filetransfer.filetransfer_id == filetransfer_id,
   );
 
   if (outgoing_filetransfer !== undefined) {
@@ -117,13 +121,15 @@ export const sendChunk = async (
     file_id: string;
     chunk_id: number;
     chunk: string;
-  }
+  },
 ) => {
-  let initial_chunk_info: {
-    file_id: string;
-    chunk_id: number;
-    chunk: string;
-  } | undefined;
+  let initial_chunk_info:
+    | {
+        file_id: string;
+        chunk_id: number;
+        chunk: string;
+      }
+    | undefined;
 
   if (chunk_info === undefined) {
     get(outgoing_filetransfers).forEach((outgoing_filetransfer) => {
@@ -131,7 +137,7 @@ export const sendChunk = async (
         initial_chunk_info = {
           file_id: outgoing_filetransfer.files[0].file_id,
           chunk_id: 0,
-          chunk: outgoing_filetransfer.files[0].file[0]
+          chunk: outgoing_filetransfer.files[0].file[0],
         };
       }
     });
@@ -187,7 +193,7 @@ export const sendFinish = async (
   peerID: string,
   filetransfer_id: string,
   file_id: string,
-  filetransfer_finished?: boolean
+  filetransfer_finished?: boolean,
 ) => {
   const connect_return = connected(peerID);
   if (connect_return == false) {
@@ -228,11 +234,15 @@ export const sendFinish = async (
         file_id,
       });
 
-      const filetransfer = get(outgoing_filetransfers).find(filetransfer => filetransfer.filetransfer_id == filetransfer_id);
+      const filetransfer = get(outgoing_filetransfers).find(
+        (filetransfer) => filetransfer.filetransfer_id == filetransfer_id,
+      );
 
       if (filetransfer !== undefined && filetransfer.cid !== undefined) {
         outgoing_filetransfers.update((filetransfers) =>
-          filetransfers.filter((filetransfer) => filetransfer.filetransfer_id != filetransfer_id)
+          filetransfers.filter(
+            (filetransfer) => filetransfer.filetransfer_id != filetransfer_id,
+          ),
         );
       }
     }
@@ -267,7 +277,7 @@ export const sendChunkFinish = async (
   peerID: string,
   filetransfer_id: string,
   chunk_id: number,
-  file_id: string
+  file_id: string,
 ) => {
   const connect_return = connected(peerID);
   if (connect_return == false) {

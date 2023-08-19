@@ -3,7 +3,8 @@ create table users (
     displayName text not null,
     avatarSeed text not null,
     createdAt integer not null default (unixepoch('now')),
-    lastSeenAt integer not null default (unixepoch('now'))
+    lastSeenAt integer not null default (unixepoch('now')),
+    isOnline integer not null default 0
 );
 
 create table devices (
