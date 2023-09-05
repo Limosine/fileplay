@@ -9,6 +9,7 @@
     deviceInfos,
     addNotification,
     returnProgress,
+    notificationDialog
   } from "$lib/lib/UI";
 
   let sendAccept: (peerID: string, filetransfer_id: string) => void;
@@ -81,7 +82,7 @@
   });
 </script>
 
-<dialog class="right" id="dialog-notifications">
+<dialog class="right" id="dialog-notifications" bind:this={$notificationDialog}>
   <nav>
     <!-- eslint-disable no-undef -->
     <!-- svelte-ignore missing-declaration -->

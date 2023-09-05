@@ -10,11 +10,9 @@
   } from "$lib/lib/UI";
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
   import { getCombined, withDeviceType } from "$lib/lib/fetchers";
-  import { deviceParams, userParams } from "$lib/lib/UI";
+  import { deviceParams, userParams, editDialog } from "$lib/lib/UI";
   import { onMount } from "svelte";
   import { page } from "$app/stores";
-
-  let edit: HTMLDialogElement;
 
   async function updateDeviceInfo(did: number) {
     let update = {};
@@ -55,7 +53,7 @@
   }
 
   onMount(() => {
-    edit.addEventListener("close", () => {
+    $editDialog.addEventListener("close", () => {
       if ($page.url.pathname == "/") {
         switch ($current) {
         case "username":
@@ -77,7 +75,7 @@
 </script>
 
 <dialog
-  bind:this={edit}
+  bind:this={$editDialog}
   id="dialog-edit"
   style={$current == "deviceType"
     ? "min-height: 250px;"

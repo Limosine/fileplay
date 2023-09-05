@@ -50,12 +50,12 @@
       needRefresh = await useRegisterSW({
         async onRegisteredSW(
           _swScriptUrl: string,
-          registration: ServiceWorkerRegistration | undefined
+          registration: ServiceWorkerRegistration | undefined,
         ) {
           if (registration) {
             setInterval(
               async () => await update(registration),
-              30 * 60 * 1000 // 5 mins secs (for debugging)
+              30 * 60 * 1000, // 5 mins secs (for debugging)
             );
             await update(registration);
             registration.waiting?.postMessage({ type: "skip_waiting" });
@@ -74,8 +74,7 @@
 
   $: {
     if (browser) {
-      loading =
-        !$peer_open || !localStorage.getItem("loggedIn") || $status != "1";
+      loading = !$peer_open || !localStorage.getItem("loggedIn");
     }
   }
 

@@ -76,6 +76,11 @@ export const deleteNotification = (tag: string) => {
 // Contacts
 export const codehostname = writable("");
 
+// Dialogs
+export const addContactDialog = writable<HTMLDialogElement>();
+export const editDialog = writable<HTMLDialogElement>();
+export const notificationDialog = writable<HTMLDialogElement>();
+
 // Edit dialog
 export type edit_options =
   | "deviceName"

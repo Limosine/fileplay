@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { codehostname } from "$lib/lib/UI";
+  import { codehostname, addContactDialog } from "$lib/lib/UI";
   import { onDestroy, onMount } from "svelte";
   import dayjs from "dayjs";
   import { getCombined } from "$lib/lib/fetchers";
@@ -62,6 +62,7 @@
 
 <dialog
   id="dialog-add"
+  bind:this={$addContactDialog}
 >
   <p style="font-size: large; margin-bottom: 10px;">Add contact</p>
   <div id="content">

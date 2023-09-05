@@ -134,15 +134,16 @@ const authenticated = async (
   }
 
   // Home page - Get filetransfer (did + filetransfer_id)
-  // @ts-ignore
   if (
     get(outgoing_filetransfers).find(
       (filetransfer) =>
+        // @ts-ignore
         filetransfer.did == device.did &&
         filetransfer.filetransfer_id == filetransfer_id,
     ) === undefined &&
     get(incoming_filetransfers).find(
       (filetransfer) =>
+        // @ts-ignore
         filetransfer.did == device.did &&
         filetransfer.filetransfer_id == filetransfer_id,
     ) === undefined

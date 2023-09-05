@@ -2,7 +2,7 @@
   import { onDestroy, onMount } from "svelte";
 
   import Input, { files } from "$lib/components/Input.svelte";
-  import { current, settings_page, user_loaded } from "$lib/lib/UI";
+  import { addContactDialog, current, editDialog, notificationDialog, settings_page, user_loaded } from "$lib/lib/UI";
   import { getCombined } from "$lib/lib/fetchers";
 
   import Home from "$lib/pages/Home.svelte";
@@ -16,6 +16,24 @@
     }
     $files = e.dataTransfer.files;
   };
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      // Close dialog, cancel selection, etc.
+      if ($notificationDialog.open) {
+        ui("#dialog-notifications");
+      } else if ($editDialog.open) {
+        ui("#dialog-edit");
+      } else if ($addContactDialog.open) {
+        ui("#dialog-add");
+      }
+    } else if (event.key === "Enter") {
+      // Submit selection (if valid value), etc.
+      if ($editDialog.open) {
+        ui("#dialog-edit");
+      }
+    }
+  }
 
   let refresh_interval: any;
 
@@ -47,7 +65,11 @@
   });
 </script>
 
-<svelte:window on:drop|preventDefault={handleDrop} on:dragover|preventDefault />
+<svelte:window
+  on:drop|preventDefault={handleDrop}
+  on:dragover|preventDefault
+  on:keydown={handleKeyDown}
+/>
 
 <Input />
 

@@ -6,7 +6,6 @@ import {
   getDeviceInfos,
   getDevices,
   getUser,
-  updateLastSeen,
 } from "$lib/server/db";
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
@@ -17,8 +16,6 @@ export const GET: RequestHandler = async ({ cookies, platform, url }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid, did } = await loadSignedDeviceID(cookies, key, db);
   if (!uid) throw error(401, "No user associated with this device");
-
-  await updateLastSeen(db, did);
 
   const requested = url.searchParams.get("request")?.split(",");
 
