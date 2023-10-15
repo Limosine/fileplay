@@ -193,7 +193,7 @@ export const sendFinish = async (
   peerID: string,
   filetransfer_id: string,
   file_id: string,
-  filetransfer_finished?: boolean,
+  filetransfer_finished: boolean,
 ) => {
   const connect_return = connected(peerID);
   if (connect_return == false) {
@@ -207,6 +207,7 @@ export const sendFinish = async (
         file_id,
       });
 
+      console.log("FileTransfer finished:", filetransfer_finished);
       if (filetransfer_finished) {
         conn.send({
           type: "FiletransferFinished",
@@ -226,6 +227,7 @@ export const sendFinish = async (
       file_id,
     });
 
+    console.log("FileTransfer finished:", filetransfer_finished);
     if (filetransfer_id !== undefined) {
       connect_return.send({
         type: "FiletransferFinished",
