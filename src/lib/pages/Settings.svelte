@@ -1,8 +1,15 @@
 <script lang="ts">
-  import { openDialog, settings_page } from "$lib/lib/UI";
+  import {
+    devices,
+    devices_loaded,
+    openDialog,
+    selected_device,
+    settings_page,
+  } from "$lib/lib/UI";
   import { getDicebearUrl } from "$lib/lib/common";
   import { user } from "$lib/lib/UI";
   import { deleteAccount } from "$lib/lib/fetchers";
+  import dayjs from "dayjs";
 </script>
 
 {#if $settings_page == "main"}
@@ -16,7 +23,7 @@
       User
     </p>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
@@ -30,7 +37,7 @@
       </div>
     </a>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
@@ -56,7 +63,7 @@
       Devices
     </p>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
@@ -75,17 +82,19 @@
       Account
     </p>
 
-     <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <a
-     class="chip border responsive row"
-     style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-     on:click={() => (deleteAccount())}
-   >
-     <div class="column" style="color: red;">
-       <p style="font-size: large; margin-bottom: 2px;">Delete account</p>
-       <p style="font-size: small; margin-top: 0;">Removes user and all devices from database</p>
-     </div>
-   </a>
+      class="chip border responsive row"
+      style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
+      on:click={() => deleteAccount()}
+    >
+      <div class="column" style="color: red;">
+        <p style="font-size: large; margin-bottom: 2px;">Delete account</p>
+        <p style="font-size: small; margin-top: 0;">
+          Removes user and all devices from database
+        </p>
+      </div>
+    </a>
   {:catch}
     <p>Failed to load user infos.</p>
   {/await}
@@ -98,4 +107,41 @@
     <i>arrow_back</i>
   </button>
   <h3 style="margin-bottom: 30px; padding: 0px 20px 0px 20px;">Devices</h3>
+
+  {#if $devices_loaded}
+    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+    <a
+      class="chip border responsive row"
+      style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
+      on:click={() => {$selected_device = $devices.self.did; $settings_page = "device"}}
+    >
+      <div class="column">
+        <p style="font-size: large; margin-bottom: 2px;">
+          {$devices.self.displayName}
+        </p>
+        <p style="font-size: small; margin-top: 0;">
+          This device.
+        </p>
+      </div>
+    </a>
+    {#each $devices.others as device}
+      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+      <a
+        class="chip border responsive row"
+        style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
+        on:click={() => {$selected_device = $devices.self.did; $settings_page = "device"}}
+      >
+        <div class="column">
+          <p style="font-size: large; margin-bottom: 2px;">
+            {device.displayName}
+          </p>
+          <p style="font-size: small; margin-top: 0;">
+            Last seen at {dayjs
+              .unix(device.lastSeenAt)
+              .format("HH:mm, DD.MM.YYYY")}.
+          </p>
+        </div>
+      </a>
+    {/each}
+  {/if}
 {/if}

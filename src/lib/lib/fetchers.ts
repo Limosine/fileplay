@@ -165,8 +165,6 @@ export async function getCombined(request: string[]) {
     if (!get(devices_loaded)) devices_loaded.set(true);
 
     own_did.set(result.devices.self.did);
-    // to be removed:
-    console.log(get(devices));
   }
   if (result.deviceInfos) {
     deviceInfos.set(result.deviceInfos);

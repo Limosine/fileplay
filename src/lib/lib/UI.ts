@@ -5,7 +5,8 @@ import type { IContact, IDeviceInfo, IDevices, IUser } from "./fetchers";
 import { browser } from "$app/environment";
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
-export const settings_page = writable<"main" | "devices">("main");
+export const settings_page = writable<"main" | "devices" | "device">("main");
+export const selected_device = writable<number | undefined>(undefined);
 
 // Setup values:
 export const linkingCode = writable("");
