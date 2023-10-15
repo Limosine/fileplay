@@ -25,7 +25,7 @@
     }
 
     if (Object.keys(update).length) {
-      await fetch(`/api/devices?${did}`, {
+      await fetch(`/api/devices?did=${did}`, {
         method: "POST",
         body: JSON.stringify(update),
       });
