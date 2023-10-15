@@ -35,7 +35,7 @@ export const POST: RequestHandler = async ({
 
   const did_s = url.searchParams.get("did");
   let did: number;
-  if (did_s) did = parseInt(did_s);
+  if (did_s != null) did = parseInt(did_s);
   else did = own_did;
 
   if (isNaN(did)) throw error(400, "Invalid device id in query params");
@@ -50,7 +50,7 @@ export const POST: RequestHandler = async ({
     .updateTable("devices")
     .set(updateObject)
     .where((eb) =>
-      eb("did", "=", did).and(eb("did", "=", own_did).or("uid", "=", uid)),
+      eb("did", "=", did).and("uid", "=", uid),
     )
     .returning("did")
     .executeTakeFirst();
