@@ -5,7 +5,7 @@ import { ONLINE_STATUS_REFRESH_TIME } from "./common";
 const createWebSocketListeners = (websocket: WebSocket) => {
   websocket.onopen = () => {
     initialization_completed.set(true);
-    websocket.send("isOnline");
+    websocket.send("ping");
   };
   websocket.onclose = () => {
     status.set("0");
@@ -19,7 +19,7 @@ const createWebSocketListeners = (websocket: WebSocket) => {
       clearInterval(get(interval));
       console.log("WebSocket connection closed.");
     }
-  }; 
+  };
   websocket.onmessage = (event) => {
     if (event.data == "1" || event.data == "2") {
       status.set(event.data);
