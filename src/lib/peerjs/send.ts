@@ -8,6 +8,7 @@ import {
 } from "./common";
 import { encryptFiles, encryptFilesWithPassword } from "$lib/lib/openpgp";
 import { nanoid } from "nanoid";
+import type { DataConnection } from "peerjs";
 import { own_did } from "$lib/lib/UI";
 
 // Sender:
@@ -83,31 +84,27 @@ export const sendRequest = async (peerID: string, filetransfer_id: string) => {
       });
     });
 
-    const connect_return = connected(peerID);
-    if (connect_return == false) {
-      const conn = get(peer).connect(peerID, {});
-
-      conn.on("open", async function () {
-        if (outgoing_filetransfer !== undefined) {
-          conn.send({
-            type: "Request",
-            did: await get(own_did),
-            filetransfer_id: outgoing_filetransfer.filetransfer_id,
-            encrypted: outgoing_filetransfer.encrypted,
-            files,
-          });
-        }
-      });
-
-      addListeners(conn);
-    } else {
-      connect_return.send({
+    const sendData = async (connection: DataConnection) => {
+      connection.send({
         type: "Request",
         did: await get(own_did),
         filetransfer_id: outgoing_filetransfer.filetransfer_id,
         encrypted: outgoing_filetransfer.encrypted,
         files,
       });
+    };
+
+    const connect_return = connected(peerID);
+    if (connect_return == false) {
+      const conn = get(peer).connect(peerID, {});
+
+      conn.on("open", async function () {
+        sendData(conn);
+      });
+
+      addListeners(conn);
+    } else {
+      sendData(connect_return);
     }
   } else {
     console.log("PeerJS: Wrong filetransfer id.");
@@ -147,45 +144,35 @@ export const sendChunk = async (
     }
   }
 
-  const connect_return = connected(peerID);
-  if (connect_return == false) {
-    const conn = get(peer).connect(peerID, {});
-
-    conn.on("open", async function () {
-      if (chunk_info !== undefined) {
-        conn.send({
-          type: "Chunk",
-          did: await get(own_did),
-          filetransfer_id: filetransfer_id,
-          chunk_info,
-        });
-      } else if (initial_chunk_info !== undefined) {
-        conn.send({
-          type: "Chunk",
-          did: await get(own_did),
-          filetransfer_id: filetransfer_id,
-          chunk_info: initial_chunk_info,
-        });
-      }
-    });
-
-    addListeners(conn);
-  } else {
+  const sendData = async (connection: DataConnection) => {
     if (chunk_info !== undefined) {
-      connect_return.send({
+      connection.send({
         type: "Chunk",
         did: await get(own_did),
         filetransfer_id: filetransfer_id,
         chunk_info,
       });
     } else if (initial_chunk_info !== undefined) {
-      connect_return.send({
+      connection.send({
         type: "Chunk",
         did: await get(own_did),
         filetransfer_id: filetransfer_id,
         chunk_info: initial_chunk_info,
       });
     }
+  };
+
+  const connect_return = connected(peerID);
+  if (connect_return == false) {
+    const conn = get(peer).connect(peerID, {});
+
+    conn.on("open", async function () {
+      sendData(conn);
+    });
+
+    addListeners(conn);
+  } else {
+    sendData(connect_return);
   }
 };
 
@@ -195,31 +182,8 @@ export const sendFinish = async (
   file_id: string,
   filetransfer_finished: boolean,
 ) => {
-  const connect_return = connected(peerID);
-  if (connect_return == false) {
-    const conn = get(peer).connect(peerID, {});
-
-    conn.on("open", async function () {
-      conn.send({
-        type: "FileFinished",
-        did: await get(own_did),
-        filetransfer_id,
-        file_id,
-      });
-
-      if (filetransfer_finished) {
-        conn.send({
-          type: "FiletransferFinished",
-          did: await get(own_did),
-          filetransfer_id,
-          file_id,
-        });
-      }
-    });
-
-    addListeners(conn);
-  } else {
-    connect_return.send({
+  const sendData = async (connection: DataConnection) => {
+    connection.send({
       type: "FileFinished",
       did: await get(own_did),
       filetransfer_id,
@@ -227,7 +191,7 @@ export const sendFinish = async (
     });
 
     if (filetransfer_finished) {
-      connect_return.send({
+      connection.send({
         type: "FiletransferFinished",
         did: await get(own_did),
         filetransfer_id,
@@ -246,30 +210,43 @@ export const sendFinish = async (
         );
       }
     }
-  }
-};
+  };
 
-// Receiver:
-export const sendAccept = async (peerID: string, filetransfer_id: string) => {
   const connect_return = connected(peerID);
   if (connect_return == false) {
     const conn = get(peer).connect(peerID, {});
 
     conn.on("open", async function () {
-      conn.send({
-        type: "Accept",
-        did: await get(own_did),
-        filetransfer_id,
-      });
+      sendData(conn);
     });
 
     addListeners(conn);
   } else {
-    connect_return.send({
+    sendData(connect_return);
+  }
+};
+
+// Receiver:
+export const sendAccept = async (peerID: string, filetransfer_id: string) => {
+  const sendData = async (connection: DataConnection) => {
+    connection.send({
       type: "Accept",
       did: await get(own_did),
       filetransfer_id,
     });
+  };
+
+  const connect_return = connected(peerID);
+  if (connect_return == false) {
+    const conn = get(peer).connect(peerID, {});
+
+    conn.on("open", async function () {
+      sendData(conn);
+    });
+
+    addListeners(conn);
+  } else {
+    sendData(connect_return);
   }
 };
 
@@ -279,28 +256,26 @@ export const sendChunkFinish = async (
   chunk_id: number,
   file_id: string,
 ) => {
-  const connect_return = connected(peerID);
-  if (connect_return == false) {
-    const conn = get(peer).connect(peerID, {});
-
-    conn.on("open", async function () {
-      conn.send({
-        type: "ChunkFinished",
-        did: await get(own_did),
-        filetransfer_id,
-        file_id,
-        chunk_id,
-      });
-    });
-
-    addListeners(conn);
-  } else {
-    connect_return.send({
+  const sendData = async (connection: DataConnection) => {
+    connection.send({
       type: "ChunkFinished",
       did: await get(own_did),
       filetransfer_id,
       file_id,
       chunk_id,
     });
+  };
+
+  const connect_return = connected(peerID);
+  if (connect_return == false) {
+    const conn = get(peer).connect(peerID, {});
+
+    conn.on("open", async function () {
+      sendData(conn);
+    });
+
+    addListeners(conn);
+  } else {
+    sendData(connect_return);
   }
 };

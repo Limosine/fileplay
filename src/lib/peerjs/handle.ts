@@ -131,7 +131,6 @@ export const handleChunkFinish = (
               return outgoing_filetransfers_self;
             });
 
-            console.log("File finished.");
             file_finished = pending_file.file_id;
 
             if (j + 1 < get(outgoing_filetransfers)[i].files.length) {
@@ -147,7 +146,6 @@ export const handleChunkFinish = (
                 return outgoing_filetransfers_self;
               });
 
-              console.log("FileTransfer finished.");
               filetransfer_finished = true;
               sendState.setSendState(
                 Number(get(outgoing_filetransfers)[i].cid),
