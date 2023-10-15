@@ -2,6 +2,7 @@
   import {
     devices,
     devices_loaded,
+    did,
     openDialog,
     selected_device,
     settings_page,
@@ -113,7 +114,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => {$selected_device = $devices.self.did; $settings_page = "device"}}
+      on:click={() => {$did = $devices.self.did; openDialog("deviceName", "Device Name", $devices.self.displayName);}}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">
@@ -129,7 +130,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => {$selected_device = $devices.self.did; $settings_page = "device"}}
+        on:click={() => {$did = device.did; openDialog("deviceName", "Device Name", device.displayName);}}
       >
         <div class="column">
           <p style="font-size: large; margin-bottom: 2px;">
