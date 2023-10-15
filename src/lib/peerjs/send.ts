@@ -207,7 +207,6 @@ export const sendFinish = async (
         file_id,
       });
 
-      console.log("FileTransfer finished:", filetransfer_finished);
       if (filetransfer_finished) {
         conn.send({
           type: "FiletransferFinished",
@@ -227,8 +226,7 @@ export const sendFinish = async (
       file_id,
     });
 
-    console.log("FileTransfer finished:", filetransfer_finished);
-    if (filetransfer_id !== undefined) {
+    if (filetransfer_finished) {
       connect_return.send({
         type: "FiletransferFinished",
         did: await get(own_did),
