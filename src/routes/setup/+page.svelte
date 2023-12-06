@@ -73,7 +73,7 @@
       // link to existing user
       const res2 = await fetch("/api/devices/link", {
         method: "POST",
-        body: JSON.stringify({ code: linkingCode }),
+        body: JSON.stringify({ code: $linkingCode }),
       });
       if (String(res2.status).charAt(0) !== "2") {
         handleResponseError(res2);
