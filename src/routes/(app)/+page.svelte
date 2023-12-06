@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-
   import Input, { files } from "$lib/components/Input.svelte";
-  import { addContactDialog, current, editDialog, notificationDialog, settings_page, user_loaded } from "$lib/lib/UI";
+  import { addContactDialog, add_mode, current, editDialog, notificationDialog, settings_page, user_loaded } from "$lib/lib/UI";
   import { getCombined } from "$lib/lib/fetchers";
 
   import Home from "$lib/pages/Home.svelte";
@@ -33,6 +32,15 @@
         ui("#dialog-edit");
       }
     }
+  }
+
+  const openAddDialog = () => {
+    if ($current == "Contacts"){
+      $add_mode = "contact";
+    } else {
+      $add_mode = "device";
+    }
+    ui("#dialog-add");
   }
 
   let refresh_interval: any;
@@ -84,12 +92,12 @@
 {#if $current == "Contacts" || ($current == "Settings" && $settings_page == "devices")}
   <!-- eslint-disable no-undef -->
   <!-- svelte-ignore missing-declaration -->
-  <button id="add-mobile" class="s square round extra" on:click={() => ui("#dialog-add")}>
+  <button id="add-mobile" class="s square round extra" on:click={() => openAddDialog()}>
     <i>add</i>
   </button>
 
   <!-- svelte-ignore missing-declaration -->
-  <button id="add-desktop" class="l m square round extra" on:click={() => ui("#dialog-add")}>
+  <button id="add-desktop" class="l m square round extra" on:click={() => openAddDialog()}>
     <i>add</i>
   </button>
   <!-- eslint-enable no-undef -->
