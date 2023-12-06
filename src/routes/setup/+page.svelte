@@ -11,7 +11,7 @@
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
   import { withDeviceType } from "$lib/lib/fetchers";
   import { publicKey_armored, setup as pgp_setup } from "$lib/lib/openpgp";
-  import { deviceParams, userParams, profaneUsername, ValueToName, openDialog } from "$lib/lib/UI";
+  import { deviceParams, userParams, profaneUsername, ValueToName, openDialog, linkingCode } from "$lib/lib/UI";
 
   let progress = 0;
   let setupError: string;
@@ -26,13 +26,12 @@
         get(profaneUsername).profane ||
         get(profaneUsername).loading;
     } else {
-      actionDisabled = !linkingCode;
+      actionDisabled = !$linkingCode;
     }
   }
 
   // options
   let existing = false;
-  let linkingCode = "";
 
   // setup (confirm)
   async function handleResponseError(res: Response) {
@@ -191,7 +190,7 @@
             <strong>Generate linking code</strong>.
           </p>
           <div class="field label">
-            <input bind:value={linkingCode} maxlength={6} />
+            <input bind:value={$linkingCode} maxlength={6} />
             <!-- svelte-ignore a11y-label-has-associated-control-->
             <label>Linking Code</label>
           </div>
