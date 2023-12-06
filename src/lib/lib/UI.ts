@@ -7,6 +7,7 @@ import { browser } from "$app/environment";
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
 export const settings_page = writable<"main" | "devices" | "device">("main");
 export const selected_device = writable<number | undefined>(undefined);
+export const add_mode = writable<"contact" | "device"> ("contact");
 
 // Setup values:
 export const linkingCode = writable("");

@@ -117,7 +117,8 @@
       <div class="center-align">
         <img
           id="avatar-image"
-          src={getDicebearUrl($userParams.avatarSeed, 150)}
+          src={getDicebearUrl($userParams.avatarSeed, 100)}
+          width="100"
           alt="Avatar"
         />
       </div>

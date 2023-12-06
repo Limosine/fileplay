@@ -80,3 +80,33 @@
 {:else if $current == "Settings" && $user_loaded}
   <Settings />
 {/if}
+
+{#if $current == "Contacts" || ($current == "Settings" && $settings_page == "devices")}
+  <!-- eslint-disable no-undef -->
+  <!-- svelte-ignore missing-declaration -->
+  <button id="add-mobile" class="s square round extra" on:click={() => ui("#dialog-add")}>
+    <i>add</i>
+  </button>
+
+  <!-- svelte-ignore missing-declaration -->
+  <button id="add-desktop" class="l m square round extra" on:click={() => ui("#dialog-add")}>
+    <i>add</i>
+  </button>
+  <!-- eslint-enable no-undef -->
+{/if}
+
+<style>
+  #add-mobile {
+    position: fixed;
+    bottom: 95px;
+    right: 15px;
+    margin: 0;
+  }
+
+  #add-desktop {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    margin: 0;
+  }
+</style>

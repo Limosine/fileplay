@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { browser } from "$app/environment";
+  import { page } from "$app/stores";
   import { useRegisterSW } from "virtual:pwa-register/svelte";
   import { writable, type Readable, type Writable } from "svelte/store";
   import { pwaInfo } from "virtual:pwa-info";
@@ -9,7 +10,7 @@
 
   import logo from "$lib/assets/Fileplay.png";
   import { addNotification } from "$lib/lib/UI";
-  import { status } from "$lib/lib/websocket";
+  import { createSocketStore } from "$lib/lib/websocket";
   import { setup as pgp_setup } from "$lib/lib/openpgp";
 
   import Layout from "$lib/components/Layout.svelte";
@@ -25,7 +26,9 @@
   let loading = true;
 
   onMount(async () => {
-    if (localStorage.getItem("loggedIn")) {
+    if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
+      createSocketStore();
+
       peer_open = (await import("$lib/peerjs/common")).peer_open;
       const { openPeer, listen } = await import("$lib/peerjs/main");
 

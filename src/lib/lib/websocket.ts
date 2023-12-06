@@ -57,7 +57,7 @@ const createInterval = () => {
   );
 };
 
-const createSocketStore = () => {
+export const createSocketStore = () => {
   createInterval();
   return createWebSocket();
 };
@@ -66,5 +66,5 @@ const initialization_completed = writable(false);
 const websocketCounter = writable(0);
 const interval = writable<NodeJS.Timeout>();
 
-export const socketStore = writable<WebSocket>(createSocketStore());
+export const socketStore = writable<WebSocket>();
 export const status = writable<"0" | "1" | "2">("0");
