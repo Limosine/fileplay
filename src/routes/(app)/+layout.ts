@@ -9,26 +9,23 @@ export const load: LayoutLoad = async () => {
     throw redirect(307, "/setup");
   }
 
-  // Receive file from service-worker
-  window.addEventListener("load", async () => {
-    if (location.search.includes("share-target")) {
-      const keys = await caches.keys();
-      const mediaCache = await caches.open(
-        keys.filter((key) => key.startsWith("media"))[0],
-      );
-      const responseArray = await mediaCache.matchAll("shared-file");
-      if (responseArray) {
-        const fileArray = new FileList();
+  if (location.search.includes("share-target")) {
+    const keys = await caches.keys();
+    const mediaCache = await caches.open(
+      keys.filter((key) => key.startsWith("media"))[0],
+    );
+    const responseArray = await mediaCache.matchAll("shared-file");
+    if (responseArray) {
+      const fileArray = new FileList();
 
-        for (let i = 0; i < responseArray.length; i++) {
-          fileArray[i] = await responseArray[i].blob() as File;
-        }
-
-        files.set(fileArray);
-        current.set("Home");
-
-        await mediaCache.delete("shared-file");
+      for (let i = 0; i < responseArray.length; i++) {
+        fileArray[i] = await responseArray[i].blob() as File;
       }
+
+      files.set(fileArray);
+      current.set("Home");
+
+      await mediaCache.delete("shared-file");
     }
-  });
+  }
 };
