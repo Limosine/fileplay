@@ -128,6 +128,7 @@
         </div>
 
         <div class="field label suffix">
+          <!-- svelte-ignore missing-declaration -->
           <select
             style="min-width: 200px;"
             on:mousedown|preventDefault
@@ -135,7 +136,7 @@
           />
           <menu id="menu-deviceType">
             <!-- eslint-disable svelte/valid-compile -->
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions a11y-missing-attribute missing-declaration -->
             {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
               <a on:mousedown={() => {ui("#menu-deviceType"); $deviceParams.type = type;}}>{name}</a>
             {/each}
@@ -230,7 +231,7 @@
       Device
     </p>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
@@ -250,7 +251,7 @@
       </div>
     </a>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
@@ -273,7 +274,7 @@
       User
     </p>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
@@ -293,7 +294,7 @@
     </a>
 
     {#if existing}
-      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
@@ -305,7 +306,7 @@
         </div>
       </a>
     {:else}
-      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
@@ -321,7 +322,7 @@
         </div>
       </a>
 
-      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"

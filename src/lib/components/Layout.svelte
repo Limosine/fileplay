@@ -95,7 +95,7 @@
     </a>
     <a
       class={$current == "Settings" ? "active" : ""}
-      on:click={() => {getCombined(["user"]); $current = "Settings";}}
+      on:click={() => {getCombined(["user"]); $settings_page = "main"; $current = "Settings";}}
     >
       <i>settings</i>
       <span>Settings</span>

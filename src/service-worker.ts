@@ -2,9 +2,6 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-import { files } from "../src/lib/components/Input.svelte";
-import { current } from "../src/lib/lib/UI";
-
 import {
   pageCache,
   imageCache,
@@ -24,19 +21,21 @@ staticResourceCache();
 
 imageCache();
 
-self.addEventListener("fetch", async (event: any) => {
-  const url = new URL(event.request.url);
-
-  if (event.request.method === "POST" && url.pathname === "/webtarget") {
-    event.respondWith(
+self.addEventListener('fetch', (event: any) => {
+  if (event.request.url.endsWith('/receive-files/') && event.request.method === 'POST') {
+    return event.respondWith(
       (async () => {
         const formData = await event.request.formData();
-        const fileArray = formData.getAll("files") as FileList;
-        current.set("Home");
-        files.set(fileArray);
+        const fileArray = formData.getAll("file") as Array<File>;
+        const keys = await caches.keys();
+        const mediaCache = await caches.open(keys.filter((key) => key.startsWith('media'))[0]);
 
-        return Response.redirect("/", 303);
-      })()
+        fileArray.forEach(async file => {
+          await mediaCache.put('shared-file', new Response(file));
+        });
+
+        return Response.redirect('./?share-target', 303);
+      })(),
     );
   }
 });
