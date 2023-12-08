@@ -9,7 +9,7 @@
   import "beercss";
 
   import logo from "$lib/assets/Fileplay.png";
-  import { addNotification } from "$lib/lib/UI";
+  import { addNotification, current } from "$lib/lib/UI";
   import { createSocketStore } from "$lib/lib/websocket";
   import { setup as pgp_setup } from "$lib/lib/openpgp";
 
@@ -17,6 +17,7 @@
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
   import AddContact from "$lib/dialogs/AddContact.svelte";
+  import { files } from "$lib/components/Input.svelte";
 
   let peer_open = writable(false);
   let socketStore: Readable<any>;
@@ -39,6 +40,29 @@
       socketStore = (await import("$lib/lib/websocket")).socketStore;
       unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
+
+    window.addEventListener('load', async () => {
+      if (location.search.includes("share-target")) {
+        const keys = await caches.keys();
+        const mediaCache = await caches.open(
+          keys.filter((key) => key.startsWith("media"))[0],
+        );
+        const responseArray = await mediaCache.matchAll("shared-file");
+        if (responseArray) {
+          const fileArray = new FileList();
+
+          for (let i = 0; i < responseArray.length; i++) {
+            fileArray[i] = await responseArray[i].blob() as File;
+          }
+
+          files.set(fileArray);
+          current.set("Home");
+
+          await mediaCache.delete("shared-file");
+        }
+      }
+    });
+    
 
     // update service worker
     if (pwaInfo) {
