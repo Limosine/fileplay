@@ -7,6 +7,9 @@
   import Home from "$lib/pages/Home.svelte";
   import Contacts from "$lib/pages/Contacts.svelte";
   import Settings from "$lib/pages/Settings.svelte";
+  import { page } from "$app/stores";
+
+  let cachedFiles: DataTransfer;
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -67,9 +70,26 @@
 
   onDestroy(stopRefresh);
 
-  onMount(() => {
+  onMount(async () => {
     getCombined(["user", "devices", "deviceInfos", "contacts"]);
     startRefresh();
+
+    if ($page.url.searchParams.has("shared")) {
+      const cache = await caches.open("shared-files");
+      const responses = await cache.matchAll("shared-file");
+      cachedFiles = new DataTransfer();
+
+      console.log(responses);
+
+      responses.forEach(async response => {
+        cachedFiles.items.add(new File([await response.blob()], 'file.txt', {type: 'text/plain'}));
+      });
+
+      console.log(cachedFiles.files);
+
+      $files = cachedFiles.files;
+      await cache.delete("shared-file");
+    }
   });
 </script>
 
