@@ -45,7 +45,7 @@ self.addEventListener("fetch", (event: any) => {
     });
   
 	  // Redirect the user to a URL that shows the imported files.
-	  return Response.redirect("/shared", 303);
+	  return Response.redirect("./?shared", 303);
 	})(),
   );
 });

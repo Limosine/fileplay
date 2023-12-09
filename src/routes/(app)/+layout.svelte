@@ -17,6 +17,7 @@
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
   import AddContact from "$lib/dialogs/AddContact.svelte";
+  import { files } from "$lib/components/Input.svelte";
 
   let peer_open = writable(false);
   let socketStore: Readable<any>;
@@ -24,6 +25,8 @@
 
   let needRefresh: Writable<boolean>;
   let loading = true;
+
+  let cachedFiles: any = {files: []};
 
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
@@ -38,6 +41,23 @@
 
       socketStore = (await import("$lib/lib/websocket")).socketStore;
       unsubscribeSocketStore = socketStore.subscribe(() => {});
+    }
+
+    if ($page.url.searchParams.has("shared")) {
+      const cache = await caches.open("shared-files");
+      const responses = await cache.matchAll("shared-file");
+      cachedFiles = new DataTransfer();
+
+      console.log(responses);
+
+      responses.forEach(async response => {
+        cachedFiles.items.add(new File([await response.blob()], 'file.txt', {type: 'text/plain'}));
+      });
+
+      console.log(cachedFiles);
+
+      $files = cachedFiles.files;
+      await cache.delete("shared-file");
     }
 
     // update service worker
