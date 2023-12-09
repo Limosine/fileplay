@@ -9,7 +9,7 @@
   "background_color": "#fff",
   "description": "A P2P filesharing app.",
   "share_target": {
-    "action": "/share-file-handler",
+    "action": "/share",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {

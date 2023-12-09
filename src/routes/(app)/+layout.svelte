@@ -41,28 +41,21 @@
       unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
 
-    window.addEventListener('load', async () => {
-      if (location.search.includes("share-target")) {
-        const keys = await caches.keys();
-        const mediaCache = await caches.open(
-          keys.filter((key) => key.startsWith("media"))[0],
-        );
-        const responseArray = await mediaCache.matchAll("shared-file");
-        if (responseArray) {
-          const fileArray = new FileList();
+    if ($page.url.searchParams.has('shared')) {
+	    // Add files to cache.
+      const cache = await caches.open("shared-files");
+      const responses = await cache.matchAll("shared-file");
 
-          for (let i = 0; i < responseArray.length; i++) {
-            fileArray[i] = await responseArray[i].blob() as File;
-          }
-
-          files.set(fileArray);
-          current.set("Home");
-
-          await mediaCache.delete("shared-file");
-        }
+      const cachedFiles = new FileList();
+      for (let i = 0; i < responses.length; i++) {
+        cachedFiles[i] = await responses[i].blob() as File;
       }
-    });
-    
+
+      $files = cachedFiles;
+      current.set("Home");
+
+      await cache.delete("shared-file");
+    }
 
     // update service worker
     if (pwaInfo) {
