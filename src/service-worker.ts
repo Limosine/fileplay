@@ -9,7 +9,6 @@ import {
   googleFontsCache,
 } from "workbox-recipes";
 import { precacheAndRoute } from "workbox-precaching";
-import { idb } from "./swIndexedDB";
 // @ts-ignore
 precacheAndRoute(self.__WB_MANIFEST);
 
@@ -20,6 +19,42 @@ googleFontsCache();
 staticResourceCache();
 
 imageCache();
+
+importScripts('https://unpkg.com/dexie@3.0.3/dist/dexie.js');
+
+interface IndexedDBFileTable {
+  id?: number;
+  name: string;
+  content: Blob;
+}
+
+// Declare the Dexie class with types
+declare class Dexie {
+  constructor(databaseName: string);
+  version(versionNumber: number): any;
+}
+
+// Declare the Table class with types
+declare class Table<T> {
+  add(item: T): Promise<number>;
+  get(id: number): Promise<T | undefined>;
+  // Add more methods as needed for your use case
+}
+
+class IndexedDBFileTableSubClass extends Dexie {
+  indexedFBFileTable!: Table<IndexedDBFileTable>;
+
+  constructor() {
+    super("fileDatabase");
+    this.version(1).stores({
+      indexedFBFileTable: "++id, name, content"
+    });
+  }
+}
+
+
+
+const idb = new IndexedDBFileTableSubClass();
 
 async function addFileToIDB(file: File) {
   const blob = new Blob([file], { type: file.type });
