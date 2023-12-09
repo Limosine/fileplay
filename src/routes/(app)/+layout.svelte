@@ -53,9 +53,12 @@
           const filesArray: File[] = [];
 
           for (let i = 0; i < responseArray.length; i++) {
-            filesArray.push((await responseArray[i].blob()) as File);
-          }
+            const res = responseArray[i];
+            const responseData = JSON.parse(await res.text());
 
+            const { file, name } = responseData;
+            filesArray.push(new File([file], name));
+          }
           filesArray.forEach((file) => newFileList.items.add(file));
 
           files.set(newFileList.files);

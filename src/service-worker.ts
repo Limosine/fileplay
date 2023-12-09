@@ -37,7 +37,7 @@ self.addEventListener("fetch", (event: any) => {
 
         await Promise.all(
           fileArray.map(async (file) => {
-            await mediaCache.put("shared-file", new Response(file));
+            await mediaCache.put("shared-file", new Response(JSON.stringify({file, name: file.name})));
           })
         );
 
