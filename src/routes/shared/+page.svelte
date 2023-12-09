@@ -6,7 +6,7 @@
   import { files } from "$lib/components/Input.svelte";
   import { goto } from "$app/navigation";
 
-  let cachedFiles: DataTransfer;
+  let cachedFiles: any = {files: []};
 
   onMount(async () => {
     const cache = await caches.open("shared-files");
@@ -49,22 +49,20 @@
 
   <p class="small"><br /></p>
 
-  {#if cachedFiles != undefined}
-    {#each cachedFiles.files as file}
-      <div style="margin-bottom: 5px;">
-        <div class="no-space row center-align">
-          <article class="border round" style="width: 100%; height: 50px;">
-            <span>
-              {file.name.length > 25
-                ? returnSubstring(file.name)
-                : file.name}
-            </span>
-            <div class="tooltip">{file.name}</div>
-          </article>
-        </div>
+  {#each cachedFiles.files as file}
+    <div style="margin-bottom: 5px;">
+      <div class="no-space row center-align">
+        <article class="border round" style="width: 100%; height: 50px;">
+          <span>
+            {file.name.length > 25
+              ? returnSubstring(file.name)
+              : file.name}
+          </span>
+          <div class="tooltip">{file.name}</div>
+        </article>
       </div>
-    {/each}
-  {/if}
+    </div>
+  {/each}
 </article>
 
 <style>
