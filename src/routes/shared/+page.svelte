@@ -13,9 +13,13 @@
     const responses = await cache.matchAll("shared-file");
     cachedFiles = new FileList();
 
+    console.log(responses);
+
     for (let i = 0; i < responses.length; i++) {
       cachedFiles[i] = await responses[i].blob() as File;
     }
+
+    console.log(cachedFiles);
 
     await cache.delete("shared-file");
   });
