@@ -9,7 +9,7 @@ import {
   googleFontsCache,
 } from "workbox-recipes";
 import { precacheAndRoute } from "workbox-precaching";
-import { idb } from "../src/swIndexedDB.ts";
+import { idb } from "./swIndexedDB";
 // @ts-ignore
 precacheAndRoute(self.__WB_MANIFEST);
 
