@@ -58,7 +58,7 @@
           files.set(fileArray);
           current.set("Home");
 
-          await mediaCache.delete("shared-file");
+          // await mediaCache.delete("shared-file");
         }
       }
     });

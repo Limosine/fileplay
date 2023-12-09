@@ -45,34 +45,34 @@
 
   async function handleContactClick(contact: IContact) {
     switch ($sendState[contact.cid]) {
-    case SendState.REQUESTING:
-      // cancel sharing request
-      setSendState(contact.cid, SendState.CANCELED);
-      break;
-    case SendState.SENDING:
-      // cancel sharing in progress
-      setSendState(contact.cid, SendState.CANCELED);
-      break;
-    default: {
-      // IDLE, CANCELED, FAILED, REJECTED
-      const devices = (await $deviceInfos).filter(
-        (item) => item.cid == contact.cid,
-      );
-
-      devices.forEach((device: IDeviceInfo) => {
-        send(
-          $files,
-          contact.cid,
-          device.did,
-          device.peerJsId,
-          device.encryptionPublicKey,
+      case SendState.REQUESTING:
+        // cancel sharing request
+        setSendState(contact.cid, SendState.CANCELED);
+        break;
+      case SendState.SENDING:
+        // cancel sharing in progress
+        setSendState(contact.cid, SendState.CANCELED);
+        break;
+      default: {
+        // IDLE, CANCELED, FAILED, REJECTED
+        const devices = (await $deviceInfos).filter(
+          (item) => item.cid == contact.cid,
         );
-      });
 
-      setSendState(contact.cid, SendState.SENDING);
+        devices.forEach((device: IDeviceInfo) => {
+          send(
+            $files,
+            contact.cid,
+            device.did,
+            device.peerJsId,
+            device.encryptionPublicKey,
+          );
+        });
 
-      break;
-    }
+        setSendState(contact.cid, SendState.SENDING);
+
+        break;
+      }
     }
   }
 
@@ -84,36 +84,36 @@
     if (Object.keys($sendState).length != 0) {
       for (let [key, value] of Object.entries($sendState)) {
         switch (value) {
-        case SendState.REQUESTING:
-          $progress_styles[key] = {
-            class: "progress-yellow",
-            indeterminate: true,
-          };
-          break;
-        case SendState.IDLE:
-          $progress_styles[key] = {
-            class: "",
-            indeterminate: false,
-          };
-          break;
-        case SendState.SENDING:
-          $progress_styles[key] = {
-            class: "",
-            indeterminate: false,
-          };
-          break;
-        case SendState.SENT:
-          $progress_styles[key] = {
-            class: "progress-green",
-            indeterminate: false,
-          };
-          break;
-        default:
-          $progress_styles[key] = {
-            class: "progress-red",
-            indeterminate: false,
-          };
-          break;
+          case SendState.REQUESTING:
+            $progress_styles[key] = {
+              class: "progress-yellow",
+              indeterminate: true,
+            };
+            break;
+          case SendState.IDLE:
+            $progress_styles[key] = {
+              class: "",
+              indeterminate: false,
+            };
+            break;
+          case SendState.SENDING:
+            $progress_styles[key] = {
+              class: "",
+              indeterminate: false,
+            };
+            break;
+          case SendState.SENT:
+            $progress_styles[key] = {
+              class: "progress-green",
+              indeterminate: false,
+            };
+            break;
+          default:
+            $progress_styles[key] = {
+              class: "progress-red",
+              indeterminate: false,
+            };
+            break;
         }
       }
     }
@@ -165,6 +165,13 @@
       generateQRCode($link);
     }
   }
+  async () => {
+    const keys = await caches.keys();
+    const mediaCache = await caches.open(
+      keys.filter((key) => key.startsWith("media"))[0],
+    );
+    await mediaCache.delete("shared-file");
+  };
 </script>
 
 {#if $files === undefined || $files.length == 0}
@@ -288,7 +295,7 @@
                 class="border small-round"
                 style="border-color: {$progress[contact.cid] !== undefined
                   ? $progress[contact.cid]
-                  : "var(--primary)"};"
+                  : 'var(--primary)'};"
                 on:click={() => handleContactClick(contact)}
               >
                 <img
