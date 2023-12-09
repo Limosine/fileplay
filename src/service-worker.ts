@@ -25,10 +25,14 @@ self.addEventListener('fetch', (event: any) => {
   if (event.request.url.endsWith('/receive-files/') && event.request.method === 'POST') {
     return event.respondWith(
       (async () => {
+		console.log("Received sharing request.")
+
         const formData = await event.request.formData();
         const fileArray = formData.getAll("file") as Array<File>;
         const keys = await caches.keys();
         const mediaCache = await caches.open(keys.filter((key) => key.startsWith('media'))[0]);
+
+		console.log("cached");
 
         fileArray.forEach(async file => {
           await mediaCache.put('shared-file', new Response(file));
