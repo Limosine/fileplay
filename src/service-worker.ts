@@ -41,7 +41,7 @@ self.addEventListener("fetch", (event: any) => {
           })
         );
 
-        return Response.redirect("./?share-target/", 303);
+        return Response.redirect("./?share-target", 303);
       })(),
     );
   }
