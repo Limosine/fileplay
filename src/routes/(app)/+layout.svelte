@@ -41,8 +41,8 @@
       unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
 
-    window.addEventListener('load', async () => {
-      if (location.search.includes("share-target")) {
+    navigator.serviceWorker.addEventListener("message", async (event) => {
+      if (event.data.message == "share-target") {
         const keys = await caches.keys();
         const mediaCache = await caches.open(
           keys.filter((key) => key.startsWith("media"))[0],
@@ -52,17 +52,16 @@
           const fileArray = new FileList();
 
           for (let i = 0; i < responseArray.length; i++) {
-            fileArray[i] = await responseArray[i].blob() as File;
+            fileArray[i] = (await responseArray[i].blob()) as File;
           }
 
           files.set(fileArray);
           current.set("Home");
 
-          // await mediaCache.delete("shared-file");
+          await mediaCache.delete("shared-file");
         }
       }
     });
-    
 
     // update service worker
     if (pwaInfo) {

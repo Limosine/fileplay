@@ -21,20 +21,31 @@ staticResourceCache();
 
 imageCache();
 
-self.addEventListener('fetch', (event: any) => {
-  if (event.request.url.endsWith('/receive-files/') && event.request.method === 'POST') {
+self.addEventListener("fetch", (event: any) => {
+  if (
+    event.request.url.endsWith("/receive-files/") &&
+    event.request.method === "POST"
+  ) {
     return event.respondWith(
       (async () => {
         const formData = await event.request.formData();
         const fileArray = formData.getAll("file") as Array<File>;
         const keys = await caches.keys();
-        const mediaCache = await caches.open(keys.filter((key) => key.startsWith('media'))[0]);
+        const mediaCache = await caches.open(
+          keys.filter((key) => key.startsWith("media"))[0],
+        );
 
-        fileArray.forEach(async file => {
-          await mediaCache.put('shared-file', new Response(file));
+        fileArray.forEach(async (file) => {
+          await mediaCache.put("shared-file", new Response(file));
         });
 
-        return Response.redirect('./?share-target', 303);
+        if (!event.clientId) return;
+
+        postMessage({
+          msg: "share-target",
+        });
+
+        return Response.redirect("/", 200);
       })(),
     );
   }

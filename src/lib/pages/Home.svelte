@@ -165,13 +165,6 @@
       generateQRCode($link);
     }
   }
-  async () => {
-    const keys = await caches.keys();
-    const mediaCache = await caches.open(
-      keys.filter((key) => key.startsWith("media"))[0],
-    );
-    await mediaCache.delete("shared-file");
-  };
 </script>
 
 {#if $files === undefined || $files.length == 0}
