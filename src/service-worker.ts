@@ -35,9 +35,11 @@ self.addEventListener("fetch", (event: any) => {
           keys.filter((key) => key.startsWith("media"))[0],
         );
 
-        fileArray.forEach(async (file) => {
-          await mediaCache.put("shared-file", new Response(file));
-        });
+        await Promise.all(
+          fileArray.map(async (file) => {
+            await mediaCache.put("shared-file", new Response(file));
+          })
+        );
 
         if (!event.clientId) return;
 
