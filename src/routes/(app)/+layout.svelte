@@ -18,6 +18,7 @@
   import Edit from "$lib/dialogs/Edit.svelte";
   import AddContact from "$lib/dialogs/AddContact.svelte";
   import { files } from "$lib/components/Input.svelte";
+  import { getFilesFromIDB } from "$lib/lib/fetchers";
 
   let peer_open = writable(false);
   let socketStore: Readable<any>;
@@ -43,30 +44,12 @@
 
     window.addEventListener("load", async () => {
       if (location.search.includes("share-target")) {
-        const keys = await caches.keys();
-        const mediaCache = await caches.open(
-          keys.filter((key) => key.startsWith("media"))[0],
-        );
-        const responseArray = await mediaCache.matchAll("shared-file");
-        if (responseArray) {
-          const newFileList = new DataTransfer();
-          const filesArray: File[] = [];
+        const fileList = await getFilesFromIDB();
 
-          for (let i = 0; i < responseArray.length; i++) {
-            const res = responseArray[i];
-            const responseData = JSON.parse(await res.text());
-
-            const { file, name } = responseData;
-            filesArray.push(new File([file], name));
-          }
-          filesArray.forEach((file) => newFileList.items.add(file));
-
-          files.set(newFileList.files);
+          files.set(fileList);
           current.set("Home");
-
-          await mediaCache.delete("shared-file");
         }
-      }
+      })
     });
 
     // update service worker

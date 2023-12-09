@@ -9,7 +9,7 @@ import {
   googleFontsCache,
 } from "workbox-recipes";
 import { precacheAndRoute } from "workbox-precaching";
-
+import { idb } from "../src/swIndexedDB.ts";
 // @ts-ignore
 precacheAndRoute(self.__WB_MANIFEST);
 
@@ -21,6 +21,14 @@ staticResourceCache();
 
 imageCache();
 
+async function addFileToIDB(file: File) {
+  const blob = new Blob([file], { type: file.type });
+  await idb.indexedFBFileTable.add({
+    name: file.name,
+    content: blob,
+  });
+}
+
 self.addEventListener("fetch", (event: any) => {
   if (
     event.request.url.endsWith("/receive-files/") &&
@@ -30,15 +38,11 @@ self.addEventListener("fetch", (event: any) => {
       (async () => {
         const formData = await event.request.formData();
         const fileArray = formData.getAll("file") as Array<File>;
-        const keys = await caches.keys();
-        const mediaCache = await caches.open(
-          keys.filter((key) => key.startsWith("media"))[0],
-        );
 
         await Promise.all(
           fileArray.map(async (file) => {
-            await mediaCache.put("shared-file", new Response(JSON.stringify({file, name: file.name})));
-          })
+            await addFileToIDB(file);
+          }),
         );
 
         return Response.redirect("./?share-target", 303);

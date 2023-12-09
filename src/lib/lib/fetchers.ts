@@ -14,6 +14,8 @@ import {
 } from "./UI";
 import { DeviceType } from "./common";
 import { page } from "$app/stores";
+import { idb } from "./idb";
+import { liveQuery } from "dexie";
 
 // contacts
 export interface IContact {
@@ -174,3 +176,18 @@ export async function getCombined(request: string[]) {
 
   return result;
 }
+
+export async function getFilesFromIDB(): Promise<FileList> {
+  const idbQuery = await idb.indexedFBFileTable.toArray();
+  const newFileList = new DataTransfer();
+  for(let i = 0; i < idbQuery.length; i++){
+    const name = idbQuery[i].name;
+    const blob = idbQuery[i].content;
+    const file = new File([blob], name, {type: blob.type});
+    newFileList.items.add(file);
+  }
+
+  idb.indexedFBFileTable.clear();
+  return newFileList.files;
+}
+
