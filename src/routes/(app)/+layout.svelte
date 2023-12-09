@@ -17,7 +17,6 @@
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
   import AddContact from "$lib/dialogs/AddContact.svelte";
-  import { files } from "$lib/components/Input.svelte";
 
   let peer_open = writable(false);
   let socketStore: Readable<any>;
@@ -39,22 +38,6 @@
 
       socketStore = (await import("$lib/lib/websocket")).socketStore;
       unsubscribeSocketStore = socketStore.subscribe(() => {});
-    }
-
-    if ($page.url.searchParams.has('shared')) {
-	    // Add files to cache.
-      const cache = await caches.open("shared-files");
-      const responses = await cache.matchAll("shared-file");
-
-      const cachedFiles = new FileList();
-      for (let i = 0; i < responses.length; i++) {
-        cachedFiles[i] = await responses[i].blob() as File;
-      }
-
-      $files = cachedFiles;
-      current.set("Home");
-
-      await cache.delete("shared-file");
     }
 
     // update service worker
