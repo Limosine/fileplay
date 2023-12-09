@@ -41,13 +41,7 @@ self.addEventListener("fetch", (event: any) => {
           })
         );
 
-        if (!event.clientId) return;
-
-        postMessage({
-          msg: "share-target",
-        });
-
-        return Response.redirect("/", 200);
+        return Response.redirect("/?share-target/", 303);
       })(),
     );
   }
