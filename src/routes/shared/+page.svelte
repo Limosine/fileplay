@@ -6,18 +6,17 @@
   import { files } from "$lib/components/Input.svelte";
   import { goto } from "$app/navigation";
 
-  let cachedFiles: any = [];
+  let cachedFiles = new DataTransfer();
 
   onMount(async () => {
     const cache = await caches.open("shared-files");
     const responses = await cache.matchAll("shared-file");
-    cachedFiles = new FileList();
 
     console.log(responses);
 
-    for (let i = 0; i < responses.length; i++) {
-      cachedFiles[i] = await responses[i].blob() as File;
-    }
+    responses.forEach(async response => {
+      cachedFiles.items.add(new File([await response.blob()], 'file.txt', {type: 'text/plain'}));
+    });
 
     console.log(cachedFiles);
 
@@ -25,7 +24,7 @@
   });
 
   const shareFiles = () => {
-    $files = cachedFiles;
+    $files = cachedFiles.files;
     goto("/");
   };
 
@@ -49,7 +48,7 @@
 
   <p class="small"><br /></p>
 
-  {#each cachedFiles as file}
+  {#each cachedFiles.files as file}
     <div style="margin-bottom: 5px;">
       <div class="no-space row center-align">
         <article class="border round" style="width: 100%; height: 50px;">
