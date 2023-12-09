@@ -49,7 +49,7 @@
         );
         const responseArray = await mediaCache.matchAll("shared-file");
         if (responseArray) {
-          const fileArray = new FileList();
+          let fileArray = new FileList();
 
           for (let i = 0; i < responseArray.length; i++) {
             fileArray[i] = (await responseArray[i].blob()) as File;
