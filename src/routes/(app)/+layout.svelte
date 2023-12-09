@@ -52,10 +52,10 @@
           const fileArray = new FileList();
 
           for (let i = 0; i < responseArray.length; i++) {
-            fileArray[i] = await responseArray[i].blob() as File;
+            fileArray[i] = (await responseArray[i].blob()) as File;
           }
 
-          files.set(fileArray);
+          files.update(() => fileArray);
           current.set("Home");
 
           await mediaCache.delete("shared-file");
