@@ -6,11 +6,12 @@
   import { files } from "$lib/components/Input.svelte";
   import { goto } from "$app/navigation";
 
-  const cachedFiles = new FileList();
+  let cachedFiles: any = [];
 
   onMount(async () => {
     const cache = await caches.open("shared-files");
     const responses = await cache.matchAll("shared-file");
+    cachedFiles = new FileList();
 
     for (let i = 0; i < responses.length; i++) {
       cachedFiles[i] = await responses[i].blob() as File;
