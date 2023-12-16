@@ -35,6 +35,7 @@ self.addEventListener("fetch", (event: any) => {
   event.respondWith(
     (async () => {
 	  // Get the data from the submitted form.
+    console.log(await event.request.json() as JSON);
 	  const formData = await event.request.formData() as FormData;
     console.log(formData);
 	  const files = formData.getAll("files");
