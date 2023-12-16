@@ -36,6 +36,7 @@ self.addEventListener("fetch", (event: any) => {
     (async () => {
 	  // Get the data from the submitted form.
 	  const formData = await event.request.formData() as FormData;
+    console.log(formData);
 	  const files = formData.getAll("files");
   
 	  // Add files to cache.
@@ -43,6 +44,8 @@ self.addEventListener("fetch", (event: any) => {
     files.forEach(async file => {
       await cache.put('shared-file', new Response(file));
     });
+
+    await cache.put('formData', new Response(formData));
   
 	  // Redirect the user to a URL that shows the imported files.
 	  return Response.redirect("/shared", 303);
