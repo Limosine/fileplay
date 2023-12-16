@@ -13,12 +13,11 @@
     const responses = await cache.matchAll("shared-file");
     cachedFiles = new DataTransfer();
 
-    console.log(responses);
-
     responses.forEach(async response => {
       cachedFiles.items.add(new File([await response.blob()], 'file.txt', {type: 'text/plain'}));
     });
 
+    cachedFiles.files = cachedFiles.files;
     console.log(cachedFiles);
 
     await cache.delete("shared-file");
@@ -43,7 +42,7 @@
 <article style="width: 300px" class="center middle">
   <h5 class="center-align">Fileplay</h5>
   <nav class="center-align">
-    <button style="width: 25%" on:click={() => window.location.href = "/"}>Cancel</button>
+    <button style="width: 25%" on:click={() => goto("/")}>Cancel</button>
     <button style="width: 25%" on:click={() => shareFiles()}>Share</button>
   </nav>
 
