@@ -7,7 +7,6 @@
   import { goto } from "$app/navigation";
   import { writable } from "svelte/store";
 
-  const loaded = writable(false);
   const cachedFiles = writable<FileList>();
 
   onMount(async () => {
@@ -15,15 +14,16 @@
     const responses = await cache.matchAll("shared-file");
     const dataTransfer = new DataTransfer();
 
+    const deleteFiles = async () => {
+      $cachedFiles = dataTransfer.files;
+
+      await cache.delete("shared-file");
+    }
+
     responses.forEach(async response => {
       dataTransfer.items.add(new File([await response.blob()], 'file.txt', {type: 'text/plain'}));
+      deleteFiles();
     });
-
-    $cachedFiles = dataTransfer.files;
-    $loaded = true;
-    console.log($cachedFiles);
-
-    await cache.delete("shared-file");
   });
 
   const shareFiles = () => {
@@ -51,9 +51,7 @@
 
   <p class="small"><br /></p>
 
-  {#if $loaded}
-    <p>Loaded!</p>
-    <p>{$cachedFiles}</p>
+  {#if $cachedFiles != undefined}
     {#each $cachedFiles as file}
       <div style="margin-bottom: 5px;">
         <div class="no-space row center-align">
@@ -68,8 +66,6 @@
         </div>
       </div>
     {/each}
-  {:else}
-      <p>Not yet loaded!</p>
   {/if}
 </article>
 
