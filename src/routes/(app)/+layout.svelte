@@ -9,7 +9,7 @@
   import "beercss";
 
   import logo from "$lib/assets/Fileplay.png";
-  import { addNotification } from "$lib/lib/UI";
+  import { addNotification, current } from "$lib/lib/UI";
   import { createSocketStore } from "$lib/lib/websocket";
   import { setup as pgp_setup } from "$lib/lib/openpgp";
 
