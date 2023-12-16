@@ -52,6 +52,8 @@
   <p class="small"><br /></p>
 
   {#if $loaded}
+    <p>Loaded!</p>
+    <p>{$cachedFiles}</p>
     {#each $cachedFiles.files as file}
       <div style="margin-bottom: 5px;">
         <div class="no-space row center-align">
@@ -66,6 +68,8 @@
         </div>
       </div>
     {/each}
+  {:else}
+      <p>Not yet loaded!</p>
   {/if}
 </article>
 
