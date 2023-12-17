@@ -21,6 +21,7 @@
     }
 
     responses.forEach(async response => {
+      console.log(response, response.blob());
       dataTransfer.items.add(await response.blob() as File); //new File([await response.blob()], 'file.txt', {type: 'text/plain'}));
       deleteFiles();
     });
