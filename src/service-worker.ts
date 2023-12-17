@@ -35,14 +35,13 @@ self.addEventListener("fetch", (event: any) => {
   event.respondWith(
     (async () => {
 	  // Get the data from the submitted form.
-    console.log(await event.request.json() as JSON);
 	  const formData = await event.request.formData() as FormData;
-    console.log(formData);
-	  const files = formData.getAll("files");
+	  const files = formData.getAll("files") as File[];
   
 	  // Add files to cache.
     const cache = await caches.open("shared-files");
     files.forEach(async file => {
+      console.log(file);
       await cache.put('shared-file', new Response(file));
     });
 
