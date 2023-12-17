@@ -7,6 +7,7 @@
   import Home from "$lib/pages/Home.svelte";
   import Contacts from "$lib/pages/Contacts.svelte";
   import Settings from "$lib/pages/Settings.svelte";
+  import { page } from "$app/stores";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -43,6 +44,21 @@
     ui("#dialog-add");
   }
 
+  const handleMessage = (event: MessageEvent<{data: any, action: string}>) => {
+    if (event.data.action == "load-data") {
+      const swFiles: File[] = event.data.data;
+      const dataTransfer = new DataTransfer();
+
+      swFiles.forEach(async file => {
+        dataTransfer.items.add(file);
+        $files = dataTransfer.files;
+      });
+
+      navigator.serviceWorker.removeEventListener('message', handleMessage);
+      $page.url.searchParams.delete("share-target");
+    }
+  };
+
   let refresh_interval: any;
 
   function startRefresh() {
@@ -68,6 +84,10 @@
   onDestroy(stopRefresh);
 
   onMount(() => {
+    if ($page.url.searchParams.has("share-target")) {
+      navigator.serviceWorker.addEventListener("message", handleMessage);
+      navigator.serviceWorker.controller?.postMessage("share-ready");
+    }
     getCombined(["user", "devices", "deviceInfos", "contacts"]);
     startRefresh();
   });

@@ -4,6 +4,7 @@
 /// <reference lib="webworker" />
 
 const sw = /** @type {ServiceWorkerGlobalScope} */ (/** @type {unknown} */ (self));
+declare const self: ServiceWorkerGlobalScope;
 
 import {
   pageCache,
@@ -24,21 +25,34 @@ staticResourceCache();
 
 imageCache();
 
-async function addFileToIDB(file: File) {
-  const blob = new Blob([file], { type: file.type });
-  await idb.indexedFBFileTable.add({
-    name: file.name,
-    content: blob,
-  });
+// Following code from:
+// https://github.com/GoogleChromeLabs/squoosh/blob/dev/src/sw/util.ts
+
+const serveShareTarget = (event: FetchEvent) => {
+  const formData = event.request.formData();
+  event.respondWith(Response.redirect("/?share-target"));
+
+  event.waitUntil(
+    (async function () {
+      await nextMessage("share-ready");
+      const client = await self.clients.get(event.resultingClientId);
+
+      client!.postMessage({ data: (await formData).getAll("files"), action: "load-data" });
+    })(),
+  );
 }
 
-self.addEventListener("fetch", (event: any) => {
-  // Only use this event listener for POST requests sent to /share-file-handler.
+self.addEventListener('fetch', (event: any) => {
   const url = new URL(event.request.url);
+
+  if (url.origin !== location.origin) return;
+
   if (
-    event.request.method !== "POST" ||
-    url.pathname !== "/share-file-handler"
+    url.pathname === "/" &&
+    url.searchParams.has("share-target") &&
+    event.request.method === "POST"
   ) {
+    serveShareTarget(event);
     return;
   }
   
@@ -59,24 +73,20 @@ self.addEventListener("fetch", (event: any) => {
   );
 });
 
-// self.addEventListener("fetch", (event: any) => {
-//   if (
-//     event.request.url.endsWith("/receive-files/") &&
-//     event.request.method === "POST"
-//   ) {
-//     return event.respondWith(
-//       (async () => {
-//         const formData = await event.request.formData();
-//         const fileArray = formData.getAll("file") as Array<File>;
+const nextMessageResolveMap = new Map<string, (() => void)[]>();
 
-//         await Promise.all(
-//           fileArray.map(async (file) => {
-//             await addFileToIDB(file);
-//           }),
-//         );
+const nextMessage = (dataVal: string) => {
+  return new Promise<void>((resolve) => {
+    if (!nextMessageResolveMap.has(dataVal)) {
+      nextMessageResolveMap.set(dataVal, []);
+    }
+    nextMessageResolveMap.get(dataVal)!.push(resolve);
+  });
+}
 
-//         return Response.redirect("./?share-target", 303);
-//       })(),
-//     );
-//   }
-// });
+self.addEventListener("message", (event: any) => {
+  const resolvers = nextMessageResolveMap.get(event.data);
+  if (!resolvers) return;
+  nextMessageResolveMap.delete(event.data);
+  for (const resolve of resolvers) resolve();
+});

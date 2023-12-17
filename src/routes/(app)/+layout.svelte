@@ -17,8 +17,6 @@
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
   import AddContact from "$lib/dialogs/AddContact.svelte";
-  import { files } from "$lib/components/Input.svelte";
-  import { getFilesFromIDB } from "$lib/lib/fetchers";
 
   let peer_open = writable(false);
   let socketStore: Readable<any>;
@@ -41,16 +39,6 @@
       socketStore = (await import("$lib/lib/websocket")).socketStore;
       unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
-
-    window.addEventListener("load", async () => {
-      if (location.search.includes("share-target")) {
-        const fileList = await getFilesFromIDB();
-
-          files.set(fileList);
-          current.set("Home");
-        }
-      })
-    });
 
     // update service worker
     if (pwaInfo) {
