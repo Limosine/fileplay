@@ -10,20 +10,16 @@
   const cachedFiles = writable<FileList>();
 
   onMount(async () => {
-    const cache = await caches.open("shared-files");
-    const responses = await cache.matchAll("shared-file");
-    const dataTransfer = new DataTransfer();
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data.action == "load-data") {
+        const files: File[] = event.data.data;
+        const dataTransfer = new DataTransfer();
 
-    const deleteFiles = async () => {
-      $cachedFiles = dataTransfer.files;
-
-      await cache.delete("shared-file");
-    }
-
-    responses.forEach(async response => {
-      console.log(response, await response.formData());
-      dataTransfer.items.add(await response.blob() as File); //new File([await response.blob()], 'file.txt', {type: 'text/plain'}));
-      deleteFiles();
+        files.forEach(async file => {
+          dataTransfer.items.add(file);
+          $cachedFiles = dataTransfer.files;
+        });
+      }
     });
   });
 
