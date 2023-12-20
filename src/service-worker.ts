@@ -13,8 +13,7 @@ import {
   googleFontsCache,
 } from "workbox-recipes";
 import { precacheAndRoute } from "workbox-precaching";
-import {idb} from "./lib/lib/idb";
-// @ts-ignore
+
 precacheAndRoute(self.__WB_MANIFEST);
 
 pageCache();
@@ -45,8 +44,6 @@ const serveShareTarget = (event: FetchEvent) => {
 self.addEventListener('fetch', (event: any) => {
   const url = new URL(event.request.url);
 
-  if (url.origin !== location.origin) return;
-
   if (
     url.pathname === "/" &&
     url.searchParams.has("share-target") &&
@@ -55,22 +52,6 @@ self.addEventListener('fetch', (event: any) => {
     serveShareTarget(event);
     return;
   }
-  
-  event.respondWith(
-    (async () => {
-	  // Get the data from the submitted form.
-	  const formData = await event.request.formData();
-  
-	  // Get the submitted files.
-	  const files = formData.getAll("files");
-  
-	  // Send the files to the frontend app.
-	  // sendFilesToFrontend(files);
-  
-	  // Redirect the user to a URL that shows the imported files.
-	  return Response.redirect("/display-new-files", 303);
-	})(),
-  );
 });
 
 const nextMessageResolveMap = new Map<string, (() => void)[]>();

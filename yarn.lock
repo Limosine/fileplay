@@ -3855,13 +3855,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dexie@npm:^4.0.1-beta.4":
-  version: 4.0.1-beta.4
-  resolution: "dexie@npm:4.0.1-beta.4"
-  checksum: 0c535154cf242cfcbc54aee9bb6c3dd17dc047641db3e088ef29f997065f797abc45c54bca32b2f19ae8a7504a110fc92e3875eeb1db66b65413460a38b2acd0
-  languageName: node
-  linkType: hard
-
 "diff@npm:^4.0.1":
   version: 4.0.2
   resolution: "diff@npm:4.0.2"
@@ -4675,7 +4668,6 @@ __metadata:
     bad-words: "npm:^3.0.4"
     beercss: "npm:^3.4.2"
     dayjs: "npm:^1.11.10"
-    dexie: "npm:^4.0.1-beta.4"
     dotenv: "npm:^16.3.1"
     dotenv-vault: "npm:^1.25.0"
     eslint: "npm:^8.52.0"
