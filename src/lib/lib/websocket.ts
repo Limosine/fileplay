@@ -23,6 +23,7 @@ const createWebSocketListeners = (websocket: WebSocket) => {
   websocket.onmessage = (event) => {
     if (event.data == "1" || event.data == "2") {
       status.set(event.data);
+      console.log("WebSocket message: " + event.data);
     } else {
       console.log(event.data);
     }
@@ -40,11 +41,11 @@ const createWebSocket = () => {
 const createInterval = () => {
   interval.set(
     setInterval(() => {
-      if (!get(initialization_completed)) return;
+      if (!get(initialization_completed) || get(socketStore).readyState === undefined) return;
 
       if (
         get(socketStore).readyState == 3 ||
-        get(socketStore).readyState == 2
+        get(socketStore).readyState == 2 
       ) {
         socketStore.set(createWebSocket());
       } else {
