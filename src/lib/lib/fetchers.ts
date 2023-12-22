@@ -175,6 +175,17 @@ export async function getCombined(requests: string[]) {
     }
     if (result.contacts) contacts.set(result.contacts);
   } else {
+    websocket.update(websocket => {
+      websocket.addEventListener("open", () => {
+        requests.forEach(request => {
+          websocket.send(JSON.stringify({
+            method: "get",
+            type: request
+          }));
+        });
+      });
+      return websocket;
+    });
     requests.forEach(request => {
       get(websocket).send(JSON.stringify({
         method: "get",
