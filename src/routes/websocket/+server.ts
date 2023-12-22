@@ -82,22 +82,22 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
       } else if (request.type == "user") {
         const response = request;
         response.data = await getUser(db, uid);
-        server.send(JSON.stringify(response));
+        if (response.success) server.send(JSON.stringify(response.response));
 
       } else if (request.type == "devices") {
         const response = request;
         response.data = await getDevices(db, uid, did);
-        server.send(JSON.stringify(response));
+        if (response.success) server.send(JSON.stringify(response.response));
 
       } else if (request.type == "deviceInfos") {
         const response = request;
         response.data = await getDeviceInfos(db, uid);
-        server.send(JSON.stringify(response));
+        if (response.success) server.send(JSON.stringify(response.response));
 
       } else if (request.type == "contacts") {
         const response = request;
         response.data = await getContacts(db, uid);
-        server.send(JSON.stringify(response));
+        if (response.success) server.send(JSON.stringify(response.response));
       }
     }
   });

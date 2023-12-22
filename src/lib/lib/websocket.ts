@@ -25,7 +25,6 @@ const createWebSocketListeners = (ws: WebSocket) => {
     }
   };
   ws.onmessage = (event) => {
-    console.log("WebSocket message: " + event.data);
     const response: {
       method: string,
       type: string,
@@ -39,26 +38,19 @@ const createWebSocketListeners = (ws: WebSocket) => {
         else status.set("2");
 
       } else if (response.type == "user") {
-        user.set(response.data.user);
+        user.set(response.data);
         if (!get(user_loaded)) user_loaded.set(true);
 
       } else if (response.type == "devices") {
-        devices.set(response.data.devices);
-        own_did.set(response.data.devices.self.did);
+        devices.set(response.data);
+        own_did.set(response.data.self.did);
         if (!get(devices_loaded)) devices_loaded.set(true);
 
       } else if (response.type == "deviceInfos") {
-        deviceInfos.set(response.data.deviceInfos);
+        deviceInfos.set(response.data);
         if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
 
-      } else if (response.type == "contacts") contacts.set(response.data.contacts);
-    } else if (response.method == "post") {
-      // TODO
-    } else if (response.method == "delete") {
-      if (response.type == "account" && response.successful && browser) {
-        localStorage.clear();
-        window.location.href = "/setup";
-      }
+      } else if (response.type == "contacts") contacts.set(response.data);
     }
   };
   ws.onerror = () => {
