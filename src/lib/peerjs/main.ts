@@ -1,3 +1,5 @@
+import { browser } from "$app/environment";
+import { page } from "$app/stores";
 import { get } from "svelte/store";
 import Peer, { type DataConnection } from "peerjs";
 
@@ -21,8 +23,6 @@ import {
 } from "./handle";
 import { getCombined, getPeerJsId, updatePeerJS_ID } from "$lib/lib/fetchers";
 import { deviceInfos, own_did } from "$lib/lib/UI";
-import { browser } from "$app/environment";
-import { page } from "$app/stores";
 
 export const openPeer = async (uuid?: string) => {
   if (uuid) {
