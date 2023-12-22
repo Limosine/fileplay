@@ -186,12 +186,5 @@ export async function getCombined(requests: string[]) {
       });
       return websocket;
     });
-    requests.forEach(request => {
-      get(websocket).send(JSON.stringify({
-        method: "get",
-        type: request
-      }));
-    });
-  }  
-  
+  }
 }
