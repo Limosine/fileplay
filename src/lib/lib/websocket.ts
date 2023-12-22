@@ -1,11 +1,15 @@
-import { get, writable } from "svelte/store";
-import { PUBLIC_FILEPLAY_DOMAIN } from "$env/static/public";
-import { contacts, deviceInfos, deviceInfos_loaded, devices, devices_loaded, own_did, user, user_loaded } from "./UI";
 import { browser } from "$app/environment";
+import { PUBLIC_FILEPLAY_DOMAIN } from "$env/static/public";
+import { get, writable } from "svelte/store";
+import { getCombined } from "./fetchers";
+import { contacts, deviceInfos, deviceInfos_loaded, devices, devices_loaded, own_did, startRefresh, user, user_loaded } from "./UI";
 
 const createWebSocketListeners = (ws: WebSocket) => {
   ws.onopen = () => {
     status.set("1");
+
+    getCombined(["user", "devices", "deviceInfos", "contacts"]);
+    startRefresh();
   };
   ws.onclose = () => {
     status.set("0");

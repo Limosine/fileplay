@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import Input, { files } from "$lib/components/Input.svelte";
-  import { addContactDialog, add_mode, current, editDialog, notificationDialog, settings_page, user_loaded } from "$lib/lib/UI";
-  import { getCombined } from "$lib/lib/fetchers";
+  import { addContactDialog, add_mode, current, editDialog, notificationDialog, settings_page, stopRefresh, user_loaded } from "$lib/lib/UI";
 
   import Home from "$lib/pages/Home.svelte";
   import Contacts from "$lib/pages/Contacts.svelte";
@@ -59,28 +58,6 @@
     }
   };
 
-  let refresh_interval: any;
-
-  function startRefresh() {
-    refresh_interval = setInterval(async () => {
-      if ($current == "Settings" && $settings_page == "devices") {
-        getCombined(["user", "devices"]);
-      } else if ($current == "Settings") {
-        getCombined(["user"]);
-      } else if ($current == "Contacts") {
-        getCombined(["contacts"]);
-      } else if ($files !== undefined && $files.length != 0) {
-        getCombined(["contacts", "deviceInfos"]);
-      } else {
-        getCombined(["deviceInfos"]);
-      }
-    }, 5000);
-  }
-
-  function stopRefresh() {
-    clearInterval(refresh_interval);
-  }
-
   onDestroy(stopRefresh);
 
   onMount(() => {
@@ -88,8 +65,6 @@
       navigator.serviceWorker.addEventListener("message", handleMessage);
       navigator.serviceWorker.controller?.postMessage("share-ready");
     }
-    getCombined(["user", "devices", "deviceInfos", "contacts"]);
-    startRefresh();
   });
 </script>
 

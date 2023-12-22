@@ -1,14 +1,37 @@
-import { get, writable } from "svelte/store";
-import { DeviceType } from "./common";
-import type { MaybePromise } from "@sveltejs/kit";
-import type { IContact, IDeviceInfo, IDevices, IUser } from "./fetchers";
 import { browser } from "$app/environment";
+import { get, writable } from "svelte/store";
+import type { MaybePromise } from "@sveltejs/kit";
+import { DeviceType } from "./common";
+import { getCombined, type IContact, type IDeviceInfo, type IDevices, type IUser } from "./fetchers";
+import { files } from "$lib/components/Input.svelte";
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
 export const settings_page = writable<"main" | "devices" | "device">("main");
 export const selected_device = writable<number>();
 export const add_mode = writable<"contact" | "device"> ("contact");
 export const fetch_mode = writable<"WebSocket" | "HTTP">("WebSocket");
+
+// Refresh Interval:
+let refresh_interval: NodeJS.Timer;
+export const  startRefresh = () => {
+  refresh_interval = setInterval(async () => {
+    if (get(current) == "Settings" && get(settings_page) == "devices") {
+      getCombined(["user", "devices"]);
+    } else if (get(current) == "Settings") {
+      getCombined(["user"]);
+    } else if (get(current) == "Contacts") {
+      getCombined(["contacts"]);
+    } else if (get(files) !== undefined && get(files).length != 0) {
+      getCombined(["contacts", "deviceInfos"]);
+    } else {
+      getCombined(["deviceInfos"]);
+    }
+  }, 5000);
+};
+
+export const stopRefresh = () => {
+  clearInterval(refresh_interval);
+};
 
 // Setup values:
 export const linkingCode = writable("");
