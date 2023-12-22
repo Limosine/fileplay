@@ -8,12 +8,14 @@ import {
   deviceParams,
   devices,
   devices_loaded,
+  fetch_mode,
   own_did,
   user,
   user_loaded,
 } from "./UI";
 import { DeviceType } from "./common";
 import { page } from "$app/stores";
+import { websocket } from "./websocket";
 
 // contacts
 export interface IContact {
@@ -147,30 +149,38 @@ interface ICombined {
   contacts?: IContact[];
 }
 
-export async function getCombined(request: string[]) {
+export async function getCombined(requests: string[]) {
   if (get(page).url.hostname == "localhost") return [];
 
-  const res = await fetch(`/api/combined?request=${request.toString()}`, {
-    method: "GET",
-  });
-
-  const result = await (res.json() as Promise<ICombined>);
-
-  if (result.user) {
-    user.set(result.user);
-    if (!get(user_loaded)) user_loaded.set(true);
-  }
-  if (result.devices) {
-    devices.set(result.devices);
-    if (!get(devices_loaded)) devices_loaded.set(true);
-
-    own_did.set(result.devices.self.did);
-  }
-  if (result.deviceInfos) {
-    deviceInfos.set(result.deviceInfos);
-    if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
-  }
-  if (result.contacts) contacts.set(result.contacts);
-
-  return result;
+  if (get(fetch_mode) == "HTTP") {
+    const res = await fetch(`/api/combined?request=${requests.toString()}`, {
+      method: "GET",
+    });
+  
+    const result = await (res.json() as Promise<ICombined>);
+  
+    if (result.user) {
+      user.set(result.user);
+      if (!get(user_loaded)) user_loaded.set(true);
+    }
+    if (result.devices) {
+      devices.set(result.devices);
+      if (!get(devices_loaded)) devices_loaded.set(true);
+  
+      own_did.set(result.devices.self.did);
+    }
+    if (result.deviceInfos) {
+      deviceInfos.set(result.deviceInfos);
+      if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
+    }
+    if (result.contacts) contacts.set(result.contacts);
+  } else {
+    requests.forEach(request => {
+      get(websocket).send(JSON.stringify({
+        method: "get",
+        type: request
+      }));
+    });
+  }  
+  
 }

@@ -3,6 +3,10 @@ import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import {
   correctOnlineStatus,
   createKysely,
+  getContacts,
+  getDeviceInfos,
+  getDevices,
+  getUser,
   updateLastSeen,
   updateOnlineStatus,
 } from "$lib/server/db";
@@ -19,6 +23,8 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
     return new Response("Expected Upgrade: websocket", { status: 426 });
   } else if (!did) {
     return new Response("No such device", { status: 401 });
+  } else if (!uid) {
+    return new Response("No user associated with this device", { status: 401 });
   }
 
   const onlineStatus = async (status: number) => {
@@ -40,16 +46,16 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
           .executeTakeFirst();
       }
     } else {
-      if (res) server.send("1");
-      else server.send("2");
+      if (res) server.send(JSON.stringify({method: "get", type: "pong", successful: true}));
+      else server.send(JSON.stringify({method: "get", type: "pong", successful: false}));
     }
   };
 
   const lastSeen = async () => {
     const res = await updateLastSeen(db, did);
 
-    if (!res) server.send("2");
-    else server.send("1");
+    if (!res) server.send(JSON.stringify({method: "get", type: "pong", successful: false}));
+    else server.send(JSON.stringify({method: "get", type: "pong", successful: true}));
   };
 
   const { 0: client, 1: server } = new WebSocketPair();
@@ -66,9 +72,33 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   });
 
   server.addEventListener("message", async (event) => {
-    if (event.data == "ping") {
-      lastSeen();
-      correctOnlineStatus(db);
+    const request = JSON.parse(event.data);
+
+    if (request.method == "get") {
+      if (request.type == "ping") {
+        lastSeen();
+        correctOnlineStatus(db);
+
+      } else if (request.type == "user") {
+        const response = request;
+        response.data = await getUser(db, uid);
+        server.send(JSON.stringify(response));
+
+      } else if (request.type == "devices") {
+        const response = request;
+        response.data = await getDevices(db, uid, did);
+        server.send(JSON.stringify(response));
+
+      } else if (request.type == "deviceInfos") {
+        const response = request;
+        response.data = await getDeviceInfos(db, uid);
+        server.send(JSON.stringify(response));
+
+      } else if (request.type == "contacts") {
+        const response = request;
+        response.data = await getContacts(db, uid);
+        server.send(JSON.stringify(response));
+      }
     }
   });
 

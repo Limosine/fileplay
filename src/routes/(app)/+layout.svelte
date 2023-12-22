@@ -9,8 +9,8 @@
   import "beercss";
 
   import logo from "$lib/assets/Fileplay.png";
-  import { addNotification, current } from "$lib/lib/UI";
-  import { createSocketStore } from "$lib/lib/websocket";
+  import { addNotification } from "$lib/lib/UI";
+  import { createWebSocket } from "$lib/lib/websocket";
   import { setup as pgp_setup } from "$lib/lib/openpgp";
 
   import Layout from "$lib/components/Layout.svelte";
@@ -19,15 +19,13 @@
   import AddContact from "$lib/dialogs/AddContact.svelte";
 
   let peer_open = writable(false);
-  let socketStore: Readable<any>;
-  let unsubscribeSocketStore = () => {};
 
   let needRefresh: Writable<boolean>;
   let loading = true;
 
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
-      createSocketStore();
+      createWebSocket();
 
       peer_open = (await import("$lib/peerjs/common")).peer_open;
       const { openPeer, listen } = await import("$lib/peerjs/main");
@@ -35,9 +33,6 @@
       pgp_setup();
       openPeer();
       listen();
-
-      socketStore = (await import("$lib/lib/websocket")).socketStore;
-      unsubscribeSocketStore = socketStore.subscribe(() => {});
     }
 
     // update service worker
@@ -69,10 +64,6 @@
         },
       }).needRefresh;
     }
-  });
-
-  onDestroy(() => {
-    if (socketStore) unsubscribeSocketStore();
   });
 
   $: {
@@ -160,23 +151,4 @@
     width: 300px;
     height: auto;
   }
-
-  /* p.small {
-    line-height: 0.2;
-  }
-  .beside {
-    display: flex;
-    flex-basis: auto;
-    flex-flow: row wrap;
-    justify-content: center;
-    gap: 5px;
-  }
-  .link {
-    display: flex;
-    flex-flow: row;
-    gap: 30px;
-  }
-  * :global(.card) {
-    padding: 30px;
-  } */
 </style>
