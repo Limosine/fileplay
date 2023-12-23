@@ -1,12 +1,19 @@
-import { browser } from "$app/environment";
 import { PUBLIC_FILEPLAY_DOMAIN } from "$env/static/public";
 import { get, writable } from "svelte/store";
 import { getCombined } from "./fetchers";
 import { contacts, deviceInfos, deviceInfos_loaded, devices, devices_loaded, own_did, startRefresh, user, user_loaded } from "./UI";
 
 const createWebSocketListeners = (ws: WebSocket) => {
-  ws.onopen = () => {
+  ws.onopen = async () => {
     status.set("1");
+    failureCounter.set(0);
+
+    if (get((await import("$lib/peerjs/common")).peer_open) == false) {
+      const { openPeer, listen } = await import("$lib/peerjs/main");
+
+      openPeer();
+      listen();
+    }
 
     getCombined(["user", "devices", "deviceInfos", "contacts"]);
     startRefresh();
@@ -20,11 +27,16 @@ const createWebSocketListeners = (ws: WebSocket) => {
         createWebSocket();
       }, 5000);
     } else {
-      clearInterval(get(interval));
-      console.log("WebSocket connection closed.");
+      console.log("WebSocket connection closed, reload page to retry.");
     }
   };
   ws.onmessage = (event) => {
+    if (get(messageTimeout) !== undefined) clearInterval(get(messageTimeout));
+    messageTimeout.set(setTimeout(() => {
+      failureCounter.update((counter) => (counter = counter + 1));
+      createWebSocket();
+    }, 6000));
+
     const response: {
       method: string,
       type: string,
@@ -66,7 +78,7 @@ export const createWebSocket = () => {
 };
 
 const failureCounter = writable(0);
-const interval = writable<NodeJS.Timeout>();
+const messageTimeout = writable<NodeJS.Timeout>();
 
 export const websocket = writable<WebSocket>();
 export const status = writable<"0" | "1" | "2">("0");

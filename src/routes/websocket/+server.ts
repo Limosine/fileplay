@@ -120,7 +120,7 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
     } else if (request.method == "post") {
       if (request.type == "devices") {
         const response = request;
-        let data: {success: boolean, response: any};
+        let data: {success: boolean, response?: any};
         if (request.data.did !== undefined) data = await updateDevice(db, uid, request.data.did, request.data.update);
         else data = await updateDevice(db, uid, did, request.data.update);
 

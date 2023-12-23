@@ -184,7 +184,7 @@ export async function updateDevice(
       .returning("did")
       .executeTakeFirst();
 
-    return { success: true, response: null };
+    return { success: true };
   } catch (e: any) {
     return { success: false, response: e };
   }

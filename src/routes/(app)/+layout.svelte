@@ -25,14 +25,8 @@
 
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
-      createWebSocket();
-
-      peer_open = (await import("$lib/peerjs/common")).peer_open;
-      const { openPeer, listen } = await import("$lib/peerjs/main");
-
       pgp_setup();
-      openPeer();
-      listen();
+      createWebSocket();
     }
 
     // update service worker
