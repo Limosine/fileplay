@@ -30,7 +30,7 @@ const createWebSocketListeners = (ws: WebSocket) => {
       type: string,
       successful: boolean,
       data?: any
-    } = event.data;
+    } = JSON.parse(event.data);
 
     if (response.method == "get") {
       if (response.type == "pong") {
