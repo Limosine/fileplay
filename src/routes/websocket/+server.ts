@@ -7,6 +7,7 @@ import {
   getDeviceInfos,
   getDevices,
   getUser,
+  updateDevice,
   updateLastSeen,
   updateOnlineStatus,
 } from "$lib/server/db";
@@ -72,7 +73,12 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
   });
 
   server.addEventListener("message", async (event) => {
-    const request = JSON.parse(event.data);
+    const request: {
+      method: string,
+      type: string,
+      successful?: boolean,
+      data?: any
+    } = JSON.parse(event.data);
 
     if (request.method == "get") {
       if (request.type == "ping") {
@@ -106,6 +112,15 @@ export const GET: RequestHandler = async ({ request, cookies, platform }) => {
       } else if (request.type == "contacts") {
         const response = request;
         const data = await getContacts(db, uid);
+
+        response.successful = data.success;
+        response.data = data.response;
+        server.send(JSON.stringify(response));
+      }
+    } else if (request.method == "post") {
+      if (request.type == "devices") {
+        const response = request;
+        const data = await updateDevice(db, uid, request.data.did, request.data.update);
 
         response.successful = data.success;
         response.data = data.response;

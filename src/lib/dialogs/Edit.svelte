@@ -9,7 +9,7 @@
     did,
   } from "$lib/lib/UI";
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
-  import { getCombined, withDeviceType } from "$lib/lib/fetchers";
+  import { getCombined, updateDevice, withDeviceType } from "$lib/lib/fetchers";
   import { deviceParams, userParams, editDialog } from "$lib/lib/UI";
   import { onMount } from "svelte";
   import { page } from "$app/stores";
@@ -25,10 +25,7 @@
     }
 
     if (Object.keys(update).length) {
-      await fetch(`/api/devices?did=${did}`, {
-        method: "POST",
-        body: JSON.stringify(update),
-      });
+      updateDevice(did, update);
       await getCombined(["devices"]);
     }
   }

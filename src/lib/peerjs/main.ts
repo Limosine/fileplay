@@ -26,7 +26,7 @@ import { deviceInfos, own_did } from "$lib/lib/UI";
 
 export const openPeer = async (uuid?: string) => {
   if (uuid) {
-    peer.set(new Peer(uuid, { debug: 3 }));
+    peer.set(new Peer(uuid));
   } else peer.set(new Peer());
 
   peer.update((peer_self) => {

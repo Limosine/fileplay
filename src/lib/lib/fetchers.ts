@@ -114,16 +114,28 @@ export const loadInfos = (devices: IDevices, did: number) => {
 };
 
 export async function updatePeerJS_ID() {
-  if (get(page).url.hostname == "localhost") return;
-
   const sender_uuid = (await import("../peerjs/common")).sender_uuid;
 
-  await fetch("/api/devices", {
-    method: "POST",
-    body: JSON.stringify({
-      peerJsId: get(sender_uuid),
-    }),
-  });
+  updateDevice(await get(own_did), {peerJsId: get(sender_uuid)});
+}
+
+export async function updateDevice(
+  did: number,
+  update: {
+    displayName?: string,
+    type?: DeviceType,
+    peerJsId?: string,
+  }) {
+  if (get(page).url.hostname == "localhost") return;
+
+  get(websocket).send(JSON.stringify({
+    method: "post",
+    type: "devices",
+    data: {
+      did: did,
+      update: update
+    }
+  }));
 }
 
 export async function deleteAccount() {

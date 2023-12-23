@@ -1,4 +1,4 @@
-import { ONLINE_STATUS_TIMEOUT } from "$lib/lib/common";
+import { DeviceType, ONLINE_STATUS_TIMEOUT } from "$lib/lib/common";
 import type { DB, Database } from "$lib/lib/db";
 import { error } from "@sveltejs/kit";
 import dayjs from "dayjs";
@@ -160,6 +160,31 @@ export async function getUser(db: Database, uid: number) {
       .executeTakeFirstOrThrow();
 
     return { success: true, response: user };
+  } catch (e: any) {
+    return { success: false, response: e };
+  }
+}
+
+export async function updateDevice(
+  db: Database,
+  uid: number,
+  did: number,
+  update: {
+    displayName?: string,
+    type?: DeviceType,
+    peerJsId?: string,
+  }) {
+  try {
+    await db
+      .updateTable("devices")
+      .set(update)
+      .where((eb) =>
+        eb("did", "=", did).and("uid", "=", uid),
+      )
+      .returning("did")
+      .executeTakeFirst();
+
+    return { success: true, response: null };
   } catch (e: any) {
     return { success: false, response: e };
   }
