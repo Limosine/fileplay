@@ -25,7 +25,7 @@
     }
 
     if (Object.keys(update).length) {
-      updateDevice(did, update);
+      updateDevice(update, did);
       await getCombined(["devices"]);
     }
   }

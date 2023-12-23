@@ -116,16 +116,17 @@ export const loadInfos = (devices: IDevices, did: number) => {
 export async function updatePeerJS_ID() {
   const sender_uuid = (await import("../peerjs/common")).sender_uuid;
 
-  updateDevice(await get(own_did), {peerJsId: get(sender_uuid)});
+  updateDevice({peerJsId: get(sender_uuid)});
 }
 
 export async function updateDevice(
-  did: number,
   update: {
     displayName?: string,
     type?: DeviceType,
     peerJsId?: string,
-  }) {
+  },
+  did?: number
+) {
   if (get(page).url.hostname == "localhost") return;
 
   get(websocket).send(JSON.stringify({
