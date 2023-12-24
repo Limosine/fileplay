@@ -108,8 +108,10 @@
   <div id="status" class="large-text" style="margin-top: 10px;">
     {#if loading === 0}
       <p>Connecting to WebSocket...</p>
-    {:else}
+    {:else if loading === 1}
       <p>Establishing PeerJS connection...</p>
+    {:else}
+      <p>Initialization completed.</p>
     {/if}
   </div>
 </div>
@@ -129,38 +131,12 @@
 {/if}
 
 <style>
-  @keyframes disappear{
-    0%{
-      opacity: 1;
+  @keyframes disappear {
+    to {
+      opacity: 0;
     }
-    11%{
-      opacity: 0.9;
-    }
-    22%{
-      opacity: 0.8;
-    }
-    33%{
-      opacity: 0.7;
-    }
-    44%{
-      opacity: 0.6;
-    }
-    55%{
-      opacity: 0.5;
-    }
-    66%{
-      opacity: 0.4;
-    }
-    77%{
-      opacity: 0.3;
-    }
-    88%{
-      opacity: 0.2;
-    }
-    99%{
-      opacity: 0.1;
-    }
-    100%{
+
+    100% {
       display: none;
       opacity: 0;
     }
@@ -168,7 +144,7 @@
 
   .disappear-element{
     animation-name: disappear;
-    animation-duration: 1000ms;
+    animation-duration: 1s;
     animation-fill-mode: forwards;
   }
 
@@ -196,7 +172,7 @@
     position: absolute;
     z-index: 10001;
     width: 100%;
-    height: 50%;
+    height: 25%;
     bottom: 0;
   }
 

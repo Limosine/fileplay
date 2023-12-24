@@ -34,6 +34,7 @@ const createWebSocketListeners = (ws: WebSocket) => {
     if (get(messageTimeout) !== undefined) clearInterval(get(messageTimeout));
     messageTimeout.set(setTimeout(() => {
       failureCounter.update((counter) => (counter = counter + 1));
+      console.log("WebSocket connection closed, retrying now.");
       ws.close();
       createWebSocket();
     }, 7000));

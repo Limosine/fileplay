@@ -127,16 +127,23 @@ export async function updateDevice(
   },
   did?: number
 ) {
-  if (get(page).url.hostname == "localhost") return;
-
-  get(websocket).send(JSON.stringify({
+  sendMessage({
     method: "post",
     type: "devices",
     data: {
       did: did,
       update: update
     }
-  }));
+  });
+}
+
+export async function sendMessage(message: object) {
+  if (
+    get(page).url.hostname == "localhost" ||
+    get(websocket).readyState !== WebSocket.OPEN
+  ) return;
+
+  get(websocket).send(JSON.stringify(message));
 }
 
 export async function deleteAccount() {
@@ -189,10 +196,10 @@ export async function getCombined(requests: string[]) {
     if (result.contacts) contacts.set(result.contacts);
   } else {
     requests.forEach(request => {
-      get(websocket).send(JSON.stringify({
+      sendMessage({
         method: "get",
         type: request
-      }));
+      });
     });
   }
 }
