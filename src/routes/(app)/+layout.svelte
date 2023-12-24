@@ -21,7 +21,7 @@
   let peer_open = writable(false);
 
   let needRefresh: Writable<boolean>;
-  let loading = 2;
+  let loading = 0;
 
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
@@ -97,10 +97,10 @@
   <title>Fileplay</title>
 </svelte:head>
 
-<div id="logo" class={loading === 2 ? "disappear-element": ""}>
+<div id="logo" class={loading === 2 || loading === 3 ? "disappear-element": ""}>
   <img id="logo-image" src={logo} alt="Fileplay" />
 </div>
-<div id="start" class={loading === 2 ? "disappear-element": ""}>
+<div id="start" class={loading === 2 || loading === 3 ? "disappear-element": ""}>
   <div id="status">
     <progress id="status" value="{loading}" max="2" style="width: 50%;" />
   </div>
@@ -114,7 +114,7 @@
   </div>
 </div>
 
-<div id="overlay" class={loading === 2 ? "disappear-element": ""} />
+<div id="overlay" class={loading === 2 || loading === 3 ? "disappear-element": ""} />
 
 {#if loading === 2 || loading === 3}
   <!-- Dialogs -->
