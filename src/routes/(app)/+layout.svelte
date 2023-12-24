@@ -90,12 +90,12 @@
   <title>Fileplay</title>
 </svelte:head>
 
-<div id="logo">
+<div id="logo" class={loading === 2 ? "disappear-element": ""}>
   <img id="logo-image" src={logo} alt="Fileplay" />
 </div>
-<div id="start">
+<div id="start" class={loading === 2 ? "disappear-element": ""}>
   <div id="status">
-    <progress id="status" value="{loading}" max="2" style="width: 50%;"/>
+    <progress id="status" value="{loading}" max="2" style="width: 50%;" />
   </div>
 
   <div id="status" class="large-text" style="margin-top: 10px;">
@@ -122,6 +122,49 @@
 {/if}
 
 <style>
+  @keyframes disappear{
+    0%{
+      opacity: 1;
+    }
+    11%{
+      opacity: 0.9;
+    }
+    22%{
+      opacity: 0.8;
+    }
+    33%{
+      opacity: 0.7;
+    }
+    44%{
+      opacity: 0.6;
+    }
+    55%{
+      opacity: 0.5;
+    }
+    66%{
+      opacity: 0.4;
+    }
+    77%{
+      opacity: 0.3;
+    }
+    88%{
+      opacity: 0.2;
+    }
+    99%{
+      opacity: 0.1;
+    }
+    100%{
+      display: none;
+      opacity: 0;
+    }
+  }
+
+  .disappear-element{
+    animation-name: disappear;
+    animation-duration: 1000ms;
+    animation-fill-mode: forwards;
+  }
+
   #overlay {
     position: absolute;
     z-index: 0;
