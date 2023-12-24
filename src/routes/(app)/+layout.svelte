@@ -8,7 +8,7 @@
 
   import "beercss";
 
-  import logo from "$lib/assets/Fileplay.png";
+  import logo from "$lib/assets/Fileplay.svg";
   import { addNotification } from "$lib/lib/UI";
   import { createWebSocket, status } from "$lib/lib/websocket";
   import { setup as pgp_setup } from "$lib/lib/openpgp";

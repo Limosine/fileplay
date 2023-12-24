@@ -6,7 +6,7 @@
 
   import Username from "$lib/components/Username.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
-  import logo from "$lib/assets/Fileplay.png";
+  import logo from "$lib/assets/Fileplay.svg";
 
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
   import { withDeviceType } from "$lib/lib/fetchers";
