@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
   import { browser } from "$app/environment";
   import { page } from "$app/stores";
   import { useRegisterSW } from "virtual:pwa-register/svelte";
-  import { writable, type Readable, type Writable } from "svelte/store";
+  import { writable, type Writable } from "svelte/store";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
 
   import logo from "$lib/assets/Fileplay.png";
   import { addNotification } from "$lib/lib/UI";
-  import { createWebSocket } from "$lib/lib/websocket";
+  import { createWebSocket, status } from "$lib/lib/websocket";
   import { setup as pgp_setup } from "$lib/lib/openpgp";
 
   import Layout from "$lib/components/Layout.svelte";
@@ -21,7 +21,7 @@
   let peer_open = writable(false);
 
   let needRefresh: Writable<boolean>;
-  let loading = true;
+  let loading = 0;
 
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
@@ -64,7 +64,7 @@
 
   $: {
     if (browser) {
-      loading = !$peer_open || !localStorage.getItem("loggedIn");
+      loading = ($peer_open === true ? 1 : 0) + ($status === "1" ? 1 : 0);
     }
   }
 
@@ -94,13 +94,20 @@
   <img id="logo-image" src={logo} alt="Fileplay" />
 </div>
 <div id="start">
-  <div class="center-align">
-    <!-- svelte-ignore a11y-missing-attribute a11y-missing-content -->
-    <progress class="circle medium" />
+  <div id="status">
+    <progress id="status" value="{loading}" max="2" style="width: 50%;"/>
+  </div>
+
+  <div id="status" class="large-text" style="margin-top: 10px;">
+    {#if loading === 0}
+      <p>Connecting to WebSocket...</p>
+    {:else}
+      <p>Establishing PeerJS connection...</p>
+    {/if}
   </div>
 </div>
 
-{#if !loading}
+{#if loading === 2}
   <!-- Dialogs -->
   <Edit />
   <AddContact />
@@ -141,6 +148,12 @@
     width: 100%;
     height: 50%;
     bottom: 0;
+  }
+
+  #status {
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   img#logo-image {

@@ -34,8 +34,9 @@ const createWebSocketListeners = (ws: WebSocket) => {
     if (get(messageTimeout) !== undefined) clearInterval(get(messageTimeout));
     messageTimeout.set(setTimeout(() => {
       failureCounter.update((counter) => (counter = counter + 1));
+      ws.close();
       createWebSocket();
-    }, 6000));
+    }, 7000));
 
     const response: {
       method: string,
