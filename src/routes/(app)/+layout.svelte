@@ -64,7 +64,14 @@
 
   $: {
     if (browser) {
-      loading = ($peer_open === true ? 1 : 0) + ($status === "1" ? 1 : 0);
+      if (loading !== 3) {
+        loading = ($peer_open === true ? 1 : 0) + ($status === "1" ? 1 : 0);
+        if (loading === 2) {
+          setTimeout(() => {
+            loading = 3;
+          }, 1000);
+        }
+      }
     }
   }
 
@@ -107,7 +114,7 @@
   </div>
 </div>
 
-{#if loading === 2}
+{#if loading === 3}
   <!-- Dialogs -->
   <Edit />
   <AddContact />
