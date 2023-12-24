@@ -21,7 +21,7 @@
   let peer_open = writable(false);
 
   let needRefresh: Writable<boolean>;
-  let loading = 0;
+  let loading = 2;
 
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
@@ -114,12 +114,12 @@
   </div>
 </div>
 
-{#if loading === 3}
+<div id="overlay" class={loading === 2 ? "disappear-element": ""} />
+
+{#if loading === 2 || loading === 3}
   <!-- Dialogs -->
   <Edit />
   <AddContact />
-
-  <div id="overlay" />
 
   <Notifications />
 
@@ -174,7 +174,7 @@
 
   #overlay {
     position: absolute;
-    z-index: 0;
+    z-index: 10000;
     width: 100%;
     height: 100%;
     background: var(--background);
@@ -182,7 +182,7 @@
 
   #logo {
     position: absolute;
-    z-index: -1;
+    z-index: 10001;
     width: 100%;
     height: 50%;
     top: 0;
@@ -194,7 +194,7 @@
 
   #start {
     position: absolute;
-    z-index: -1;
+    z-index: 10001;
     width: 100%;
     height: 50%;
     bottom: 0;
