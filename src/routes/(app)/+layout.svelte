@@ -147,7 +147,7 @@
 
   .disappear-element{
     animation-name: disappear;
-    animation-duration: 1s;
+    animation-duration: 900ms;
     animation-fill-mode: forwards;
   }
 
