@@ -21,7 +21,15 @@
   let peer_open = writable(false);
 
   let needRefresh: Writable<boolean>;
-  let loading = -1;
+  let loading = 0;
+
+  const getClass = (loading: number) => {
+    if (loading === 2) {
+      return "disappear";
+    } else if (loading === 3) {
+      return "hidden";
+    } else return "";
+  };
 
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
@@ -97,11 +105,11 @@
   <title>Fileplay</title>
 </svelte:head>
 
-<div id="logo" class={loading === 2 || loading === 3 ? "disappear-element": ""}>
+<div id="logo" class={getClass(loading)}>
   <img id="logo-image" src={logo} alt="Fileplay" />
 </div>
 {#if loading !== -1}
-  <div id="start" class={loading === 2 || loading === 3 ? "disappear-element": ""}>
+  <div id="start" class={getClass(loading)}>
     <div id="status">
       <progress id="status" value="{loading}" max="2" style="width: 50%;" />
     </div>
@@ -118,7 +126,7 @@
   </div>
 {/if}
 
-<div id="overlay" class={loading === 2 || loading === 3 ? "disappear-element": ""} />
+<div id="overlay" class={getClass(loading)} />
 
 {#if loading === 2 || loading === 3}
   <!-- Dialogs -->
@@ -133,22 +141,16 @@
 {/if}
 
 <style>
-  @keyframes disappear {
-    to {
-      opacity: 0;
-    }
 
-    100% {
-      display: none;
-      opacity: 0;
-      z-index: -1;
-    }
+  .disappear {
+    opacity: 0;
+    transition:opacity 1s;
   }
 
-  .disappear-element{
-    animation-name: disappear;
-    animation-duration: 1s;
-    animation-fill-mode: forwards;
+  .hidden {
+    display: none;
+    opacity: 0;
+    z-index: -1;
   }
 
   #overlay {
