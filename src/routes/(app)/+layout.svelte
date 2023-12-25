@@ -69,7 +69,7 @@
         if (loading === 2) {
           setTimeout(() => {
             loading = 3;
-          }, 1000);
+          }, 1100);
         }
       }
     }
@@ -147,7 +147,7 @@
 
   .disappear-element{
     animation-name: disappear;
-    animation-duration: 900ms;
+    animation-duration: 1s;
     animation-fill-mode: forwards;
   }
 
