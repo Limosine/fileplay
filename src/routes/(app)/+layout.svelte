@@ -141,16 +141,15 @@
 {/if}
 
 <style>
-
   .disappear {
     opacity: 0;
     transition:opacity 1s;
   }
 
   .hidden {
-    display: none;
+    display: none !important;
     opacity: 0;
-    z-index: -1;
+    z-index: -1 !important;
   }
 
   #overlay {
