@@ -21,7 +21,7 @@
   let peer_open = writable(false);
 
   let needRefresh: Writable<boolean>;
-  let loading = 3;
+  let loading = -1;
 
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
@@ -100,21 +100,23 @@
 <div id="logo" class={loading === 2 || loading === 3 ? "disappear-element": ""}>
   <img id="logo-image" src={logo} alt="Fileplay" />
 </div>
-<div id="start" class={loading === 2 || loading === 3 ? "disappear-element": ""}>
-  <div id="status">
-    <progress id="status" value="{loading}" max="2" style="width: 50%;" />
-  </div>
+{#if loading !== -1}
+  <div id="start" class={loading === 2 || loading === 3 ? "disappear-element": ""}>
+    <div id="status">
+      <progress id="status" value="{loading}" max="2" style="width: 50%;" />
+    </div>
 
-  <div id="status" class="large-text" style="margin-top: 10px;">
-    {#if loading === 0}
-      <p>Connecting to WebSocket...</p>
-    {:else if loading === 1}
-      <p>Establishing PeerJS connection...</p>
-    {:else}
-      <p>Initialization completed.</p>
-    {/if}
+    <div id="status" class="large-text" style="margin-top: 10px;">
+      {#if loading === 0}
+        <p>Connecting to WebSocket...</p>
+      {:else if loading === 1}
+        <p>Establishing PeerJS connection...</p>
+      {:else}
+        <p>Initialization completed.</p>
+      {/if}
+    </div>
   </div>
-</div>
+{/if}
 
 <div id="overlay" class={loading === 2 || loading === 3 ? "disappear-element": ""} />
 

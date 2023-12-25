@@ -10,7 +10,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "postinstall": "husky install && rimraf .husky/pre-commit && echo 'Please install and login to dotenv-vault to access the required .env files'",
     "husky:pre-commit": "dotenv-vault build --yes && dotenv-vault push && dotenv-vault push production",
-    "pwassets": "npx pwa-asset-generator ./static/favicon.svg ./static/pwa-assets/ -v /pwa-assets -o -b '#202124' -e -p 15%"
+    "pwassets": "npx pwa-asset-generator ./static/favicon.svg ./static/pwa-assets/ -v /pwa-assets -o -b '#201a19' -e -p 15%"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231025.0",
