@@ -21,7 +21,7 @@
   let peer_open = writable(false);
 
   let needRefresh: Writable<boolean>;
-  let loading = 0;
+  let loading = 3;
 
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
@@ -139,6 +139,7 @@
     100% {
       display: none;
       opacity: 0;
+      z-index: -1;
     }
   }
 

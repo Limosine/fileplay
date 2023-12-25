@@ -10,7 +10,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "postinstall": "husky install && rimraf .husky/pre-commit && echo 'Please install and login to dotenv-vault to access the required .env files'",
     "husky:pre-commit": "dotenv-vault build --yes && dotenv-vault push && dotenv-vault push production",
-    "pwassets": "npx pwa-asset-generator ./static/favicon.png ./static/pwa-assets/ -v /pwa-assets -o -b '#202124' -e -p 15%"
+    "pwassets": "npx pwa-asset-generator ./static/favicon.svg ./static/pwa-assets/ -v /pwa-assets -o -b '#202124' -e -p 15%"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231025.0",
@@ -30,7 +30,6 @@
     "eslint": "^8.52.0",
     "eslint-plugin-svelte": "^2.34.0",
     "husky": "^8.0.3",
-    "kolorist": "^1.8.0",
     "kysely": "^0.26.3",
     "kysely-d1": "^0.3.0",
     "nanoid": "^5.0.2",
@@ -48,7 +47,6 @@
     "vite": "^4.5.0",
     "vite-plugin-environment": "^1.1.3",
     "vite-plugin-pwa": "^0.16.6",
-    "webpush-webcrypto": "^1.0.3",
     "workbox-core": "^7.0.0",
     "workbox-precaching": "^7.0.0",
     "workbox-routing": "^7.0.0",

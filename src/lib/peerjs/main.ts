@@ -41,7 +41,6 @@ export const openPeer = async (uuid?: string) => {
     });
 
     peer_self.on("open", (id) => {
-      console.log("PeerJS: Peer opened");
       peer_open.set(true);
       sender_uuid.set(id);
       // @ts-ignore
@@ -155,8 +154,6 @@ const authenticated = async (
 };
 
 export const handleData = async (data: any, conn: DataConnection) => {
-  console.log(data);
-
   if (data.type == "Error") {
     console.warn(`PeerJS: ${data.body}`);
   } else if (await authenticated(conn.peer, data.filetransfer_id, data.type)) {

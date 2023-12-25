@@ -13,7 +13,7 @@
   <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
   <nav class="left" style="z-index: 99;">
     <a>
-      <img class="circle" src="/favicon.png" />
+      <img class="circle" src="/favicon.svg" />
     </a>
     <a
       class={$current == "Home" ? "active" : ""}

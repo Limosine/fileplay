@@ -81,7 +81,6 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
 
   if (res3) throw error(400, "Contacts already linked");
 
-  console.log(`Linking ${a} and ${b}`);
   // insert new linking
   const res2 = await db
     .insertInto("contacts")
@@ -89,8 +88,6 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .returning("cid")
     .executeTakeFirst();
   if (!res2) throw error(500, "Could not create contact");
-
-  console.log(`Linked ${a} and ${b} using cid ${res2.cid}`);
 
   // TODO send push to other device that someone linked to them
 
