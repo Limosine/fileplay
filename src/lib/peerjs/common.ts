@@ -4,6 +4,15 @@ import type { DataConnection, Peer } from "peerjs";
 
 import { handleData } from "./main";
 
+// Constants:
+export const config = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19305" },
+    { urls: "stun:stun1.l.google.com:19305" },
+  ],
+  sdpSemantics: "unified-plan",
+};
+
 // Stores:
 export const peer = writable<Peer>();
 export const peer_open = writable(false); // actual state

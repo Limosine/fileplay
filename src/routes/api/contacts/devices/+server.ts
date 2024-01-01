@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
-  if (!uid) throw error(401, "No user associated with this device");
+  if (!uid) error(401, "No user associated with this device");
 
   const devices = await getDeviceInfos(db, uid);
 

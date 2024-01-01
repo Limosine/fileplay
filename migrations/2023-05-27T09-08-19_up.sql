@@ -16,7 +16,8 @@ create table devices (
     createdAt integer not null default (unixepoch('now')),
     lastSeenAt integer not null default (unixepoch('now')),
     isOnline integer not null default 0,
-    peerJsId text,
+    webRTCOffer text,
+    webRTCAnswer text,
     encryptionPublicKey text not null,
     foreign key (uid)
         references users(uid)

@@ -19,7 +19,8 @@ interface DecivesTable {
   type: DeviceType;
   createdAt: ColumnType<number, undefined, undefined>;
   lastSeenAt: ColumnType<number, undefined, number>;
-  peerJsId: string | null;
+  webRTCOffer: string | null;
+  webRTCAnswer: string | null;
   encryptionPublicKey: string;
 }
 

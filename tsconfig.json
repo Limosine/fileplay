@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "types": ["vite-plugin-pwa/client", "@cloudflare/workers-types"],
+    "types": ["vite-plugin-pwa/client"],
     "lib": ["DOM", "ESNext"]
   },
   "include": [

@@ -6,11 +6,11 @@ import { Kysely, sql } from "kysely";
 import { D1Dialect } from "kysely-d1";
 
 export function createKysely(platform: App.Platform | undefined): Database {
-  if (!platform?.env?.DATABASE) throw error(500, "Database not configured");
+  if (!platform?.env?.DATABASE) error(500, "Database not configured");
   const kys = new Kysely<DB>({
     dialect: new D1Dialect({ database: platform.env.DATABASE }),
   });
-  if (!kys) throw error(500, "Database could not be accessed");
+  if (!kys) error(500, "Database could not be accessed");
   return kys;
 }
 
@@ -22,7 +22,7 @@ export async function updateLastSeen(db: Database, did: number) {
     .returning(["did", "uid"])
     .executeTakeFirst();
 
-  if (!res_device) throw error(401, "Device not found");
+  if (!res_device) error(401, "Device not found");
 
   if (res_device.uid != null) {
     await db
@@ -82,10 +82,11 @@ export async function getDeviceInfos(db: Database, uid: number) {
         did: number;
         type: string;
         displayName: string;
-        peerJsId: string;
+        webRTCOffer: string;
+        webRTCAnswer: string;
         encryptionPublicKey: string;
       }[]
-    >`SELECT "cid", "devices"."did", "devices"."type", "devices"."displayName", "devices"."peerJsId", "devices"."encryptionPublicKey" FROM (SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."a" WHERE "contacts"."b" = ${uid} UNION SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."b" WHERE "contacts"."a" = ${uid}) AS U INNER JOIN "devices" ON "U".uid = "devices"."uid" WHERE "devices"."isOnline" = 1 AND "devices"."lastSeenAt" > ${
+    >`SELECT "cid", "devices"."did", "devices"."type", "devices"."displayName", "devices"."webRTCOffer", "devices"."webRTCAnswer", "devices"."encryptionPublicKey" FROM (SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."a" WHERE "contacts"."b" = ${uid} UNION SELECT "contacts"."cid", "users"."uid" FROM "contacts" INNER JOIN "users" ON "users"."uid" = "contacts"."b" WHERE "contacts"."a" = ${uid}) AS U INNER JOIN "devices" ON "U".uid = "devices"."uid" WHERE "devices"."isOnline" = 1 AND "devices"."lastSeenAt" > ${
       dayjs().unix() - ONLINE_STATUS_TIMEOUT
     } ORDER BY "devices"."displayName"`.execute(db);
 
@@ -172,7 +173,8 @@ export async function updateDevice(
   update: {
     displayName?: string,
     type?: DeviceType,
-    peerJsId?: string,
+    webRTCOffer?: string,
+    webRTCAnswer?: string,
   }) {
   try {
     await db

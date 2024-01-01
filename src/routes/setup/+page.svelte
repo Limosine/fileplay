@@ -12,6 +12,7 @@
   import { withDeviceType } from "$lib/lib/fetchers";
   import { publicKey_armored, setup as pgp_setup } from "$lib/lib/openpgp";
   import { deviceParams, userParams, profaneUsername, ValueToName, openDialog, linkingCode } from "$lib/lib/UI";
+  // import { createPeer } from "$lib/lib/simple-peer";
 
   let progress = 0;
   let setupError: string;
@@ -99,6 +100,8 @@
 
   onMount(() => {
     pgp_setup();
+
+    // createPeer();
   });
 </script>
 

@@ -26,9 +26,9 @@ export async function loadSignedDeviceID(
 ): Promise<{ did: number; uid: number | null }> {
   const did_s = cookies.get("did");
   const signature = cookies.get("did_sig");
-  if (!did_s || !signature) throw error(401, "Not authenticated");
+  if (!did_s || !signature) error(401, "Not authenticated");
   if (!(await verify(did_s, signature, key)))
-    throw error(401, "Wrong authentication signature");
+    error(401, "Wrong authentication signature");
   const did_i = parseInt(did_s);
 
   const result = await updateLastSeen(db, did_i);

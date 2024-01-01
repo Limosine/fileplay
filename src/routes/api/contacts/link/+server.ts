@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
-  if (!uid) throw error(401, "No user associated with this device");
+  if (!uid) error(401, "No user associated with this device");
 
   // generate a code
   let code: string;
@@ -42,7 +42,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
     .returning("code")
     .executeTakeFirst();
 
-  if (!res1) throw error(500, "Could not create code");
+  if (!res1) error(500, "Could not create code");
 
   return json({ code, expires, refresh: LINKING_REFRESH_TIME });
 };
@@ -52,7 +52,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid: a } = await loadSignedDeviceID(cookies, key, db);
-  if (!a) throw error(401, "No user associated with this device");
+  if (!a) error(401, "No user associated with this device");
 
   const { code: code_any } = (await request.json()) as any;
   const code = (code_any as string).toUpperCase().replaceAll("O", "0"); // normalize code
@@ -65,11 +65,11 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .where("expires", ">", dayjs().unix())
     .executeTakeFirst();
 
-  if (!res1) throw error(404, "Invalid code");
+  if (!res1) error(404, "Invalid code");
 
   const { uid: b } = res1;
 
-  if (a === b) throw error(400, "Cannot create contact to self");
+  if (a === b) error(400, "Cannot create contact to self");
 
   // check if contacts are already linked
   const res3 = await db
@@ -79,7 +79,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .where("b", "=", b)
     .executeTakeFirst();
 
-  if (res3) throw error(400, "Contacts already linked");
+  if (res3) error(400, "Contacts already linked");
 
   // insert new linking
   const res2 = await db
@@ -87,7 +87,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .values({ a, b })
     .returning("cid")
     .executeTakeFirst();
-  if (!res2) throw error(500, "Could not create contact");
+  if (!res2) error(500, "Could not create contact");
 
   // TODO send push to other device that someone linked to them
 
@@ -107,7 +107,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
     .where("created_did", "=", did) // only the device that created the code can revoke it
     .returning("uid")
     .executeTakeFirst();
-  if (!res1) throw error(500, "Could not revoke code");
+  if (!res1) error(500, "Could not revoke code");
 
   return new Response(null, { status: 200 });
 };

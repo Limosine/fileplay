@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
 
-  if (!uid) throw error(401, "No user associated with this device");
+  if (!uid) error(401, "No user associated with this device");
 
   // generate a code
   let code: string;
@@ -43,7 +43,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
     .returning("code")
     .executeTakeFirst();
 
-  if (!res1) throw error(500, "Could not generate code");
+  if (!res1) error(500, "Could not generate code");
 
   return json({ code, expires, refresh: LINKING_REFRESH_TIME });
 };
@@ -64,7 +64,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .where("expires", ">", dayjs().unix())
     .executeTakeFirst();
 
-  if (!res1) throw error(404, "Invalid code");
+  if (!res1) error(404, "Invalid code");
 
   // insert new linking
   const res2 = await db
@@ -73,7 +73,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .where("did", "=", did)
     .returning("did")
     .executeTakeFirst();
-  if (!res2) throw error(500, "Could not link device");
+  if (!res2) error(500, "Could not link device");
 
   return new Response(null, { status: 200 });
 };
@@ -83,7 +83,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
-  if (!uid) throw error(401, "No user associated with this device");
+  if (!uid) error(401, "No user associated with this device");
 
   // delete the code
   const res1 = await db
@@ -92,7 +92,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies }) => {
     .where("created_did", "=", did) // only the device that created the code can revoke it
     .returning("uid")
     .executeTakeFirst();
-  if (!res1) throw error(500, "Could not revoke code");
+  if (!res1) error(500, "Could not revoke code");
 
   return new Response(null, { status: 200 });
 };

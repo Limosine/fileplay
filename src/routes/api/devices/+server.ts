@@ -10,7 +10,7 @@ export const GET: RequestHandler = async ({ cookies, platform }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { did, uid } = await loadSignedDeviceID(cookies, key, db);
-  if (!uid) throw error(401, "No user associated with this device");
+  if (!uid) error(401, "No user associated with this device");
 
   const devices = await getDevices(db, uid, did);
 
@@ -38,12 +38,13 @@ export const POST: RequestHandler = async ({
   if (did_s != null) did = parseInt(did_s);
   else did = own_did;
 
-  if (isNaN(did)) throw error(400, "Invalid device id in query params");
+  if (isNaN(did)) error(400, "Invalid device id in query params");
 
   const updateObject: {
     displayName?: string;
     type?: DeviceType;
-    peerJsId?: string;
+    webRTCOffer?: string;
+    webRTCAnswer?: string;
   } = await request.json();
 
   const res = await db
@@ -55,7 +56,7 @@ export const POST: RequestHandler = async ({
     .returning("did")
     .executeTakeFirst();
 
-  if (!res) throw error(500, "Failed to update device info");
+  if (!res) error(500, "Failed to update device info");
 
   return new Response(null, { status: 200 });
 };
@@ -72,7 +73,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
   if (did_s) did = parseInt(did_s);
   else did = own_did;
 
-  if (isNaN(did)) throw error(400, "Invalid device id in query params");
+  if (isNaN(did)) error(400, "Invalid device id in query params");
 
   // delete device mapping
   const res1 = await db
@@ -83,7 +84,7 @@ export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
     .returning("did")
     .executeTakeFirst();
 
-  if (!res1) throw error(500, "Failed to delete device");
+  if (!res1) error(500, "Failed to delete device");
 
   // inform the device that it has been deleted via push
 

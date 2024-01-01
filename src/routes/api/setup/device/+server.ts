@@ -21,7 +21,7 @@ export const POST: RequestHandler = async ({ platform, request, cookies }) => {
     .values({ displayName, type, encryptionPublicKey })
     .returning("did")
     .executeTakeFirst();
-  if (!res) throw error(500, "Failed to create new device");
+  if (!res) error(500, "Failed to create new device");
 
   // save device id in hmac signed cookie
   const key = await loadKey(COOKIE_SIGNING_SECRET);

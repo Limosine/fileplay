@@ -5,6 +5,7 @@ import Peer, { type DataConnection } from "peerjs";
 
 import {
   addListeners,
+  config,
   incoming_filetransfers,
   link,
   outgoing_filetransfers,
@@ -21,13 +22,13 @@ import {
   handleFileFinish,
   handleFileTransferFinished,
 } from "./handle";
-import { getCombined, getPeerJsId, updatePeerJS_ID } from "$lib/lib/fetchers";
+import { getCombined } from "$lib/lib/fetchers";
 import { deviceInfos, own_did } from "$lib/lib/UI";
 
 export const openPeer = async (uuid?: string) => {
   if (uuid) {
-    peer.set(new Peer(uuid));
-  } else peer.set(new Peer());
+    peer.set(new Peer(uuid, {config: config}));
+  } else peer.set(new Peer({config: config}));
 
   peer.update((peer_self) => {
     peer_self.on("error", (err) => {
@@ -45,7 +46,7 @@ export const openPeer = async (uuid?: string) => {
       sender_uuid.set(id);
       // @ts-ignore
       if (localStorage.getItem("loggedIn")) {
-        updatePeerJS_ID();
+        // updatePeerJS_ID();
       }
     });
 
@@ -97,9 +98,10 @@ const authenticated = async (
 ): Promise<boolean> => {
   // Guest page
   if (browser && window.location.pathname.slice(0, 6) == "/guest") {
-    if ((await getPeerJsId(Number(get(page).params.did))) == peerID) {
-      return true;
-    } else return false;
+    // if ((await getPeerJsId(Number(get(page).params.did))) == peerID) {
+    //   return true;
+    //} else return false;
+    return true;
   }
 
   // Home page - Skip if sending via link

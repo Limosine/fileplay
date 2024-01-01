@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ platform, cookies }) => {
   const db = createKysely(platform);
   const key = await loadKey(COOKIE_SIGNING_SECRET);
   const { uid } = await loadSignedDeviceID(cookies, key, db);
-  if (!uid) throw error(401, "No user associated with this device");
+  if (!uid) error(401, "No user associated with this device");
 
   const user = await getUser(db, uid);
 
@@ -37,7 +37,7 @@ export const POST: RequestHandler = async ({ platform, cookies, request }) => {
     .returning("uid")
     .executeTakeFirst();
 
-  if (!res1) throw error(500, "Failed to update user info");
+  if (!res1) error(500, "Failed to update user info");
 
   return new Response(null, { status: 200 });
 };

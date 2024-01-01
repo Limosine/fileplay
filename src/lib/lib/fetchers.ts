@@ -50,7 +50,8 @@ export interface IDeviceInfo {
   did: number;
   type: string;
   displayName: string;
-  peerJsId: string;
+  webRTCOffer: string;
+  webRTCAnswer: string;
   encryptionPublicKey: string;
 }
 
@@ -68,16 +69,14 @@ export function withDeviceType(name: string): { type: string; name: string } {
   return { name, type: DeviceType[name] as string };
 }
 
-export async function getPeerJsId(did: number): Promise<string> {
+export async function getWebRTCOffer(did: number): Promise<string> {
   if (get(page).url.hostname == "localhost") return "";
 
   const res = await fetch(`/api/guest?did=${did}`, {
     method: "GET",
   });
 
-  const peerJsId: any = await res.json();
-
-  return peerJsId;
+  return await res.json();
 }
 
 export const loadInfos = (devices: IDevices, did: number) => {
@@ -113,17 +112,21 @@ export const loadInfos = (devices: IDevices, did: number) => {
   // device_edit_loaded.set(true);
 };
 
-export async function updatePeerJS_ID() {
+export async function updateWebRTC(offer?: string, answer?: string) {
   const sender_uuid = (await import("../peerjs/common")).sender_uuid;
 
-  updateDevice({peerJsId: get(sender_uuid)});
+  updateDevice({
+    webRTCOffer: offer,
+    webRTCAnswer: answer
+  });
 }
 
 export async function updateDevice(
   update: {
     displayName?: string,
     type?: DeviceType,
-    peerJsId?: string,
+    webRTCOffer?: string,
+    webRTCAnswer?: string,
   },
   did?: number
 ) {
