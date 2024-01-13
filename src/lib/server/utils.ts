@@ -1,8 +1,15 @@
 import Filter from "bad-words";
+import type { z } from "zod";
 
 export function isProfane(s: string): boolean {
   return new Filter().isProfane(s);
 }
+
+export const schemaForType =
+  <T>() =>
+  <S extends z.ZodType<T, any, any>>(arg: S) => {
+    return arg;
+  };
 
 export function hexToArrayBuffer(hex: string): ArrayBuffer {
   const octets = hex.match(/.{2}/g);

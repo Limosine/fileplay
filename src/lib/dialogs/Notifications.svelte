@@ -1,19 +1,21 @@
 <script lang="ts">
-  import { get, writable } from "svelte/store";
-  import { onMount } from "svelte";
+  import { get } from "svelte/store";
 
   import {
     notifications,
     deleteNotification,
     type INotification,
-    deviceInfos,
     addNotification,
     returnProgress,
-    notificationDialog
+    notificationDialog,
+    contacts,
   } from "$lib/lib/UI";
-
-  let sendAccept: (peerID: string, filetransfer_id: string) => void;
-  let incoming_filetransfers = writable<IIncomingFiletransfer[]>([]);
+  import {
+    incoming_filetransfers,
+    type FileInfos,
+    type IncomingFiletransfer,
+  } from "$lib/sharing/common";
+  import { sendAccept } from "$lib/sharing/send";
 
   async function handleNotificationClick(n: INotification, action: string) {
     if (action == "download") {
@@ -23,8 +25,7 @@
     } else if (action == "cancel") {
       incoming_filetransfers.update((filetransfers) =>
         filetransfers.filter(
-          (filetransfer) =>
-            filetransfer.filetransfer_id != n.data.filetransfer_id,
+          (filetransfer) => filetransfer.id != n.data.filetransfer_id,
         ),
       );
     }
@@ -35,24 +36,27 @@
   }
 
   const acceptFileTransfer = async (notification: INotification) => {
-    let files: IIncomingFiletransfer["files"] = [];
+    let files: FileInfos[] = [];
 
-    notification.data.files.forEach((file: IFileInfo) => {
+    notification.data.files.forEach((file: FileInfos) => {
       files.push({
-        file_id: file.file_id,
-        file_name: file.file_name,
-        chunk_number: file.chunk_number,
+        id: file.id,
+        name: file.name,
+        chunks_length: file.chunks_length,
         chunks: [],
       });
     });
 
-    const contact = (await $deviceInfos).find(
-      (device) => device.did == notification.data.did,
+    const contact = get(contacts).find(
+      (contact) =>
+        contact.devices.find(
+          (device) => device.did == notification.data.did,
+        ) !== undefined,
     );
     const cid = contact !== undefined ? contact.cid : undefined;
 
-    const filetransfer: IIncomingFiletransfer = {
-      filetransfer_id: notification.data.filetransfer_id,
+    const filetransfer: IncomingFiletransfer = {
+      id: notification.data.filetransfer_id,
       encrypted: notification.data.encrypted,
       completed: false,
       files,
@@ -62,24 +66,18 @@
 
     incoming_filetransfers.set([...get(incoming_filetransfers), filetransfer]);
 
-    sendAccept(notification.data.peerID, notification.data.filetransfer_id);
-
     addNotification({
       title: "Receiving file(s)",
       body: `The file(s) '${filetransfer.files
-        .map((file) => file.file_name)
+        .map((file) => file.name)
         .toString()}' is/are being received.`,
-      tag: `filetransfer-${filetransfer.filetransfer_id}`,
+      tag: `filetransfer-${filetransfer.id}`,
       actions: [{ title: "Cancel", action: "cancel" }],
-      data: { filetransfer_id: filetransfer.filetransfer_id },
+      data: { filetransfer_id: filetransfer.id },
     });
-  };
 
-  onMount(async () => {
-    sendAccept = (await import("$lib/peerjs/send")).sendAccept;
-    incoming_filetransfers = (await import("$lib/peerjs/common"))
-      .incoming_filetransfers;
-  });
+    sendAccept(notification.data.did, notification.data.filetransfer_id);
+  };
 </script>
 
 <dialog class="right" id="dialog-notifications" bind:this={$notificationDialog}>
@@ -112,7 +110,11 @@
           />
         {/if}
 
-        <div style="padding: {(n.title == "Receiving file(s)") ? "0" : "16px"} 16px 16px 16px;">
+        <div
+          style="padding: {n.title == 'Receiving file(s)'
+            ? '0'
+            : '16px'} 16px 16px 16px;"
+        >
           <div class="row">
             <h6>{n.title}</h6>
             <div class="max" />

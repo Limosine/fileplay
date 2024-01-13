@@ -1,12 +1,5 @@
 <script lang="ts">
-  import { status as current_status } from "$lib/lib/websocket";
-  import { current, settings_page } from "$lib/lib/UI";
-  import { getCombined } from "$lib/lib/fetchers";
-  import { notifications } from "$lib/lib/UI";
-
-  // Top app bar
-  const colors = ["orange", "green", "red"];
-  const status = ["Connecting", "Online", "Error"];
+  import { current, notifications, settings_page } from "$lib/lib/UI";
 </script>
 
 <div id="rail" class="l m">
@@ -24,7 +17,7 @@
     </a>
     <a
       class={$current == "Contacts" ? "active" : ""}
-      on:click={() => {getCombined(["contacts"]); $current = "Contacts";}}
+      on:click={() => ($current = "Contacts")}
     >
       <i>Contacts</i>
       <span>Contacts</span>
@@ -38,13 +31,6 @@
       <nav>
         <p class="s" style="font-size: large; font-weight: 600;">{$current}</p>
         <div class="max" />
-        <div>
-          <div
-            class="connection-status"
-            style="background-color: {colors[$current_status]}"
-          />
-          <div class="tooltip bottom">{status[$current_status]}</div>
-        </div>
         <!-- eslint-disable no-undef -->
         <!-- svelte-ignore missing-declaration -->
         <button
@@ -88,14 +74,17 @@
     </a>
     <a
       class={$current == "Contacts" ? "active" : ""}
-      on:click={() => {getCombined(["contacts"]); $current = "Contacts";}}
+      on:click={() => ($current = "Contacts")}
     >
       <i>Contacts</i>
       <span>Contacts</span>
     </a>
     <a
       class={$current == "Settings" ? "active" : ""}
-      on:click={() => {getCombined(["user"]); $settings_page = "main"; $current = "Settings";}}
+      on:click={() => {
+        $settings_page = "main";
+        $current = "Settings";
+      }}
     >
       <i>settings</i>
       <span>Settings</span>
@@ -133,13 +122,5 @@
     top: 64px;
     left: 80px;
     overflow: auto;
-  }
-
-  .connection-status {
-    margin: 10px;
-    border-radius: 50%;
-    border: 2px solid var(--on-background);
-    height: 20px;
-    width: 20px;
   }
 </style>

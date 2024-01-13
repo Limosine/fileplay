@@ -1,43 +1,32 @@
 <script lang="ts">
   import { getDicebearUrl } from "$lib/lib/common";
-  import { getCombined } from "$lib/lib/fetchers";
   import { contacts } from "$lib/lib/UI";
-
-  async function deleteContact(cid: number) {
-    await fetch(`/api/contacts?cid=${cid}`, {
-      method: "DELETE",
-    });
-    await getCombined(["contacts"]);
-  }
+  import { trpc } from "$lib/trpc/client";
 </script>
 
-{#await $contacts}
-  <p>Contacts are loading...</p>
-{:then contacts_}
-  <div id="contacts">
-    {#each contacts_ as contact}
-      <article style="margin: 0;">
-        <div class="row">
-          <img
-            class="circle medium"
-            src={getDicebearUrl(contact.avatarSeed, 100)}
-            alt="Avatar"
-          />
-          <div class="max">
-            <p class="large-text">{contact.displayName}</p>
-          </div>
-          <button
-            class="right transparent circle"
-            on:click={() => deleteContact(contact.cid)}
-          >
-            <i>delete</i>
-            <div class="tooltip left">Delete contact</div>
-          </button>
+<div id="contacts">
+  {#each $contacts as contact}
+    <article style="margin: 0;">
+      <div class="row">
+        <img
+          class="circle medium"
+          src={getDicebearUrl(contact.avatar_seed, 100)}
+          alt="Avatar"
+        />
+        <div class="max">
+          <p class="large-text">{contact.display_name}</p>
         </div>
-      </article>
-    {/each}
-  </div>
-{/await}
+        <button
+          class="right transparent circle"
+          on:click={() => trpc().deleteContact.mutate(contact.cid)}
+        >
+          <i>delete</i>
+          <div class="tooltip left">Delete contact</div>
+        </button>
+      </div>
+    </article>
+  {/each}
+</div>
 
 <style>
   #contacts {

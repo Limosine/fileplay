@@ -1,70 +1,53 @@
 <script lang="ts">
+  import { page } from "$app/stores";
   import { nanoid } from "nanoid";
+  import { onMount } from "svelte";
 
+  import { DeviceType, getDicebearUrl } from "$lib/lib/common";
+  import { withDeviceType } from "$lib/lib/fetchers";
   import {
     edit_current as current,
     title,
     linkingCode,
     original_value,
     did,
+    deviceParams,
+    userParams,
+    editDialog,
   } from "$lib/lib/UI";
-  import { DeviceType, getDicebearUrl } from "$lib/lib/common";
-  import { getCombined, updateDevice, withDeviceType } from "$lib/lib/fetchers";
-  import { deviceParams, userParams, editDialog } from "$lib/lib/UI";
-  import { onMount } from "svelte";
-  import { page } from "$app/stores";
-
-  async function updateDeviceInfo(did: number) {
-    let update = {};
-
-    if ($deviceParams.displayName) {
-      update = { displayName: $deviceParams.displayName };
-    }
-    if ($deviceParams.type) {
-      update = { ...update, type: $deviceParams.type };
-    }
-
-    if (Object.keys(update).length) {
-      updateDevice(update, did);
-      await getCombined(["devices"]);
-    }
-  }
-
-  async function updateUserInfo() {
-    let update = {};
-
-    if ($userParams.displayName) {
-      update = { displayName: $userParams.displayName };
-    }
-    if ($userParams.avatarSeed) {
-      update = { ...update, avatarSeed: $userParams.avatarSeed };
-    }
-
-    if (Object.keys(update).length) {
-      await fetch("/api/user", {
-        method: "POST",
-        body: JSON.stringify(update),
-      });
-      await getCombined(["user"]);
-    }
-  }
+  import { trpc } from "$lib/trpc/client";
 
   onMount(() => {
     $editDialog.addEventListener("close", () => {
       if ($page.url.pathname == "/") {
         switch ($current) {
-        case "username":
-          if ($original_value != $userParams.displayName) updateUserInfo();
-          break;
-        case "avatar":
-          if ($original_value != $userParams.avatarSeed) updateUserInfo();
-          break;
-        case "deviceName":
-          if ($original_value != $deviceParams.displayName) updateDeviceInfo($did);
-          break;
-        case "deviceType":
-          if ($original_value != $deviceParams.type) updateDeviceInfo($did);
-          break;
+          case "username":
+            if ($original_value != $userParams.display_name)
+              trpc().updateUser.mutate({
+                display_name: $userParams.display_name,
+              });
+            break;
+          case "avatar":
+            if ($original_value != $userParams.avatar_seed)
+              trpc().updateUser.mutate({
+                avatar_seed: $userParams.avatar_seed,
+              });
+            break;
+          case "deviceName":
+            if ($original_value != $deviceParams.display_name)
+              trpc().updateDevice.mutate({
+                update: { display_name: $deviceParams.display_name },
+                did: $did,
+              });
+            break;
+          case "deviceType":
+            if ($original_value != $deviceParams.type)
+              trpc().updateDevice.mutate({
+                // @ts-ignore
+                update: { type: $deviceParams.type },
+                did: $did,
+              });
+            break;
         }
       }
     });
@@ -84,7 +67,7 @@
   <div class="field">
     {#if $current == "deviceName"}
       <input
-        bind:value={$deviceParams.displayName}
+        bind:value={$deviceParams.display_name}
         placeholder="Google Pixel 5"
       />
     {:else if $current == "deviceType"}
@@ -106,7 +89,6 @@
     {:else if $current == "linkingCode"}
       <input
         bind:value={$linkingCode}
-        inputmode="numeric"
         maxlength={6}
         placeholder="6-digit code"
       />
@@ -114,7 +96,7 @@
       <div class="center-align">
         <img
           id="avatar-image"
-          src={getDicebearUrl($userParams.avatarSeed, 100)}
+          src={getDicebearUrl($userParams.avatar_seed, 100)}
           width="100"
           alt="Avatar"
         />
@@ -123,12 +105,12 @@
         <button
           class="border"
           style="border: 0;"
-          on:click={() => ($userParams.avatarSeed = nanoid(8))}
+          on:click={() => ($userParams.avatar_seed = nanoid(8))}
           >Change Avatar</button
         >
       </nav>
     {:else}
-      <input bind:value={$userParams.displayName} placeholder={$title} />
+      <input bind:value={$userParams.display_name} placeholder={$title} />
     {/if}
   </div>
 </dialog>

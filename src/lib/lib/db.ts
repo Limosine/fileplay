@@ -1,56 +1,52 @@
-import type { DeviceType } from "$lib/lib/common";
 import type { Kysely, Generated, ColumnType } from "kysely";
+import type { DeviceType } from "$lib/lib/common";
 
 interface UsersTable {
   uid: Generated<number>;
-  displayName: string;
-  avatarSeed: string;
-  createdAt: ColumnType<number, undefined, undefined>;
-  lastSeenAt: ColumnType<number, undefined, number>;
-  isOnline: ColumnType<number, undefined, number>;
+  display_name: string;
+  avatar_seed: string;
+  created_at: ColumnType<number, undefined, undefined>;
 }
 
 interface DecivesTable {
   did: Generated<number>;
-  uid: number | null; // indexed, foreign key users.id
-  linkedAt: number | null;
-  displayName: string;
-  isOnline: ColumnType<number, undefined, number>;
+  uid: number | null; // indexed, foreign key users.uid
+  linked_at: number | null;
+  display_name: string;
+  is_online: ColumnType<number, undefined, number>;
   type: DeviceType;
-  createdAt: ColumnType<number, undefined, undefined>;
-  lastSeenAt: ColumnType<number, undefined, number>;
-  webRTCOffer: string | null;
-  webRTCAnswer: string | null;
-  encryptionPublicKey: string;
+  created_at: ColumnType<number, undefined, undefined>;
+  last_seen_at: ColumnType<number, undefined, number>;
+  encryption_public_key: string;
 }
 
 interface ContactsTable {
   cid: Generated<number>;
-  a: number; // indexed, foreign key users.id
-  b: number; // indexed, foreign key users.id
-  createdAt: ColumnType<number, undefined, undefined>;
+  a: number; // indexed, foreign key users.uid
+  b: number; // indexed, foreign key users.uid
+  created_at: ColumnType<number, undefined, undefined>;
 }
 
 interface DevicesLinkCodesTable {
   code: Generated<string>; // indexed, primary
   expires: ColumnType<number, number, undefined>;
   created_did: number;
-  uid: number; // indexed, foreign key users.id
+  uid: number; // indexed, foreign key users.uid
 }
 
 interface ContactsLinkCodesTable {
   code: string; // indexed, primary
   expires: ColumnType<number, number, undefined>;
   created_did: number;
-  uid: number; // indexed, foreign key users.id
+  uid: number; // indexed, foreign key users.uid
 }
 
 export interface DB {
   users: UsersTable;
   devices: DecivesTable;
   contacts: ContactsTable;
-  devicesLinkCodes: DevicesLinkCodesTable;
-  contactsLinkCodes: ContactsLinkCodesTable;
+  devices_link_codes: DevicesLinkCodesTable;
+  contacts_link_codes: ContactsLinkCodesTable;
 }
 
 export type Database = Kysely<DB>;

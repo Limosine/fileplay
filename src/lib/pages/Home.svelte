@@ -1,29 +1,15 @@
 <script lang="ts">
-  import { input, files } from "$lib/components/Input.svelte";
-  import { writable } from "svelte/store";
   import QRCode from "qrcode";
-  import { onMount } from "svelte";
-  import {
-    getCombined,
-    type IContact,
-    type IDeviceInfo,
-  } from "$lib/lib/fetchers";
-  import { current, contacts, deviceInfos } from "$lib/lib/UI";
-  import { ONLINE_STATUS_TIMEOUT, getDicebearUrl } from "$lib/lib/common";
-  import { sendState, SendState } from "$lib/lib/sendstate";
-  import dayjs from "dayjs";
+  import { writable } from "svelte/store";
 
-  let outgoing_filetransfers = writable<IOutgoingFileTransfer[]>([]);
-  let link = writable("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let addPendingFile = (files: FileList) => {};
-  let send: (
-    files: FileList,
-    cid?: number,
-    did?: number,
-    peerID?: string,
-    publicKey?: string,
-  ) => Promise<string | undefined>;
+  import { input, files } from "$lib/components/Input.svelte";
+  import { getDicebearUrl } from "$lib/lib/common";
+  import { type IContact, type IDeviceInfo } from "$lib/lib/fetchers";
+  import { sendState, SendState } from "$lib/lib/sendstate";
+  import { current, contacts } from "$lib/lib/UI";
+  import { link, outgoing_filetransfers } from "$lib/sharing/common";
+  import { send } from "$lib/sharing/send";
+  import { addPendingFile } from "$lib/sharing/main";
 
   let qrCode: string;
   const generateQRCode = async (link: string) => {
@@ -55,21 +41,13 @@
         break;
       default: {
         // IDLE, CANCELED, FAILED, REJECTED
-        const devices = (await $deviceInfos).filter(
-          (item) => item.cid == contact.cid,
-        );
+        const devices = contact.devices;
 
         devices.forEach((device: IDeviceInfo) => {
-          send(
-            $files,
-            contact.cid,
-            device.did,
-            device.peerJsId,
-            device.encryptionPublicKey,
-          );
+          send($files, device.did, contact.cid, device.encryption_public_key);
         });
 
-        setSendState(contact.cid, SendState.SENDING);
+        setSendState(contact.cid, SendState.REQUESTING);
 
         break;
       }
@@ -122,27 +100,37 @@
     if ($outgoing_filetransfers.length != 0) {
       $outgoing_filetransfers.forEach((outgoing_filetransfer) => {
         if (outgoing_filetransfer.cid !== undefined) {
-          let sent = 0;
           let total = 0;
+          let sent = 0;
 
           outgoing_filetransfer.files.forEach((file) => {
-            sent = sent + file.chunks;
-            total = total + file.file.length;
+            total = total + file.chunks_length;
+            if (file.completed !== 0) sent = sent + file.chunks_length;
           });
 
           const progress_number = sent / total;
 
-          if (progress_number < 0.25) {
-            $progress[outgoing_filetransfer.cid] = "var(--surface)";
-          } else if (progress_number < 0.5) {
-            $progress[outgoing_filetransfer.cid] =
-              "var(--surface) var(--primary) var(--surface) var(--surface)";
-          } else if (progress_number < 0.75) {
-            $progress[outgoing_filetransfer.cid] =
-              "var(--surface) var(--primary) var(--primary) var(--surface)";
-          } else if (progress_number < 1) {
-            $progress[outgoing_filetransfer.cid] =
-              "var(--surface) var(--primary) var(--primary) var(--primary)";
+          const state = sendState.getState()[outgoing_filetransfer.cid];
+
+          if (state == SendState.SENDING) {
+            if (progress_number < 0.25) {
+              $progress[outgoing_filetransfer.cid] = "var(--surface)";
+            } else if (progress_number < 0.5) {
+              $progress[outgoing_filetransfer.cid] =
+                "var(--surface) var(--primary) var(--surface) var(--surface)";
+            } else if (progress_number < 0.75) {
+              $progress[outgoing_filetransfer.cid] =
+                "var(--surface) var(--primary) var(--primary) var(--surface)";
+            } else if (progress_number < 1) {
+              $progress[outgoing_filetransfer.cid] =
+                "var(--surface) var(--primary) var(--primary) var(--primary)";
+            } else {
+              $progress[outgoing_filetransfer.cid] = "var(--primary)";
+            }
+          } else if (state == SendState.REQUESTING) {
+            $progress[outgoing_filetransfer.cid] = "#fff700";
+          } else if (state == SendState.FAILED) {
+            $progress[outgoing_filetransfer.cid] = "#93000a";
           } else {
             $progress[outgoing_filetransfer.cid] = "var(--primary)";
           }
@@ -150,15 +138,6 @@
       });
     }
   }
-
-  onMount(async () => {
-    addPendingFile = (await import("$lib/peerjs/main")).addPendingFile;
-    outgoing_filetransfers = (await import("$lib/peerjs/common"))
-      .outgoing_filetransfers;
-    send = (await import("$lib/peerjs/send")).send;
-
-    link = (await import("$lib/peerjs/common")).link;
-  });
 
   $: {
     if ($files && $link) {
@@ -257,52 +236,36 @@
       <div class="row">
         <p class="bold" style="margin: 0;">Available contacts:</p>
         <div class="max" />
-        <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
-        <a
-          on:click={() => {
-            getCombined(["deviceInfos", "contacts"]);
-          }}
-          style="color: var(--secondary)">Refresh</a
-        >
       </div>
       <div class="row wrap">
-        {#await $contacts}
-          <p class="center">Contacts are loading...</p>
-        {:then contacts}
-          {#if contacts.length == 0 || contacts.find((contact) => contact.lastSeenAt > dayjs().unix() - ONLINE_STATUS_TIMEOUT) === undefined}
-            <p class="center padding">
-              No contact available. Add a new contact on the
-              <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-              <a
-                on:click={() => {
-                  getCombined(["contacts"]);
-                  $current = "Contacts";
-                }}
-                style="color: var(--primary)">contact page</a
-              >.
-            </p>
+        {#if $contacts.length <= 0 || $contacts.find((contact) => contact.devices.length > 0) === undefined}
+          <p class="center padding">
+            No contact available. Add a new contact on the
+            <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+            <a
+              on:click={() => ($current = "Contacts")}
+              style="color: var(--primary)">contact page</a
+            >.
+          </p>
+        {/if}
+        {#each $contacts as contact}
+          {#if contact.devices.length > 0}
+            <button
+              class="border small-round"
+              style="border-color: {$progress[contact.cid] !== undefined
+                ? $progress[contact.cid]
+                : 'var(--primary)'};"
+              on:click={() => handleContactClick(contact)}
+            >
+              <img
+                class="responsive"
+                src={getDicebearUrl(contact.avatar_seed, 40, 0)}
+                alt="{contact.display_name}'s avatar"
+              />
+              <span>{contact.display_name}</span>
+            </button>
           {/if}
-          {#each contacts as contact}
-            {#if contact.lastSeenAt > dayjs().unix() - ONLINE_STATUS_TIMEOUT}
-              <button
-                class="border small-round"
-                style="border-color: {$progress[contact.cid] !== undefined
-                  ? $progress[contact.cid]
-                  : 'var(--primary)'};"
-                on:click={() => handleContactClick(contact)}
-              >
-                <img
-                  class="responsive"
-                  src={getDicebearUrl(contact.avatarSeed, 40, 0)}
-                  alt="{contact.displayName}'s avatar"
-                />
-                <span>{contact.displayName}</span>
-              </button>
-            {/if}
-          {/each}
-        {:catch}
-          <p>Failed to load contacts.</p>
-        {/await}
+        {/each}
       </div>
     </article>
   </div>

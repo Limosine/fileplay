@@ -1,65 +1,43 @@
 import { browser } from "$app/environment";
 import { get, writable } from "svelte/store";
-import type { MaybePromise } from "@sveltejs/kit";
+
 import { DeviceType } from "./common";
-import { getCombined, type IContact, type IDeviceInfo, type IDevices, type IUser } from "./fetchers";
-import { files } from "$lib/components/Input.svelte";
+import {
+  type IContact,
+  type IDeviceInfo,
+  type IDevices,
+  type IUser,
+} from "./fetchers";
+import type { IncomingFiletransfer } from "$lib/sharing/common";
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
 export const settings_page = writable<"main" | "devices" | "device">("main");
-export const selected_device = writable<number>();
-export const add_mode = writable<"contact" | "device"> ("contact");
-export const fetch_mode = writable<"WebSocket" | "HTTP">("WebSocket");
-
-// Refresh Interval:
-let refresh_interval: NodeJS.Timer;
-export const  startRefresh = () => {
-  refresh_interval = setInterval(async () => {
-    if (get(current) == "Settings" && get(settings_page) == "devices") {
-      getCombined(["user", "devices"]);
-    } else if (get(current) == "Settings") {
-      getCombined(["user"]);
-    } else if (get(current) == "Contacts") {
-      getCombined(["contacts"]);
-    } else if (get(files) !== undefined && get(files).length != 0) {
-      getCombined(["contacts", "deviceInfos"]);
-    } else {
-      getCombined(["deviceInfos"]);
-    }
-  }, 5000);
-};
-
-export const stopRefresh = () => {
-  clearInterval(refresh_interval);
-};
+export const add_mode = writable<"contact" | "device">("contact");
 
 // Setup values:
 export const linkingCode = writable("");
 
 // Personal infos:
-export const own_did = writable<MaybePromise<number>>();
+export const own_did = writable<number>();
 
 export const deviceParams = writable({
-  displayName: "",
+  display_name: "",
   type: "",
-  encryptionPublicKey: "",
+  encryption_public_key: "",
 });
 
 export const userParams = writable({
-  displayName: "",
-  avatarSeed: "",
+  display_name: "",
+  avatar_seed: "",
 });
 
-export const contacts = writable<MaybePromise<IContact[]>>([]);
+export const contacts = writable<IContact[]>([]);
 
 export const devices = writable<IDevices>();
-export const devices_loaded = writable(false);
 
-export const deviceInfos = writable<MaybePromise<IDeviceInfo[]>>();
-export const deviceInfos_loaded = writable(false);
+export const deviceInfos = writable<IDeviceInfo[]>();
 
-export const user = writable<MaybePromise<IUser>>();
-export const user_loaded = writable(false);
+export const user = writable<IUser>();
 
 // Notifications
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
@@ -71,11 +49,11 @@ interface NotificationAction {
 }
 
 export interface INotification {
+  tag: string;
   actions?: NotificationAction[];
   title: string;
   body?: string;
   data?: any;
-  tag: string;
 }
 export const notifications = writable<INotification[]>([]);
 
@@ -83,8 +61,7 @@ export const addNotification = (
   notification: PartialBy<INotification, "tag">,
 ) => {
   // replace notifications with the same tag
-  if ("tag" in notification && notification.tag)
-    deleteNotification(notification.tag);
+  if (notification.tag !== undefined) deleteNotification(notification.tag);
   notifications.update((notifications) => {
     if (!("tag" in notification))
       notification.tag = Math.random().toString(36).substring(7);
@@ -100,7 +77,7 @@ export const deleteNotification = (tag: string) => {
 };
 
 // Contacts
-export const codehostname = writable("");
+export const code = writable("");
 
 // Dialogs
 export const addContactDialog = writable<HTMLDialogElement>();
@@ -135,30 +112,30 @@ export const openDialog = (
     original_value.set(original_valueU);
 
     switch (currentU) {
-      case "username":
-        userParams.update((user) => {
-          user.displayName = original_valueU;
-          return user;
-        });
-        break;
-      case "avatar":
-        userParams.update((user) => {
-          user.avatarSeed = original_valueU;
-          return user;
-        });
-        break;
-      case "deviceName":
-        deviceParams.update((device) => {
-          device.displayName = original_valueU;
-          return device;
-        });
-        break;
-      case "deviceType":
-        deviceParams.update((device) => {
-          device.type = original_valueU;
-          return device;
-        });
-        break;
+    case "username":
+      userParams.update((user) => {
+        user.display_name = original_valueU;
+        return user;
+      });
+      break;
+    case "avatar":
+      userParams.update((user) => {
+        user.avatar_seed = original_valueU;
+        return user;
+      });
+      break;
+    case "deviceName":
+      deviceParams.update((device) => {
+        device.display_name = original_valueU;
+        return device;
+      });
+      break;
+    case "deviceType":
+      deviceParams.update((device) => {
+        device.type = original_valueU;
+        return device;
+      });
+      break;
     }
   }
   ui("#dialog-edit");
@@ -186,12 +163,12 @@ export const profaneUsername = writable<{ loading: boolean; profane: boolean }>(
 );
 
 export function updateIsProfaneUsername() {
-  if (!browser || !get(userParams).displayName) return;
+  if (!browser || !get(userParams).display_name) return;
   profaneUsername.set({ loading: true, profane: get(profaneUsername).profane });
   fetch("/api/checkIsUsernameProfane", {
     method: "POST",
     body: JSON.stringify({
-      username: get(userParams).displayName,
+      username: get(userParams).display_name,
     }),
   })
     .then((res) => res.json())
@@ -214,10 +191,10 @@ export function updateIsProfaneUsername() {
 // Progress calculation:
 export const returnProgress = (
   filetransfer_id: string,
-  filetransfers: IIncomingFiletransfer[],
+  filetransfers: IncomingFiletransfer[],
 ) => {
   const filetransfer = filetransfers.find(
-    (filetransfer) => filetransfer.filetransfer_id === filetransfer_id,
+    (filetransfer) => filetransfer.id === filetransfer_id,
   );
 
   if (filetransfer !== undefined) {
@@ -226,7 +203,7 @@ export const returnProgress = (
 
     filetransfer.files.forEach((file) => {
       received_chunks = received_chunks + file.chunks.length;
-      total_chunks = total_chunks + file.chunk_number;
+      total_chunks = total_chunks + file.chunks_length;
     });
 
     const progress = received_chunks / total_chunks;

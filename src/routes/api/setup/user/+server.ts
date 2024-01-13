@@ -1,44 +1,50 @@
-import { COOKIE_SIGNING_SECRET } from "$env/static/private";
-import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
-import { createKysely } from "$lib/server/db";
-import { isProfane } from "$lib/server/utils";
-import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import dayjs from "dayjs";
+import { error } from "@sveltejs/kit";
+import { z } from "zod";
 
-export const POST: RequestHandler = async ({ platform, cookies, request }) => {
+import { httpAuthorized } from "$lib/server/db";
+import { isProfane } from "$lib/server/utils";
+
+export const POST: RequestHandler = async ({ cookies, request }) => {
   // create a new user, link to current device (requires cookie auth)
-  const db = createKysely(platform);
-  const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const { did, uid: already_uid } = await loadSignedDeviceID(cookies, key, db);
-  if (already_uid) error(403, "Device already linked to user");
+  const ctx = await httpAuthorized(cookies, false);
+  if (ctx.user !== null) error(403, "Device already linked to user");
 
-  const updateObject: {
-    displayName: string;
-    avatarSeed: string;
+  const schema = z.object({
+    display_name: z.string(),
+    avatar_seed: z.string(),
+  });
+
+  const update: {
+    display_name: string;
+    avatar_seed: string;
   } = await request.json();
 
-  if (isProfane(updateObject.displayName))
-    error(418, "Display name is profane"); // 418 I'm a teapot since this can only be triggered if someone manually f'ed with the api
+  if (!schema.safeParse(update).success) {
+    error(422, "Wrong data type");
+  }
 
-  // insert new user into db
-  const res1 = await db
-    .insertInto("users")
-    .values(updateObject)
-    .returning("uid")
-    .executeTakeFirst();
+  if (isProfane(update.display_name)) error(418, "Display name is profane");
 
-  if (!res1) error(500, "Failed to create user");
+  try {
+    const response = await ctx.database
+      .insertInto("users")
+      .values(update)
+      .returning("uid")
+      .executeTakeFirst();
 
-  const { uid } = res1;
+    if (!response) error(500, "Failed to create user");
 
-  // link user to device
-  await db
-    .updateTable("devices")
-    .set({ uid, linkedAt: dayjs().unix() })
-    .where("did", "=", did)
-    .returning("did")
-    .executeTakeFirstOrThrow();
+    await ctx.database
+      .updateTable("devices")
+      .set({ uid: response.uid, linked_at: dayjs().unix() })
+      .where("did", "=", ctx.device)
+      .returning("did")
+      .executeTakeFirstOrThrow();
 
-  return new Response(null, { status: 201 });
+    return new Response(null, { status: 201 });
+  } catch (e: any) {
+    error(500, e);
+  }
 };

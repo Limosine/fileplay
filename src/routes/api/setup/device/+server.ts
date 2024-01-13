@@ -1,33 +1,45 @@
-import { COOKIE_SIGNING_SECRET } from "$env/static/private";
-import { loadKey, saveSignedDeviceID } from "$lib/server/crypto";
-import { createKysely } from "$lib/server/db";
-import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import type { DeviceType } from "$lib/lib/common";
+import { error } from "@sveltejs/kit";
+import { z } from "zod";
 
-export const POST: RequestHandler = async ({ platform, request, cookies }) => {
-  // post device info here, create a new device (sets cookie auth)
-  const db = createKysely(platform);
+import { saveSignedDeviceID } from "$lib/server/crypto";
+import { httpContext } from "$lib/server/db";
+import { DeviceType } from "$lib/lib/common";
 
-  const { displayName, type, encryptionPublicKey } = (await request.json()) as {
-    displayName: string;
+export const POST: RequestHandler = async ({ request, cookies }) => {
+  const ctx = await httpContext();
+
+  const schema = z.object({
+    display_name: z.string(),
+    type: z.nativeEnum(DeviceType),
+    encryption_public_key: z.string(),
+  });
+
+  const update: {
+    display_name: string;
     type: DeviceType;
-    encryptionPublicKey: string;
-  };
+    encryption_public_key: string;
+  } = await request.json();
 
-  // insert new device into db
-  const res = await db
-    .insertInto("devices")
-    .values({ displayName, type, encryptionPublicKey })
-    .returning("did")
-    .executeTakeFirst();
-  if (!res) error(500, "Failed to create new device");
+  if (!schema.safeParse(update).success) {
+    error(422, "Wrong data type");
+  }
 
-  // save device id in hmac signed cookie
-  const key = await loadKey(COOKIE_SIGNING_SECRET);
-  await saveSignedDeviceID(res.did, cookies, key);
+  try {
+    const response = await ctx.database
+      .insertInto("devices")
+      .values(update)
+      .returning("did")
+      .executeTakeFirst();
 
-  return new Response(null, { status: 201 });
+    if (response) {
+      await saveSignedDeviceID(response.did, cookies, ctx.key);
+
+      return new Response(null, { status: 201 });
+    } else {
+      error(500, "Failed to create device");
+    }
+  } catch (e: any) {
+    error(500, e);
+  }
 };
-
-// next step in onboarding: either redeem an advertisement code or create a new user using POST /api/setup/user

@@ -1,16 +1,9 @@
 <script lang="ts">
-  import {
-    devices,
-    devices_loaded,
-    did,
-    openDialog,
-    selected_device,
-    settings_page,
-  } from "$lib/lib/UI";
-  import { getDicebearUrl } from "$lib/lib/common";
-  import { user } from "$lib/lib/UI";
-  import { deleteAccount } from "$lib/lib/fetchers";
   import dayjs from "dayjs";
+
+  import { getDicebearUrl } from "$lib/lib/common";
+  import { deleteAccount } from "$lib/lib/fetchers";
+  import { devices, did, openDialog, settings_page, user } from "$lib/lib/UI";
 </script>
 
 {#if $settings_page == "main"}
@@ -28,12 +21,12 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("username", "Username", user.displayName)}
+      on:click={() => openDialog("username", "Username", user.display_name)}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Username</p>
         <p style="font-size: small; margin-top: 0;">
-          {user.displayName}
+          {user.display_name}
         </p>
       </div>
     </a>
@@ -42,7 +35,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("avatar", "Avatar", user.avatarSeed)}
+      on:click={() => openDialog("avatar", "Avatar", user.avatar_seed)}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Avatar</p>
@@ -52,7 +45,7 @@
       <img
         class="responsive"
         style="height: auto;"
-        src={getDicebearUrl(user.avatarSeed, 150)}
+        src={getDicebearUrl(user.avatar_seed, 150)}
         alt="Avatar"
       />
     </a>
@@ -109,20 +102,21 @@
   </button>
   <h3 style="margin-bottom: 30px; padding: 0px 20px 0px 20px;">Devices</h3>
 
-  {#if $devices_loaded}
+  {#if $devices !== undefined}
     <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => {$did = $devices.self.did; openDialog("deviceName", "Device Name", $devices.self.displayName);}}
+      on:click={() => {
+        $did = $devices.self.did;
+        openDialog("deviceName", "Device Name", $devices.self.display_name);
+      }}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">
-          {$devices.self.displayName}
+          {$devices.self.display_name}
         </p>
-        <p style="font-size: small; margin-top: 0;">
-          This device.
-        </p>
+        <p style="font-size: small; margin-top: 0;">This device.</p>
       </div>
     </a>
     {#each $devices.others as device}
@@ -130,15 +124,18 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => {$did = device.did; openDialog("deviceName", "Device Name", device.displayName);}}
+        on:click={() => {
+          $did = device.did;
+          openDialog("deviceName", "Device Name", device.display_name);
+        }}
       >
         <div class="column">
           <p style="font-size: large; margin-bottom: 2px;">
-            {device.displayName}
+            {device.display_name}
           </p>
           <p style="font-size: small; margin-top: 0;">
             Last seen at {dayjs
-              .unix(device.lastSeenAt)
+              .unix(device.last_seen_at)
               .format("HH:mm, DD.MM.YYYY")}.
           </p>
         </div>

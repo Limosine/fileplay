@@ -1,44 +1,31 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { browser } from "$app/environment";
-  import { page } from "$app/stores";
-  import { useRegisterSW } from "virtual:pwa-register/svelte";
-  import { writable, type Writable } from "svelte/store";
+  import { type Writable } from "svelte/store";
   import { pwaInfo } from "virtual:pwa-info";
+  import { useRegisterSW } from "virtual:pwa-register/svelte";
 
   import "beercss";
 
   import logo from "$lib/assets/Fileplay.svg";
-  import { addNotification } from "$lib/lib/UI";
-  import { createWebSocket, status } from "$lib/lib/websocket";
-  import { setup as pgp_setup } from "$lib/lib/openpgp";
-
   import Layout from "$lib/components/Layout.svelte";
-  import Notifications from "$lib/dialogs/Notifications.svelte";
-  import Edit from "$lib/dialogs/Edit.svelte";
   import AddContact from "$lib/dialogs/AddContact.svelte";
-
-  let peer_open = writable(false);
+  import Edit from "$lib/dialogs/Edit.svelte";
+  import Notifications from "$lib/dialogs/Notifications.svelte";
+  import { addNotification } from "$lib/lib/UI";
+  import { browser } from "$app/environment";
 
   let needRefresh: Writable<boolean>;
   let loading = 0;
 
   const getClass = (loading: number) => {
-    if (loading === 2) {
+    if (loading === 1) {
       return "disappear";
-    } else if (loading === 3) {
+    } else if (loading === 2) {
       return "hidden";
     } else return "";
   };
 
   onMount(async () => {
-    if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
-      pgp_setup();
-
-      peer_open = (await import("$lib/peerjs/common")).peer_open;
-      createWebSocket();
-    }
-
     // update service worker
     if (pwaInfo) {
       const update = async (registration: ServiceWorkerRegistration) => {
@@ -72,13 +59,11 @@
 
   $: {
     if (browser) {
-      if (loading !== 3) {
-        loading = ($peer_open === true ? 1 : 0) + ($status === "1" ? 1 : 0);
-        if (loading === 2) {
-          setTimeout(() => {
-            loading = 3;
-          }, 1100);
-        }
+      if (loading === 0 && localStorage.getItem("loggedIn")) {
+        loading = 1;
+        setTimeout(() => {
+          loading = 2;
+        }, 1100);
       }
     }
   }
@@ -108,42 +93,23 @@
 <div id="logo" class={getClass(loading)}>
   <img id="logo-image" src={logo} alt="Fileplay" />
 </div>
-{#if loading !== -1}
-  <div id="start" class={getClass(loading)}>
-    <div id="status">
-      <progress id="status" value="{loading}" max="2" style="width: 50%;" />
-    </div>
-
-    <div id="status" class="large-text" style="margin-top: 10px;">
-      {#if loading === 0}
-        <p>Connecting to WebSocket...</p>
-      {:else if loading === 1}
-        <p>Establishing PeerJS connection...</p>
-      {:else}
-        <p>Initialization completed.</p>
-      {/if}
-    </div>
-  </div>
-{/if}
 
 <div id="overlay" class={getClass(loading)} />
 
-{#if loading === 2 || loading === 3}
-  <!-- Dialogs -->
-  <Edit />
-  <AddContact />
+<!-- Dialogs -->
+<Edit />
+<AddContact />
 
-  <Notifications />
+<Notifications />
 
-  <Layout>
-    <slot />
-  </Layout>
-{/if}
+<Layout>
+  <slot />
+</Layout>
 
 <style>
   .disappear {
     opacity: 0;
-    transition:opacity 1s;
+    transition: opacity 1s;
   }
 
   .hidden {
@@ -167,20 +133,6 @@
     height: 50%;
     top: 0;
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #start {
-    position: absolute;
-    z-index: 10001;
-    width: 100%;
-    height: 25%;
-    bottom: 0;
-  }
-
-  #status {
     display: flex;
     justify-content: center;
     align-items: center;

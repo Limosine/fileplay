@@ -1,8 +1,10 @@
 # README
 
-database migrations to be executed in alphabetical order
+Database migrations to be executed on a PostgreSQL database.
 
-`..._up.sql` makes a change, `..._down.sql` fully reverses it
+- `psql -U fileplay -d fileplay --host=127.0.0.1 -f up.sql`
+
+- `psql -U fileplay -d fileplay --host=127.0.0.1 -f down.sql`
 
 ## naming
 

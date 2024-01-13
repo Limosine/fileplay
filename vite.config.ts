@@ -1,15 +1,19 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
-import { config } from "dotenv";
 import EnvironmentPlugin from "vite-plugin-environment";
-config();
 
 export default async function (config: ConfigEnv): Promise<UserConfig> {
   return {
+    resolve: {
+      alias: {
+        "simple-peer": "simple-peer/simplepeer.min.js",
+      },
+    },
     plugins: [
       EnvironmentPlugin(["NODE_ENV"]),
       sveltekit(),
+      // SvelteKitPWA(),
       SvelteKitPWA({
         srcDir: "src",
         filename: "service-worker.ts",

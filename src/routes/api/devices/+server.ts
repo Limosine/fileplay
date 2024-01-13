@@ -1,92 +1,26 @@
-import { COOKIE_SIGNING_SECRET } from "$env/static/private";
-import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
-import { createKysely, getDevices } from "$lib/server/db";
-import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import type { DeviceType } from "$lib/lib/common";
+import { error } from "@sveltejs/kit";
 
-export const GET: RequestHandler = async ({ cookies, platform }) => {
-  // get all devices linked to this account (requires cookie auth)
-  const db = createKysely(platform);
-  const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const { did, uid } = await loadSignedDeviceID(cookies, key, db);
-  if (!uid) error(401, "No user associated with this device");
+import { deleteDevice, httpAuthorized } from "$lib/server/db";
+import { notifyDevices } from "$lib/trpc/procedures";
 
-  const devices = await getDevices(db, uid, did);
-
-  if (devices.success) {
-    return json(devices.response, { status: 200 });
-  } else {
-    return new Response(devices.response, { status: 500 });
-  }
-};
-
-export const POST: RequestHandler = async ({
-  platform,
-  cookies,
-  request,
-  url,
-}) => {
-  // change device info (requires cookie auth)
-  // device id in query params
-  const db = createKysely(platform);
-  const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const { did: own_did, uid } = await loadSignedDeviceID(cookies, key, db);
-
-  const did_s = url.searchParams.get("did");
-  let did: number;
-  if (did_s != null) did = parseInt(did_s);
-  else did = own_did;
-
-  if (isNaN(did)) error(400, "Invalid device id in query params");
-
-  const updateObject: {
-    displayName?: string;
-    type?: DeviceType;
-    webRTCOffer?: string;
-    webRTCAnswer?: string;
-  } = await request.json();
-
-  const res = await db
-    .updateTable("devices")
-    .set(updateObject)
-    .where((eb) =>
-      eb("did", "=", did).and("uid", "=", uid),
-    )
-    .returning("did")
-    .executeTakeFirst();
-
-  if (!res) error(500, "Failed to update device info");
-
-  return new Response(null, { status: 200 });
-};
-
-export const DELETE: RequestHandler = async ({ platform, cookies, url }) => {
-  // delete a device (requires cookie auth)
-  // device id in query params
-  const db = createKysely(platform);
-  const key = await loadKey(COOKIE_SIGNING_SECRET);
-  const { did: own_did, uid } = await loadSignedDeviceID(cookies, key, db);
+export const DELETE: RequestHandler = async ({ cookies, url }) => {
+  const ctx = await httpAuthorized(cookies, false);
 
   const did_s = url.searchParams.get("did");
   let did: number;
   if (did_s) did = parseInt(did_s);
-  else did = own_did;
+  else did = ctx.device;
 
-  if (isNaN(did)) error(400, "Invalid device id in query params");
+  if (isNaN(did)) error(422, "Wrong data type");
 
-  // delete device mapping
-  const res1 = await db
-    .deleteFrom("devices")
-    .where((eb) =>
-      eb("did", "=", did).and(eb("did", "=", own_did).or("uid", "=", uid)),
-    )
-    .returning("did")
-    .executeTakeFirst();
+  try {
+    await deleteDevice(ctx.database, ctx.device, did, ctx.user);
+  } catch (e: any) {
+    error(500, e);
+  }
 
-  if (!res1) error(500, "Failed to delete device");
-
-  // inform the device that it has been deleted via push
-
+  if (typeof ctx.user === "number")
+    notifyDevices(ctx.database, "device", ctx.user);
   return new Response(null, { status: 200 });
 };

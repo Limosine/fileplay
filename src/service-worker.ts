@@ -3,16 +3,16 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-const sw = /** @type {ServiceWorkerGlobalScope} */ (/** @type {unknown} */ (self));
+const sw = /** @type {ServiceWorkerGlobalScope} */ /** @type {unknown} */ self;
 declare const self: ServiceWorkerGlobalScope;
 
+import { precacheAndRoute } from "workbox-precaching";
 import {
   pageCache,
   imageCache,
   staticResourceCache,
   googleFontsCache,
 } from "workbox-recipes";
-import { precacheAndRoute } from "workbox-precaching";
 
 precacheAndRoute(self.__WB_MANIFEST);
 
@@ -36,12 +36,15 @@ const serveShareTarget = (event: FetchEvent) => {
       await nextMessage("share-ready");
       const client = await self.clients.get(event.resultingClientId);
 
-      client!.postMessage({ data: (await formData).getAll("files"), action: "load-data" });
+      client!.postMessage({
+        data: (await formData).getAll("files"),
+        action: "load-data",
+      });
     })(),
   );
-}
+};
 
-self.addEventListener('fetch', (event: any) => {
+self.addEventListener("fetch", (event: any) => {
   const url = new URL(event.request.url);
 
   if (
@@ -63,7 +66,7 @@ const nextMessage = (dataVal: string) => {
     }
     nextMessageResolveMap.get(dataVal)!.push(resolve);
   });
-}
+};
 
 self.addEventListener("message", (event: any) => {
   const resolvers = nextMessageResolveMap.get(event.data);

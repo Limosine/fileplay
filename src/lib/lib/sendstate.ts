@@ -11,15 +11,15 @@ export enum SendState {
 }
 
 const createMapStore = () => {
-  const store = writable<{ [peerID: string]: number }>({});
+  const store = writable<{ [did: string]: number }>({});
 
   const { subscribe, set, update } = store;
   return {
     subscribe,
-    addPair: (peerID: string, cid: number) => {
+    addPair: (did: string, cid: number) => {
       const state = get(store);
-      if (state[peerID]) return;
-      state[peerID] = cid;
+      if (state[did]) return;
+      state[did] = cid;
       set(state);
     },
     deletePair: (cid: number) => {
@@ -32,19 +32,19 @@ const createMapStore = () => {
         return state;
       });
     },
-    getCid: (peerID: string) => {
-      return get(store)[peerID];
+    getCid: (did: string) => {
+      return get(store)[did];
     },
-    getPeerID: (cid: number) => {
+    getDid: (cid: number) => {
       const cache = get(store);
-      let peerID = "";
+      let did = "";
       Object.keys(cache).forEach((key) => {
         if (cache[key] == cid) {
-          peerID = key;
+          did = key;
           return;
         }
       });
-      return peerID;
+      return did;
     },
   };
 };

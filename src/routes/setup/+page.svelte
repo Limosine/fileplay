@@ -4,26 +4,32 @@
 
   import "beercss";
 
+  import logo from "$lib/assets/Fileplay.svg";
   import Username from "$lib/components/Username.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
-  import logo from "$lib/assets/Fileplay.svg";
 
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
   import { withDeviceType } from "$lib/lib/fetchers";
   import { publicKey_armored, setup as pgp_setup } from "$lib/lib/openpgp";
-  import { deviceParams, userParams, profaneUsername, ValueToName, openDialog, linkingCode } from "$lib/lib/UI";
-  // import { createPeer } from "$lib/lib/simple-peer";
+  import {
+    deviceParams,
+    userParams,
+    profaneUsername,
+    ValueToName,
+    openDialog,
+    linkingCode,
+  } from "$lib/lib/UI";
 
   let progress = 0;
   let setupError: string;
 
   let actionDisabled: boolean;
   $: {
-    if (!$deviceParams.displayName || !$deviceParams.type)
+    if (!$deviceParams.display_name || !$deviceParams.type)
       actionDisabled = true;
     else if (!existing) {
       actionDisabled =
-        !$userParams.displayName ||
+        !$userParams.display_name ||
         get(profaneUsername).profane ||
         get(profaneUsername).loading;
     } else {
@@ -58,11 +64,17 @@
       });
     }
     if (!storedDeviceParams) {
-      $deviceParams.encryptionPublicKey = publicKey_armored;
+      $deviceParams.encryption_public_key = publicKey_armored;
+
+      const object = {
+        display_name: $deviceParams.display_name,
+        type: $deviceParams.type,
+        encryption_public_key: $deviceParams.encryption_public_key,
+      };
 
       const res = await fetch("/api/setup/device", {
         method: "POST",
-        body: JSON.stringify($deviceParams),
+        body: JSON.stringify(object),
       });
       if (String(res.status).charAt(0) !== "2") {
         handleResponseError(res);
@@ -81,10 +93,15 @@
         return;
       }
     } else {
+      const object = {
+        display_name: $userParams.display_name,
+        avatar_seed: $userParams.avatar_seed,
+      };
+
       // create new user
       const res = await fetch("/api/setup/user", {
         method: "POST",
-        body: JSON.stringify($userParams),
+        body: JSON.stringify(object),
       });
       if (String(res.status).charAt(0) !== "2") {
         handleResponseError(res);
@@ -100,8 +117,6 @@
 
   onMount(() => {
     pgp_setup();
-
-    // createPeer();
   });
 </script>
 
@@ -125,7 +140,7 @@
       <p class="bold" style="font-size: large">Device</p>
       <div id="content" class="row center-align" style="padding-bottom: 30px;">
         <div class="field label">
-          <input bind:value={$deviceParams.displayName} maxlength={32} />
+          <input bind:value={$deviceParams.display_name} maxlength={32} />
           <!-- svelte-ignore a11y-label-has-associated-control-->
           <label>Device Name</label>
         </div>
@@ -141,7 +156,12 @@
             <!-- eslint-disable svelte/valid-compile -->
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions a11y-missing-attribute missing-declaration -->
             {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-              <a on:mousedown={() => {ui("#menu-deviceType"); $deviceParams.type = type;}}>{name}</a>
+              <a
+                on:mousedown={() => {
+                  ui("#menu-deviceType");
+                  $deviceParams.type = type;
+                }}>{name}</a
+              >
             {/each}
             <!-- eslint-enable svelte/valid-compile -->
           </menu>
@@ -243,12 +263,12 @@
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Device name</p>
         <p
-          style="font-size: small; margin-top: 0; {!$deviceParams.displayName
-            ? "font-style: italic;"
-            : ""}"
+          style="font-size: small; margin-top: 0; {!$deviceParams.display_name
+            ? 'font-style: italic;'
+            : ''}"
         >
-          {$deviceParams.displayName
-            ? $deviceParams.displayName
+          {$deviceParams.display_name
+            ? $deviceParams.display_name
             : "Google Pixel 5"}
         </p>
       </div>
@@ -317,9 +337,9 @@
       >
         <div class="column">
           <p style="font-size: large; margin-bottom: 2px;">Username</p>
-          {#if $userParams.displayName}
+          {#if $userParams.display_name}
             <p style="font-size: small; margin-top: 0;">
-              {$userParams.displayName}
+              {$userParams.display_name}
             </p>
           {/if}
         </div>
@@ -339,7 +359,7 @@
         <img
           class="responsive"
           style="height: auto;"
-          src={getDicebearUrl($userParams.avatarSeed, 150)}
+          src={getDicebearUrl($userParams.avatar_seed, 150)}
           alt="Avatar"
         />
       </a>

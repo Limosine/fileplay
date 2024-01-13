@@ -1,72 +1,116 @@
-import { get } from "svelte/store";
 import { browser } from "$app/environment";
-
-import {
-  contacts,
-  deviceInfos,
-  deviceInfos_loaded,
-  deviceParams,
-  devices,
-  devices_loaded,
-  fetch_mode,
-  own_did,
-  user,
-  user_loaded,
-} from "./UI";
-import { DeviceType } from "./common";
 import { page } from "$app/stores";
-import { websocket } from "./websocket";
+import type { SignalData } from "simple-peer";
+import { get, writable } from "svelte/store";
+import type { Unsubscribable } from "@trpc/server/observable";
+
+import { DeviceType, ONLINE_STATUS_REFRESH_TIME } from "./common";
+import { trpc } from "$lib/trpc/client";
+import { connections, connectToDevice } from "./simple-peer";
+import { contacts, devices, own_did, user } from "./UI";
 
 // contacts
 export interface IContact {
   cid: number;
-  displayName: string;
-  avatarSeed: string;
-  linkedAt: number;
-  lastSeenAt: number;
+  uid: number;
+  display_name: string;
+  avatar_seed: string;
+  linked_at: number;
+  devices: IDeviceInfo[];
 }
 
 // devices
 export interface IDevices {
   self: {
     did: number;
-    type: string;
-    displayName: string;
-    createdAt: number;
-    lastSeenAt: number;
+    type: DeviceType;
+    display_name: string;
+    created_at: number;
+    last_seen_at: number;
   };
   others: {
     did: number;
-    type: string;
-    displayName: string;
-    createdAt: number;
-    lastSeenAt: number;
+    type: DeviceType;
+    display_name: string;
+    created_at: number;
+    last_seen_at: number;
+    is_online: number;
   }[];
 }
 
 // device infos
 export interface IDeviceInfo {
-  cid: number;
   did: number;
   type: string;
-  displayName: string;
-  webRTCOffer: string;
-  webRTCAnswer: string;
-  encryptionPublicKey: string;
+  display_name: string;
+  encryption_public_key: string;
 }
 
 // user
 export interface IUser {
   uid: number;
-  displayName: string;
-  avatarSeed: string;
-  createdAt: number;
-  lastSeenAt: number;
+  display_name: string;
+  avatar_seed: string;
+  created_at: number;
 }
 
 export function withDeviceType(name: string): { type: string; name: string } {
   // @ts-ignore
   return { name, type: DeviceType[name] as string };
+}
+
+const heartbeatInterval = writable<NodeJS.Timeout | undefined>();
+export function startHeartbeat() {
+  if (get(heartbeatInterval) !== undefined) return;
+  heartbeatInterval.set(
+    setInterval(() => {
+      trpc().sendHeartbeat.mutate();
+    }, ONLINE_STATUS_REFRESH_TIME * 1000),
+  );
+}
+
+export function stopHeartbeat() {
+  clearInterval(get(heartbeatInterval));
+  heartbeatInterval.set(undefined);
+}
+
+const subscriptions = writable<Unsubscribable[]>([]);
+export function startSubscriptions() {
+  if (get(subscriptions).length !== 0) return;
+
+  const onUser = (data: IUser) => {
+    user.set(data);
+  };
+  const onDevices = (data: IDevices) => {
+    devices.set(data);
+    own_did.set(data.self.did);
+  };
+  const onContacts = (data: IContact[]) => {
+    contacts.set(data);
+  };
+  const onWebRTCData = (data: { from: number; data: string }) => {
+    if (get(connections)[data.from] === undefined || get(connections)[data.from].closed || get(connections)[data.from].destroyed)
+      connectToDevice(data.from, false).signal(JSON.parse(data.data));
+    else get(connections)[data.from].signal(JSON.parse(data.data));
+  };
+
+  const client = trpc();
+  subscriptions.update((subs) => {
+    subs.push(client.getUser.subscribe(undefined, { onData: onUser }));
+    subs.push(client.getDevices.subscribe(undefined, { onData: onDevices }));
+    subs.push(client.getContacts.subscribe(undefined, { onData: onContacts }));
+    subs.push(
+      client.getWebRTCData.subscribe(undefined, { onData: onWebRTCData }),
+    );
+
+    return subs;
+  });
+}
+export function stopSubscriptions() {
+  get(subscriptions).forEach((sub) => {
+    sub.unsubscribe();
+  });
+  subscriptions.set([]);
 }
 
 export async function getWebRTCOffer(did: number): Promise<string> {
@@ -77,76 +121,6 @@ export async function getWebRTCOffer(did: number): Promise<string> {
   });
 
   return await res.json();
-}
-
-export const loadInfos = (devices: IDevices, did: number) => {
-  let device:
-    | {
-        did: number;
-        type: string;
-        displayName: string;
-        createdAt: number;
-        lastSeenAt: number;
-      }
-    | undefined;
-
-  if (devices.self.did == did) {
-    device = devices.self;
-  } else {
-    device = devices.others.find((device) => device.did === did);
-  }
-
-  if (!device)
-    throw new Error("No device with this deviceID is linked to this account.");
-
-  deviceParams.update((deviceParams) => {
-    if (!device) return deviceParams;
-    deviceParams.displayName = device.displayName;
-    deviceParams.type = device.type;
-    return deviceParams;
-  });
-
-  // original_displayName.set(device.displayName);
-  // original_type.set(device.type);
-
-  // device_edit_loaded.set(true);
-};
-
-export async function updateWebRTC(offer?: string, answer?: string) {
-  const sender_uuid = (await import("../peerjs/common")).sender_uuid;
-
-  updateDevice({
-    webRTCOffer: offer,
-    webRTCAnswer: answer
-  });
-}
-
-export async function updateDevice(
-  update: {
-    displayName?: string,
-    type?: DeviceType,
-    webRTCOffer?: string,
-    webRTCAnswer?: string,
-  },
-  did?: number
-) {
-  sendMessage({
-    method: "post",
-    type: "devices",
-    data: {
-      did: did,
-      update: update
-    }
-  });
-}
-
-export async function sendMessage(message: object) {
-  if (
-    get(page).url.hostname == "localhost" ||
-    get(websocket).readyState !== WebSocket.OPEN
-  ) return;
-
-  get(websocket).send(JSON.stringify(message));
 }
 
 export async function deleteAccount() {
@@ -162,47 +136,5 @@ export async function deleteAccount() {
     localStorage.removeItem("encryptionPublicKey");
     localStorage.removeItem("encryptionRevocationCertificate");
     window.location.href = "/setup";
-  }
-}
-
-interface ICombined {
-  user?: IUser;
-  devices?: IDevices;
-  deviceInfos?: IDeviceInfo[];
-  contacts?: IContact[];
-}
-
-export async function getCombined(requests: string[]) {
-  if (get(page).url.hostname == "localhost") return [];
-
-  if (get(fetch_mode) == "HTTP") {
-    const res = await fetch(`/api/combined?request=${requests.toString()}`, {
-      method: "GET",
-    });
-  
-    const result = await (res.json() as Promise<ICombined>);
-  
-    if (result.user) {
-      user.set(result.user);
-      if (!get(user_loaded)) user_loaded.set(true);
-    }
-    if (result.devices) {
-      devices.set(result.devices);
-      if (!get(devices_loaded)) devices_loaded.set(true);
-  
-      own_did.set(result.devices.self.did);
-    }
-    if (result.deviceInfos) {
-      deviceInfos.set(result.deviceInfos);
-      if (!get(deviceInfos_loaded)) deviceInfos_loaded.set(true);
-    }
-    if (result.contacts) contacts.set(result.contacts);
-  } else {
-    requests.forEach(request => {
-      sendMessage({
-        method: "get",
-        type: request
-      });
-    });
   }
 }

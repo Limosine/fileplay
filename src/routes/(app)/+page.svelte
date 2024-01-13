@@ -1,12 +1,27 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
-  import Input, { files } from "$lib/components/Input.svelte";
-  import { addContactDialog, add_mode, current, editDialog, notificationDialog, settings_page, stopRefresh, user_loaded } from "$lib/lib/UI";
-
-  import Home from "$lib/pages/Home.svelte";
-  import Contacts from "$lib/pages/Contacts.svelte";
-  import Settings from "$lib/pages/Settings.svelte";
   import { page } from "$app/stores";
+  import { onDestroy, onMount } from "svelte";
+
+  import Input, { files } from "$lib/components/Input.svelte";
+  import {
+    startHeartbeat,
+    stopHeartbeat,
+    startSubscriptions,
+    stopSubscriptions,
+  } from "$lib/lib/fetchers";
+  import { setup as pgp_setup } from "$lib/lib/openpgp";
+  import {
+    addContactDialog,
+    add_mode,
+    current,
+    editDialog,
+    notificationDialog,
+    settings_page,
+    user,
+  } from "$lib/lib/UI";
+  import Contacts from "$lib/pages/Contacts.svelte";
+  import Home from "$lib/pages/Home.svelte";
+  import Settings from "$lib/pages/Settings.svelte";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -32,39 +47,50 @@
         ui("#dialog-edit");
       }
     }
-  }
+  };
 
   const openAddDialog = () => {
-    if ($current == "Contacts"){
+    if ($current == "Contacts") {
       $add_mode = "contact";
     } else {
       $add_mode = "device";
     }
     ui("#dialog-add");
-  }
+  };
 
-  const handleMessage = (event: MessageEvent<{data: any, action: string}>) => {
+  const handleMessage = (
+    event: MessageEvent<{ data: any; action: string }>,
+  ) => {
     if (event.data.action == "load-data") {
       const swFiles: File[] = event.data.data;
       const dataTransfer = new DataTransfer();
 
-      swFiles.forEach(async file => {
+      swFiles.forEach(async (file) => {
         dataTransfer.items.add(file);
         $files = dataTransfer.files;
       });
 
-      navigator.serviceWorker.removeEventListener('message', handleMessage);
+      navigator.serviceWorker.removeEventListener("message", handleMessage);
       $page.url.searchParams.delete("share-target");
     }
   };
 
-  onDestroy(stopRefresh);
-
   onMount(() => {
+    if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
+      pgp_setup();
+      startHeartbeat();
+      startSubscriptions();
+    }
+
     if ($page.url.searchParams.has("share-target")) {
       navigator.serviceWorker.addEventListener("message", handleMessage);
       navigator.serviceWorker.controller?.postMessage("share-ready");
     }
+  });
+
+  onDestroy(() => {
+    stopHeartbeat();
+    stopSubscriptions();
   });
 </script>
 
@@ -80,19 +106,27 @@
   <Home />
 {:else if $current == "Contacts"}
   <Contacts />
-{:else if $current == "Settings" && $user_loaded}
+{:else if $current == "Settings" && $user !== undefined}
   <Settings />
 {/if}
 
 {#if $current == "Contacts" || ($current == "Settings" && $settings_page == "devices")}
   <!-- eslint-disable no-undef -->
   <!-- svelte-ignore missing-declaration -->
-  <button id="add-mobile" class="s square round extra" on:click={() => openAddDialog()}>
+  <button
+    id="add-mobile"
+    class="s square round extra"
+    on:click={() => openAddDialog()}
+  >
     <i>add</i>
   </button>
 
   <!-- svelte-ignore missing-declaration -->
-  <button id="add-desktop" class="l m square round extra" on:click={() => openAddDialog()}>
+  <button
+    id="add-desktop"
+    class="l m square round extra"
+    on:click={() => openAddDialog()}
+  >
     <i>add</i>
   </button>
   <!-- eslint-enable no-undef -->

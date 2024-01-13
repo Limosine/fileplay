@@ -1,68 +1,26 @@
 <script lang="ts">
-  import { codehostname, addContactDialog, add_mode } from "$lib/lib/UI";
-  import { onDestroy, onMount } from "svelte";
   import dayjs from "dayjs";
-  import { getCombined } from "$lib/lib/fetchers";
+  import { onDestroy, onMount } from "svelte";
 
-  let hostname: string;
-  let code = "";
+  import { trpc } from "$lib/trpc/client";
+  import { code, addContactDialog, add_mode } from "$lib/lib/UI";
 
   let redeemCode_section = true;
 
-  function setHostname() {
-    if ($codehostname.includes("@")) {
-      hostname = $codehostname.slice($codehostname.search("@") + 1);
-      code = $codehostname.slice(0, $codehostname.search("@"));
-    } else {
-      code = $codehostname;
-    }
-  }
-
-  async function redeemCode() {
-    var link = "/api/contacts/link";
-    if (hostname) {
-      link = "https://" + hostname + link;
-    }
-
-    await fetch(link, {
-      method: "POST",
-      body: JSON.stringify({ code: code }),
-    });
-    await getCombined(["contacts"]);
-  }
-
-  async function generateContactCode(): Promise<{
-    code: string;
-    expires: number;
-    refresh: number;
-  }> {
+  async function generateContactCode() {
     // todo refresh this code after specified interval
 
-    const res = await fetch("/api/contacts/link", {
-      method: "GET",
-    });
-
-    const codeproperties = (await res.json()) as any;
-    expires_at = codeproperties.expires;
-
-    return codeproperties;
+    const result = await trpc().getContactCode.query();
+    expires_at = result.expires;
+    return result;
   }
 
-  async function generateDeviceCode(): Promise<{
-    code: string;
-    expires: number;
-    refresh: number;
-  }> {
+  async function generateDeviceCode() {
     // todo refresh this code after specified interval
 
-    const res = await fetch("/api/devices/link", {
-      method: "GET",
-    });
-
-    const codeproperties = (await res.json()) as any;
-    expires_at = codeproperties.expires;
-
-    return codeproperties;
+    const result = await trpc().getDeviceCode.query();
+    expires_at = result.expires;
+    return result;
   }
 
   let expires_in: number;
@@ -77,10 +35,7 @@
   onDestroy(() => clearInterval(updateInterval));
 </script>
 
-<dialog
-  id="dialog-add"
-  bind:this={$addContactDialog}
->
+<dialog id="dialog-add" bind:this={$addContactDialog}>
   {#if $add_mode == "contact"}
     <p style="font-size: large; margin-bottom: 10px;">Add contact</p>
     <div id="content">
@@ -108,12 +63,7 @@
       </nav>
       {#if redeemCode_section}
         <div class="field label border">
-          <input
-            type="text"
-            maxlength={6}
-            bind:value={$codehostname}
-            on:input={() => setHostname()}
-          />
+          <input type="text" maxlength={6} bind:value={$code} />
           <!-- svelte-ignore a11y-label-has-associated-control -->
           <label>Linking code</label>
         </div>
@@ -124,7 +74,7 @@
         {:then codeproperties}
           <p>
             Code: {codeproperties.code}<br />
-            Expires in {expires_in} m
+            Expires in {expires_in === undefined ? 15 : expires_in} m
           </p>
         {:catch}
           <p>Failed to generate code.</p>
@@ -137,16 +87,17 @@
       <button
         class="border"
         style="border: 0;"
-        on:click={() => ui("#dialog-add")}
-        >Cancel</button
+        on:click={() => ui("#dialog-add")}>Cancel</button
       >
       <!-- svelte-ignore missing-declaration -->
       <button
-        disabled={code == ""}
+        disabled={$code == ""}
         class="border"
         style="border: 0;"
-        on:click={() => {setHostname(); redeemCode(); ui("#dialog-add");}}
-        >Add</button
+        on:click={async () => {
+          await trpc().redeemContactCode.mutate($code);
+          ui("#dialog-add");
+        }}>Add</button
       >
       <!-- eslint-enable no-undef -->
     </nav>
@@ -157,7 +108,7 @@
     {:then codeproperties}
       <p>
         Code: {codeproperties.code}<br />
-        Expires in {expires_in} m
+        Expires in {expires_in === undefined ? 15 : expires_in} m
       </p>
     {:catch}
       <p>Failed to generate code.</p>

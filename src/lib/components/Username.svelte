@@ -1,47 +1,39 @@
 <script lang="ts">
   import { nanoid } from "nanoid";
 
+  import { getDicebearUrl } from "$lib/lib/common";
+  import type { IUser } from "$lib/lib/fetchers";
   import {
     userParams,
     user,
-    user_loaded,
     profaneUsername,
     updateIsProfaneUsername,
   } from "$lib/lib/UI";
-  import { getDicebearUrl } from "$lib/lib/common";
 
-  const loadInfos = (user: {
-    uid: number;
-    displayName: string;
-    avatarSeed: string;
-    createdAt: number;
-    lastSeenAt: number;
-  }) => {
-    $userParams.displayName = user.displayName;
-    $userParams.avatarSeed = user.avatarSeed;
+  const loadInfos = (user: IUser) => {
+    $userParams.display_name = user.display_name;
+    $userParams.avatar_seed = user.avatar_seed;
     // $original_username = user.displayName;
     // $original_avatarSeed = user.avatarSeed;
   };
 
   const generateAvatar = () => {
-    $userParams.avatarSeed = nanoid(8);
+    $userParams.avatar_seed = nanoid(8);
+  };
+
+  $: {
+    if ($user !== undefined) {
+      loadInfos($user);
+    } else {
+      generateAvatar();
+    }
   };
 </script>
 
-<div style="display: none">
-  {#if $user_loaded}
-    {#await $user then user}
-      {loadInfos(user)}
-    {/await}
-  {:else}
-    {generateAvatar()}
-  {/if}
-</div>
-
 <div id="user">
-  <div class="field label {$profaneUsername.profane ? "invalid" : ""}">
+  <div class="field label {$profaneUsername.profane ? 'invalid' : ''}">
     <input
-      bind:value={$userParams.displayName}
+      bind:value={$userParams.display_name}
       on:focusout={() => updateIsProfaneUsername()}
       maxlength={32}
     />
@@ -52,13 +44,13 @@
     <p class="bold" style="font-size: large">Avatar</p>
     <div id="avatar">
       <img
-        src={getDicebearUrl($userParams.avatarSeed, 150)}
+        src={getDicebearUrl($userParams.avatar_seed, 150)}
         alt="Your Avatar"
       />
       <div id="fab">
         <button
           class="circle"
-          on:click={() => ($userParams.avatarSeed = nanoid(8))}
+          on:click={() => ($userParams.avatar_seed = nanoid(8))}
         >
           <i>refresh</i>
         </button>

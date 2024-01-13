@@ -1,8 +1,9 @@
-import { error, type Cookies } from "@sveltejs/kit";
-import { arrayBufferToHex, hexToArrayBuffer } from "./utils";
 import type { CookieSerializeOptions } from "cookie";
+import { error, type Cookies } from "@sveltejs/kit";
+
+import { getUID } from "./db";
 import type { Database } from "$lib/lib/db";
-import { updateLastSeen } from "./db";
+import { arrayBufferToHex, hexToArrayBuffer } from "./utils";
 
 export async function saveSignedDeviceID(
   did: number,
@@ -15,25 +16,42 @@ export async function saveSignedDeviceID(
     path: "/",
     maxAge: 60 * 60 * 24 * 60 * 12 * 10,
   };
+  // @ts-ignore
   cookies.set("did", id, cookie_opts);
+  // @ts-ignore
   cookies.set("did_sig", signature, cookie_opts);
 }
 
 export async function loadSignedDeviceID(
-  cookies: Cookies,
+  signature: string,
+  did_s: string,
   key: CryptoKey,
   db: Database,
-): Promise<{ did: number; uid: number | null }> {
-  const did_s = cookies.get("did");
-  const signature = cookies.get("did_sig");
+): Promise<
+  | {
+      success: true;
+      message: {
+        did: number;
+        uid: number | null;
+      };
+    }
+  | {
+      success: false;
+      message: any;
+    }
+> {
   if (!did_s || !signature) error(401, "Not authenticated");
   if (!(await verify(did_s, signature, key)))
     error(401, "Wrong authentication signature");
-  const did_i = parseInt(did_s);
 
-  const result = await updateLastSeen(db, did_i);
+  const did = parseInt(did_s);
+  const uid = await getUID(db, did);
 
-  return { did: result.did, uid: result.uid };
+  if (uid.success) {
+    return { success: true, message: { did, uid: uid.message } };
+  } else {
+    return { success: false, message: uid.message };
+  }
 }
 
 export async function sign(data: string, key: CryptoKey): Promise<string> {
