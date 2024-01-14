@@ -5,8 +5,7 @@ import { TRPCError, type inferAsyncReturnType } from "@trpc/server";
 import type { CreateHTTPContextOptions } from "@trpc/server/adapters/standalone";
 import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 
-// @ts-ignore
-import { COOKIE_SIGNING_SECRET } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import type { Database } from "$lib/lib/db";
 import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
@@ -30,7 +29,7 @@ export async function createContext(
 
   const db = createKysely();
   if (!db.success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-  const key = await loadKey(COOKIE_SIGNING_SECRET);
+  const key = await loadKey(env.COOKIE_SIGNING_SECRET);
 
   const getUser = async () => {
     if (opts.req.headers.cookie !== undefined) {
