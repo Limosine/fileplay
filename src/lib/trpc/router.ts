@@ -62,12 +62,12 @@ export const guest = open.use(async (opts) => {
     index = get(guests).length - 1;
   }
 
-  guests.update(guests => {
+  guests.update((guests) => {
     guests[index] = new EventEmitter();
     return guests;
   });
   setTimeout(() => {
-    guests.update(guests => {
+    guests.update((guests) => {
       const ee = guests[index];
       ee?.removeAllListeners();
       delete guests[index];
@@ -128,7 +128,7 @@ export const router = t.router({
     }),
 
   getWebRTCData: authorized.subscription((opts) => {
-    return observable<{ from: number; data: string }>((emit) => {
+    return observable<{ from: number; data: string }, TRPCError>((emit) => {
       getWebRTCData(emit, opts.ctx.device);
     });
   }),
@@ -142,7 +142,7 @@ export const router = t.router({
       }),
     )
     .subscription(({ input: message, ctx }) => {
-      return observable<{ from: number; data: string }>((emit) => {
+      return observable<{ from: number; data: string }, TRPCError>((emit) => {
         shareFromGuest(emit, ctx, message);
       });
     }),
@@ -210,23 +210,26 @@ export const router = t.router({
     }),
 
   getDevices: authorized.subscription((opts) => {
-    return observable<{
-      self: {
-        created_at: number;
-        display_name: string;
-        did: number;
-        type: DeviceType;
-        last_seen_at: number;
-      };
-      others: {
-        did: number;
-        display_name: string;
-        is_online: number;
-        type: DeviceType;
-        created_at: number;
-        last_seen_at: number;
-      }[];
-    }>((emit) => {
+    return observable<
+      {
+        self: {
+          created_at: number;
+          display_name: string;
+          did: number;
+          type: DeviceType;
+          last_seen_at: number;
+        };
+        others: {
+          did: number;
+          display_name: string;
+          is_online: number;
+          type: DeviceType;
+          created_at: number;
+          last_seen_at: number;
+        }[];
+      },
+      TRPCError
+    >((emit) => {
       getDevices(emit, opts.ctx);
     });
   }),
@@ -245,7 +248,8 @@ export const router = t.router({
           display_name: string;
           encryption_public_key: string;
         }[];
-      }[]
+      }[],
+      TRPCError
     >((emit) => {
       getContacts(emit, opts.ctx);
     });
@@ -279,12 +283,15 @@ export const router = t.router({
     }),
 
   getUser: authorized.subscription((opts) => {
-    return observable<{
-      uid: number;
-      display_name: string;
-      created_at: number;
-      avatar_seed: string;
-    }>((emit) => {
+    return observable<
+      {
+        uid: number;
+        display_name: string;
+        created_at: number;
+        avatar_seed: string;
+      },
+      TRPCError
+    >((emit) => {
       getUser(emit, opts.ctx);
     });
   }),

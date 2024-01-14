@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 import { get } from "svelte/store";
+import { TRPCError } from "@trpc/server";
 import type { Observer } from "@trpc/server/observable";
 
 import { ONLINE_STATUS_TIMEOUT, type DeviceType } from "$lib/lib/common";
@@ -16,7 +17,6 @@ import {
 
 import type { Authorized, Guest } from "./context";
 import { connections, guests, timers } from "./router";
-import { TRPCError } from "@trpc/server";
 
 export const getEventEmitter = (did: number) => {
   if (did < 0) {
@@ -113,7 +113,7 @@ export const getDevices = async (
         last_seen_at: number;
       }[];
     },
-    unknown
+    TRPCError
   >,
   ctx: Authorized,
 ) => {
@@ -146,7 +146,7 @@ export const getUser = async (
       created_at: number;
       avatar_seed: string;
     },
-    unknown
+    TRPCError
   >,
   ctx: Authorized,
 ) => {
@@ -186,7 +186,7 @@ export const getContacts = async (
         encryption_public_key: string;
       }[];
     }[],
-    unknown
+    TRPCError
   >,
   ctx: Authorized,
 ) => {
@@ -217,7 +217,7 @@ export const getContacts = async (
 };
 
 export const getWebRTCData = async (
-  emit: Observer<{ from: number; data: string }, unknown>,
+  emit: Observer<{ from: number; data: string }, TRPCError>,
   deviceID: number,
 ) => {
   const ee = getEventEmitter(deviceID);
@@ -241,7 +241,7 @@ export const shareFromGuest = async (
       from: number;
       data: string;
     },
-    unknown
+    TRPCError
   >,
   ctx: Guest,
   message: {
@@ -251,6 +251,7 @@ export const shareFromGuest = async (
   },
 ) => {
   const online = await checkOnlineStatus(ctx.database, message.did);
+
   if (online.success) {
     getWebRTCData(emit, ctx.guestID * -1);
     getEventEmitter(message.did).emit(
@@ -259,6 +260,6 @@ export const shareFromGuest = async (
       message.data,
     );
   } else {
-    throw new TRPCError({ code: "NOT_FOUND" });
+    emit.error(new TRPCError({ code: "NOT_FOUND" }));
   }
 };
