@@ -4,41 +4,34 @@
   import {
     notifications,
     deleteNotification,
-    type INotification,
     addNotification,
     returnProgress,
     notificationDialog,
     contacts,
+    type NotificationRequest,
+    type NotificationReceiving,
   } from "$lib/lib/UI";
   import {
     incoming_filetransfers,
-    type FileInfos,
     type IncomingFiletransfer,
+    type Request,
   } from "$lib/sharing/common";
   import { sendAccept } from "$lib/sharing/send";
 
-  async function handleNotificationClick(n: INotification, action: string) {
-    if (action == "download") {
-      window.location.href = n.data;
-    } else if (action == "accept") {
-      acceptFileTransfer(n);
-    } else if (action == "cancel") {
-      incoming_filetransfers.update((filetransfers) =>
-        filetransfers.filter(
-          (filetransfer) => filetransfer.id != n.data.filetransfer_id,
-        ),
-      );
-    }
+  const cancelFiletransfer = async (notification: NotificationRequest | NotificationReceiving) => {
+    deleteNotification(notification.tag);
+    incoming_filetransfers.update((filetransfers) =>
+      filetransfers.filter(
+        (filetransfer) => filetransfer.id != notification.data.filetransfer_id,
+      ),
+    );
+  };
 
-    if (action != "download") {
-      deleteNotification(n.tag);
-    }
-  }
+  const acceptFileTransfer = async (notification: NotificationRequest) => {
+    deleteNotification(notification.tag);
+    let files: IncomingFiletransfer["files"] = [];
 
-  const acceptFileTransfer = async (notification: INotification) => {
-    let files: FileInfos[] = [];
-
-    notification.data.files.forEach((file: FileInfos) => {
+    notification.data.files.forEach((file: Request["files"][0]) => {
       files.push({
         id: file.id,
         name: file.name,
@@ -127,23 +120,31 @@
           </div>
           <p>{n.body}</p>
           <nav class="right-align">
-            {#each n.actions ?? [] as action}
-              {#if action.action == "download"}
-                <a
+            {#if n.title == "File request"}
+              <button
+                on:click={() => n.title == "File request" && acceptFileTransfer(n)}
+              >
+                Accept
+              </button>
+            {/if}
+
+            {#if n.title == "File received"}
+              <a
                   class="chip round primary"
                   href={n.data.url}
                   download={n.data.filename}
                 >
                   <span>Download</span>
-                </a>
-              {:else}
-                <button
-                  on:click={() => handleNotificationClick(n, action.action)}
-                >
-                  {action.title}
-                </button>
-              {/if}
-            {/each}
+              </a>
+            {/if}
+
+            {#if n.title == "File request" || n.title == "Receiving file(s)"}
+              <button
+                on:click={() => (n.title == "File request" || n.title == "Receiving file(s)") && cancelFiletransfer(n)}
+              >
+                Cancel
+              </button>
+            {/if}
           </nav>
         </div>
       </article>

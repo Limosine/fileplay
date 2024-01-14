@@ -8,7 +8,7 @@ import {
   type IDevices,
   type IUser,
 } from "./fetchers";
-import type { IncomingFiletransfer } from "$lib/sharing/common";
+import type { IncomingFiletransfer, Request } from "$lib/sharing/common";
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
 export const settings_page = writable<"main" | "devices" | "device">("main");
@@ -48,24 +48,57 @@ interface NotificationAction {
   title: string;
 }
 
-export interface INotification {
+export interface NotificationRequest {
+  title: "File request";
   tag: string;
-  actions?: NotificationAction[];
-  title: string;
-  body?: string;
-  data?: any;
+  actions: [
+    { title: "Accept"; action: "accept" },
+    { title: "Cancel"; action: "cancel" },
+  ];
+  body: string;
+  data: {
+    did: number;
+    filetransfer_id: string;
+    files: Request["files"];
+    encrypted: "publicKey" | "password";
+  };
 }
-export const notifications = writable<INotification[]>([]);
+
+export interface NotificationReceiving {
+  title: "Receiving file(s)";
+  tag: string;
+  actions: [{ title: "Cancel"; action: "cancel" }];
+  body: string;
+  data: { filetransfer_id: string };
+}
+
+export interface NotificationReceived {
+  title: "File received";
+  tag: string;
+  actions: [{ title: "Download"; action: "download" }];
+  body: string;
+  data: {
+    filename: string;
+    url: string;
+  };
+}
+
+export type Notification =
+  | NotificationRequest
+  | NotificationReceiving
+  | NotificationReceived;
+
+export const notifications = writable<Notification[]>([]);
 
 export const addNotification = (
-  notification: PartialBy<INotification, "tag">,
+  notification: PartialBy<Notification, "tag">,
 ) => {
   // replace notifications with the same tag
   if (notification.tag !== undefined) deleteNotification(notification.tag);
   notifications.update((notifications) => {
     if (!("tag" in notification))
       notification.tag = Math.random().toString(36).substring(7);
-    notifications.push(notification as INotification);
+    notifications.push(notification as Notification);
     return notifications;
   });
 };
