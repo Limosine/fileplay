@@ -87,18 +87,23 @@
               </button>
             </a>
           {:else}
-            <article class="border round" style="width: 100%; height: 50px;">
-              <div
-                class="progress left {returnProgress(
-                  filetransfer.id,
-                  $incoming_filetransfers,
-                )}"
-                id={file.id}
-              />
-              <span>
-                {file.name.length > 25 ? returnSubstring(file.name) : file.name}
-              </span>
-              <div class="tooltip">{file.name}</div>
+            <article
+              class="border round row"
+              style="width: 100%; height: 50px;"
+            >
+              <div>
+                <span>
+                  {file.name.length > 25
+                    ? returnSubstring(file.name)
+                    : file.name}
+                </span>
+                <div class="tooltip">{file.name}</div>
+              </div>
+              <div class="max" />
+              <progress
+                class="circle"
+                value={returnProgress(filetransfer.id, $incoming_filetransfers)}
+              ></progress>
             </article>
           {/if}
         </div>
