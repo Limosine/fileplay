@@ -10,7 +10,7 @@ declare global {
     // interface PageData {}
     interface Platform {
       env?: {
-        DATABASE: string;
+        COOKIE_SIGNING_SECRET: string;
       };
     }
   }

@@ -3,8 +3,7 @@ import { Kysely, sql, PostgresDialect } from "kysely";
 import pkg from "pg";
 import { error, type Cookies } from "@sveltejs/kit";
 
-// @ts-ignore
-import { COOKIE_SIGNING_SECRET } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { loadKey, loadSignedDeviceID } from "./crypto";
 import {
   DeviceType,
@@ -48,7 +47,7 @@ export function createKysely():
  */
 export async function httpAuthorized(cookies: Cookies, user = true) {
   const db = createKysely();
-  const key = await loadKey(COOKIE_SIGNING_SECRET);
+  const key = await loadKey(env.COOKIE_SIGNING_SECRET);
   const signature = cookies.get("did_sig");
   const deviceID = cookies.get("did");
 
@@ -84,7 +83,7 @@ export async function httpAuthorized(cookies: Cookies, user = true) {
 
 export async function httpContext() {
   const db = createKysely();
-  const key = await loadKey(COOKIE_SIGNING_SECRET);
+  const key = await loadKey(env.COOKIE_SIGNING_SECRET);
 
   if (db.success) {
     return { key, database: db.message };
