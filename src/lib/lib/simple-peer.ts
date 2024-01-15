@@ -27,13 +27,13 @@ export const sendMessage = (
 
   if (!peer.connected) {
     const send = () => {
-      peer.send(JSON.stringify(data));
+      peer.write(JSON.stringify(data));
       peer.off("connect", send);
     };
 
     peer.on("connect", send);
   } else {
-    peer.send(JSON.stringify(data));
+    peer.write(JSON.stringify(data));
   }
 };
 

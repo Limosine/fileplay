@@ -101,7 +101,7 @@
               </div>
               <div class="max" />
               <progress
-                class="circle"
+                class="circle small"
                 value={returnProgress(filetransfer.id, $incoming_filetransfers)}
               ></progress>
             </article>
