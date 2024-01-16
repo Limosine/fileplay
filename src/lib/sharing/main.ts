@@ -104,7 +104,7 @@ export const handleData = (
         data.final,
       );
     } else if (data.type == "file-finish") {
-      handleFileFinish(data.did, data.id, data.file_id, data.missing);
+      handleFileFinish(did, data.id, data.file_id, data.missing);
     } else if (data.type == "transfer-finish") {
       handleFileTransferFinished(data.id);
     }

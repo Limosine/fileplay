@@ -11,32 +11,27 @@ export interface Chunk {
     data: string;
   };
   final?: boolean;
-  did: number;
 }
 export interface FileFinished {
   type: "file-finish";
   id: string;
   file_id: string;
   missing?: number[];
-  did: number;
 }
 export interface FiletransferFinished {
   type: "transfer-finish";
   id: string;
-  did: number;
 }
 export interface Accept {
   type: "accept";
   id: string;
   guest?: boolean;
-  did?: number;
 }
 export interface Request {
   type: "request";
   id: string;
   encrypted: "publicKey" | "password";
   files: Omit<Omit<Omit<FileInfos, "url">, "chunks">, "completed">[];
-  did: number;
 }
 export interface Error {
   type: "error";

@@ -10,7 +10,7 @@ import {
 } from "$lib/lib/openpgp";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { closeConnections, sendMessage } from "$lib/lib/simple-peer";
-import { addNotification, deleteNotification, own_did } from "$lib/lib/UI";
+import { addNotification, deleteNotification } from "$lib/lib/UI";
 
 import {
   chunkFiles,
@@ -103,7 +103,6 @@ export const sendRequest = (did: number, filetransfer_id: string) => {
         id: outgoing_filetransfer.id,
         encrypted: outgoing_filetransfer.encrypted,
         files,
-        did: get(own_did),
       },
       did,
     );
@@ -158,7 +157,6 @@ export const sendChunked = (
           data: file.chunks[i],
         },
         final: i + 1 === file.chunks_length ? true : undefined,
-        did: get(own_did),
       },
       did,
     );
@@ -189,7 +187,6 @@ export const sendMissing = (
           data: file.chunks[missing[i]],
         },
         final: i + 1 === missing.length ? true : undefined,
-        did: get(own_did),
       },
       did,
     );
@@ -233,7 +230,6 @@ export const sendFinish = async (
       id: filetransfer_id,
       file_id,
       missing: missing.length === 0 ? undefined : missing,
-      did: get(own_did),
     },
     did,
   );
@@ -245,7 +241,6 @@ export const sendFinish = async (
       {
         type: "transfer-finish",
         id: filetransfer_id,
-        did: get(own_did),
       },
       did,
     );
@@ -307,7 +302,6 @@ export const sendAccept = (did: number, filetransfer_id: string) => {
     {
       type: "accept",
       id: filetransfer_id,
-      did: get(own_did),
     },
     did,
   );
