@@ -48,7 +48,7 @@ const sendMessages = (peer: SimplePeer.Instance, did: number) => {
     return buffer;
   });
 
-  peer.write(chunk, undefined, () => sendMessages);
+  peer.write(JSON.stringify(chunk), undefined, () => sendMessages);
 };
 
 export const connectToDevice = (did: number, initiator: boolean) => {
