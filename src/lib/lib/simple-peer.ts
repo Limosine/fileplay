@@ -14,27 +14,41 @@ import type {
 import { handleData } from "$lib/sharing/main";
 
 export const connections = writable<SimplePeer.Instance[]>([]);
+const buffer = writable<(Chunk | FileFinished | FiletransferFinished | Accept | Request | Error)[][]>([]);
 
 export const sendMessage = (
   data: Chunk | FileFinished | FiletransferFinished | Accept | Request | Error,
   did: number,
 ) => {
+  buffer.update(buffer => {
+    if (buffer[did] === undefined) buffer[did] = [];
+    buffer[did].push(data);
+    return buffer;
+  });
+
   let peer: SimplePeer.Instance;
   peer = get(connections)[did];
-  if (peer === undefined) peer = connectToDevice(did, true);
+  if (peer === undefined || peer.closed || peer.destroyed) peer = connectToDevice(did, true);
 
-  if (peer.closed) connectToDevice(did, true);
+  if (get(buffer)[did].length > 1) return;
 
-  if (!peer.connected) {
-    const send = () => {
-      peer.write(JSON.stringify(data));
-      peer.off("connect", send);
-    };
-
-    peer.on("connect", send);
-  } else {
-    peer.write(JSON.stringify(data));
+  if (peer.connected) {
+    sendMessages(peer, did);
   }
+};
+
+const sendMessages = (peer: SimplePeer.Instance, did: number) => {
+  if (get(buffer)[did] === undefined || get(buffer)[did].length <= 0) return;
+
+  if (peer.closed || peer.destroyed) connectToDevice(did, true);
+
+  const chunk = get(buffer)[did][0];
+  buffer.update((buffer) => {
+    buffer = buffer.slice(1);
+    return buffer;
+  });
+
+  peer.write(chunk, undefined, () => sendMessages);
 };
 
 export const connectToDevice = (did: number, initiator: boolean) => {
@@ -71,6 +85,8 @@ export const connectToDevice = (did: number, initiator: boolean) => {
       );
     } else trpc().shareWebRTCData.query({ did, data: JSON.stringify(data) });
   });
+
+  peer.on("connect", () => sendMessages(peer, did));
 
   peer.on("data", (data) => {
     handleData(JSON.parse(new TextDecoder().decode(data)), did);
