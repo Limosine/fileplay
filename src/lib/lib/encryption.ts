@@ -7,7 +7,7 @@ import {
 } from "$lib/lib/utils";
 import { concatArrays } from "$lib/sharing/common";
 
-import { buffer, connections } from "./simple-peer";
+import { buffer, connections, sendMessages } from "./simple-peer";
 
 let privateKey: CryptoKey;
 export let publicKeyJwk: JsonWebKey;
@@ -112,6 +112,8 @@ export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
       buffer[did].push(...encrypted);
       return buffer;
     });
+
+    sendMessages(did);
   }
 };
 

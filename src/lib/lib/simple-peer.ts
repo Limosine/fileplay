@@ -62,14 +62,24 @@ export const sendMessage = async (
   if (get(buffer)[did] === undefined || get(buffer)[did].length > 1) return;
 
   if (peer.data.connected) {
-    sendMessages(peer.data, did);
+    sendMessages(did, peer.data);
   }
 };
 
-const sendMessages = (peer: SimplePeer.Instance, did: number) => {
+export const sendMessages = (did: number, peerParameter?: SimplePeer.Instance, ) => {
   if (get(buffer)[did] === undefined || get(buffer)[did].length <= 0) return;
 
-  if (peer.closed || peer.destroyed) connectToDevice(did, true);
+  let peer: SimplePeer.Instance;
+  if (peerParameter !== undefined) {
+    peer = peerParameter;
+  } else {
+    peer = get(connections)[did].data;
+  }
+
+  if (peer === undefined || peer.closed || peer.destroyed) {
+    connectToDevice(did, true);
+    return;
+  }
 
   const chunk = get(buffer)[did][0];
   buffer.update((buffer) => {
@@ -77,7 +87,7 @@ const sendMessages = (peer: SimplePeer.Instance, did: number) => {
     return buffer;
   });
 
-  peer.write(chunk, undefined, () => sendMessages(peer, did));
+  peer.write(chunk, undefined, () => sendMessages(did, peer));
 };
 
 export const connectToDevice = (did: number, initiator: boolean) => {
@@ -124,7 +134,7 @@ export const connectToDevice = (did: number, initiator: boolean) => {
         }),
       ]),
       undefined,
-      () => sendMessages(peer, did),
+      () => sendMessages(did, peer),
     );
   });
 
