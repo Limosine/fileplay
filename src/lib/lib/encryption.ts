@@ -1,5 +1,3 @@
-import { browser } from "$app/environment";
-
 import {
   numberToUint8Array,
   typedArrayToBuffer,
@@ -12,6 +10,7 @@ import {
 let privateKey: CryptoKey;
 export let publicKeyJwk: JsonWebKey;
 
+// key in counter array: ECDH PublicKey
 const counters: { key: CryptoKey; did: number; data: number }[] = [];
 
 export const setup = async () => {
@@ -142,7 +141,7 @@ export const encryptData = async (array: Uint8Array, did: number) => {
 
   const encrypted = await encryptAes(
     typedArrayToBuffer(array),
-    info.key,
+    await getDerivedKey(info.key),
     increaseCounter(info.key, did),
   );
 

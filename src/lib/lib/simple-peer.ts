@@ -97,8 +97,7 @@ export const connectToDevice = (did: number, initiator: boolean) => {
     } else trpc().shareWebRTCData.query({ did, data: JSON.stringify(data) });
   });
 
-  peer.on("connect", async () => {
-    await sendUpdate(did);
+  peer.on("connect", () => {
     sendMessages(peer, did);
   });
 
@@ -125,6 +124,8 @@ export const connectToDevice = (did: number, initiator: boolean) => {
     connections[did] = peer;
     return connections;
   });
+
+  sendUpdate(did);
 
   return peer;
 };
