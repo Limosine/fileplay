@@ -36,7 +36,7 @@ export const sendMessage = async (
     return buffer;
   });
 
-  console.log("buffer", get(buffer), "keys", get(buffer).keys);
+  console.log("buffer", get(buffer)[did], "keys", get(buffer).keys.toString());
 
   let peer: SimplePeer.Instance;
   peer = get(connections)[did];
@@ -51,6 +51,8 @@ export const sendMessage = async (
 };
 
 const sendMessages = (peer: SimplePeer.Instance, did: number) => {
+  console.log("buffer", get(buffer)[did], "keys", get(buffer).keys.toString());
+
   if (get(buffer)[did] === undefined || get(buffer)[did].length <= 0) return;
 
   if (peer.closed || peer.destroyed) connectToDevice(did, true);
@@ -61,7 +63,7 @@ const sendMessages = (peer: SimplePeer.Instance, did: number) => {
     return buffer;
   });
 
-  peer.write(chunk, undefined, () => sendMessages);
+  peer.write(chunk, undefined, () => sendMessages(peer, did));
 };
 
 export const connectToDevice = (did: number, initiator: boolean) => {
@@ -108,7 +110,7 @@ export const connectToDevice = (did: number, initiator: boolean) => {
         }),
       ]),
       undefined,
-      () => sendMessages,
+      () => sendMessages(peer, did),
     );
   });
 
