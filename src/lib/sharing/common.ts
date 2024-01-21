@@ -100,12 +100,12 @@ export const chunkString = (str: string, size: number) => {
 };
 
 export const chunkUint8Array = (array: Uint8Array, size: number) => {
-  const numChunks = Math.ceil(array.length / size);
-  const chunks: Uint8Array[] = new Array(numChunks);
+  const chunks: Uint8Array[] = [];
 
-  for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
-    chunks.push(array.slice(o, o + size));
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
   }
+
   return chunks;
 };
 

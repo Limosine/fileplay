@@ -156,7 +156,7 @@ export const decryptData = async (array: Uint8Array, did: number) => {
   const counter = uint8ArrayToNumber(array.slice(8, 12));
   increaseCounter(info.key, did, counter);
 
-  return decryptAes(
+  return await decryptAes(
     typedArrayToBuffer(array.slice(12)),
     array.slice(0, 12),
     await getDerivedKey(info.key),

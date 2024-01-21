@@ -69,7 +69,6 @@ export const connectToDevice = (did: number, initiator: boolean) => {
     config: {
       iceServers: [
         { urls: "stun:stun.l.google.com:19305" },
-        { urls: "stun:stun1.l.google.com:19305" },
         {
           urls: "turn:turn.wir-sind-frey.de:5349",
           username: "fileplay",
