@@ -23,7 +23,7 @@ export const setup = async () => {
 const increaseCounter = (key: CryptoKey, did: number, current?: number) => {
   const index = counters.findIndex((c) => c.key == key);
 
-  if (index !== undefined) {
+  if (index !== -1) {
     if (current !== undefined) {
       if (current < counters[index].data)
         console.warn("Encryption: Counter too low");
@@ -82,7 +82,7 @@ export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
   const key = await importKey(jsonKey, true);
   const index = counters.findIndex((c) => c.key == key);
 
-  if (index !== undefined) {
+  if (index !== -1) {
     counters[index].key = key;
   } else {
     counters.push({
