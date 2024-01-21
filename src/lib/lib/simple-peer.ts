@@ -3,12 +3,12 @@ import { decode, encode } from "@msgpack/msgpack";
 import SimplePeer from "simple-peer";
 import { get, writable } from "svelte/store";
 
-import { trpc } from "$lib/trpc/client";
 import { concatArrays, type webRTCData } from "$lib/sharing/common";
 import { handleData } from "$lib/sharing/main";
-import { decryptData, encryptData } from "./encryption";
+import { trpc } from "$lib/trpc/client";
+
+import { decryptData, encryptData, publicKeyJwk } from "./encryption";
 import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
-import { sendUpdate } from "$lib/sharing/send";
 
 export const connections = writable<SimplePeer.Instance[]>([]);
 const buffer = writable<Uint8Array[][]>([]);
@@ -97,7 +97,17 @@ export const connectToDevice = (did: number, initiator: boolean) => {
   });
 
   peer.on("connect", () => {
-    sendMessages(peer, did);
+    peer.write(
+      concatArrays([
+        numberToUint8Array(0, 1),
+        encode({
+          type: "update",
+          key: publicKeyJwk,
+        }),
+      ]),
+      undefined,
+      () => sendMessages,
+    );
   });
 
   peer.on("data", async (data) => {
@@ -123,8 +133,6 @@ export const connectToDevice = (did: number, initiator: boolean) => {
     connections[did] = peer;
     return connections;
   });
-
-  sendUpdate(did);
 
   return peer;
 };

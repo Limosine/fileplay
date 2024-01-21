@@ -241,8 +241,6 @@ export const sendFinish = async (
     }
   }
 
-  console.log(get(incoming_filetransfers)[filetransfer_index].files[file_index].chunks);
-
   const file = concatArrays(
     get(incoming_filetransfers)[filetransfer_index].files[file_index].chunks,
   );

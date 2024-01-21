@@ -27,11 +27,9 @@ const increaseCounter = (key: CryptoKey, did: number, current?: number) => {
       if (current < counters[index].data)
         console.warn("Encryption: Counter too low");
       counters[index].data = current + 1;
-      console.log(counters[index].data); // debug
       return counters[index].data;
     } else {
       counters[index].data += 1;
-      console.log(counters[index].data); // debug
       return counters[index].data;
     }
   } else {
@@ -41,7 +39,6 @@ const increaseCounter = (key: CryptoKey, did: number, current?: number) => {
       data: 1,
     });
 
-    console.log(1); // debug
     return 1;
   }
 };
@@ -79,7 +76,7 @@ export const getDerivedKey = async (foreignPublicKey: CryptoKey) => {
 
 export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
   const key = await importKey(jsonKey, true);
-  const index = counters.findIndex((c) => c.key == key);
+  const index = counters.findIndex((c) => c.did === did);
 
   if (index !== -1) {
     counters[index].key = key;
@@ -103,6 +100,8 @@ const encryptAes = async (
   const iv = new Uint8Array(random.length + counterArray.length);
   iv.set(random);
   iv.set(counterArray, random.length);
+
+  console.log(`Encryption: Counter ${counter}`);
 
   return {
     data: new Uint8Array(
