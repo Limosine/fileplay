@@ -1,4 +1,4 @@
-import { get } from "svelte/store";
+import { get, writable } from "svelte/store";
 
 import {
   numberToUint8Array,
@@ -7,10 +7,12 @@ import {
 } from "$lib/lib/utils";
 import { concatArrays } from "$lib/sharing/common";
 
-import { connections } from "./simple-peer";
+import { buffer, connections } from "./simple-peer";
 
 let privateKey: CryptoKey;
 export let publicKeyJwk: JsonWebKey;
+
+export const encryptionBuffer = writable<Uint8Array[][]>([]);
 
 export const setup = async () => {
   if (!privateKey || !publicKeyJwk) {
@@ -84,6 +86,33 @@ export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
       return connections;
     });
   } else throw new Error("Encryption: No connection to this device");
+
+  if (
+    info.encryption === undefined &&
+    get(encryptionBuffer)[did] !== undefined &&
+    get(encryptionBuffer)[did].length > 0
+  ) {
+    const encrypted: Uint8Array[] = [];
+    get(encryptionBuffer)[did].forEach(async (encoded) => {
+      encrypted.push(
+        concatArrays([
+          numberToUint8Array(1, 1),
+          await encryptData(encoded, did),
+        ]),
+      );
+    });
+
+    encryptionBuffer.update((buffer) => {
+      buffer[did] = [];
+      return buffer;
+    });
+
+    buffer.update((buffer) => {
+      if (buffer[did] === undefined) buffer[did] = [];
+      buffer[did].push(...encrypted);
+      return buffer;
+    });
+  }
 };
 
 const encryptAes = async (
@@ -97,8 +126,6 @@ const encryptAes = async (
   const iv = new Uint8Array(random.length + counterArray.length);
   iv.set(random);
   iv.set(counterArray, random.length);
-
-  console.log(`Encryption: Counter ${counter}`);
 
   return {
     data: new Uint8Array(

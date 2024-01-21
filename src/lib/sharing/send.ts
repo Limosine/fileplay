@@ -16,18 +16,6 @@ import {
   concatArrays,
 } from "./common";
 
-export const sendUpdate = (did: number) => {
-  return sendMessage(
-    {
-      type: "update",
-      key: publicKeyJwk,
-    },
-    did,
-    false,
-    true
-  );
-};
-
 // Sender:
 export const send = async (
   files: FileList,
@@ -88,7 +76,6 @@ export const sendRequest = (did: number, filetransfer_id: string) => {
         files,
       },
       did,
-      false,
     );
   } else {
     console.log("Filetransfer: Wrong filetransfer id.");
