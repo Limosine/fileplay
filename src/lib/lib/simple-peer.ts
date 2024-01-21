@@ -59,7 +59,7 @@ export const sendMessage = async (
   if (peer === undefined || peer.data.closed || peer.data.destroyed)
     peer = { data: connectToDevice(did, true) };
 
-  if (get(buffer)[did].length > 1) return;
+  if (get(buffer)[did] === undefined || get(buffer)[did].length > 1) return;
 
   if (peer.data.connected) {
     sendMessages(peer.data, did);
