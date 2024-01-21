@@ -10,7 +10,12 @@ import { trpc } from "$lib/trpc/client";
 import { decryptData, encryptData, publicKeyJwk } from "./encryption";
 import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
 
-export const connections = writable<SimplePeer.Instance[]>([]);
+export const connections = writable<
+  {
+    data: SimplePeer.Instance;
+    encryption?: { key: CryptoKey; counter: number }; // key: ECDH PublicKey
+  }[]
+>([]);
 const buffer = writable<Uint8Array[][]>([]);
 
 export const sendMessage = async (
@@ -36,23 +41,18 @@ export const sendMessage = async (
     return buffer;
   });
 
-  console.log("buffer", get(buffer)[did], "keys", get(buffer).keys.toString());
-
-  let peer: SimplePeer.Instance;
-  peer = get(connections)[did];
-  if (peer === undefined || peer.closed || peer.destroyed)
-    peer = connectToDevice(did, true);
+  const peer = get(connections)[did];
+  if (peer === undefined || peer.data.closed || peer.data.destroyed)
+    peer.data = connectToDevice(did, true);
 
   if (get(buffer)[did].length > 1) return;
 
-  if (peer.connected) {
-    sendMessages(peer, did);
+  if (peer.data.connected) {
+    sendMessages(peer.data, did);
   }
 };
 
 const sendMessages = (peer: SimplePeer.Instance, did: number) => {
-  console.log("buffer", get(buffer)[did], "keys", get(buffer).keys.toString());
-
   if (get(buffer)[did] === undefined || get(buffer)[did].length <= 0) return;
 
   if (peer.closed || peer.destroyed) connectToDevice(did, true);
@@ -128,13 +128,13 @@ export const connectToDevice = (did: number, initiator: boolean) => {
   peer.on("close", () => {
     if (!peer.destroyed) peer.destroy();
     connections.update((connections) => {
-      connections.splice(did, 1);
+      delete connections[did];
       return connections;
     });
   });
 
   connections.update((connections) => {
-    connections[did] = peer;
+    connections[did] = { data: peer };
     return connections;
   });
 
@@ -143,7 +143,7 @@ export const connectToDevice = (did: number, initiator: boolean) => {
 
 export const closeConnections = () => {
   get(connections).forEach((conn) => {
-    conn.destroy();
+    conn.data.destroy();
   });
   connections.set([]);
 };

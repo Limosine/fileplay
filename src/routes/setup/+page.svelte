@@ -145,7 +145,7 @@
           />
           <menu id="menu-deviceType">
             <!-- eslint-disable svelte/valid-compile -->
-            <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions a11y-missing-attribute missing-declaration -->
+            <!-- svelte-ignore a11y-no-static-element-interactions a11y-missing-attribute missing-declaration -->
             {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
               <a
                 on:mousedown={() => {
@@ -156,7 +156,7 @@
             {/each}
             <!-- eslint-enable svelte/valid-compile -->
           </menu>
-          <!-- svelte-ignore a11y-label-has-associated-control-->
+          <!-- svelte-ignore a11y-label-has-associated-control -->
           <label>
             {#if $deviceParams.type == ""}
               Device Type

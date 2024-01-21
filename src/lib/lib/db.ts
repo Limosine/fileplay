@@ -8,7 +8,7 @@ interface UsersTable {
   created_at: ColumnType<number, undefined, undefined>;
 }
 
-interface DecivesTable {
+interface DevicesTable {
   did: Generated<number>;
   uid: number | null; // indexed, foreign key users.uid
   linked_at: number | null;
@@ -42,7 +42,7 @@ interface ContactsLinkCodesTable {
 
 export interface DB {
   users: UsersTable;
-  devices: DecivesTable;
+  devices: DevicesTable;
   contacts: ContactsTable;
   devices_link_codes: DevicesLinkCodesTable;
   contacts_link_codes: ContactsLinkCodesTable;

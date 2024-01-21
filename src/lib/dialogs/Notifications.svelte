@@ -18,7 +18,9 @@
   } from "$lib/sharing/common";
   import { sendAccept } from "$lib/sharing/send";
 
-  const cancelFiletransfer = async (notification: NotificationRequest | NotificationReceiving) => {
+  const cancelFiletransfer = async (
+    notification: NotificationRequest | NotificationReceiving,
+  ) => {
     deleteNotification(notification.tag);
     incoming_filetransfers.update((filetransfers) =>
       filetransfers.filter(
@@ -64,7 +66,6 @@
         .map((file) => file.name)
         .toString()}' is/are being received.`,
       tag: `filetransfer-${filetransfer.id}`,
-      actions: [{ title: "Cancel", action: "cancel" }],
       data: { filetransfer_id: filetransfer.id },
     });
 
@@ -121,7 +122,8 @@
           <nav class="right-align">
             {#if n.title == "File request"}
               <button
-                on:click={() => n.title == "File request" && acceptFileTransfer(n)}
+                on:click={() =>
+                  n.title == "File request" && acceptFileTransfer(n)}
               >
                 Accept
               </button>
@@ -129,17 +131,20 @@
 
             {#if n.title == "File received"}
               <a
-                  class="chip round primary"
-                  href={n.data.url}
-                  download={n.data.filename}
-                >
-                  <span>Download</span>
+                class="chip round primary"
+                href={n.data.url}
+                download={n.data.filename}
+              >
+                <span>Download</span>
               </a>
             {/if}
 
             {#if n.title == "File request" || n.title == "Receiving file(s)"}
               <button
-                on:click={() => (n.title == "File request" || n.title == "Receiving file(s)") && cancelFiletransfer(n)}
+                on:click={() =>
+                  (n.title == "File request" ||
+                    n.title == "Receiving file(s)") &&
+                  cancelFiletransfer(n)}
               >
                 Cancel
               </button>

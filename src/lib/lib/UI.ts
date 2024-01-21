@@ -53,10 +53,6 @@ interface NotificationAction {
 export interface NotificationRequest {
   title: "File request";
   tag: string;
-  actions: [
-    { title: "Accept"; action: "accept" },
-    { title: "Cancel"; action: "cancel" },
-  ];
   body: string;
   data: {
     did: number;
@@ -68,7 +64,6 @@ export interface NotificationRequest {
 export interface NotificationReceiving {
   title: "Receiving file(s)";
   tag: string;
-  actions: [{ title: "Cancel"; action: "cancel" }];
   body: string;
   data: { filetransfer_id: string };
 }
@@ -76,7 +71,6 @@ export interface NotificationReceiving {
 export interface NotificationReceived {
   title: "File received";
   tag: string;
-  actions: [{ title: "Download"; action: "download" }];
   body: string;
   data: {
     filename: string;

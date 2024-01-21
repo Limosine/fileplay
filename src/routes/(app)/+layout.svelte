@@ -11,7 +11,6 @@
   import AddContact from "$lib/dialogs/AddContact.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
-  import { addNotification } from "$lib/lib/UI";
   import { browser } from "$app/environment";
 
   let needRefresh: Writable<boolean>;
@@ -69,19 +68,6 @@
   }
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
-  $: if ($needRefresh) {
-    addNotification({
-      title: "New version available",
-      body: "Click here to update",
-      tag: "new_sw_version",
-      actions: [
-        {
-          title: "Update",
-          action: "update_sw",
-        },
-      ],
-    });
-  }
 </script>
 
 <svelte:head>

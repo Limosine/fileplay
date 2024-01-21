@@ -27,7 +27,7 @@
     } else {
       generateAvatar();
     }
-  };
+  }
 </script>
 
 <div id="user">

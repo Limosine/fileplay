@@ -111,8 +111,6 @@
 {/if}
 
 {#if $current == "Contacts" || ($current == "Settings" && $settings_page == "devices")}
-  <!-- eslint-disable no-undef -->
-  <!-- svelte-ignore missing-declaration -->
   <button
     id="add-mobile"
     class="s square round extra"
@@ -121,7 +119,6 @@
     <i>add</i>
   </button>
 
-  <!-- svelte-ignore missing-declaration -->
   <button
     id="add-desktop"
     class="l m square round extra"
@@ -129,7 +126,6 @@
   >
     <i>add</i>
   </button>
-  <!-- eslint-enable no-undef -->
 {/if}
 
 <style>

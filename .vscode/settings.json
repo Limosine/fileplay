@@ -1,25 +1,23 @@
 {
   "typescript.tsdk": "node_modules\\typescript\\lib",
   "cSpell.words": [
-    "Bromite",
-    "codehostname",
+    "beercss",
     "codeproperties",
+    "dayjs",
     "Dicebear",
-    "dids",
-    "FILEPLAY",
+    "fileplay",
     "filetransfer",
     "filetransfers",
-    "focusedclient",
-    "keepalive",
-    "keyval",
-    "openpgp",
-    "pwassets",
+    "frey",
+    "kysely",
+    "Kysely",
+    "msgpack",
+    "psql",
+    "qrcode",
     "sendstate",
-    "sharingstates",
-    "systemmessage",
+    "trpc",
+    "Unsubscribable",
     "vflex",
-    "webtarget",
-    "wsinterval",
-    "wsres"
+    "webrtc"
   ]
 }

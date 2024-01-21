@@ -258,7 +258,6 @@ export const sendFinish = async (
       get(incoming_filetransfers)[filetransfer_index].files[file_index].name
     }' was received.`,
     tag: `file-${file_id}`,
-    actions: [{ title: "Download", action: "download" }],
     data: {
       filename: get(incoming_filetransfers)[filetransfer_index].files[
         file_index

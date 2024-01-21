@@ -1,6 +1,5 @@
 import { browser } from "$app/environment";
 import { page } from "$app/stores";
-import type { SignalData } from "simple-peer";
 import { get, writable } from "svelte/store";
 import type { Unsubscribable } from "@trpc/server/observable";
 
@@ -88,9 +87,9 @@ export function startSubscriptions() {
     contacts.set(data);
   };
   const onWebRTCData = (data: { from: number; data: string }) => {
-    if (get(connections)[data.from] === undefined || get(connections)[data.from].closed || get(connections)[data.from].destroyed)
+    if (get(connections)[data.from] === undefined || get(connections)[data.from].data.closed || get(connections)[data.from].data.destroyed)
       connectToDevice(data.from, false).signal(JSON.parse(data.data));
-    else get(connections)[data.from].signal(JSON.parse(data.data));
+    else get(connections)[data.from].data.signal(JSON.parse(data.data));
   };
 
   const client = trpc();

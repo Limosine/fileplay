@@ -1,17 +1,16 @@
+import { get } from "svelte/store";
+
 import {
   numberToUint8Array,
   typedArrayToBuffer,
   uint8ArrayToNumber,
 } from "$lib/lib/utils";
-import {
-  concatArrays,
-} from "$lib/sharing/common";
+import { concatArrays } from "$lib/sharing/common";
+
+import { connections } from "./simple-peer";
 
 let privateKey: CryptoKey;
 export let publicKeyJwk: JsonWebKey;
-
-// key in counter array: ECDH PublicKey
-const counters: { key: CryptoKey; did: number; data: number }[] = [];
 
 export const setup = async () => {
   if (!privateKey || !publicKeyJwk) {
@@ -20,27 +19,25 @@ export const setup = async () => {
 };
 
 const increaseCounter = (key: CryptoKey, did: number, current?: number) => {
-  const index = counters.findIndex((c) => c.key == key);
+  const info = get(connections)[did];
+  const counter =
+    current !== undefined
+      ? current + 1
+      : info.encryption !== undefined
+        ? info.encryption.counter + 1
+        : 1;
 
-  if (index !== -1) {
-    if (current !== undefined) {
-      if (current < counters[index].data)
-        console.warn("Encryption: Counter too low");
-      counters[index].data = current + 1;
-      return counters[index].data;
-    } else {
-      counters[index].data += 1;
-      return counters[index].data;
-    }
-  } else {
-    counters.push({
-      key,
-      did,
-      data: 1,
+  if (info !== undefined) {
+    connections.update((connections) => {
+      connections[did].encryption = {
+        key: info.encryption !== undefined ? info.encryption.key : key,
+        counter,
+      };
+      return connections;
     });
+  } else throw new Error("Encryption: No connection to this device");
 
-    return 1;
-  }
+  return counter;
 };
 
 const importKey = (key: JsonWebKey, publicKey: boolean) => {
@@ -76,17 +73,17 @@ export const getDerivedKey = async (foreignPublicKey: CryptoKey) => {
 
 export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
   const key = await importKey(jsonKey, true);
-  const index = counters.findIndex((c) => c.did === did);
+  const info = get(connections)[did];
 
-  if (index !== -1) {
-    counters[index].key = key;
-  } else {
-    counters.push({
-      did,
-      key,
-      data: 0,
+  if (info !== undefined) {
+    connections.update((connections) => {
+      connections[did].encryption = {
+        key,
+        counter: info.encryption !== undefined ? info.encryption.counter : 0,
+      };
+      return connections;
     });
-  }
+  } else throw new Error("Encryption: No connection to this device");
 };
 
 const encryptAes = async (
@@ -134,30 +131,36 @@ const decryptAes = async (
 };
 
 export const encryptData = async (array: Uint8Array, did: number) => {
-  const info = counters.find((c) => c.did === did);
+  const info = get(connections)[did];
 
-  if (info === undefined) throw new Error("Encryption: No key found");
+  if (info === undefined)
+    throw new Error("Encryption: No connection to this device");
+  if (info.encryption === undefined)
+    throw new Error("Encryption: No key found");
 
   const encrypted = await encryptAes(
     typedArrayToBuffer(array),
-    await getDerivedKey(info.key),
-    increaseCounter(info.key, did),
+    await getDerivedKey(info.encryption.key),
+    increaseCounter(info.encryption.key, did),
   );
 
   return concatArrays([encrypted.iv, encrypted.data]);
 };
 
 export const decryptData = async (array: Uint8Array, did: number) => {
-  const info = counters.find((c) => c.did === did);
+  const info = get(connections)[did];
 
-  if (info === undefined) throw new Error("Encryption: No key found");
+  if (info === undefined)
+    throw new Error("Encryption: No connection to this device");
+  if (info.encryption === undefined)
+    throw new Error("Encryption: No key found");
 
   const counter = uint8ArrayToNumber(array.slice(8, 12));
-  increaseCounter(info.key, did, counter);
+  increaseCounter(info.encryption.key, did, counter);
 
   return await decryptAes(
     typedArrayToBuffer(array.slice(12)),
     array.slice(0, 12),
-    await getDerivedKey(info.key),
+    await getDerivedKey(info.encryption.key),
   );
 };

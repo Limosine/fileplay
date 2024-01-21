@@ -46,10 +46,6 @@ export const handleRequest = (
         .map((file) => file.name)
         .toString()}' can be received.`,
       tag: `filetransfer-${filetransfer_id}`,
-      actions: [
-        { title: "Accept", action: "accept" },
-        { title: "Cancel", action: "cancel" },
-      ],
       data: {
         did: did,
         filetransfer_id: filetransfer_id,
