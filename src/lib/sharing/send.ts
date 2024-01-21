@@ -1,13 +1,7 @@
-import { page } from "$app/stores";
 import { nanoid } from "nanoid";
 import { get } from "svelte/store";
 
-import {
-  decryptFiles,
-  decryptFilesWithPassword,
-  encryptFiles,
-  encryptFilesWithPassword,
-} from "$lib/lib/openpgp";
+import { publicKeyJwk } from "$lib/lib/encryption";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { closeConnections, sendMessage } from "$lib/lib/simple-peer";
 import { addNotification, deleteNotification } from "$lib/lib/UI";
@@ -17,57 +11,47 @@ import {
   incoming_filetransfers,
   outgoing_filetransfers,
   type FileInfos,
-  type OutgoingFileTransfer,
   createFileURL,
   type Request,
+  concatArrays,
 } from "./common";
+
+export const sendUpdate = (did: number) => {
+  return sendMessage(
+    {
+      type: "update",
+      key: publicKeyJwk,
+    },
+    did,
+    false,
+    true
+  );
+};
 
 // Sender:
 export const send = async (
   files: FileList,
   did?: number,
   cid?: number,
-  publicKey?: string,
   filetransfer_id?: string,
 ) => {
   if (files.length <= 0)
     throw new Error("Filetransfer: One file has to be selected.");
 
-  let filetransfer_infos: OutgoingFileTransfer;
-
-  let encrypted_files: string[];
-  if (publicKey !== undefined) {
-    encrypted_files = (await encryptFiles(files, publicKey)).map((file) =>
-      file.toString(),
-    );
-    filetransfer_infos = {
-      id: nanoid(),
-      encrypted: "publicKey",
-      completed: false,
-      files: chunkFiles(files, encrypted_files),
-      cid,
-      did,
-    };
+  let filetransferID: string;
+  if (filetransfer_id === undefined) {
+    filetransferID = nanoid();
   } else {
-    let filetransferID: string;
-    if (filetransfer_id === undefined) {
-      filetransferID = nanoid();
-    } else {
-      filetransferID = filetransfer_id;
-    }
-
-    encrypted_files = (
-      await encryptFilesWithPassword(files, filetransferID)
-    ).map((file) => file.toString());
-    filetransfer_infos = {
-      id: filetransferID,
-      encrypted: "password",
-      completed: false,
-      files: chunkFiles(files, encrypted_files),
-      cid,
-      did,
-    };
+    filetransferID = filetransfer_id;
   }
+
+  const filetransfer_infos = {
+    id: filetransferID,
+    completed: false,
+    files: await chunkFiles(files),
+    cid,
+    did,
+  };
 
   outgoing_filetransfers.set([
     ...get(outgoing_filetransfers),
@@ -101,10 +85,10 @@ export const sendRequest = (did: number, filetransfer_id: string) => {
       {
         type: "request",
         id: outgoing_filetransfer.id,
-        encrypted: outgoing_filetransfer.encrypted,
         files,
       },
       did,
+      false,
     );
   } else {
     console.log("Filetransfer: Wrong filetransfer id.");
@@ -134,7 +118,7 @@ export const sendChunked = (
       (file) => file.id == previous_file_id,
     );
     if (index === -1) throw new Error("Filetransfer: File not found.");
-    outgoing_filetransfers.update(transfers => {
+    outgoing_filetransfers.update((transfers) => {
       transfers[filetransfer_index].files[index].completed++;
       return transfers;
     });
@@ -257,23 +241,11 @@ export const sendFinish = async (
     }
   }
 
-  const encryptedFile = get(incoming_filetransfers)[filetransfer_index].files[
-    file_index
-  ].chunks.join("");
+  const file = concatArrays(
+    get(incoming_filetransfers)[filetransfer_index].files[file_index].chunks,
+  );
 
-  let decryptedFile;
-  if (
-    get(incoming_filetransfers)[filetransfer_index].encrypted == "publicKey"
-  ) {
-    decryptedFile = await decryptFiles([encryptedFile]);
-  } else {
-    decryptedFile = await decryptFilesWithPassword(
-      [encryptedFile],
-      get(page).params.filetransfer_id,
-    );
-  }
-
-  const url = createFileURL(decryptedFile[0]);
+  const url = createFileURL(file);
 
   incoming_filetransfers.update((filetransfers) => {
     filetransfers[filetransfer_index].files[file_index].url = url;

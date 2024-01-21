@@ -20,10 +20,12 @@ export const linkingCode = writable("");
 // Personal infos:
 export const own_did = writable<number>();
 
-export const deviceParams = writable({
+export const deviceParams = writable<{
+  display_name: string,
+  type: string,
+}>({
   display_name: "",
   type: "",
-  encryption_public_key: "",
 });
 
 export const userParams = writable({
@@ -60,7 +62,6 @@ export interface NotificationRequest {
     did: number;
     filetransfer_id: string;
     files: Request["files"];
-    encrypted: "publicKey" | "password";
   };
 }
 

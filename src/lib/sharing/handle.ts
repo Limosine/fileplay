@@ -15,7 +15,6 @@ import { sendAccept, sendChunked, sendFinish, sendMissing } from "./send";
 export const handleRequest = (
   did: number,
   filetransfer_id: string,
-  encrypted: "password" | "publicKey",
   files_unformatted: Request["files"],
 ) => {
   if (browser && window.location.pathname.slice(0, 6) == "/guest") {
@@ -32,7 +31,6 @@ export const handleRequest = (
 
     const filetransfer: IncomingFiletransfer = {
       id: filetransfer_id,
-      encrypted,
       completed: false,
       files,
       did,
@@ -56,7 +54,6 @@ export const handleRequest = (
         did: did,
         filetransfer_id: filetransfer_id,
         files: files_unformatted,
-        encrypted: encrypted,
       },
     });
   }
@@ -66,7 +63,7 @@ export const handleChunk = (
   did: number,
   filetransfer_id: string,
   file_id: string,
-  chunk: string,
+  chunk: Uint8Array,
   chunk_id: number,
   final?: boolean,
 ) => {

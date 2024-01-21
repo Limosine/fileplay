@@ -12,13 +12,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   const schema = z.object({
     display_name: z.string(),
     type: z.nativeEnum(DeviceType),
-    encryption_public_key: z.string(),
   });
 
   const update: {
     display_name: string;
     type: DeviceType;
-    encryption_public_key: string;
   } = await request.json();
 
   if (!schema.safeParse(update).success) {

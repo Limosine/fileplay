@@ -9,7 +9,6 @@
     startSubscriptions,
     stopSubscriptions,
   } from "$lib/lib/fetchers";
-  import { setup as pgp_setup } from "$lib/lib/openpgp";
   import {
     addContactDialog,
     add_mode,
@@ -22,6 +21,7 @@
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
   import Settings from "$lib/pages/Settings.svelte";
+  import { setup } from "$lib/lib/encryption";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -77,7 +77,7 @@
 
   onMount(() => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
-      pgp_setup();
+      setup();
       startHeartbeat();
       startSubscriptions();
     }

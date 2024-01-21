@@ -43,7 +43,6 @@ export interface IDeviceInfo {
   did: number;
   type: string;
   display_name: string;
-  encryption_public_key: string;
 }
 
 // user
@@ -132,9 +131,6 @@ export async function deleteAccount() {
 
   if (browser && res) {
     localStorage.removeItem("loggedIn");
-    localStorage.removeItem("encryptionPrivateKey");
-    localStorage.removeItem("encryptionPublicKey");
-    localStorage.removeItem("encryptionRevocationCertificate");
     window.location.href = "/setup";
   }
 }

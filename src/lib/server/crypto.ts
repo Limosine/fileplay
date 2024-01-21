@@ -3,7 +3,7 @@ import { error, type Cookies } from "@sveltejs/kit";
 
 import { getUID } from "./db";
 import type { Database } from "$lib/lib/db";
-import { arrayBufferToHex, hexToArrayBuffer } from "./utils";
+import { arrayBufferToHex, hexToArrayBuffer } from "../lib/utils";
 
 export async function saveSignedDeviceID(
   did: number,

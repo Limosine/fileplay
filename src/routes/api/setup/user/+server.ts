@@ -4,7 +4,7 @@ import { error } from "@sveltejs/kit";
 import { z } from "zod";
 
 import { httpAuthorized } from "$lib/server/db";
-import { isProfane } from "$lib/server/utils";
+import { isProfane } from "$lib/lib/utils";
 
 export const POST: RequestHandler = async ({ cookies, request }) => {
   // create a new user, link to current device (requires cookie auth)

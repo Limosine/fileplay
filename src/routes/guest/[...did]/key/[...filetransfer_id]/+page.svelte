@@ -4,11 +4,11 @@
 
   import "beercss";
 
-  import { setup as pgp_setup } from "$lib/lib/openpgp";
   import { closeConnections } from "$lib/lib/simple-peer";
   import { returnProgress } from "$lib/lib/UI";
   import { incoming_filetransfers } from "$lib/sharing/common";
   import { connectAsListener } from "$lib/sharing/main";
+  import { setup } from "$lib/lib/encryption";
 
   let waitingTemplateString = "Waiting for files";
   let finalString = waitingTemplateString;
@@ -28,7 +28,7 @@
   });
 
   onMount(async () => {
-    pgp_setup();
+    setup();
     connectAsListener(Number($page.params.did), $page.params.filetransfer_id);
   });
 

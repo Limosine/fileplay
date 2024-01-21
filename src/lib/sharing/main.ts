@@ -9,13 +9,8 @@ import { contacts, own_did } from "$lib/lib/UI";
 import {
   incoming_filetransfers,
   outgoing_filetransfers,
-  type Error,
-  type Request,
-  type Accept,
-  type FiletransferFinished,
-  type FileFinished,
-  type Chunk,
   link,
+  type webRTCData,
 } from "./common";
 import { send, sendChunked, sendRequest } from "./send";
 import {
@@ -25,6 +20,7 @@ import {
   handleFileTransferFinished,
 } from "./handle";
 import { trpc } from "$lib/trpc/client";
+import { updateKey } from "$lib/lib/encryption";
 
 const authenticated = (
   did: number,
@@ -77,14 +73,13 @@ const authenticated = (
   return false;
 };
 
-export const handleData = (
-  data: Chunk | FileFinished | FiletransferFinished | Accept | Request | Error,
-  did: number,
-) => {
+export const handleData = (data: webRTCData, did: number) => {
   console.log(data);
 
   if (data.type == "error") {
     console.warn(`Filetransfer: ${data.message}`);
+  } else if (data.type == "update") {
+    updateKey(did, data.key);
   } else if (authenticated(did, data.id, data.type)) {
     // Sender:
     if (data.type == "accept") {
@@ -93,7 +88,7 @@ export const handleData = (
 
       // Receiver:
     } else if (data.type == "request") {
-      handleRequest(did, data.id, data.encrypted, data.files);
+      handleRequest(did, data.id, data.files);
     } else if (data.type == "chunk") {
       handleChunk(
         did,
@@ -125,7 +120,6 @@ export const addPendingFile = async (files: FileList) => {
   if (filetransferID.success) {
     const filetransfer_id = await send(
       files,
-      undefined,
       undefined,
       undefined,
       filetransferID.message,

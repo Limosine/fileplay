@@ -183,7 +183,6 @@ export const getContacts = async (
         did: number;
         type: string;
         display_name: string;
-        encryption_public_key: string;
       }[];
     }[],
     TRPCError

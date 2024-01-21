@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { get } from "svelte/store";
 
   import "beercss";
@@ -10,7 +9,6 @@
 
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
   import { withDeviceType } from "$lib/lib/fetchers";
-  import { publicKey_armored, setup as pgp_setup } from "$lib/lib/openpgp";
   import {
     deviceParams,
     userParams,
@@ -64,12 +62,9 @@
       });
     }
     if (!storedDeviceParams) {
-      $deviceParams.encryption_public_key = publicKey_armored;
-
       const object = {
         display_name: $deviceParams.display_name,
         type: $deviceParams.type,
-        encryption_public_key: $deviceParams.encryption_public_key,
       };
 
       const res = await fetch("/api/setup/device", {
@@ -114,10 +109,6 @@
 
     window.location.href = "/";
   }
-
-  onMount(() => {
-    pgp_setup();
-  });
 </script>
 
 <Edit />

@@ -17,7 +17,6 @@ interface DecivesTable {
   type: DeviceType;
   created_at: ColumnType<number, undefined, undefined>;
   last_seen_at: ColumnType<number, undefined, number>;
-  encryption_public_key: string;
 }
 
 interface ContactsTable {

@@ -1,34 +1,45 @@
 import { page } from "$app/stores";
+import { decode, encode } from "@msgpack/msgpack";
 import SimplePeer from "simple-peer";
 import { get, writable } from "svelte/store";
 
 import { trpc } from "$lib/trpc/client";
-import type {
-  Accept,
-  Chunk,
-  Error,
-  FileFinished,
-  FiletransferFinished,
-  Request,
-} from "$lib/sharing/common";
+import { concatArrays, type webRTCData } from "$lib/sharing/common";
 import { handleData } from "$lib/sharing/main";
+import { decryptData, encryptData } from "./encryption";
+import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
+import { sendUpdate } from "$lib/sharing/send";
 
 export const connections = writable<SimplePeer.Instance[]>([]);
-const buffer = writable<(Chunk | FileFinished | FiletransferFinished | Accept | Request | Error)[][]>([]);
+const buffer = writable<Uint8Array[][]>([]);
 
-export const sendMessage = (
-  data: Chunk | FileFinished | FiletransferFinished | Accept | Request | Error,
+export const sendMessage = async (
+  data: webRTCData,
   did: number,
+  encrypt = true,
+  highPriority = false,
 ) => {
-  buffer.update(buffer => {
+  let chunk: Uint8Array;
+  if (encrypt) {
+    chunk = concatArrays([
+      numberToUint8Array(1, 1),
+      await encryptData(encode(data), did),
+    ]);
+  } else {
+    chunk = concatArrays([numberToUint8Array(0, 1), encode(data)]);
+  }
+
+  buffer.update((buffer) => {
     if (buffer[did] === undefined) buffer[did] = [];
-    buffer[did].push(data);
+    if (highPriority) buffer[did].unshift(chunk);
+    else buffer[did].push(chunk);
     return buffer;
   });
 
   let peer: SimplePeer.Instance;
   peer = get(connections)[did];
-  if (peer === undefined || peer.closed || peer.destroyed) peer = connectToDevice(did, true);
+  if (peer === undefined || peer.closed || peer.destroyed)
+    peer = connectToDevice(did, true);
 
   if (get(buffer)[did].length > 1) return;
 
@@ -48,7 +59,7 @@ const sendMessages = (peer: SimplePeer.Instance, did: number) => {
     return buffer;
   });
 
-  peer.write(JSON.stringify(chunk), undefined, () => sendMessages);
+  peer.write(chunk, undefined, () => sendMessages);
 };
 
 export const connectToDevice = (did: number, initiator: boolean) => {
@@ -86,10 +97,20 @@ export const connectToDevice = (did: number, initiator: boolean) => {
     } else trpc().shareWebRTCData.query({ did, data: JSON.stringify(data) });
   });
 
-  peer.on("connect", () => sendMessages(peer, did));
+  peer.on("connect", async () => {
+    await sendUpdate(did);
+    sendMessages(peer, did);
+  });
 
-  peer.on("data", (data) => {
-    handleData(JSON.parse(new TextDecoder().decode(data)), did);
+  peer.on("data", async (data) => {
+    if (uint8ArrayToNumber(data.slice(0, 1)) === 1) {
+      handleData(
+        decode(await decryptData(data.slice(1), did)) as webRTCData,
+        did,
+      );
+    } else {
+      handleData(decode(data.slice(1)) as webRTCData, did);
+    }
   });
 
   peer.on("close", () => {

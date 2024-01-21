@@ -50,7 +50,6 @@
 
     const filetransfer: IncomingFiletransfer = {
       id: notification.data.filetransfer_id,
-      encrypted: notification.data.encrypted,
       completed: false,
       files,
       did: notification.data.did,

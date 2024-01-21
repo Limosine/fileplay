@@ -44,7 +44,7 @@
         const devices = contact.devices;
 
         devices.forEach((device: IDeviceInfo) => {
-          send($files, device.did, contact.cid, device.encryption_public_key);
+          send($files, device.did, contact.cid, undefined);
         });
 
         setSendState(contact.cid, SendState.REQUESTING);

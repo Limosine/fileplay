@@ -177,7 +177,6 @@ export async function getDeviceInfos(
         did: number;
         type: string;
         display_name: string;
-        encryption_public_key: string;
       }[];
     }
   | {
@@ -197,8 +196,7 @@ export async function getDeviceInfos(
       did: number;
       type: string;
       display_name: string;
-      encryption_public_key: string;
-    }>`SELECT cid, a, b, devices.did, devices.type, devices.display_name, devices.encryption_public_key FROM (SELECT contacts.cid, contacts.a, contacts.b, users.uid FROM contacts JOIN users ON users.uid = contacts.a WHERE contacts.b = ${uid} UNION SELECT contacts.cid, contacts.a, contacts.b, users.uid FROM contacts JOIN users ON users.uid = contacts.b WHERE contacts.a = ${uid}) AS U JOIN devices ON U.uid = devices.uid WHERE "devices"."is_online" = 1 AND "devices"."last_seen_at" > ${
+    }>`SELECT cid, a, b, devices.did, devices.type, devices.display_name FROM (SELECT contacts.cid, contacts.a, contacts.b, users.uid FROM contacts JOIN users ON users.uid = contacts.a WHERE contacts.b = ${uid} UNION SELECT contacts.cid, contacts.a, contacts.b, users.uid FROM contacts JOIN users ON users.uid = contacts.b WHERE contacts.a = ${uid}) AS U JOIN devices ON U.uid = devices.uid WHERE "devices"."is_online" = 1 AND "devices"."last_seen_at" > ${
       dayjs().unix() - ONLINE_STATUS_TIMEOUT
     } ORDER BY devices.display_name`.execute(db);
 
@@ -224,7 +222,6 @@ export async function getContacts(
           did: number;
           type: string;
           display_name: string;
-          encryption_public_key: string;
         }[];
       }[];
     }
@@ -244,7 +241,6 @@ export async function getContacts(
         did: number;
         type: string;
         display_name: string;
-        encryption_public_key: string;
       }[];
     }[] = await db
       .selectFrom("contacts")
@@ -280,8 +276,7 @@ export async function getContacts(
       did: number;
       type: string;
       display_name: string;
-      encryption_public_key: string;
-    }>`SELECT cid, devices.did, devices.type, devices.display_name, devices.encryption_public_key FROM (SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.a WHERE contacts.b = ${uid} UNION SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.b WHERE contacts.a = ${uid}) AS U JOIN devices ON U.uid = devices.uid WHERE "devices"."is_online" = 1 AND "devices"."last_seen_at" > ${
+    }>`SELECT cid, devices.did, devices.type, devices.display_name FROM (SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.a WHERE contacts.b = ${uid} UNION SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.b WHERE contacts.a = ${uid}) AS U JOIN devices ON U.uid = devices.uid WHERE "devices"."is_online" = 1 AND "devices"."last_seen_at" > ${
       dayjs().unix() - ONLINE_STATUS_TIMEOUT
     } ORDER BY devices.display_name`.execute(db);
 

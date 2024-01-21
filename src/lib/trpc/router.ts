@@ -246,7 +246,6 @@ export const router = t.router({
           did: number;
           type: string;
           display_name: string;
-          encryption_public_key: string;
         }[];
       }[],
       TRPCError
