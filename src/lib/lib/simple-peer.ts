@@ -36,6 +36,8 @@ export const sendMessage = async (
     return buffer;
   });
 
+  console.log("buffer", get(buffer), "keys", get(buffer).keys);
+
   let peer: SimplePeer.Instance;
   peer = get(connections)[did];
   if (peer === undefined || peer.closed || peer.destroyed)
