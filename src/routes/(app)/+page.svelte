@@ -65,7 +65,7 @@
       const swFiles: File[] = event.data.data;
       const dataTransfer = new DataTransfer();
 
-      swFiles.forEach(async (file) => {
+      swFiles.forEach((file) => {
         dataTransfer.items.add(file);
         $files = dataTransfer.files;
       });

@@ -93,14 +93,15 @@ export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
     get(encryptionBuffer)[did].length > 0
   ) {
     const encrypted: Uint8Array[] = [];
-    get(encryptionBuffer)[did].forEach(async (encoded) => {
+
+    for (const encoded of get(encryptionBuffer)[did]) {
       encrypted.push(
         concatArrays([
           numberToUint8Array(1, 1),
           await encryptData(encoded, did),
         ]),
       );
-    });
+    }
 
     encryptionBuffer.update((buffer) => {
       buffer[did] = [];
