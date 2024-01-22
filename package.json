@@ -35,7 +35,6 @@
     "eslint-plugin-svelte": "^2.35.1",
     "kysely": "^0.27.2",
     "nanoid": "^5.0.4",
-    "openpgp": "^5.11.0",
     "pg": "^8.11.3",
     "prettier": "^3.2.2",
     "prettier-plugin-svelte": "^3.1.2",

@@ -85,7 +85,8 @@ export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
     });
   } else throw new Error("Encryption: No connection to this device");
 
-  get(connections)[did].events.dispatchEvent(new Event("encrypted"));
+  info.events.dispatchEvent(new Event("encrypted"));
+  console.log("Encryption: Sent 'encrypted' event.");
 };
 
 const encryptAes = async (
