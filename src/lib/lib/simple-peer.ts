@@ -66,7 +66,7 @@ export const sendMessage = async (
       events.addEventListener("encrypted", send);
     }
 
-    peer = { data: connectToDevice(did, true), events };
+    peer = { data: connectToDevice(did, true, events), events };
     return;
   }
 
@@ -100,7 +100,7 @@ const sendMessages = (did: number, peerParameter?: SimplePeer.Instance) => {
   });
 };
 
-export const connectToDevice = (did: number, initiator: boolean) => {
+export const connectToDevice = (did: number, initiator: boolean, events?: EventTarget) => {
   const peer = new SimplePeer({
     initiator,
     trickle: false,
@@ -168,7 +168,7 @@ export const connectToDevice = (did: number, initiator: boolean) => {
   });
 
   connections.update((connections) => {
-    connections[did] = { data: peer, events: new EventTarget() };
+    connections[did] = { data: peer, events: events !== undefined ? events : new EventTarget() };
     return connections;
   });
 
