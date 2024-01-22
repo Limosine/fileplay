@@ -10,6 +10,8 @@
   import { connectAsListener } from "$lib/sharing/main";
   import { setup } from "$lib/lib/encryption";
 
+  let sentAccept = false;
+
   let waitingTemplateString = "Waiting for files";
   let finalString = waitingTemplateString;
   let counter = 0;
@@ -27,9 +29,13 @@
     clearInterval(animationInterval);
   });
 
-  onMount(async () => {
-    setup();
-    connectAsListener(Number($page.params.did), $page.params.filetransfer_id);
+  onMount(() => {
+    if (!sentAccept) {
+      sentAccept = true;
+
+      setup();
+      connectAsListener(Number($page.params.did), $page.params.filetransfer_id);
+    }
   });
 
   const returnSubstring = (file_name: string) => {

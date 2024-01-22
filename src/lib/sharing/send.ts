@@ -223,9 +223,9 @@ export const sendFinish = async (
       return transfer;
     });
 
-    if (window.location.pathname.slice(0, 6) == "/guest") {
+    /* if (window.location.pathname.slice(0, 6) == "/guest") {
       closeConnections();
-    }
+    } */
   }
 
   const file = concatArrays(

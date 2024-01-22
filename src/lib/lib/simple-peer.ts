@@ -34,14 +34,17 @@ export const sendMessage = async (
     });
   };
 
-  if (encrypt && infos !== undefined && infos.encryption !== undefined) {
-    const chunk = concatArrays([
-      numberToUint8Array(1, 1),
-      await encryptData(encode(data), did),
-    ]);
-    addToBuffer(chunk);
-  } else if (infos !== undefined && infos.encryption !== undefined) {
-    const chunk = concatArrays([numberToUint8Array(0, 1), encode(data)]);
+  if (infos !== undefined && infos.encryption !== undefined) {
+    let chunk: Uint8Array;
+    if (encrypt) {
+      chunk = concatArrays([
+        numberToUint8Array(1, 1),
+        await encryptData(encode(data), did),
+      ]);
+    } else {
+      chunk = concatArrays([numberToUint8Array(0, 1), encode(data)]);
+    }
+
     addToBuffer(chunk);
   }
 
