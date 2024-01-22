@@ -58,11 +58,13 @@ export function withDeviceType(name: string): { type: string; name: string } {
 }
 
 const heartbeatInterval = writable<NodeJS.Timeout | undefined>();
-export function startHeartbeat() {
+export function startHeartbeat(guest: boolean) {
   if (get(heartbeatInterval) !== undefined) return;
   heartbeatInterval.set(
     setInterval(() => {
-      trpc().sendHeartbeat.mutate();
+      guest
+        ? trpc().sendGuestHeartbeat.mutate()
+        : trpc().sendHeartbeat.mutate();
     }, ONLINE_STATUS_REFRESH_TIME * 1000),
   );
 }
@@ -87,7 +89,11 @@ export function startSubscriptions() {
     contacts.set(data);
   };
   const onWebRTCData = (data: { from: number; data: string }) => {
-    if (get(connections)[data.from] === undefined || get(connections)[data.from].data.closed || get(connections)[data.from].data.destroyed)
+    if (
+      get(connections)[data.from] === undefined ||
+      get(connections)[data.from].data.closed ||
+      get(connections)[data.from].data.destroyed
+    )
       connectToDevice(data.from, false).signal(JSON.parse(data.data));
     else get(connections)[data.from].data.signal(JSON.parse(data.data));
   };

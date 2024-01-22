@@ -141,7 +141,7 @@ export const addPendingFile = async (files: FileList) => {
 };
 
 export const connectAsListener = (did: number, filetransfer_id: string) => {
-  startHeartbeat();
+  startHeartbeat(true);
 
   sendMessage(
     {

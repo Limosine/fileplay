@@ -85,16 +85,15 @@ export const guest = open.use(async (opts) => {
 });
 
 export const router = t.router({
-  sendHeartbeat: open.mutation(async ({ ctx }) => {
-    if (ctx.device !== null && ctx.user !== null) {
-      startTimer(ctx.database, ctx.user, ctx.device);
-      const result = await updateLastSeen(ctx.database, ctx.device);
-      if (!result.success)
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      return;
-    } else {
-      return;
-    }
+  sendHeartbeat: authorized.mutation(async ({ ctx }) => {
+    startTimer(ctx.database, ctx.user, ctx.device);
+    const result = await updateLastSeen(ctx.database, ctx.device);
+    if (!result.success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    return;
+  }),
+
+  sendGuestHeartbeat: guest.mutation(() => {
+    return;
   }),
 
   shareWebRTCData: authorized

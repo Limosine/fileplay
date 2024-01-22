@@ -3,6 +3,7 @@
   import { onDestroy, onMount } from "svelte";
 
   import Input, { files } from "$lib/components/Input.svelte";
+  import { setup } from "$lib/lib/encryption";
   import {
     startHeartbeat,
     stopHeartbeat,
@@ -18,10 +19,10 @@
     settings_page,
     user,
   } from "$lib/lib/UI";
+  
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
   import Settings from "$lib/pages/Settings.svelte";
-  import { setup } from "$lib/lib/encryption";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -78,7 +79,7 @@
   onMount(() => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
       setup();
-      startHeartbeat();
+      startHeartbeat(false);
       startSubscriptions();
     }
 
