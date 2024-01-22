@@ -24,7 +24,6 @@ export const sendMessage = async (
   did: number,
   encrypt = true,
 ) => {
-  console.log("WebRTC: sendMessage function.");
   const infos = get(connections)[did];
 
   const addToBuffer = (chunk: Uint8Array) => {
@@ -52,8 +51,6 @@ export const sendMessage = async (
 
     if (encrypt) {
       const send = async () => {
-        console.log("WebRTC: Received 'encrypted' event.");
-
         const chunk = concatArrays([
           numberToUint8Array(1, 1),
           await encryptData(encode(data), did),

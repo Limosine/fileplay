@@ -20,14 +20,17 @@ export const setup = async () => {
 
 const increaseCounter = (key: CryptoKey, did: number, current?: number) => {
   const info = get(connections)[did];
-  const counter =
-    current !== undefined
-      ? current + 1
-      : info.encryption !== undefined
-        ? info.encryption.counter + 1
-        : 1;
+  let counter: number;
 
   if (info !== undefined) {
+    if (current !== undefined) {
+      counter = current + 1;
+    } else if (info.encryption !== undefined) {
+      counter = info.encryption.counter + 1;
+    } else {
+      counter = 1;
+    }
+
     connections.update((connections) => {
       connections[did].encryption = {
         key: info.encryption !== undefined ? info.encryption.key : key,
@@ -85,7 +88,6 @@ export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
     });
   } else throw new Error("Encryption: No connection to this device");
 
-  console.log("Encryption: Sent 'encrypted' event.");
   info.events.dispatchEvent(new Event("encrypted"));
 };
 
