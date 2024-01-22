@@ -100,7 +100,11 @@ const sendMessages = (did: number, peerParameter?: SimplePeer.Instance) => {
   });
 };
 
-export const connectToDevice = (did: number, initiator: boolean, events?: EventTarget) => {
+export const connectToDevice = (
+  did: number,
+  initiator: boolean,
+  events?: EventTarget,
+) => {
   const peer = new SimplePeer({
     initiator,
     trickle: false,
@@ -150,10 +154,25 @@ export const connectToDevice = (did: number, initiator: boolean, events?: EventT
 
   peer.on("data", async (data) => {
     if (uint8ArrayToNumber(data.slice(0, 1)) === 1) {
-      handleData(
-        decode(await decryptData(data.slice(1), did)) as webRTCData,
-        did,
-      );
+      const infos = get(connections)[did];
+      if (infos === undefined)
+        throw new Error("WebRTC: No connection to this device");
+      if (infos.encryption !== undefined) {
+        handleData(
+          decode(await decryptData(data.slice(1), did)) as webRTCData,
+          did,
+        );
+      } else {
+        const decrypt = async () => {
+          handleData(
+            decode(await decryptData(data.slice(1), did)) as webRTCData,
+            did,
+          );
+          infos.events.removeEventListener("encrypted", decrypt);
+        };
+
+        infos.events.addEventListener("encrypted", decrypt);
+      }
     } else {
       handleData(decode(data.slice(1)) as webRTCData, did);
     }
@@ -168,7 +187,10 @@ export const connectToDevice = (did: number, initiator: boolean, events?: EventT
   });
 
   connections.update((connections) => {
-    connections[did] = { data: peer, events: events !== undefined ? events : new EventTarget() };
+    connections[did] = {
+      data: peer,
+      events: events !== undefined ? events : new EventTarget(),
+    };
     return connections;
   });
 
