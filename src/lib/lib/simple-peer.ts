@@ -7,17 +7,13 @@ import { concatArrays, type webRTCData } from "$lib/sharing/common";
 import { handleData } from "$lib/sharing/main";
 import { trpc } from "$lib/trpc/client";
 
-import {
-  decryptData,
-  encryptData,
-  encryptionBuffer,
-  publicKeyJwk,
-} from "./encryption";
+import { decryptData, encryptData, publicKeyJwk } from "./encryption";
 import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
 
 export const connections = writable<
   {
     data: SimplePeer.Instance;
+    events: EventTarget;
     encryption?: { key: CryptoKey; counter: number }; // key: ECDH PublicKey
   }[]
 >([]);
@@ -28,36 +24,48 @@ export const sendMessage = async (
   did: number,
   encrypt = true,
 ) => {
-  if (
-    get(connections)[did] === undefined ||
-    get(connections)[did].encryption === undefined
-  ) {
-    encryptionBuffer.update((buffer) => {
-      if (buffer[did] === undefined) buffer[did] = [];
-      buffer[did].push(encode(data));
-      return buffer;
-    });
-  } else {
-    let chunk: Uint8Array;
-    if (encrypt) {
-      chunk = concatArrays([
-        numberToUint8Array(1, 1),
-        await encryptData(encode(data), did),
-      ]);
-    } else {
-      chunk = concatArrays([numberToUint8Array(0, 1), encode(data)]);
-    }
+  const infos = get(connections)[did];
 
+  const addToBuffer = (chunk: Uint8Array) => {
     buffer.update((buffer) => {
       if (buffer[did] === undefined) buffer[did] = [];
       buffer[did].push(chunk);
       return buffer;
     });
+  };
+
+  if (encrypt && infos !== undefined && infos.encryption !== undefined) {
+    const chunk = concatArrays([
+      numberToUint8Array(1, 1),
+      await encryptData(encode(data), did),
+    ]);
+    addToBuffer(chunk);
+  } else if (infos !== undefined && infos.encryption !== undefined) {
+    const chunk = concatArrays([numberToUint8Array(0, 1), encode(data)]);
+    addToBuffer(chunk);
   }
 
   let peer = get(connections)[did];
-  if (peer === undefined || peer.data.closed || peer.data.destroyed)
-    peer = { data: connectToDevice(did, true) };
+  if (peer === undefined || peer.data.closed || peer.data.destroyed) {
+    const events = new EventTarget();
+
+    if (encrypt) {
+      const send = async () => {
+        const chunk = concatArrays([
+          numberToUint8Array(1, 1),
+          await encryptData(encode(data), did),
+        ]);
+        addToBuffer(chunk);
+        events.removeEventListener("encrypted", send);
+        sendMessages(did);
+      };
+
+      events.addEventListener("encrypted", send);
+    }
+
+    peer = { data: connectToDevice(did, true), events };
+    return;
+  }
 
   if (get(buffer)[did] === undefined || get(buffer)[did].length > 1) return;
 
@@ -66,7 +74,7 @@ export const sendMessage = async (
   }
 };
 
-export const sendMessages = (did: number, peerParameter?: SimplePeer.Instance, ) => {
+const sendMessages = (did: number, peerParameter?: SimplePeer.Instance) => {
   if (get(buffer)[did] === undefined || get(buffer)[did].length <= 0) return;
 
   let peer: SimplePeer.Instance;
@@ -81,13 +89,12 @@ export const sendMessages = (did: number, peerParameter?: SimplePeer.Instance, )
     return;
   }
 
-  const chunk = get(buffer)[did][0];
   buffer.update((buffer) => {
+    peer.write(buffer[did][0], undefined, () => sendMessages(did, peer));
+
     buffer = buffer.slice(1);
     return buffer;
   });
-
-  peer.write(chunk, undefined, () => sendMessages(did, peer));
 };
 
 export const connectToDevice = (did: number, initiator: boolean) => {
@@ -158,7 +165,7 @@ export const connectToDevice = (did: number, initiator: boolean) => {
   });
 
   connections.update((connections) => {
-    connections[did] = { data: peer };
+    connections[did] = { data: peer, events: new EventTarget() };
     return connections;
   });
 
