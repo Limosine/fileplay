@@ -11,6 +11,7 @@ import {
   outgoing_filetransfers,
   link,
   type webRTCData,
+  senderLink,
 } from "./common";
 import { send, sendChunked, sendRequest } from "./send";
 import {
@@ -138,14 +139,32 @@ export const addPendingFile = async (files: FileList) => {
     );
 
     link.set(
-      "http://" +
-        location.hostname +
-        ":" +
-        location.port +
-        "/guest/" +
+      location.protocol +
+        "//" +
+        location.host +
+        "?did=" +
         get(own_did) +
-        "/key/" +
+        "&id=" +
         filetransfer_id,
+    );
+  } else {
+    throw new Error("Failed to register Filetransfer.");
+  }
+};
+
+export const authorizeGuestSender = async () => {
+  const filetransferID = await trpc().createTransfer.mutate();
+
+  if (filetransferID.success) {
+    senderLink.set(
+      location.protocol +
+        "//" +
+        location.host +
+        "?did=" +
+        get(own_did) +
+        "&id=" +
+        filetransferID.message +
+        "&sender",
     );
   } else {
     throw new Error("Failed to register Filetransfer.");

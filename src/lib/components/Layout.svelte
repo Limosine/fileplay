@@ -1,5 +1,6 @@
 <script lang="ts">
   import { current, notifications, settings_page } from "$lib/lib/UI";
+  import { authorizeGuestSender } from "$lib/sharing/main";
 </script>
 
 <div id="rail" class="l m">
@@ -32,6 +33,17 @@
         <p class="s" style="font-size: large; font-weight: 600;">{$current}</p>
         <div class="max" />
         <!-- eslint-disable no-undef -->
+        <!-- svelte-ignore missing-declaration -->
+        <button
+          class="circle transparent"
+          on:click={() => {
+            authorizeGuestSender();
+            ui("#dialog-qrcode");
+          }}
+        >
+          <i>qr_code_2</i>
+          <div class="tooltip bottom">Guest QR code</div>
+        </button>
         <!-- svelte-ignore missing-declaration -->
         <button
           class="circle transparent"

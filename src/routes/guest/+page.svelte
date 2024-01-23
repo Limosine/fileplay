@@ -12,8 +12,11 @@
   import { send } from "$lib/sharing/send";
 
   let sentAccept = false;
+  let did: number;
+  let filetransfer_id: string;
+  let sender: boolean;
 
-  let waitingTemplateString = "Waiting for files";
+  const waitingTemplateString = "Waiting for files";
   let finalString = waitingTemplateString;
   let counter = 0;
   const animationInterval = setInterval(() => {
@@ -33,9 +36,12 @@
   onMount(() => {
     if (!sentAccept) {
       sentAccept = true;
+      did = Number($page.url.searchParams.get("did"));
+      filetransfer_id = String($page.url.searchParams.get("id"));
+      sender = $page.url.searchParams.has("sender");
 
       setup();
-      connectAsListener(Number($page.params.did), $page.params.filetransfer_id);
+      if (!sender) connectAsListener(did, filetransfer_id);
     }
   });
 
@@ -77,66 +83,68 @@
 </div>
 
 <div id="main">
-  <article class="secondary-container" style="margin: 0;">
-    {#if $incoming_filetransfers.length == 0}
-      <p class="center-align large-text">{finalString}</p>
-    {:else}
-      <p class="bold">Incoming files:</p>
-    {/if}
+  {#if !sender}
+    <article class="secondary-container" style="margin: 0;">
+      {#if $incoming_filetransfers.length == 0}
+        <p class="center-align large-text">{finalString}</p>
+      {:else}
+        <p class="bold">Incoming files:</p>
+      {/if}
 
-    {#each $incoming_filetransfers as filetransfer}
-      {#each filetransfer.files as file}
-        <div style="margin-bottom: 5px;">
-          <div class="no-space row center-align">
-            {#if file.url}
-              <article
-                class="border left-round"
-                style="width: 80%; height: 50px; border-right-style: none;"
-              >
-                <span
-                  >{file.name.length > 25
-                    ? returnSubstring(file.name)
-                    : file.name}</span
+      {#each $incoming_filetransfers as filetransfer}
+        {#each filetransfer.files as file}
+          <div style="margin-bottom: 5px;">
+            <div class="no-space row center-align">
+              {#if file.url}
+                <article
+                  class="border left-round"
+                  style="width: 80%; height: 50px; border-right-style: none;"
                 >
-                <div class="tooltip">{file.name}</div>
-              </article>
-              <a href={file.url} download={file.name}>
-                <button
-                  disabled={!file.url}
-                  class="large right-round"
-                  style="padding: 0px 3px 0px 0px; margin: 0px; height: 50px;"
-                >
-                  <i class="large">download</i>
-                </button>
-              </a>
-            {:else}
-              <article
-                class="border round row"
-                style="width: 100%; height: 50px;"
-              >
-                <div>
-                  <span>
-                    {file.name.length > 25
+                  <span
+                    >{file.name.length > 25
                       ? returnSubstring(file.name)
-                      : file.name}
-                  </span>
+                      : file.name}</span
+                  >
                   <div class="tooltip">{file.name}</div>
-                </div>
-                <div class="max" />
-                <progress class="circle small" />
-              </article>
-            {/if}
+                </article>
+                <a href={file.url} download={file.name}>
+                  <button
+                    disabled={!file.url}
+                    class="large right-round"
+                    style="padding: 0px 3px 0px 0px; margin: 0px; height: 50px;"
+                  >
+                    <i class="large">download</i>
+                  </button>
+                </a>
+              {:else}
+                <article
+                  class="border round row"
+                  style="width: 100%; height: 50px;"
+                >
+                  <div>
+                    <span>
+                      {file.name.length > 25
+                        ? returnSubstring(file.name)
+                        : file.name}
+                    </span>
+                    <div class="tooltip">{file.name}</div>
+                  </div>
+                  <div class="max" />
+                  <progress class="circle small" />
+                </article>
+              {/if}
+            </div>
           </div>
-        </div>
+        {/each}
       {/each}
-    {/each}
-  </article>
+    </article>
+  {/if}
 
-  {#if $incoming_filetransfers.length > 0}
+  {#if $incoming_filetransfers.length > 0 || sender}
     <article class="secondary-container" style="margin: 0;">
       {#if $files === undefined || $files.length === 0}
         <button class="center" on:click={() => $input.click()}
-          >Send files back</button
+          >Send files{sender ? "" : " back"}</button
         >
       {:else}
         <div class="row">
@@ -170,10 +178,10 @@
           on:click={() =>
             send(
               $files,
-              Number($page.params.did),
+              did,
               undefined,
               undefined,
-              $page.params.filetransfer_id,
+              filetransfer_id,
             )}>Send</button
         >
       {/if}

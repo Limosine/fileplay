@@ -1,4 +1,5 @@
 import { browser } from "$app/environment";
+import QRCode from "qrcode";
 import { get, writable } from "svelte/store";
 
 import { DeviceType } from "./common";
@@ -21,8 +22,8 @@ export const linkingCode = writable("");
 export const own_did = writable<number>();
 
 export const deviceParams = writable<{
-  display_name: string,
-  type: string,
+  display_name: string;
+  type: string;
 }>({
   display_name: "",
   type: "",
@@ -111,6 +112,7 @@ export const code = writable("");
 export const addContactDialog = writable<HTMLDialogElement>();
 export const editDialog = writable<HTMLDialogElement>();
 export const notificationDialog = writable<HTMLDialogElement>();
+export const qrCodeDialog = writable<HTMLDialogElement>();
 
 // Edit dialog
 export type edit_options =
@@ -239,5 +241,14 @@ export const returnProgress = (
     return progress;
   } else {
     return 0;
+  }
+};
+
+// QR Code generation:
+export const generateQRCode = async (link: string) => {
+  try {
+    return await QRCode.toDataURL(link);
+  } catch (err: any) {
+    throw new Error("Failed to generate QR code:", err);
   }
 };

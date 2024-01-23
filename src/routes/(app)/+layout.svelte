@@ -10,6 +10,7 @@
   import Layout from "$lib/components/Layout.svelte";
   import AddContact from "$lib/dialogs/AddContact.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
+  import QRCode from "$lib/dialogs/QRCode.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import { browser } from "$app/environment";
 
@@ -85,6 +86,7 @@
 <!-- Dialogs -->
 <Edit />
 <AddContact />
+<QRCode />
 
 <Notifications />
 

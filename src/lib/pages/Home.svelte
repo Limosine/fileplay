@@ -1,24 +1,19 @@
 <script lang="ts">
-  import QRCode from "qrcode";
   import { writable } from "svelte/store";
 
   import { input, files } from "$lib/components/Input.svelte";
   import { getDicebearUrl } from "$lib/lib/common";
   import { type IContact, type IDeviceInfo } from "$lib/lib/fetchers";
   import { sendState, SendState } from "$lib/lib/sendstate";
-  import { current, contacts } from "$lib/lib/UI";
+  import { current, contacts, generateQRCode } from "$lib/lib/UI";
   import { link, outgoing_filetransfers } from "$lib/sharing/common";
   import { send } from "$lib/sharing/send";
   import { addPendingFile } from "$lib/sharing/main";
 
   let qrCode: string;
-  const generateQRCode = async (link: string) => {
-    try {
-      qrCode = await QRCode.toDataURL(link);
-    } catch (error) {
-      console.error("Failed to generate QR code:", error);
-    }
-  };
+  const setQRCode = async () => {
+    qrCode = await generateQRCode($link);
+  }
 
   function setSendState(cid: number, state: SendState) {
     $sendState[cid] = state;
@@ -141,7 +136,7 @@
 
   $: {
     if ($files && $link) {
-      generateQRCode($link);
+      setQRCode();
     }
   }
 </script>

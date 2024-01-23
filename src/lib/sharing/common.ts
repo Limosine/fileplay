@@ -80,6 +80,7 @@ export const link = writable("");
 
 // Receiver Side:
 export const incoming_filetransfers = writable<IncomingFiletransfer[]>([]);
+export const senderLink = writable("");
 
 // Functions:
 export const createFileURL = (file: any) => {
