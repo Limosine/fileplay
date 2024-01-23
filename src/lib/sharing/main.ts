@@ -156,6 +156,15 @@ export const authorizeGuestSender = async () => {
   const filetransferID = await trpc().createTransfer.mutate();
 
   if (filetransferID.success) {
+    outgoing_filetransfers.update((transfers) => {
+      transfers.push({
+        id: filetransferID.message,
+        completed: true,
+        files: [],
+      });
+      return transfers;
+    });
+
     senderLink.set(
       location.protocol +
         "//" +
