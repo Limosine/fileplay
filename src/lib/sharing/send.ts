@@ -22,6 +22,7 @@ export const send = async (
   did?: number,
   cid?: number,
   filetransfer_id?: string,
+  previous?: string,
 ) => {
   if (files.length <= 0)
     throw new Error("Filetransfer: One file has to be selected.");
@@ -47,13 +48,17 @@ export const send = async (
   ]);
 
   if (did !== undefined) {
-    sendRequest(did, filetransfer_infos.id);
+    sendRequest(did, filetransfer_infos.id, previous);
   }
 
   return filetransfer_infos.id;
 };
 
-export const sendRequest = (did: number, filetransfer_id: string) => {
+export const sendRequest = (
+  did: number,
+  filetransfer_id: string,
+  previous?: string,
+) => {
   const outgoing_filetransfer = get(outgoing_filetransfers).find(
     (outgoing_filetransfer) => outgoing_filetransfer.id == filetransfer_id,
   );
@@ -74,6 +79,7 @@ export const sendRequest = (did: number, filetransfer_id: string) => {
         type: "request",
         id: outgoing_filetransfer.id,
         files,
+        previous
       },
       did,
     );

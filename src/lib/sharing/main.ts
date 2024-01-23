@@ -32,6 +32,7 @@ const authenticated = (
     | "accept"
     | "request"
     | "error",
+  previous?: string,
 ) => {
   // Guest page
   if (browser && window.location.pathname.slice(0, 6) == "/guest") {
@@ -44,8 +45,12 @@ const authenticated = (
   if (
     get(outgoing_filetransfers).find(
       (filetransfer) =>
-        filetransfer.id == filetransfer_id &&
-        (filetransfer.cid === undefined || filetransfer.did === did),
+        (previous !== undefined &&
+          type == "request" &&
+          filetransfer.id == previous &&
+          filetransfer.cid === undefined) ||
+        (filetransfer.id == filetransfer_id &&
+          (filetransfer.cid === undefined || filetransfer.did === did)),
     ) !== undefined
   )
     return true;
@@ -80,7 +85,14 @@ export const handleData = (data: webRTCData, did: number) => {
     console.warn(`Filetransfer: ${data.message}`);
   } else if (data.type == "update") {
     updateKey(did, data.key);
-  } else if (authenticated(did, data.id, data.type)) {
+  } else if (
+    authenticated(
+      did,
+      data.id,
+      data.type,
+      "previous" in data ? data.previous : undefined,
+    )
+  ) {
     // Sender:
     if (data.type == "accept") {
       if (data.guest == true) sendRequest(did, data.id);

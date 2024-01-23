@@ -45,6 +45,7 @@ export interface Request {
   type: "request";
   id: string;
   files: Omit<Omit<Omit<FileInfos, "url">, "chunks">, "completed">[];
+  previous?: string;
 }
 export interface Error {
   type: "error";

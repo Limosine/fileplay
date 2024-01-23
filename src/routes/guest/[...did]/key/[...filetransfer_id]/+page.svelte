@@ -81,7 +81,7 @@
     {#if $incoming_filetransfers.length == 0}
       <p class="center-align large-text">{finalString}</p>
     {:else}
-      <p class="bold" style="margin: 0;">Incoming files:</p>
+      <p class="bold">Incoming files:</p>
     {/if}
 
     {#each $incoming_filetransfers as filetransfer}
@@ -132,7 +132,8 @@
     {/each}
   </article>
 
-  {#if $incoming_filetransfers.length > 0 || true} <!-- debug -->
+  {#if $incoming_filetransfers.length > 0 || true}
+    <!-- debug -->
     <article class="secondary-container">
       {#if $files === undefined || $files.length === 0}
         <button class="center" on:click={() => $input.click()}
@@ -167,7 +168,14 @@
         </div>
         <button
           class="center"
-          on:click={() => send($files, Number($page.params.did))}>Send</button
+          on:click={() =>
+            send(
+              $files,
+              Number($page.params.did),
+              undefined,
+              undefined,
+              $page.params.filetransfer_id,
+            )}>Send</button
         >
       {/if}
     </article>
