@@ -37,7 +37,7 @@ const authenticated = (
 ) => {
   // Guest page
   if (browser && window.location.pathname.slice(0, 6) == "/guest") {
-    if (Number(get(page).params.did) === did) {
+    if (Number(get(page).url.searchParams.get("did")) === did) {
       return true;
     } else return false;
   }
@@ -142,7 +142,7 @@ export const addPendingFile = async (files: FileList) => {
       location.protocol +
         "//" +
         location.host +
-        "?did=" +
+        "/guest?did=" +
         get(own_did) +
         "&id=" +
         filetransfer_id,
@@ -160,7 +160,7 @@ export const authorizeGuestSender = async () => {
       location.protocol +
         "//" +
         location.host +
-        "?did=" +
+        "/guest?did=" +
         get(own_did) +
         "&id=" +
         filetransferID.message +

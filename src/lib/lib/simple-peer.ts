@@ -125,7 +125,7 @@ export const connectToDevice = (
       const unsubscribe = trpc().getFromGuest.subscribe(
         {
           did,
-          guestTransfer: get(page).params.filetransfer_id,
+          guestTransfer: String(get(page).url.searchParams.get("id")),
           data: JSON.stringify(data),
         },
         {
