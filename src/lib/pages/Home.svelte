@@ -157,7 +157,7 @@
   <div id="home">
     <article style="padding: 15px 12px 15px 12px;" class="secondary-container">
       <div class="row">
-        <p class="bold" style="margin: 0;">Selected files:</p>
+        <p class="bold">Selected files:</p>
         <div class="max" />
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
         <a on:click={() => $input.click()} style="color: var(--secondary)"
@@ -183,11 +183,14 @@
         {/each}
       </div>
     </article>
-    <article style="padding: 15px 12px 15px 12px; margin: 0;" class="secondary-container">
+    <article
+      style="padding: 15px 12px 15px 12px; margin: 0;"
+      class="secondary-container"
+    >
       <details>
         <summary class="none">
           <div class="row">
-            <p class="bold" style="margin: 0;">Share via link?</p>
+            <p class="bold">Share via link?</p>
             <div class="max" />
             <i>arrow_drop_down</i>
           </div>
@@ -232,22 +235,25 @@
         {/if}
       </details>
     </article>
-    <article style="padding: 15px 12px 15px 12px; margin: 0;" class="secondary-container">
+    <article
+      style="padding: 15px 12px 15px 12px; margin: 0;"
+      class="secondary-container"
+    >
       <div class="row">
-        <p class="bold" style="margin: 0;">Available contacts:</p>
+        <p class="bold">Available contacts:</p>
         <div class="max" />
       </div>
+      {#if $contacts.length <= 0 || $contacts.find((contact) => contact.devices.length > 0) === undefined}
+        <p class="center padding">
+          No contact available. Add a new contact on the
+          <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+          <a
+            on:click={() => ($current = "Contacts")}
+            style="color: var(--primary)">contact page</a
+          >.
+        </p>
+      {/if}
       <div class="row wrap">
-        {#if $contacts.length <= 0 || $contacts.find((contact) => contact.devices.length > 0) === undefined}
-          <p class="center padding">
-            No contact available. Add a new contact on the
-            <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-            <a
-              on:click={() => ($current = "Contacts")}
-              style="color: var(--primary)">contact page</a
-            >.
-          </p>
-        {/if}
         {#each $contacts as contact}
           {#if contact.devices.length > 0}
             <button
@@ -282,7 +288,7 @@
   #home {
     display: flex;
     flex-flow: column;
-    gap: 7px;
+    gap: 10px;
     padding: 20px;
   }
 

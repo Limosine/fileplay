@@ -6,7 +6,7 @@
 
 <div id="contacts">
   {#each $contacts as contact}
-    <article style="margin: 0;">
+    <article class="secondary-container" style="margin: 0;">
       <div class="row">
         <img
           class="circle medium"
@@ -32,7 +32,7 @@
   #contacts {
     display: flex;
     flex-flow: column;
-    gap: 7px;
-    padding: 7px;
+    gap: 10px;
+    padding: 20px;
   }
 </style>

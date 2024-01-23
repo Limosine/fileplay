@@ -77,7 +77,7 @@
 </div>
 
 <div id="main">
-  <article class="secondary-container">
+  <article class="secondary-container" style="margin: 0;">
     {#if $incoming_filetransfers.length == 0}
       <p class="center-align large-text">{finalString}</p>
     {:else}
@@ -132,16 +132,15 @@
     {/each}
   </article>
 
-  {#if $incoming_filetransfers.length > 0 || true}
-    <!-- debug -->
-    <article class="secondary-container">
+  {#if $incoming_filetransfers.length > 0}
+    <article class="secondary-container" style="margin: 0;">
       {#if $files === undefined || $files.length === 0}
         <button class="center" on:click={() => $input.click()}
           >Send files back</button
         >
       {:else}
         <div class="row">
-          <p class="bold" style="margin: 0;">Selected files:</p>
+          <p class="bold">Selected files:</p>
           <div class="max" />
           <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
           <a on:click={() => $input.click()} style="color: var(--secondary)"
@@ -186,7 +185,7 @@
   #main {
     display: flex;
     flex-flow: column;
-    gap: 7px;
+    gap: 10px;
     padding: 20px;
   }
 </style>
