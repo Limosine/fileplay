@@ -16,17 +16,27 @@
     type IncomingFiletransfer,
     type Request,
   } from "$lib/sharing/common";
-  import { sendAccept } from "$lib/sharing/send";
+  import { sendAnswer } from "$lib/sharing/send";
 
   const cancelFiletransfer = async (
     notification: NotificationRequest | NotificationReceiving,
   ) => {
     deleteNotification(notification.tag);
-    incoming_filetransfers.update((filetransfers) =>
-      filetransfers.filter(
-        (filetransfer) => filetransfer.id != notification.data.filetransfer_id,
-      ),
-    );
+
+    if (notification.title == "File request") {
+      sendAnswer(
+        notification.data.did,
+        notification.data.filetransfer_id,
+        false,
+      );
+    } else {
+      incoming_filetransfers.update((filetransfers) =>
+        filetransfers.filter(
+          (filetransfer) =>
+            filetransfer.id != notification.data.filetransfer_id,
+        ),
+      );
+    }
   };
 
   const acceptFileTransfer = async (notification: NotificationRequest) => {
@@ -69,7 +79,7 @@
       data: { filetransfer_id: filetransfer.id },
     });
 
-    sendAccept(notification.data.did, notification.data.filetransfer_id);
+    sendAnswer(notification.data.did, notification.data.filetransfer_id, true);
   };
 </script>
 

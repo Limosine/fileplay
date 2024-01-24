@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from "$app/environment";
   import { onMount } from "svelte";
   import { type Writable } from "svelte/store";
   import { pwaInfo } from "virtual:pwa-info";
@@ -10,9 +11,8 @@
   import Layout from "$lib/components/Layout.svelte";
   import AddContact from "$lib/dialogs/AddContact.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
-  import QRCode from "$lib/dialogs/QRCode.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
-  import { browser } from "$app/environment";
+  import QRCode from "$lib/dialogs/QRCode.svelte";
 
   let needRefresh: Writable<boolean>;
   let loading = 0;
@@ -44,7 +44,7 @@
           if (registration) {
             setInterval(
               async () => await update(registration),
-              30 * 60 * 1000, // 5 mins secs (for debugging)
+              30 * 60 * 1000, // 30 mins
             );
             await update(registration);
             registration.waiting?.postMessage({ type: "skip_waiting" });

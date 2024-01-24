@@ -9,6 +9,7 @@ export type webRTCData =
   | FileFinished
   | FiletransferFinished
   | Accept
+  | Reject
   | Request
   | Error;
 
@@ -40,6 +41,10 @@ export interface Accept {
   type: "accept";
   id: string;
   guest?: boolean;
+}
+export interface Reject {
+  type: "reject";
+  id: string;
 }
 export interface Request {
   type: "request";

@@ -1,9 +1,8 @@
 import { nanoid } from "nanoid";
 import { get } from "svelte/store";
 
-import { publicKeyJwk } from "$lib/lib/encryption";
 import { SendState, sendState } from "$lib/lib/sendstate";
-import { closeConnections, sendMessage } from "$lib/lib/simple-peer";
+import { sendMessage } from "$lib/lib/simple-peer";
 import { addNotification, deleteNotification } from "$lib/lib/UI";
 
 import {
@@ -265,10 +264,10 @@ export const sendFinish = async (
 };
 
 // Receiver:
-export const sendAccept = (did: number, filetransfer_id: string) => {
+export const sendAnswer = (did: number, filetransfer_id: string, answer: boolean) => {
   sendMessage(
     {
-      type: "accept",
+      type: answer ? "accept" : "reject",
       id: filetransfer_id,
     },
     did,

@@ -1,5 +1,4 @@
 import cookie from "cookie";
-import { EventEmitter } from "events";
 import type { IncomingMessage } from "http";
 import { TRPCError, type inferAsyncReturnType } from "@trpc/server";
 import type { CreateHTTPContextOptions } from "@trpc/server/adapters/standalone";

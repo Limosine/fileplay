@@ -1,24 +1,24 @@
-import { writable } from "svelte/store";
+import { get, writable } from "svelte/store";
 
 export enum SendState {
-  IDLE = "idle",
-  REQUESTING = "requesting",
-  REJECTED = "rejected",
-  FAILED = "failed",
-  CANCELED = "canceled",
-  SENDING = "sending",
-  SENT = "sent",
+  IDLE = "Idle",
+  REQUESTING = "Requesting",
+  REJECTED = "Rejected",
+  FAILED = "Failed",
+  CANCELED = "Canceled",
+  SENDING = "Sending",
+  SENT = "Sent",
 }
 
 const createStore = () => {
   const store = writable<{ [cid: number]: SendState }>([]);
-  const { subscribe, update } = store;
+  const { subscribe, update, set } = store;
 
   return {
     subscribe,
     set: (cid: number, state: SendState) => {
-      update((store) => {
-        store[cid] = state;
+      update((object) => {
+        object[cid] = state;
 
         if (
           [
@@ -28,10 +28,14 @@ const createStore = () => {
             SendState.SENT,
           ].includes(state)
         ) {
-          setTimeout(() => (store[cid] = SendState.IDLE), 3000);
+          setTimeout(() => {
+            const object = get(store);
+            object[cid] = SendState.IDLE;
+            set(object);
+          }, 3000);
         }
 
-        return store;
+        return object;
       });
     },
   };

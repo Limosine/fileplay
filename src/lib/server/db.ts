@@ -4,7 +4,6 @@ import pkg from "pg";
 import { error, type Cookies } from "@sveltejs/kit";
 
 import { env } from "$env/dynamic/private";
-import { loadKey, loadSignedDeviceID } from "./crypto";
 import {
   DeviceType,
   LINKING_EXPIRY_TIME,
@@ -12,6 +11,8 @@ import {
   ONLINE_STATUS_TIMEOUT,
 } from "$lib/lib/common";
 import type { DB, Database } from "$lib/lib/db";
+
+import { loadKey, loadSignedDeviceID } from "./crypto";
 
 const { Pool } = pkg;
 

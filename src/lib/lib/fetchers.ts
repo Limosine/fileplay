@@ -3,8 +3,9 @@ import { page } from "$app/stores";
 import { get, writable } from "svelte/store";
 import type { Unsubscribable } from "@trpc/server/observable";
 
-import { DeviceType, ONLINE_STATUS_REFRESH_TIME } from "./common";
 import { trpc } from "$lib/trpc/client";
+
+import { DeviceType, ONLINE_STATUS_REFRESH_TIME } from "./common";
 import { connections, connectToDevice } from "./simple-peer";
 import { contacts, devices, own_did, user } from "./UI";
 

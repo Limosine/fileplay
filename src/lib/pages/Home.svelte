@@ -11,8 +11,8 @@
     outgoing_filetransfers,
     type OutgoingFileTransfer,
   } from "$lib/sharing/common";
-  import { send } from "$lib/sharing/send";
   import { addPendingFile, cancelFiletransfer } from "$lib/sharing/main";
+  import { send } from "$lib/sharing/send";
 
   let qrCode: string;
   const setQRCode = async () => {
@@ -110,7 +110,7 @@
       </div>
       <div class="row wrap">
         {#each Array.from($files) as file}
-          <article class="square round fill secondary">
+          <article class="square round tertiary">
             <i class="center middle">
               {#if file.type.slice(0, file.type.indexOf("/")) == "audio"}
                 audio_file

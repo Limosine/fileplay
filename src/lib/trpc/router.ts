@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
-import { get, writable } from "svelte/store";
 import { nanoid } from "nanoid";
+import { get, writable } from "svelte/store";
 import { TRPCError, initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
@@ -20,6 +20,7 @@ import {
   updateUser,
 } from "$lib/server/db";
 import type { Context } from "$lib/trpc/context";
+
 import {
   getDevices,
   getUser,

@@ -10,7 +10,7 @@ import {
   outgoing_filetransfers,
   type Request,
 } from "./common";
-import { sendAccept, sendChunked, sendFinish, sendMissing } from "./send";
+import { sendAnswer, sendChunked, sendFinish, sendMissing } from "./send";
 
 export const handleRequest = (
   did: number,
@@ -38,7 +38,7 @@ export const handleRequest = (
 
     incoming_filetransfers.set([...get(incoming_filetransfers), filetransfer]);
 
-    sendAccept(did, filetransfer_id);
+    sendAnswer(did, filetransfer_id, true);
   } else {
     addNotification({
       title: "File request",
@@ -106,13 +106,13 @@ export const handleFileFinish = async (
   }
 };
 
-export const handleFileTransferFinished = (filetransfer_id: string) => {
+export const handleFileTransferFinished = (filetransfer_id: string, reject: boolean) => {
   const filetransfer = get(outgoing_filetransfers).find(
     (filetransfer) => filetransfer.id == filetransfer_id,
   );
 
   if (filetransfer !== undefined && filetransfer.cid !== undefined) {
-    sendState.set(filetransfer.cid, SendState.SENT);
+    sendState.set(filetransfer.cid, reject ? SendState.REJECTED : SendState.SENT);
 
     outgoing_filetransfers.update((filetransfers) =>
       filetransfers.filter(

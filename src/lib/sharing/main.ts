@@ -27,13 +27,7 @@ import { send, sendChunked, sendRequest } from "./send";
 const authenticated = (
   did: number,
   filetransfer_id: string,
-  type:
-    | "chunk"
-    | "file-finish"
-    | "transfer-finish"
-    | "accept"
-    | "request"
-    | "error",
+  type: webRTCData["type"],
   previous?: string,
 ) => {
   // Guest page
@@ -81,7 +75,8 @@ const authenticated = (
 };
 
 export const handleData = (data: webRTCData, did: number) => {
-  console.log(data);
+  // Debugging
+  if (data.type != "chunk") console.log(data);
 
   if (data.type == "error") {
     console.warn(`Filetransfer: ${data.message}`);
@@ -99,6 +94,12 @@ export const handleData = (data: webRTCData, did: number) => {
     if (data.type == "accept") {
       if (data.guest == true) sendRequest(did, data.id);
       else sendChunked(did, data.id);
+    } else if (data.type == "reject") {
+      handleFileTransferFinished(data.id, true);
+    } else if (data.type == "file-finish") {
+      handleFileFinish(did, data.id, data.file_id, data.missing);
+    } else if (data.type == "transfer-finish") {
+      handleFileTransferFinished(data.id, false);
 
       // Receiver:
     } else if (data.type == "request") {
@@ -112,10 +113,6 @@ export const handleData = (data: webRTCData, did: number) => {
         data.chunk.id,
         data.final,
       );
-    } else if (data.type == "file-finish") {
-      handleFileFinish(did, data.id, data.file_id, data.missing);
-    } else if (data.type == "transfer-finish") {
-      handleFileTransferFinished(data.id);
     }
   } else {
     sendMessage(

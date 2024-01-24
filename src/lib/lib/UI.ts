@@ -2,6 +2,8 @@ import { browser } from "$app/environment";
 import QRCode from "qrcode";
 import { get, writable } from "svelte/store";
 
+import type { IncomingFiletransfer, Request } from "$lib/sharing/common";
+
 import { DeviceType } from "./common";
 import {
   type IContact,
@@ -9,7 +11,6 @@ import {
   type IDevices,
   type IUser,
 } from "./fetchers";
-import type { IncomingFiletransfer, Request } from "$lib/sharing/common";
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
 export const settings_page = writable<"main" | "devices" | "device">("main");

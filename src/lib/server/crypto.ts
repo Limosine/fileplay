@@ -1,9 +1,10 @@
 import type { CookieSerializeOptions } from "cookie";
 import { error, type Cookies } from "@sveltejs/kit";
 
-import { getUID } from "./db";
 import type { Database } from "$lib/lib/db";
-import { arrayBufferToHex, hexToArrayBuffer } from "../lib/utils";
+import { arrayBufferToHex, hexToArrayBuffer } from "$lib/lib/utils";
+
+import { getUID } from "./db";
 
 export async function saveSignedDeviceID(
   did: number,

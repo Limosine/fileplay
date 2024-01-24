@@ -2,8 +2,8 @@
   import dayjs from "dayjs";
   import { onDestroy, onMount } from "svelte";
 
-  import { trpc } from "$lib/trpc/client";
   import { code, addContactDialog, add_mode } from "$lib/lib/UI";
+  import { trpc } from "$lib/trpc/client";
 
   let redeemCode_section = true;
 

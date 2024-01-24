@@ -4,12 +4,12 @@
 
   import "beercss";
 
+  import Input, { files, input } from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import { SendState, sendState } from "$lib/lib/sendstate";
   import { closeConnections } from "$lib/lib/simple-peer";
   import { incoming_filetransfers } from "$lib/sharing/common";
   import { cancelFiletransfer, connectAsListener } from "$lib/sharing/main";
-  import Input, { files, input } from "$lib/components/Input.svelte";
   import { send } from "$lib/sharing/send";
 
   let sentAccept = false;
@@ -89,7 +89,10 @@
       {#if $incoming_filetransfers.length == 0}
         <p class="center-align large-text">{finalString}</p>
       {:else}
+      <div class="row" style="margin-bottom: 12px">
         <p class="bold">Incoming files:</p>
+        <div class="max" />
+      </div>
       {/if}
 
       {#each $incoming_filetransfers as filetransfer}
@@ -110,7 +113,6 @@
                 </article>
                 <a href={file.url} download={file.name}>
                   <button
-                    disabled={!file.url}
                     class="large right-round"
                     style="padding: 0px 3px 0px 0px; margin: 0px; height: 50px;"
                   >
@@ -174,7 +176,7 @@
             </article>
           {/each}
         </div>
-        {#if $sendState[0] === undefined || $sendState[0] === SendState.IDLE}
+        {#if $sendState[0] === undefined || $sendState[0] === SendState.IDLE || $sendState[0] === SendState.CANCELED}
           <button
             class="center"
             style="margin-top: 7px;"
@@ -182,17 +184,20 @@
             >Send</button
           >
         {:else}
-          <div class="row center" style="margin-top: 7px;">
-            <button on:click={() => cancelFiletransfer()}>{$sendState}</button>
-            <button
-              class="circle tertiary"
-              on:click={() => {
-                cancelFiletransfer();
-                send($files, did, 0, undefined, filetransfer_id);
-              }}
-            >
-              <i>refresh</i>
-            </button>
+          <div class="row" style="margin-top: 7px;">
+            <div class="center">
+              <button on:click={() => cancelFiletransfer()}>{$sendState}</button
+              >
+              <button
+                class="circle tertiary"
+                on:click={() => {
+                  cancelFiletransfer();
+                  send($files, did, 0, undefined, filetransfer_id);
+                }}
+              >
+                <i>refresh</i>
+              </button>
+            </div>
           </div>
         {/if}
       {/if}
