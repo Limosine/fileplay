@@ -112,7 +112,7 @@ export const handleFileTransferFinished = (filetransfer_id: string) => {
   );
 
   if (filetransfer !== undefined && filetransfer.cid !== undefined) {
-    sendState.setSendState(Number(filetransfer.cid), SendState.SENT);
+    sendState.set(filetransfer.cid, SendState.SENT);
 
     outgoing_filetransfers.update((filetransfers) =>
       filetransfers.filter(

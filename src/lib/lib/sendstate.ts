@@ -1,4 +1,4 @@
-import { get, writable } from "svelte/store";
+import { writable } from "svelte/store";
 
 export enum SendState {
   IDLE = "idle",
@@ -10,72 +10,31 @@ export enum SendState {
   SENT = "sent",
 }
 
-const createMapStore = () => {
-  const store = writable<{ [did: string]: number }>({});
-
-  const { subscribe, set, update } = store;
-  return {
-    subscribe,
-    addPair: (did: string, cid: number) => {
-      const state = get(store);
-      if (state[did]) return;
-      state[did] = cid;
-      set(state);
-    },
-    deletePair: (cid: number) => {
-      update((state) => {
-        Object.keys(state).forEach((key) => {
-          if (state[key] == cid) {
-            delete state[key];
-          }
-        });
-        return state;
-      });
-    },
-    getCid: (did: string) => {
-      return get(store)[did];
-    },
-    getDid: (cid: number) => {
-      const cache = get(store);
-      let did = "";
-      Object.keys(cache).forEach((key) => {
-        if (cache[key] == cid) {
-          did = key;
-          return;
-        }
-      });
-      return did;
-    },
-  };
-};
-
 const createStore = () => {
   const store = writable<{ [cid: number]: SendState }>([]);
-  const { subscribe, set } = store;
+  const { subscribe, update } = store;
 
   return {
-    ...store,
     subscribe,
-    setSendState: (cid: number, state: SendState) => {
-      const sendState = get(store);
-      sendState[cid] = state;
-      if (
-        [
-          SendState.FAILED,
-          SendState.REJECTED,
-          SendState.CANCELED,
-          SendState.SENT,
-        ].includes(state)
-      ) {
-        setTimeout(() => (sendState[cid] = SendState.IDLE), 3000);
-      }
-      set(sendState);
-    },
-    getState: () => {
-      return get(store);
+    set: (cid: number, state: SendState) => {
+      update((store) => {
+        store[cid] = state;
+
+        if (
+          [
+            SendState.FAILED,
+            SendState.REJECTED,
+            SendState.CANCELED,
+            SendState.SENT,
+          ].includes(state)
+        ) {
+          setTimeout(() => (store[cid] = SendState.IDLE), 3000);
+        }
+
+        return store;
+      });
     },
   };
 };
 
 export const sendState = createStore();
-export const mappedIDs = createMapStore();

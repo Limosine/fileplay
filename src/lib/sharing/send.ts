@@ -47,6 +47,10 @@ export const send = async (
     filetransfer_infos,
   ]);
 
+  if (cid !== undefined && get(sendState)[cid] !== SendState.REQUESTING) {
+    sendState.set(cid, SendState.REQUESTING);
+  }
+
   if (did !== undefined) {
     sendRequest(did, filetransfer_infos.id, previous);
   }
@@ -79,7 +83,7 @@ export const sendRequest = (
         type: "request",
         id: outgoing_filetransfer.id,
         files,
-        previous
+        previous,
       },
       did,
     );
@@ -104,7 +108,7 @@ export const sendChunked = (
   let file: Omit<FileInfos, "url">;
   if (previous_file_id === undefined) {
     const cid = get(outgoing_filetransfers)[filetransfer_index].cid;
-    if (cid !== undefined) sendState.setSendState(cid, SendState.SENDING);
+    if (cid !== undefined) sendState.set(cid, SendState.SENDING);
     file = get(outgoing_filetransfers)[filetransfer_index].files[0];
   } else {
     let index = get(outgoing_filetransfers)[filetransfer_index].files.findIndex(

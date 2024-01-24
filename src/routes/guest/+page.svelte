@@ -5,9 +5,10 @@
   import "beercss";
 
   import { setup } from "$lib/lib/encryption";
+  import { SendState, sendState } from "$lib/lib/sendstate";
   import { closeConnections } from "$lib/lib/simple-peer";
   import { incoming_filetransfers } from "$lib/sharing/common";
-  import { connectAsListener } from "$lib/sharing/main";
+  import { cancelFiletransfer, connectAsListener } from "$lib/sharing/main";
   import Input, { files, input } from "$lib/components/Input.svelte";
   import { send } from "$lib/sharing/send";
 
@@ -173,17 +174,27 @@
             </article>
           {/each}
         </div>
-        <button
-          class="center"
-          on:click={() =>
-            send(
-              $files,
-              did,
-              undefined,
-              undefined,
-              filetransfer_id,
-            )}>Send</button
-        >
+        {#if $sendState[0] === undefined || $sendState[0] === SendState.IDLE}
+          <button
+            class="center"
+            style="margin-top: 7px;"
+            on:click={() => send($files, did, 0, undefined, filetransfer_id)}
+            >Send</button
+          >
+        {:else}
+          <div class="row center" style="margin-top: 7px;">
+            <button on:click={() => cancelFiletransfer()}>{$sendState}</button>
+            <button
+              class="circle tertiary"
+              on:click={() => {
+                cancelFiletransfer();
+                send($files, did, 0, undefined, filetransfer_id);
+              }}
+            >
+              <i>refresh</i>
+            </button>
+          </div>
+        {/if}
       {/if}
     </article>
   {/if}

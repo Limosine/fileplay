@@ -2,9 +2,12 @@ import { browser } from "$app/environment";
 import { page } from "$app/stores";
 import { get } from "svelte/store";
 
-import { startHeartbeat } from "$lib/lib/fetchers";
-import { sendMessage } from "$lib/lib/simple-peer";
+import { updateKey } from "$lib/lib/encryption";
+import { startHeartbeat, type IContact } from "$lib/lib/fetchers";
+import { SendState, sendState } from "$lib/lib/sendstate";
+import { buffer, sendMessage } from "$lib/lib/simple-peer";
 import { contacts, own_did } from "$lib/lib/UI";
+import { trpc } from "$lib/trpc/client";
 
 import {
   incoming_filetransfers,
@@ -13,15 +16,13 @@ import {
   type webRTCData,
   senderLink,
 } from "./common";
-import { send, sendChunked, sendRequest } from "./send";
 import {
   handleRequest,
   handleChunk,
   handleFileFinish,
   handleFileTransferFinished,
 } from "./handle";
-import { trpc } from "$lib/trpc/client";
-import { updateKey } from "$lib/lib/encryption";
+import { send, sendChunked, sendRequest } from "./send";
 
 const authenticated = (
   did: number,
@@ -191,4 +192,24 @@ export const connectAsListener = (did: number, filetransfer_id: string) => {
     },
     did,
   );
+};
+
+export const cancelFiletransfer = (contact?: IContact) => {
+  sendState.set(contact === undefined ? 0 : contact.cid, SendState.CANCELED);
+
+  outgoing_filetransfers.update((transfers) =>
+    transfers.filter((transfer) =>
+      contact === undefined ? false : transfer.cid != contact.cid,
+    ),
+  );
+
+  buffer.update((buffer) => {
+    if (contact === undefined) buffer = [];
+    else {
+      contact.devices.forEach((device) => {
+        buffer[device.did] = [];
+      });
+    }
+    return buffer;
+  });
 };

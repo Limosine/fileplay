@@ -3,135 +3,84 @@
 
   import { input, files } from "$lib/components/Input.svelte";
   import { getDicebearUrl } from "$lib/lib/common";
-  import { type IContact, type IDeviceInfo } from "$lib/lib/fetchers";
+  import { type IContact } from "$lib/lib/fetchers";
   import { sendState, SendState } from "$lib/lib/sendstate";
   import { current, contacts, generateQRCode } from "$lib/lib/UI";
-  import { link, outgoing_filetransfers } from "$lib/sharing/common";
+  import {
+    link,
+    outgoing_filetransfers,
+    type OutgoingFileTransfer,
+  } from "$lib/sharing/common";
   import { send } from "$lib/sharing/send";
-  import { addPendingFile } from "$lib/sharing/main";
+  import { addPendingFile, cancelFiletransfer } from "$lib/sharing/main";
 
   let qrCode: string;
   const setQRCode = async () => {
     qrCode = await generateQRCode($link);
-  }
+  };
 
-  function setSendState(cid: number, state: SendState) {
-    $sendState[cid] = state;
-    if (
-      [SendState.FAILED, SendState.REJECTED, SendState.CANCELED].includes(state)
-    ) {
-      setTimeout(() => ($sendState[cid] = SendState.IDLE), 1000);
+  const handleContactClick = async (contact: IContact) => {
+    const state = $sendState[contact.cid];
+    const devices = contact.devices;
+
+    if (state == SendState.REQUESTING || state == SendState.SENDING) {
+      cancelFiletransfer(contact);
+    } else {
+      devices.forEach((device) => {
+        send($files, device.did, contact.cid, undefined);
+      });
     }
-  }
+  };
 
-  async function handleContactClick(contact: IContact) {
-    switch ($sendState[contact.cid]) {
-      case SendState.REQUESTING:
-        // cancel sharing request
-        setSendState(contact.cid, SendState.CANCELED);
-        break;
-      case SendState.SENDING:
-        // cancel sharing in progress
-        setSendState(contact.cid, SendState.CANCELED);
-        break;
-      default: {
-        // IDLE, CANCELED, FAILED, REJECTED
-        const devices = contact.devices;
-
-        devices.forEach((device: IDeviceInfo) => {
-          send($files, device.did, contact.cid, undefined);
-        });
-
-        setSendState(contact.cid, SendState.REQUESTING);
-
-        break;
-      }
-    }
-  }
-
-  let progress = writable<{ [cid: string]: string }>({});
-  let progress_styles = writable<{
-    [cid: string]: { class: string; indeterminate: boolean };
-  }>({});
-  $: {
-    if (Object.keys($sendState).length != 0) {
-      for (let [key, value] of Object.entries($sendState)) {
-        switch (value) {
-          case SendState.REQUESTING:
-            $progress_styles[key] = {
-              class: "progress-yellow",
-              indeterminate: true,
-            };
-            break;
-          case SendState.IDLE:
-            $progress_styles[key] = {
-              class: "",
-              indeterminate: false,
-            };
-            break;
-          case SendState.SENDING:
-            $progress_styles[key] = {
-              class: "",
-              indeterminate: false,
-            };
-            break;
-          case SendState.SENT:
-            $progress_styles[key] = {
-              class: "progress-green",
-              indeterminate: false,
-            };
-            break;
-          default:
-            $progress_styles[key] = {
-              class: "progress-red",
-              indeterminate: false,
-            };
-            break;
-        }
-      }
-    }
-  }
-  $: {
-    if ($outgoing_filetransfers.length != 0) {
-      $outgoing_filetransfers.forEach((outgoing_filetransfer) => {
-        if (outgoing_filetransfer.cid !== undefined) {
+  const updateOutgoingProgress = (
+    transfers: OutgoingFileTransfer[],
+    state: typeof $sendState,
+  ) => {
+    if (transfers.length != 0) {
+      transfers.forEach((transfer) => {
+        if (transfer.cid !== undefined) {
           let total = 0;
           let sent = 0;
 
-          outgoing_filetransfer.files.forEach((file) => {
+          transfer.files.forEach((file) => {
             total = total + file.chunks_length;
             if (file.completed !== 0) sent = sent + file.chunks_length;
           });
 
           const progress_number = sent / total;
 
-          const state = sendState.getState()[outgoing_filetransfer.cid];
+          const sendState = state[transfer.cid];
 
           if (state == SendState.SENDING) {
             if (progress_number < 0.25) {
-              $progress[outgoing_filetransfer.cid] = "var(--surface)";
+              $progress[transfer.cid] = "var(--surface)";
             } else if (progress_number < 0.5) {
-              $progress[outgoing_filetransfer.cid] =
+              $progress[transfer.cid] =
                 "var(--surface) var(--primary) var(--surface) var(--surface)";
             } else if (progress_number < 0.75) {
-              $progress[outgoing_filetransfer.cid] =
+              $progress[transfer.cid] =
                 "var(--surface) var(--primary) var(--primary) var(--surface)";
             } else if (progress_number < 1) {
-              $progress[outgoing_filetransfer.cid] =
+              $progress[transfer.cid] =
                 "var(--surface) var(--primary) var(--primary) var(--primary)";
             } else {
-              $progress[outgoing_filetransfer.cid] = "var(--primary)";
+              $progress[transfer.cid] = "var(--primary)";
             }
           } else if (state == SendState.REQUESTING) {
-            $progress[outgoing_filetransfer.cid] = "#fff700";
+            $progress[transfer.cid] = "#fff700";
           } else if (state == SendState.FAILED) {
-            $progress[outgoing_filetransfer.cid] = "#93000a";
+            $progress[transfer.cid] = "#93000a";
           } else {
-            $progress[outgoing_filetransfer.cid] = "var(--primary)";
+            $progress[transfer.cid] = "var(--primary)";
           }
         }
       });
     }
+  };
+
+  let progress = writable<{ [cid: string]: string }>({});
+  $: {
+    updateOutgoingProgress($outgoing_filetransfers, $sendState);
   }
 
   $: {
