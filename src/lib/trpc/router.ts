@@ -60,7 +60,7 @@ export const guest = open.use(async (opts) => {
   if (get(guests).length == 0) {
     index = 1;
   } else {
-    index = get(guests).length - 1;
+    index = get(guests).length;
   }
 
   guests.update((guests) => {
@@ -144,7 +144,7 @@ export const router = t.router({
       }),
     )
     .subscription(({ input: message, ctx }) => {
-      console.log("Sharing from did " + ctx.device + " to did " + message.did);
+      console.log("Sharing from did " + ctx.guestID + " to did " + message.did);
 
       return observable<{ from: number; data: string }, TRPCError>((emit) => {
         shareFromGuest(emit, ctx, message);
