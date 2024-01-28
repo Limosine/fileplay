@@ -105,6 +105,8 @@ export const router = t.router({
       }),
     )
     .query(async ({ input: message, ctx }) => {
+      console.log("Sharing from did " + ctx.device + " to did " + message.did);
+
       if (message.did >= 0) {
         const contacts = await getContactsDB(ctx.database, ctx.user);
         if (contacts.success) {
@@ -142,6 +144,8 @@ export const router = t.router({
       }),
     )
     .subscription(({ input: message, ctx }) => {
+      console.log("Sharing from did " + ctx.device + " to did " + message.did);
+
       return observable<{ from: number; data: string }, TRPCError>((emit) => {
         shareFromGuest(emit, ctx, message);
       });
