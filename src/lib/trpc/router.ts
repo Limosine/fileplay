@@ -63,6 +63,8 @@ export const guest = open.use(async (opts) => {
     index = get(guests).length;
   }
 
+  console.log("Generating guestID, did: " + index);
+
   guests.update((guests) => {
     guests[index] = new EventEmitter();
     return guests;
@@ -144,7 +146,7 @@ export const router = t.router({
       }),
     )
     .subscription(({ input: message, ctx }) => {
-      console.log("Sharing from did " + ctx.guestID + " to did " + message.did);
+      console.log("Sharing from did " + ctx.guestID*-1 + " to did " + message.did);
 
       return observable<{ from: number; data: string }, TRPCError>((emit) => {
         shareFromGuest(emit, ctx, message);
