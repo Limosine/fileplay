@@ -1,11 +1,12 @@
 import { EventEmitter } from "events";
-import { nanoid } from "nanoid";
+import { customAlphabet, nanoid } from "nanoid";
 import { get, writable } from "svelte/store";
 import { TRPCError, initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 
 import { DeviceType } from "$lib/lib/common";
+import { generateKey } from "$lib/server/crypto";
 import {
   createContactLinkingCode,
   createDeviceLinkingCode,
@@ -33,10 +34,24 @@ import {
   shareFromGuest,
 } from "./procedures";
 
+// Main Page
 export const connections = writable<EventEmitter[]>([]);
+export const timers = writable<NodeJS.Timeout[]>([]);
+
+// Guest Page
+export const guestSecret = writable<CryptoKey>(); // changed on every restart
 export const guests = writable<EventEmitter[]>([]);
 export const filetransfers = writable<{ id: string; did: number }[]>([]);
-export const timers = writable<NodeJS.Timeout[]>([]);
+
+export const loadGuestSecret = async () => {
+  let secret = get(guestSecret);
+  if (secret === undefined) {
+    secret = await generateKey();
+    guestSecret.set(secret);
+    console.log("New temporary key generated.");
+  }
+  return secret;
+};
 
 export const t = initTRPC.context<Context>().create();
 
@@ -56,6 +71,8 @@ export const authorized = open.use(async (opts) => {
 });
 
 export const guest = open.use(async (opts) => {
+  await loadGuestSecret();
+
   let index: number;
   if (get(guests).length == 0) {
     index = 1;
@@ -146,7 +163,9 @@ export const router = t.router({
       }),
     )
     .subscription(({ input: message, ctx }) => {
-      console.log("Sharing from did " + ctx.guestID*-1 + " to did " + message.did);
+      console.log(
+        "Sharing from did " + ctx.guestID * -1 + " to did " + message.did,
+      );
 
       return observable<{ from: number; data: string }, TRPCError>((emit) => {
         shareFromGuest(emit, ctx, message);

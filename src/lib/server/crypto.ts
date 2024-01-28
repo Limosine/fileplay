@@ -70,7 +70,7 @@ export async function verify(
   return crypto.subtle.verify("HMAC", key, signatureBuffer, dataBuffer);
 }
 
-export async function loadKey(key: string): Promise<CryptoKey> {
+export function loadKey(key: string) {
   return crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(key),
@@ -79,6 +79,17 @@ export async function loadKey(key: string): Promise<CryptoKey> {
       hash: "SHA-256",
     },
     true,
+    ["sign", "verify"],
+  );
+}
+
+export function generateKey() {
+  return crypto.subtle.generateKey(
+    {
+      name: "HMAC",
+      hash: { name: "SHA-256" },
+    },
+    false,
     ["sign", "verify"],
   );
 }

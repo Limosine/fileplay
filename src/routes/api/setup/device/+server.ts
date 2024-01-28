@@ -2,11 +2,14 @@ import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit";
 import { z } from "zod";
 
+import { DeviceType } from "$lib/lib/common";
 import { saveSignedDeviceID } from "$lib/server/crypto";
 import { httpContext } from "$lib/server/db";
-import { DeviceType } from "$lib/lib/common";
+import { loadGuestSecret } from "$lib/trpc/router";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
+  await loadGuestSecret();
+
   const ctx = await httpContext();
 
   const schema = z.object({

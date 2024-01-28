@@ -48,6 +48,8 @@ export function createKysely():
  */
 export async function httpAuthorized(cookies: Cookies, user = true) {
   const db = createKysely();
+  if (env.COOKIE_SIGNING_SECRET === undefined)
+    throw new Error("Please define a cookie signing secret.");
   const key = await loadKey(env.COOKIE_SIGNING_SECRET);
   const signature = cookies.get("did_sig");
   const deviceID = cookies.get("did");
@@ -84,6 +86,8 @@ export async function httpAuthorized(cookies: Cookies, user = true) {
 
 export async function httpContext() {
   const db = createKysely();
+  if (env.COOKIE_SIGNING_SECRET === undefined)
+    throw new Error("Please define a cookie signing secret.");
   const key = await loadKey(env.COOKIE_SIGNING_SECRET);
 
   if (db.success) {
@@ -151,7 +155,11 @@ export async function checkOnlineStatus(db: Database, did: number) {
     const device = await db
       .selectFrom("devices")
       .select(["is_online"])
-      .where(eb => eb("did", "=", did).and("is_online", "=", 1).and("last_seen_at", ">", dayjs().unix() - ONLINE_STATUS_TIMEOUT))
+      .where((eb) =>
+        eb("did", "=", did)
+          .and("is_online", "=", 1)
+          .and("last_seen_at", ">", dayjs().unix() - ONLINE_STATUS_TIMEOUT),
+      )
       .executeTakeFirst();
 
     if (device === undefined) {
@@ -159,7 +167,6 @@ export async function checkOnlineStatus(db: Database, did: number) {
     } else {
       return { success: true };
     }
-
   } catch (e: any) {
     return { success: false, message: e };
   }

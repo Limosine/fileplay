@@ -28,6 +28,8 @@ export async function createContext(
 
   const db = createKysely();
   if (!db.success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+  if (env.COOKIE_SIGNING_SECRET === undefined)
+    throw new Error("Please define a cookie signing secret.");
   const key = await loadKey(env.COOKIE_SIGNING_SECRET);
 
   const getUser = async () => {
