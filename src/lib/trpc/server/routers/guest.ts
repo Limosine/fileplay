@@ -4,25 +4,9 @@ import { z } from "zod";
 
 import { getWebRTCData } from "../lib/common";
 import { shareWebRTCData } from "../lib/guest";
-import { open, router } from "../main";
+import { guest, router } from "../main";
 
-const guest = open.use((opts) => {
-  const guestID = opts.ctx.guest;
-
-  if (!guestID) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  return opts.next({
-    ctx: {
-      device: undefined,
-      user: undefined,
-      guest: guestID,
-    },
-  });
-});
-
-export const guestRouter = router({
+export const guestRouter = () => router({
   sendHeartbeat: guest.mutation(() => {
     return;
   }),

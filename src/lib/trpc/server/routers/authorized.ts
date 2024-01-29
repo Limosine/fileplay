@@ -23,24 +23,9 @@ import {
   updateUser,
 } from "../lib/authorized";
 import { getWebRTCData } from "../lib/common";
-import { open, router } from "../main";
+import { authorized, router } from "../main";
 
-const authorized = open.use((opts) => {
-  const { ctx } = opts;
-
-  if (!ctx.user || !ctx.device) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  return opts.next({
-    ctx: {
-      device: ctx.device,
-      user: ctx.user,
-    },
-  });
-});
-
-export const authorizedRouter = router({
+export const authorizedRouter = () => router({
   sendHeartbeat: authorized.mutation(async ({ ctx }) => {
     startTimer(ctx.database, ctx.user, ctx.device);
     await updateLastSeen(ctx);
