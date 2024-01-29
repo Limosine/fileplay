@@ -11,7 +11,7 @@
   import { incoming_filetransfers } from "$lib/sharing/common";
   import { cancelFiletransfer, connectAsListener } from "$lib/sharing/main";
   import { send } from "$lib/sharing/send";
-  import { setupGuest } from "$lib/lib/fetchers";
+  import { setupGuest, startHeartbeat, startSubscriptions } from "$lib/lib/fetchers";
 
   let sentAccept = false;
   let did: number;
@@ -44,6 +44,9 @@
 
       setup();
       await setupGuest();
+
+      startHeartbeat(true);
+      startSubscriptions(true);
       if (!sender) connectAsListener(did, filetransfer_id);
     }
   });

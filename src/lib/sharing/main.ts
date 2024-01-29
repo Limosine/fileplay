@@ -3,7 +3,7 @@ import { page } from "$app/stores";
 import { get } from "svelte/store";
 
 import { updateKey } from "$lib/lib/encryption";
-import { startHeartbeat, type IContact, startSubscriptions } from "$lib/lib/fetchers";
+import { type IContact } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { buffer, sendMessage } from "$lib/lib/simple-peer";
 import { contacts, own_did } from "$lib/lib/UI";
@@ -171,9 +171,6 @@ export const authorizeGuestSender = async () => {
 };
 
 export const connectAsListener = (did: number, filetransfer_id: string) => {
-  startHeartbeat(true);
-  startSubscriptions(true);
-
   sendMessage(
     {
       type: "accept",
