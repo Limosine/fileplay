@@ -80,7 +80,7 @@
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
       setup();
       startHeartbeat(false);
-      startSubscriptions();
+      startSubscriptions(false);
     }
 
     if ($page.url.searchParams.has("share-target")) {

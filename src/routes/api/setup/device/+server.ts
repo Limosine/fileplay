@@ -3,9 +3,9 @@ import { error } from "@sveltejs/kit";
 import { z } from "zod";
 
 import { DeviceType } from "$lib/lib/common";
-import { saveSignedDeviceID } from "$lib/server/signing";
 import { httpContext } from "$lib/server/db";
-import { loadGuestSecret } from "$lib/trpc/router";
+import { setDeviceID } from "$lib/server/signing";
+import { loadGuestSecret } from "$lib/trpc/server/lib/guest";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
   await loadGuestSecret();
@@ -34,7 +34,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       .executeTakeFirst();
 
     if (response) {
-      await saveSignedDeviceID(response.did, cookies, ctx.key);
+      await setDeviceID(response.did, cookies, ctx.key);
 
       return new Response(null, { status: 201 });
     } else {

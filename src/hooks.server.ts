@@ -2,8 +2,8 @@ import { building } from "$app/environment";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { WebSocketServer } from "ws";
 
-import { createContext } from "$lib/trpc/server/routers/context";
-import { router } from "$lib/trpc/router";
+import { createContext } from "$lib/trpc/server/lib/context";
+import { mainRouter } from "$lib/trpc/server/main";
 
 if (!building) {
   const wss = new WebSocketServer({
@@ -11,7 +11,7 @@ if (!building) {
   });
 
   wss.removeAllListeners();
-  const handler = applyWSSHandler({ wss, router: router, createContext });
+  const handler = applyWSSHandler({ wss, router: mainRouter, createContext });
 
   console.log("Listening on ws://127.0.0.1:3001");
 
