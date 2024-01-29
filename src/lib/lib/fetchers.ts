@@ -59,7 +59,7 @@ export function withDeviceType(name: string): { type: string; name: string } {
 }
 
 export const setupGuest = async () => {
-  const res = await fetch("/api/setup/device", {
+  const res = await fetch("/api/setup/guest", {
     method: "POST",
   });
 
@@ -114,7 +114,9 @@ export function startSubscriptions(guest: boolean) {
         client.authorized.getUser.subscribe(undefined, { onData: onUser }),
       );
       subs.push(
-        client.authorized.getDevices.subscribe(undefined, { onData: onDevices }),
+        client.authorized.getDevices.subscribe(undefined, {
+          onData: onDevices,
+        }),
       );
       subs.push(
         client.authorized.getContacts.subscribe(undefined, {
