@@ -10,7 +10,7 @@
   async function generateContactCode() {
     // todo refresh this code after specified interval
 
-    const result = await trpc().getContactCode.query();
+    const result = await trpc().authorized.getContactCode.query();
     expires_at = result.expires;
     return result;
   }
@@ -18,7 +18,7 @@
   async function generateDeviceCode() {
     // todo refresh this code after specified interval
 
-    const result = await trpc().getDeviceCode.query();
+    const result = await trpc().authorized.getDeviceCode.query();
     expires_at = result.expires;
     return result;
   }
@@ -95,7 +95,7 @@
         class="border"
         style="border: 0;"
         on:click={async () => {
-          await trpc().redeemContactCode.mutate($code);
+          await trpc().authorized.redeemContactCode.mutate($code);
           ui("#dialog-add");
         }}>Add</button
       >

@@ -1,7 +1,7 @@
 import type { RequestHandler } from "./$types";
 
 import { httpAuthorized } from "$lib/server/db";
-import { notifyDevices } from "$lib/trpc/procedures";
+import { notifyDevices } from "$lib/trpc/server/lib/authorized";
 
 export const DELETE: RequestHandler = async ({ cookies }) => {
   const ctx = await httpAuthorized(cookies);

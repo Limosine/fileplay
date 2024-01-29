@@ -6,10 +6,11 @@ import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 
 import { env } from "$env/dynamic/private";
 import type { Database } from "$lib/lib/db";
-import { loadKey, loadSignedDeviceID } from "$lib/server/crypto";
 import { createKysely } from "$lib/server/db";
+import { getDeviceID, loadKey } from "$lib/server/signing";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { getGuestID } from "./guest";
+
 export async function createContext(
   opts: CreateHTTPContextOptions | CreateWSSContextFnOptions,
 ) {
@@ -38,12 +39,7 @@ export async function createContext(
       const deviceID = getCookie(opts.req, "did");
 
       if (db.success && signature && deviceID) {
-        const info = await loadSignedDeviceID(
-          signature,
-          deviceID,
-          key,
-          db.message,
-        );
+        const info = await getDeviceID(signature, deviceID, key, db.message);
         if (info.success) {
           return {
             did: info.message.did,
@@ -56,7 +52,19 @@ export async function createContext(
     return { did: null, uid: null };
   };
 
+  const getGuest = async () => {
+    if (opts.req.headers.cookie !== undefined) {
+      return await getGuestID(
+        getCookie(opts.req, "gid"),
+        getCookie(opts.req, "gid_sig"),
+      );
+    }
+
+    return null;
+  };
+
   const { did, uid } = await getUser();
+  const gid = await getGuest();
 
   return {
     getCookies,
@@ -65,6 +73,7 @@ export async function createContext(
     database: db.message,
     device: did,
     user: uid,
+    guest: gid,
   };
 }
 
@@ -84,5 +93,5 @@ export type Guest = {
   getCookie: (req: IncomingMessage, name: string) => string | undefined;
   key: CryptoKey;
   database: Database;
-  guestID: number;
+  guest: number;
 };

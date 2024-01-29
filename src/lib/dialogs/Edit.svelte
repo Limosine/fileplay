@@ -23,26 +23,26 @@
         switch ($current) {
           case "username":
             if ($original_value != $userParams.display_name)
-              trpc().updateUser.mutate({
+              trpc().authorized.updateUser.mutate({
                 display_name: $userParams.display_name,
               });
             break;
           case "avatar":
             if ($original_value != $userParams.avatar_seed)
-              trpc().updateUser.mutate({
+              trpc().authorized.updateUser.mutate({
                 avatar_seed: $userParams.avatar_seed,
               });
             break;
           case "deviceName":
             if ($original_value != $deviceParams.display_name)
-              trpc().updateDevice.mutate({
+              trpc().authorized.updateDevice.mutate({
                 update: { display_name: $deviceParams.display_name },
                 did: $did,
               });
             break;
           case "deviceType":
             if ($original_value != $deviceParams.type)
-              trpc().updateDevice.mutate({
+              trpc().authorized.updateDevice.mutate({
                 // @ts-ignore
                 update: { type: $deviceParams.type },
                 did: $did,

@@ -6,11 +6,11 @@ import { arrayBufferToHex, hexToArrayBuffer } from "$lib/lib/utils";
 
 import { getUID } from "./db";
 
-export async function saveSignedDeviceID(
+export async function setDeviceID(
   did: number,
   cookies: Cookies,
   key: CryptoKey,
-): Promise<void> {
+) {
   const id = did.toString();
   const signature = await sign(id, key);
   const cookie_opts: CookieSerializeOptions = {
@@ -23,7 +23,7 @@ export async function saveSignedDeviceID(
   cookies.set("did_sig", signature, cookie_opts);
 }
 
-export async function loadSignedDeviceID(
+export async function getDeviceID(
   signature: string,
   did_s: string,
   key: CryptoKey,
@@ -55,19 +55,15 @@ export async function loadSignedDeviceID(
   }
 }
 
-export async function sign(data: string, key: CryptoKey): Promise<string> {
-  const dataBuffer = new TextEncoder().encode(data);
-  return arrayBufferToHex(await crypto.subtle.sign("HMAC", key, dataBuffer));
+export async function sign(data: string, key: CryptoKey) {
+  const dataArray = new TextEncoder().encode(data);
+  return arrayBufferToHex(await crypto.subtle.sign("HMAC", key, dataArray));
 }
 
-export async function verify(
-  data: string,
-  signature: string,
-  key: CryptoKey,
-): Promise<boolean> {
-  const dataBuffer = new TextEncoder().encode(data);
+export async function verify(data: string, signature: string, key: CryptoKey) {
+  const dataArray = new TextEncoder().encode(data);
   const signatureBuffer = hexToArrayBuffer(signature);
-  return crypto.subtle.verify("HMAC", key, signatureBuffer, dataBuffer);
+  return crypto.subtle.verify("HMAC", key, signatureBuffer, dataArray);
 }
 
 export function loadKey(key: string) {
@@ -78,7 +74,7 @@ export function loadKey(key: string) {
       name: "HMAC",
       hash: "SHA-256",
     },
-    true,
+    false,
     ["sign", "verify"],
   );
 }

@@ -2,7 +2,7 @@ import { building } from "$app/environment";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { WebSocketServer } from "ws";
 
-import { createContext } from "$lib/trpc/context";
+import { createContext } from "$lib/trpc/server/routers/context";
 import { router } from "$lib/trpc/router";
 
 if (!building) {

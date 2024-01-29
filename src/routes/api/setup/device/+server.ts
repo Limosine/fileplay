@@ -3,7 +3,7 @@ import { error } from "@sveltejs/kit";
 import { z } from "zod";
 
 import { DeviceType } from "$lib/lib/common";
-import { saveSignedDeviceID } from "$lib/server/crypto";
+import { saveSignedDeviceID } from "$lib/server/signing";
 import { httpContext } from "$lib/server/db";
 import { loadGuestSecret } from "$lib/trpc/router";
 

@@ -121,21 +121,17 @@ export const connectToDevice = (
   });
 
   peer.on("signal", (data) => {
-    if (window.location.pathname.slice(0, 6) == "/guest") {
-      const unsubscribe = trpc().getFromGuest.subscribe(
-        {
-          did,
-          guestTransfer: String(get(page).url.searchParams.get("id")),
-          data: JSON.stringify(data),
-        },
-        {
-          onData: (data) => {
-            peer.signal(JSON.parse(data.data));
-            unsubscribe.unsubscribe();
-          },
-        },
-      );
-    } else trpc().shareWebRTCData.query({ did, data: JSON.stringify(data) });
+    if (window.location.pathname.slice(0, 6) == "/guest")
+      trpc().guest.shareWebRTCData.query({
+        did,
+        guestTransfer: String(get(page).url.searchParams.get("id")),
+        data: JSON.stringify(data),
+      });
+    else
+      trpc().authorized.shareWebRTCData.query({
+        did,
+        data: JSON.stringify(data),
+      });
   });
 
   peer.on("connect", () => {

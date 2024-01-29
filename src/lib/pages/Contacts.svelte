@@ -18,7 +18,7 @@
         </div>
         <button
           class="right transparent circle"
-          on:click={() => trpc().deleteContact.mutate(contact.cid)}
+          on:click={() => trpc().authorized.deleteContact.mutate(contact.cid)}
         >
           <i>delete</i>
           <div class="tooltip left">Delete contact</div>

@@ -58,14 +58,22 @@ export function withDeviceType(name: string): { type: string; name: string } {
   return { name, type: DeviceType[name] as string };
 }
 
+export const setupGuest = async () => {
+  const res = await fetch("/api/setup/device", {
+    method: "POST",
+  });
+
+  if (!res.ok) throw new Error("Failed to setup guestId.");
+};
+
 const heartbeatInterval = writable<NodeJS.Timeout | undefined>();
 export function startHeartbeat(guest: boolean) {
   if (get(heartbeatInterval) !== undefined) return;
   heartbeatInterval.set(
     setInterval(() => {
       guest
-        ? trpc().sendGuestHeartbeat.mutate()
-        : trpc().sendHeartbeat.mutate();
+        ? trpc().guest.sendHeartbeat.mutate()
+        : trpc().authorized.sendHeartbeat.mutate();
     }, ONLINE_STATUS_REFRESH_TIME * 1000),
   );
 }
@@ -76,7 +84,7 @@ export function stopHeartbeat() {
 }
 
 const subscriptions = writable<Unsubscribable[]>([]);
-export function startSubscriptions() {
+export function startSubscriptions(guest: boolean) {
   if (get(subscriptions).length !== 0) return;
 
   const onUser = (data: IUser) => {
@@ -101,11 +109,27 @@ export function startSubscriptions() {
 
   const client = trpc();
   subscriptions.update((subs) => {
-    subs.push(client.getUser.subscribe(undefined, { onData: onUser }));
-    subs.push(client.getDevices.subscribe(undefined, { onData: onDevices }));
-    subs.push(client.getContacts.subscribe(undefined, { onData: onContacts }));
+    if (!guest) {
+      subs.push(
+        client.authorized.getUser.subscribe(undefined, { onData: onUser }),
+      );
+      subs.push(
+        client.authorized.getDevices.subscribe(undefined, { onData: onDevices }),
+      );
+      subs.push(
+        client.authorized.getContacts.subscribe(undefined, {
+          onData: onContacts,
+        }),
+      );
+    }
     subs.push(
-      client.getWebRTCData.subscribe(undefined, { onData: onWebRTCData }),
+      guest
+        ? client.guest.getWebRTCData.subscribe(undefined, {
+          onData: onWebRTCData,
+        })
+        : client.authorized.getWebRTCData.subscribe(undefined, {
+          onData: onWebRTCData,
+        }),
     );
 
     return subs;

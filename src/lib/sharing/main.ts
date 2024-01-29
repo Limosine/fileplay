@@ -3,7 +3,7 @@ import { page } from "$app/stores";
 import { get } from "svelte/store";
 
 import { updateKey } from "$lib/lib/encryption";
-import { startHeartbeat, type IContact } from "$lib/lib/fetchers";
+import { startHeartbeat, type IContact, startSubscriptions } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { buffer, sendMessage } from "$lib/lib/simple-peer";
 import { contacts, own_did } from "$lib/lib/UI";
@@ -126,60 +126,53 @@ export const handleData = (data: webRTCData, did: number) => {
 };
 
 export const addPendingFile = async (files: FileList) => {
-  const filetransferID = await trpc().createTransfer.mutate();
+  const filetransferID = await trpc().authorized.createTransfer.mutate();
 
-  if (filetransferID.success) {
-    const filetransfer_id = await send(
-      files,
-      undefined,
-      undefined,
-      filetransferID.message,
-    );
+  const filetransfer_id = await send(
+    files,
+    undefined,
+    undefined,
+    filetransferID,
+  );
 
-    link.set(
-      location.protocol +
-        "//" +
-        location.host +
-        "/guest?did=" +
-        get(own_did) +
-        "&id=" +
-        filetransfer_id,
-    );
-  } else {
-    throw new Error("Failed to register Filetransfer.");
-  }
+  link.set(
+    location.protocol +
+      "//" +
+      location.host +
+      "/guest?did=" +
+      get(own_did) +
+      "&id=" +
+      filetransfer_id,
+  );
 };
 
 export const authorizeGuestSender = async () => {
-  const filetransferID = await trpc().createTransfer.mutate();
+  const filetransferID = await trpc().authorized.createTransfer.mutate();
 
-  if (filetransferID.success) {
-    outgoing_filetransfers.update((transfers) => {
-      transfers.push({
-        id: filetransferID.message,
-        completed: true,
-        files: [],
-      });
-      return transfers;
+  outgoing_filetransfers.update((transfers) => {
+    transfers.push({
+      id: filetransferID,
+      completed: true,
+      files: [],
     });
+    return transfers;
+  });
 
-    senderLink.set(
-      location.protocol +
-        "//" +
-        location.host +
-        "/guest?did=" +
-        get(own_did) +
-        "&id=" +
-        filetransferID.message +
-        "&sender",
-    );
-  } else {
-    throw new Error("Failed to register Filetransfer.");
-  }
+  senderLink.set(
+    location.protocol +
+      "//" +
+      location.host +
+      "/guest?did=" +
+      get(own_did) +
+      "&id=" +
+      filetransferID +
+      "&sender",
+  );
 };
 
 export const connectAsListener = (did: number, filetransfer_id: string) => {
   startHeartbeat(true);
+  startSubscriptions(true);
 
   sendMessage(
     {

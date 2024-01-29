@@ -7,7 +7,7 @@ import {
 } from "@trpc/client";
 import type { AnyRouter } from "@trpc/server";
 
-import type { Router } from "$lib/trpc/router";
+import type { Router } from "./server/main";
 
 const browserClient =
   writable<ReturnType<typeof createTRPCWebSocketClient<Router>>>();

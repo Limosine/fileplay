@@ -11,6 +11,7 @@
   import { incoming_filetransfers } from "$lib/sharing/common";
   import { cancelFiletransfer, connectAsListener } from "$lib/sharing/main";
   import { send } from "$lib/sharing/send";
+  import { setupGuest } from "$lib/lib/fetchers";
 
   let sentAccept = false;
   let did: number;
@@ -34,7 +35,7 @@
     clearInterval(animationInterval);
   });
 
-  onMount(() => {
+  onMount(async () => {
     if (!sentAccept) {
       sentAccept = true;
       did = Number($page.url.searchParams.get("did"));
@@ -42,6 +43,7 @@
       sender = $page.url.searchParams.has("sender");
 
       setup();
+      await setupGuest();
       if (!sender) connectAsListener(did, filetransfer_id);
     }
   });
@@ -89,10 +91,10 @@
       {#if $incoming_filetransfers.length == 0}
         <p class="center-align large-text">{finalString}</p>
       {:else}
-      <div class="row" style="margin-bottom: 12px">
-        <p class="bold">Incoming files:</p>
-        <div class="max" />
-      </div>
+        <div class="row" style="margin-bottom: 12px">
+          <p class="bold">Incoming files:</p>
+          <div class="max" />
+        </div>
       {/if}
 
       {#each $incoming_filetransfers as filetransfer}
