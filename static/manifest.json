@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/web-manifest-combined.json",
-  "name": "FilePlay",
-  "short_name": "FilePlay",
+  "name": "Fileplay",
+  "short_name": "Fileplay",
   "start_url": "/",
   "scope": "/",
   "theme_color": "#ffb4a4",

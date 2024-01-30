@@ -7,7 +7,12 @@ import { concatArrays, type webRTCData } from "$lib/sharing/common";
 import { handleData } from "$lib/sharing/main";
 import { trpc } from "$lib/trpc/client";
 
-import { decryptData, encryptData, publicKeyJwk } from "./encryption";
+import {
+  decryptData,
+  encryptData,
+  publicKeyJwk,
+  updateKey,
+} from "./encryption";
 import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
 
 const store = writable<Peer>();
@@ -27,13 +32,20 @@ class Peer {
   private connections: {
     data: SimplePeer.Instance;
     events: EventTarget;
-    encryption?: { key: CryptoKey; counter: number }; // key: ECDH PublicKey
+    key?: number; // key index
+  }[];
+
+  private keys: {
+    data: CryptoKey; // ECDH PublicKey
+    counter: number;
+    id: 0 | 1; // Own key id
   }[];
 
   private buffer: Uint8Array[][] = [];
 
   constructor() {
     this.connections = [];
+    this.keys = [];
     this.buffer = [];
   }
 
@@ -69,42 +81,61 @@ class Peer {
         });
     });
 
-    peer.on("connect", () => {
-      peer.write(
-        concatArrays([
-          numberToUint8Array(0, 1),
-          encode({
-            type: "update",
-            key: publicKeyJwk,
-          }),
-        ]),
-        undefined,
-        () => this.sendMessages(did),
-      );
-    });
+    if (initiator) {
+      peer.on("connect", () => {
+        peer.write(
+          concatArrays([
+            numberToUint8Array(0, 1),
+            encode({
+              type: "update",
+              key: publicKeyJwk,
+              id: 0,
+            }),
+          ]),
+          undefined,
+          () => this.sendMessages(did),
+        );
+      });
+    }
+
+    const handle = (data: webRTCData) => {
+      if (data.type == "update") {
+        updateKey(did, data.key, data.id === 0 ? 1 : 0);
+        if (!initiator) {
+          peer.write(
+            concatArrays([
+              numberToUint8Array(0, 1),
+              encode({
+                type: "update",
+                key: publicKeyJwk,
+                id: data.id === 0 ? 1 : 0,
+              }),
+            ]),
+            undefined,
+            () => this.sendMessages(did),
+          );
+        }
+      } else {
+        handleData(data, did);
+      }
+    };
 
     peer.on("data", async (data) => {
       if (uint8ArrayToNumber(data.slice(0, 1)) === 1) {
         const infos = this.connections[did];
         if (infos === undefined) throw new Error("WebRTC: Unknown connection");
-        if (infos.encryption !== undefined) {
-          handleData(
-            decode(await decryptData(data.slice(1), did)) as webRTCData,
-            did,
-          );
+        if (infos.key !== undefined) {
+          handle(decode(await decryptData(data.slice(1), did)) as webRTCData);
         } else {
           const decrypt = async () => {
-            handleData(
-              decode(await decryptData(data.slice(1), did)) as webRTCData,
-              did,
-            );
+            handle(decode(await decryptData(data.slice(1), did)) as webRTCData);
             infos.events.removeEventListener("encrypted", decrypt);
           };
 
           infos.events.addEventListener("encrypted", decrypt);
         }
       } else {
-        handleData(decode(data.slice(1)) as webRTCData, did);
+        handle(decode(data.slice(1)) as webRTCData);
       }
     });
 
@@ -173,7 +204,7 @@ class Peer {
       }
 
       this.connect(did, true, events);
-    } else if (peer.encryption !== undefined) {
+    } else if (peer.key !== undefined) {
       let chunk: Uint8Array;
       if (encrypt) {
         chunk = concatArrays([
@@ -212,24 +243,25 @@ class Peer {
   getKey(did: number) {
     const peer = this.connections[did];
 
-    if (peer !== undefined && peer.encryption !== undefined) {
-      return peer.encryption.key;
+    if (peer !== undefined && peer.key !== undefined) {
+      const key = this.keys[peer.key];
+      return { data: key.data, id: key.id };
     } else {
       throw new Error("Encryption: No encrypted connection to this device");
     }
   }
 
-  setKey(did: number, key: CryptoKey) {
+  setKey(did: number, key: CryptoKey, id: 0 | 1) {
     const peer = this.connections[did];
 
     if (peer !== undefined) {
-      this.connections[did].encryption = {
-        key,
-        counter:
-          peer.encryption !== undefined && peer.encryption.key == key
-            ? peer.encryption.counter
-            : 0,
-      };
+      let index = this.keys.findIndex((key) => key.data);
+
+      if (index === -1) {
+        index = this.keys.push({ data: key, counter: 0, id }) - 1;
+      }
+
+      this.connections[did].key = index;
     } else {
       throw new Error("Encryption: No connection to this device");
     }
@@ -237,22 +269,21 @@ class Peer {
     peer.events.dispatchEvent(new Event("encrypted"));
   }
 
-  getCounter(did: number) {
+  increaseCounter(did: number) {
     const peer = this.connections[did];
 
-    if (peer !== undefined && peer.encryption !== undefined) {
-      return peer.encryption.counter;
-    } else return null;
+    if (peer !== undefined && peer.key !== undefined) {
+      return ++this.keys[peer.key].counter;
+    } else {
+      throw new Error("Encryption: No encrypted connection to this device");
+    }
   }
 
-  setCounter(did: number, data: number) {
+  getId(did: number) {
     const peer = this.connections[did];
 
-    if (peer !== undefined && peer.encryption !== undefined) {
-      this.connections[did].encryption = {
-        key: peer.encryption.key,
-        counter: data,
-      };
+    if (peer !== undefined && peer.key !== undefined) {
+      return this.keys[peer.key].id;
     } else {
       throw new Error("Encryption: No encrypted connection to this device");
     }

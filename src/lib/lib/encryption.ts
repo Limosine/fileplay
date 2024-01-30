@@ -1,7 +1,6 @@
 import {
   numberToUint8Array,
   typedArrayToBuffer,
-  uint8ArrayToNumber,
 } from "$lib/lib/utils";
 import { concatArrays } from "$lib/sharing/common";
 
@@ -14,22 +13,6 @@ export const setup = async () => {
   if (!privateKey || !publicKeyJwk) {
     generateKey();
   }
-};
-
-const increaseCounter = (did: number, current?: number) => {
-  let counter = peer().getCounter(did);
-
-  if (current !== undefined) {
-    counter = current + 1;
-  } else if (counter !== null) {
-    counter++;
-  } else {
-    counter = 1;
-  }
-
-  peer().setCounter(did, counter);
-
-  return counter;
 };
 
 const importKey = (key: JsonWebKey, publicKey: boolean) => {
@@ -63,22 +46,29 @@ const getDerivedKey = async (foreignPublicKey: CryptoKey) => {
   );
 };
 
-export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
+export const updateKey = async (
+  did: number,
+  jsonKey: JsonWebKey,
+  id: 0 | 1,
+) => {
   const key = await importKey(jsonKey, true);
-  peer().setKey(did, key);
+  peer().setKey(did, key, id);
 };
 
 const encryptAes = async (
   data: ArrayBuffer,
   key: CryptoKey,
   counter: number,
+  id: 0 | 1,
 ) => {
-  const random = crypto.getRandomValues(new Uint8Array(8));
+  const random = crypto.getRandomValues(new Uint8Array(7));
+  const idArray = numberToUint8Array(id, 1);
   const counterArray = numberToUint8Array(counter);
 
-  const iv = new Uint8Array(random.length + counterArray.length);
+  const iv = new Uint8Array(random.length + idArray.length + counterArray.length);
   iv.set(random);
-  iv.set(counterArray, random.length);
+  iv.set(idArray, random.length);
+  iv.set(counterArray, random.length + idArray.length);
 
   return {
     data: new Uint8Array(
@@ -115,8 +105,9 @@ export const encryptData = async (array: Uint8Array, did: number) => {
 
   const encrypted = await encryptAes(
     typedArrayToBuffer(array),
-    await getDerivedKey(key),
-    increaseCounter(did),
+    await getDerivedKey(key.data),
+    peer().increaseCounter(did),
+    key.id,
   );
 
   return concatArrays([encrypted.iv, encrypted.data]);
@@ -125,12 +116,9 @@ export const encryptData = async (array: Uint8Array, did: number) => {
 export const decryptData = async (array: Uint8Array, did: number) => {
   const key = peer().getKey(did);
 
-  const counter = uint8ArrayToNumber(array.slice(8, 12));
-  increaseCounter(did, counter);
-
   return await decryptAes(
     typedArrayToBuffer(array.slice(12)),
     array.slice(0, 12),
-    await getDerivedKey(key),
+    await getDerivedKey(key.data),
   );
 };

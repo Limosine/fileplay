@@ -16,6 +16,7 @@ export type webRTCData =
 export interface Update {
   type: "update";
   key: JsonWebKey;
+  id: 0 | 1;
 }
 export interface Chunk {
   type: "chunk";

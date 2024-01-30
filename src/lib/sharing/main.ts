@@ -2,7 +2,6 @@ import { browser } from "$app/environment";
 import { page } from "$app/stores";
 import { get } from "svelte/store";
 
-import { updateKey } from "$lib/lib/encryption";
 import { type IContact } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
@@ -15,6 +14,7 @@ import {
   link,
   type webRTCData,
   senderLink,
+  type Update,
 } from "./common";
 import {
   handleRequest,
@@ -74,14 +74,12 @@ const authenticated = (
   return false;
 };
 
-export const handleData = (data: webRTCData, did: number) => {
+export const handleData = (data: Exclude<webRTCData, Update>, did: number) => {
   // Debugging
   if (data.type != "chunk") console.log(data);
 
   if (data.type == "error") {
     console.warn(`Filetransfer: ${data.message}`);
-  } else if (data.type == "update") {
-    updateKey(did, data.key);
   } else if (
     authenticated(
       did,
