@@ -1,5 +1,3 @@
-import { get } from "svelte/store";
-
 import {
   numberToUint8Array,
   typedArrayToBuffer,
@@ -7,7 +5,7 @@ import {
 } from "$lib/lib/utils";
 import { concatArrays } from "$lib/sharing/common";
 
-import { connections } from "./simple-peer";
+import { peer } from "./simple-peer";
 
 let privateKey: CryptoKey;
 export let publicKeyJwk: JsonWebKey;
@@ -18,27 +16,18 @@ export const setup = async () => {
   }
 };
 
-const increaseCounter = (key: CryptoKey, did: number, current?: number) => {
-  const info = get(connections)[did];
-  let counter: number;
+const increaseCounter = (did: number, current?: number) => {
+  let counter = peer().getCounter(did);
 
-  if (info !== undefined) {
-    if (current !== undefined) {
-      counter = current + 1;
-    } else if (info.encryption !== undefined) {
-      counter = info.encryption.counter + 1;
-    } else {
-      counter = 1;
-    }
+  if (current !== undefined) {
+    counter = current + 1;
+  } else if (counter !== null) {
+    counter++;
+  } else {
+    counter = 1;
+  }
 
-    connections.update((connections) => {
-      connections[did].encryption = {
-        key: info.encryption !== undefined ? info.encryption.key : key,
-        counter,
-      };
-      return connections;
-    });
-  } else throw new Error("Encryption: No connection to this device");
+  peer().setCounter(did, counter);
 
   return counter;
 };
@@ -64,7 +53,7 @@ const generateKey = async () => {
   publicKeyJwk = await crypto.subtle.exportKey("jwk", key.publicKey);
 };
 
-export const getDerivedKey = async (foreignPublicKey: CryptoKey) => {
+const getDerivedKey = async (foreignPublicKey: CryptoKey) => {
   return crypto.subtle.deriveKey(
     { name: "ECDH", public: foreignPublicKey },
     privateKey,
@@ -76,19 +65,7 @@ export const getDerivedKey = async (foreignPublicKey: CryptoKey) => {
 
 export const updateKey = async (did: number, jsonKey: JsonWebKey) => {
   const key = await importKey(jsonKey, true);
-  const info = get(connections)[did];
-
-  if (info !== undefined) {
-    connections.update((connections) => {
-      connections[did].encryption = {
-        key,
-        counter: info.encryption !== undefined ? info.encryption.counter : 0,
-      };
-      return connections;
-    });
-  } else throw new Error("Encryption: No connection to this device");
-
-  info.events.dispatchEvent(new Event("encrypted"));
+  peer().setKey(did, key);
 };
 
 const encryptAes = async (
@@ -134,36 +111,26 @@ const decryptAes = async (
 };
 
 export const encryptData = async (array: Uint8Array, did: number) => {
-  const info = get(connections)[did];
-
-  if (info === undefined)
-    throw new Error("Encryption: No connection to this device");
-  if (info.encryption === undefined)
-    throw new Error("Encryption: No key found");
+  const key = peer().getKey(did);
 
   const encrypted = await encryptAes(
     typedArrayToBuffer(array),
-    await getDerivedKey(info.encryption.key),
-    increaseCounter(info.encryption.key, did),
+    await getDerivedKey(key),
+    increaseCounter(did),
   );
 
   return concatArrays([encrypted.iv, encrypted.data]);
 };
 
 export const decryptData = async (array: Uint8Array, did: number) => {
-  const info = get(connections)[did];
-
-  if (info === undefined)
-    throw new Error("Encryption: No connection to this device");
-  if (info.encryption === undefined)
-    throw new Error("Encryption: No key found");
+  const key = peer().getKey(did);
 
   const counter = uint8ArrayToNumber(array.slice(8, 12));
-  increaseCounter(info.encryption.key, did, counter);
+  increaseCounter(did, counter);
 
   return await decryptAes(
     typedArrayToBuffer(array.slice(12)),
     array.slice(0, 12),
-    await getDerivedKey(info.encryption.key),
+    await getDerivedKey(key),
   );
 };

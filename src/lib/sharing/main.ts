@@ -5,7 +5,7 @@ import { get } from "svelte/store";
 import { updateKey } from "$lib/lib/encryption";
 import { type IContact } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
-import { buffer, sendMessage } from "$lib/lib/simple-peer";
+import { peer } from "$lib/lib/simple-peer";
 import { contacts, own_did } from "$lib/lib/UI";
 import { trpc } from "$lib/trpc/client";
 
@@ -115,13 +115,10 @@ export const handleData = (data: webRTCData, did: number) => {
       );
     }
   } else {
-    sendMessage(
-      {
-        type: "error",
-        message: "401 Unauthorized",
-      },
-      did,
-    );
+    peer().sendMessage(did, {
+      type: "error",
+      message: "401 Unauthorized",
+    });
   }
 };
 
@@ -171,14 +168,11 @@ export const authorizeGuestSender = async () => {
 };
 
 export const connectAsListener = (did: number, filetransfer_id: string) => {
-  sendMessage(
-    {
-      type: "accept",
-      id: filetransfer_id,
-      guest: true,
-    },
-    did,
-  );
+  peer().sendMessage(did, {
+    type: "accept",
+    id: filetransfer_id,
+    guest: true,
+  });
 };
 
 export const cancelFiletransfer = (contact?: IContact) => {
@@ -190,13 +184,10 @@ export const cancelFiletransfer = (contact?: IContact) => {
     ),
   );
 
-  buffer.update((buffer) => {
-    if (contact === undefined) buffer = [];
-    else {
-      contact.devices.forEach((device) => {
-        buffer[device.did] = [];
-      });
-    }
-    return buffer;
-  });
+  if (contact === undefined) peer().clearBuffer();
+  else {
+    contact.devices.forEach((device) => {
+      peer().clearBuffer(device.did);
+    });
+  }
 };

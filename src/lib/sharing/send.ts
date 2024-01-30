@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import { get } from "svelte/store";
 
 import { SendState, sendState } from "$lib/lib/sendstate";
-import { sendMessage } from "$lib/lib/simple-peer";
+import { peer } from "$lib/lib/simple-peer";
 import { addNotification, deleteNotification } from "$lib/lib/UI";
 
 import {
@@ -77,15 +77,12 @@ export const sendRequest = (
       });
     });
 
-    sendMessage(
-      {
-        type: "request",
-        id: outgoing_filetransfer.id,
-        files,
-        previous,
-      },
-      did,
-    );
+    peer().sendMessage(did, {
+      type: "request",
+      id: outgoing_filetransfer.id,
+      files,
+      previous,
+    });
   } else {
     console.log("Filetransfer: Wrong filetransfer id.");
   }
@@ -127,19 +124,16 @@ export const sendChunked = (
   }
 
   for (let i = 0; i < file.chunks.length; i++) {
-    sendMessage(
-      {
-        type: "chunk",
-        id: filetransfer_id,
-        chunk: {
-          id: i,
-          file_id: file.id,
-          data: file.chunks[i],
-        },
-        final: i + 1 === file.chunks_length ? true : undefined,
+    peer().sendMessage(did, {
+      type: "chunk",
+      id: filetransfer_id,
+      chunk: {
+        id: i,
+        file_id: file.id,
+        data: file.chunks[i],
       },
-      did,
-    );
+      final: i + 1 === file.chunks_length ? true : undefined,
+    });
   }
 };
 
@@ -157,19 +151,16 @@ export const sendMissing = (
   if (file === undefined) throw new Error("File not found.");
 
   for (let i = 0; i < missing.length; i++) {
-    sendMessage(
-      {
-        type: "chunk",
-        id: filetransfer_id,
-        chunk: {
-          id: missing[i],
-          file_id: file.id,
-          data: file.chunks[missing[i]],
-        },
-        final: i + 1 === missing.length ? true : undefined,
+    peer().sendMessage(did, {
+      type: "chunk",
+      id: filetransfer_id,
+      chunk: {
+        id: missing[i],
+        file_id: file.id,
+        data: file.chunks[missing[i]],
       },
-      did,
-    );
+      final: i + 1 === missing.length ? true : undefined,
+    });
   }
 };
 
@@ -204,26 +195,20 @@ export const sendFinish = async (
       missing.push(i);
   }
 
-  sendMessage(
-    {
-      type: "file-finish",
-      id: filetransfer_id,
-      file_id,
-      missing: missing.length === 0 ? undefined : missing,
-    },
-    did,
-  );
+  peer().sendMessage(did, {
+    type: "file-finish",
+    id: filetransfer_id,
+    file_id,
+    missing: missing.length === 0 ? undefined : missing,
+  });
 
   if (missing.length !== 0) return;
 
   if (filetransfer_finished) {
-    sendMessage(
-      {
-        type: "transfer-finish",
-        id: filetransfer_id,
-      },
-      did,
-    );
+    peer().sendMessage(did, {
+      type: "transfer-finish",
+      id: filetransfer_id,
+    });
 
     deleteNotification(`filetransfer-${filetransfer_id}`);
 
@@ -264,12 +249,13 @@ export const sendFinish = async (
 };
 
 // Receiver:
-export const sendAnswer = (did: number, filetransfer_id: string, answer: boolean) => {
-  sendMessage(
-    {
-      type: answer ? "accept" : "reject",
-      id: filetransfer_id,
-    },
-    did,
-  );
+export const sendAnswer = (
+  did: number,
+  filetransfer_id: string,
+  answer: boolean,
+) => {
+  peer().sendMessage(did, {
+    type: answer ? "accept" : "reject",
+    id: filetransfer_id,
+  });
 };

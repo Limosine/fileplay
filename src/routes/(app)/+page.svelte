@@ -23,6 +23,7 @@
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
   import Settings from "$lib/pages/Settings.svelte";
+  import { trpc } from "$lib/trpc/client";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -79,8 +80,7 @@
   onMount(() => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
       setup();
-      startHeartbeat(false);
-      startSubscriptions(false);
+      trpc();
     }
 
     if ($page.url.searchParams.has("share-target")) {

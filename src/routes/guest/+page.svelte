@@ -7,7 +7,7 @@
   import Input, { files, input } from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import { SendState, sendState } from "$lib/lib/sendstate";
-  import { closeConnections } from "$lib/lib/simple-peer";
+  import { peer } from "$lib/lib/simple-peer";
   import { incoming_filetransfers } from "$lib/sharing/common";
   import { cancelFiletransfer, connectAsListener } from "$lib/sharing/main";
   import { send } from "$lib/sharing/send";
@@ -45,8 +45,6 @@
       setup();
       await setupGuest();
 
-      startHeartbeat(true);
-      startSubscriptions(true);
       if (!sender) connectAsListener(did, filetransfer_id);
     }
   });
@@ -80,7 +78,7 @@
       </p>
       <div class="max" />
       <Input />
-      <button class="circle transparent" on:click={() => closeConnections()}>
+      <button class="circle transparent" on:click={() => peer().closeConnections()}>
         <i>block</i>
         <div class="tooltip bottom">Cancel</div>
       </button>

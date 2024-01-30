@@ -6,7 +6,7 @@ import type { Unsubscribable } from "@trpc/server/observable";
 import { trpc } from "$lib/trpc/client";
 
 import { DeviceType, ONLINE_STATUS_REFRESH_TIME } from "./common";
-import { connections, connectToDevice } from "./simple-peer";
+import { peer } from "./simple-peer";
 import { contacts, devices, own_did, user } from "./UI";
 
 // contacts
@@ -98,13 +98,7 @@ export function startSubscriptions(guest: boolean) {
     contacts.set(data);
   };
   const onWebRTCData = (data: { from: number; data: string }) => {
-    if (
-      get(connections)[data.from] === undefined ||
-      get(connections)[data.from].data.closed ||
-      get(connections)[data.from].data.destroyed
-    )
-      connectToDevice(data.from, false).signal(JSON.parse(data.data));
-    else get(connections)[data.from].data.signal(JSON.parse(data.data));
+    peer().signal(data.from, JSON.parse(data.data));
   };
 
   const client = trpc();

@@ -7,6 +7,8 @@ import {
 } from "@trpc/client";
 import type { AnyRouter } from "@trpc/server";
 
+import { startHeartbeat, startSubscriptions } from "$lib/lib/fetchers";
+
 import type { Router } from "./server/main";
 
 const browserClient =
@@ -15,8 +17,7 @@ const browserClient =
 function createTRPCWebSocketClient<Router extends AnyRouter>(): ReturnType<
   typeof createTRPCProxyClient<Router>
   > {
-  // @ts-ignore
-  if (typeof location === "undefined") return;
+  if (typeof location === "undefined") throw new Error();
 
   const uri = `${location.protocol === "http:" ? "ws:" : "wss:"}//${
     location.host
@@ -36,5 +37,9 @@ export function trpc() {
   if (isBrowser && get(browserClient)) return get(browserClient);
   const client = createTRPCWebSocketClient<Router>();
   if (isBrowser) browserClient.set(client);
+
+  const guest = window.location.pathname.slice(0, 6) == "/guest";
+  startHeartbeat(guest);
+  startSubscriptions(guest);
   return client;
 }
