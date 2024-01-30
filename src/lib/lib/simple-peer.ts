@@ -108,10 +108,13 @@ class Peer {
       }
     });
 
-    peer.on("close", () => {
+    const deletePeer = () => {
       if (!peer.destroyed) peer.destroy();
       delete this.connections[did];
-    });
+    };
+
+    peer.on("close", deletePeer);
+    peer.on("error", deletePeer);
 
     this.connections[did] = {
       data: peer,
