@@ -328,9 +328,14 @@ export function createTransfer(ctx: Authorized) {
   const insert = () => {
     if (
       get(filetransfers).find((transfer) => transfer.id == uuid) === undefined
-    )
+    ) {
       filetransfers.set([...get(filetransfers), { id: uuid, did: ctx.device }]);
-    else {
+      setTimeout(() => {
+        filetransfers.update((transfers) =>
+          transfers.filter((transfer) => transfer.id != uuid),
+        );
+      }, 3600000);
+    } else {
       uuid = nanoid();
       insert();
     }

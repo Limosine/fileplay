@@ -49,10 +49,10 @@
           class="circle transparent"
           on:click={() => ui("#dialog-notifications")}
         >
-          <i>notifications</i>
           {#if $notifications.length != 0}
-            <span class="badge circle">{$notifications.length}</span>
+            <p class="badge circle">{$notifications.length}</p>
           {/if}
+          <i>notifications</i>
           <div class="tooltip bottom">Notifications</div>
         </button>
         <!-- eslint-enable no-undef -->
