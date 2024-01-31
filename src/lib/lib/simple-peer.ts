@@ -146,7 +146,7 @@ class Peer {
       };
 
       peer.on("close", deletePeer);
-      peer.on("error", (err) => deletePeer(err));
+      // peer.on("error", (err) => deletePeer(err));
 
       this.connections[did] = {
         data: peer,
