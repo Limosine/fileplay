@@ -106,7 +106,7 @@ export function startSubscriptions(guest: boolean) {
     if (data.data.type == "signal")
       peer().signal(data.from, JSON.parse(data.data.data));
     else {
-      peer().handle(data.from, Uint8Array.from(data.data.data));
+      peer().handle(data.from, new Uint8Array(Object.values(data.data.data)));
     }
   };
 
