@@ -303,7 +303,7 @@ export async function updateDevice(
 export const shareWebRTCData = async (
   ctx: Authorized,
   did: number,
-  data: string,
+  data: { type: "webrtc"; data: Uint8Array } | { type: "signal"; data: string },
 ) => {
   if (did >= 0) {
     const contacts = await getContactsDB(ctx.database, ctx.user);

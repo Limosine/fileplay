@@ -17,6 +17,7 @@ export interface Update {
   type: "update";
   key: JsonWebKey;
   id: 0 | 1;
+  initiator?: true;
 }
 export interface Chunk {
   type: "chunk";

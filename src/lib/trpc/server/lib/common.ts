@@ -26,13 +26,13 @@ export const getEventEmitter = (did: number) => {
 };
 
 export const getWebRTCData = async (
-  emit: Observer<{ from: number; data: string }, TRPCError>,
+  emit: Observer<{ from: number; data: { type: "webrtc"; data: Uint8Array } | { type: "signal"; data: string } }, TRPCError>,
   deviceID: number,
 ) => {
   const ee = getEventEmitter(deviceID);
   ee.removeAllListeners("webrtc-data");
 
-  const data = async (from: number, data: string) => {
+  const data = async (from: number, data: { type: "webrtc"; data: Uint8Array } | { type: "signal"; data: string }) => {
     emit.next({ from, data });
   };
 

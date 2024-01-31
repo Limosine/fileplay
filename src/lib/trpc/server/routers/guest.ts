@@ -6,26 +6,45 @@ import { getWebRTCData } from "../lib/common";
 import { shareWebRTCData } from "../lib/guest";
 import { guest, router } from "../main";
 
-export const guestRouter = () => router({
-  sendHeartbeat: guest.mutation(() => {
-    return;
-  }),
-
-  getWebRTCData: guest.subscription((opts) => {
-    return observable<{ from: number; data: string }, TRPCError>((emit) => {
-      getWebRTCData(emit, opts.ctx.guest * -1);
-    });
-  }),
-
-  shareWebRTCData: guest
-    .input(
-      z.object({
-        did: z.number(),
-        guestTransfer: z.string(),
-        data: z.string(), // SignalData as JSON
-      }),
-    )
-    .query(async (opts) => {
-      await shareWebRTCData(opts.ctx, opts.input);
+export const guestRouter = () =>
+  router({
+    sendHeartbeat: guest.mutation(() => {
+      return;
     }),
-});
+
+    getWebRTCData: guest.subscription((opts) => {
+      return observable<
+        {
+          from: number;
+          data:
+            | { type: "webrtc"; data: Uint8Array }
+            | { type: "signal"; data: string };
+        },
+        TRPCError
+      >((emit) => {
+        getWebRTCData(emit, opts.ctx.guest * -1);
+      });
+    }),
+
+    shareWebRTCData: guest
+      .input(
+        z.object({
+          did: z.number(),
+          guestTransfer: z.string(),
+          data: z
+            .object({
+              type: z.enum(["webrtc"]),
+              data: z.instanceof(Uint8Array),
+            })
+            .or(
+              z.object({
+                type: z.enum(["signal"]),
+                data: z.string(), // SignalData as JSON
+              }),
+            ),
+        }),
+      )
+      .query(async (opts) => {
+        await shareWebRTCData(opts.ctx, opts.input);
+      }),
+  });

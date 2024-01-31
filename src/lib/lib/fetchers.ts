@@ -97,8 +97,17 @@ export function startSubscriptions(guest: boolean) {
   const onContacts = (data: IContact[]) => {
     contacts.set(data);
   };
-  const onWebRTCData = (data: { from: number; data: string }) => {
-    peer().signal(data.from, JSON.parse(data.data));
+  const onWebRTCData = (data: {
+    data:
+      | { type: "webrtc"; data: any /* Uint8Array */ }
+      | { type: "signal"; data: string };
+    from: number;
+  }) => {
+    if (data.data.type == "signal")
+      peer().signal(data.from, JSON.parse(data.data.data));
+    else {
+      peer().handle(data.from, data.data.data);
+    }
   };
 
   const client = trpc();
@@ -136,16 +145,6 @@ export function stopSubscriptions() {
     sub.unsubscribe();
   });
   subscriptions.set([]);
-}
-
-export async function getWebRTCOffer(did: number): Promise<string> {
-  if (get(page).url.hostname == "localhost") return "";
-
-  const res = await fetch(`/api/guest?did=${did}`, {
-    method: "GET",
-  });
-
-  return await res.json();
 }
 
 export async function deleteAccount() {
