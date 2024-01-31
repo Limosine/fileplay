@@ -99,14 +99,14 @@ export function startSubscriptions(guest: boolean) {
   };
   const onWebRTCData = (data: {
     data:
-      | { type: "webrtc"; data: any /* Uint8Array */ }
+      | { type: "webrtc"; data: any /* Raw Uint8Array */ }
       | { type: "signal"; data: string };
     from: number;
   }) => {
     if (data.data.type == "signal")
       peer().signal(data.from, JSON.parse(data.data.data));
     else {
-      peer().handle(data.from, data.data.data);
+      peer().handle(data.from, Uint8Array.from(data.data.data));
     }
   };
 
