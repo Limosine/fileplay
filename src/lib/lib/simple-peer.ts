@@ -60,19 +60,12 @@ class Peer {
       this.fallback === true ||
       (this.connections[did] !== undefined && this.connections[did].error)
     ) {
-      if (this.connections[did] !== undefined) {
-        this.connections[did] = {
-          data: "websocket",
-          error: this.connections[did].error,
-          events,
-        };
-      } else {
-        this.connections.push({
-          data: "websocket",
-          error: 0,
-          events,
-        });
-      }
+      this.connections[did] = {
+        data: "websocket",
+        error:
+          this.connections[did] === undefined ? 0 : this.connections[did].error,
+        events,
+      };
 
       this.sendMessage(
         did,
@@ -141,6 +134,8 @@ class Peer {
         if (!peer.destroyed) peer.destroy();
         this.connections[did].data = undefined;
 
+        console.warn(err);
+
         if (
           err !== undefined &&
           err.message != "User-Initiated Abort, reason=Close called" &&
@@ -196,6 +191,8 @@ class Peer {
     encrypt = true,
     immediately = false,
   ) {
+    console.log("Sending message to " + did);
+
     const sendOverTrpc = (data: Uint8Array) => {
       if (window.location.pathname.slice(0, 6) == "/guest") {
         trpc().guest.shareWebRTCData.query({
@@ -211,8 +208,6 @@ class Peer {
       }
     };
 
-    const peer = this.connections[did];
-
     const addToBuffer = (chunk: Uint8Array) => {
       if (this.buffer[did] === undefined) this.buffer[did] = [];
       if (immediately) {
@@ -221,6 +216,8 @@ class Peer {
         this.buffer[did].push(chunk);
       }
     };
+
+    const peer = this.connections[did];
 
     if (peer === undefined || (encrypt && peer.key === undefined)) {
       const events = peer === undefined ? new EventTarget() : peer.events;

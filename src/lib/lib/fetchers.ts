@@ -99,7 +99,7 @@ export function startSubscriptions(guest: boolean) {
   };
   const onWebRTCData = (data: {
     data:
-      | { type: "webrtc"; data: any /* Raw Uint8Array */ }
+      | { type: "webrtc"; data: any /* Raw Uint8Array (reality: { "0": 0, "1": 0, ... }) */ }
       | { type: "signal"; data: string };
     from: number;
   }) => {
