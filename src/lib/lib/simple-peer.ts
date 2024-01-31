@@ -255,7 +255,7 @@ class Peer {
     const peer = this.connections[did];
 
     if (peer !== undefined) {
-      let index = this.keys.findIndex((key) => key.data);
+      let index = this.keys.findIndex((k) => k.data == key);
 
       if (index === -1) {
         index = this.keys.push({ data: key, counter: 0, id }) - 1;
