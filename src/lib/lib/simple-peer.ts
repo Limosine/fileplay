@@ -98,9 +98,9 @@ class Peer {
       });
     }
 
-    const handle = (data: webRTCData) => {
+    const handle = async (data: webRTCData) => {
       if (data.type == "update") {
-        updateKey(did, data.key, data.id === 0 ? 1 : 0);
+        const id = await updateKey(did, data.key, data.id === 0 ? 1 : 0);
         if (!initiator) {
           peer.write(
             concatArrays([
@@ -108,7 +108,7 @@ class Peer {
               encode({
                 type: "update",
                 key: publicKeyJwk,
-                id: data.id === 0 ? 1 : 0,
+                id,
               }),
             ]),
             undefined,
@@ -262,11 +262,12 @@ class Peer {
       }
 
       this.connections[did].key = index;
+
+      peer.events.dispatchEvent(new Event("encrypted"));
+      return this.keys[index].id;
     } else {
       throw new Error("Encryption: No connection to this device");
     }
-
-    peer.events.dispatchEvent(new Event("encrypted"));
   }
 
   increaseCounter(did: number) {

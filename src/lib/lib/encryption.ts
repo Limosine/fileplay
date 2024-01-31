@@ -52,7 +52,7 @@ export const updateKey = async (
   id: 0 | 1,
 ) => {
   const key = await importKey(jsonKey, true);
-  peer().setKey(did, key, id);
+  return peer().setKey(did, key, id);
 };
 
 const encryptAes = async (
