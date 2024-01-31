@@ -22,7 +22,7 @@ export const loadGuestSecret = async () => {
 };
 
 const getNewGuestID = () => {
-  const index = get(guests).length;
+  const index = get(guests).length + 1;
 
   guests.update((guests) => {
     guests[index] = new EventEmitter();

@@ -12,7 +12,7 @@ export const open = t.procedure;
 export const guest = open.use((opts) => {
   const guestID = opts.ctx.guest;
 
-  if (!guestID) {
+  if (guestID === null) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
@@ -27,7 +27,7 @@ export const guest = open.use((opts) => {
 export const authorized = open.use((opts) => {
   const { ctx } = opts;
 
-  if (!ctx.user || !ctx.device) {
+  if (ctx.user === null || ctx.device === null) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
