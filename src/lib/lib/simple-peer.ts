@@ -301,6 +301,8 @@ class Peer {
   // Encryption
 
   async handle(did: number, data: Uint8Array) {
+    console.log(data, typeof data);
+
     const handleEncoded = async (data: webRTCData) => {
       if (data.type == "update") {
         const id = await updateKey(did, data.key, data.id === 0 ? 1 : 0);
