@@ -66,7 +66,7 @@ export const shareWebRTCData = async (
     did: number;
     guestTransfer: string;
     data:
-      | { type: "webrtc"; data: Uint8Array }
+      | { type: "webrtc"; data?: any }
       | { type: "signal"; data: string };
   },
 ) => {

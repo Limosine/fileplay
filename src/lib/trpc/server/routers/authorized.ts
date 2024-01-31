@@ -39,7 +39,7 @@ export const authorizedRouter = () =>
           data: z
             .object({
               type: z.enum(["webrtc"]),
-              data: z.instanceof(Uint8Array),
+              data: z.any(),
             })
             .or(
               z.object({
