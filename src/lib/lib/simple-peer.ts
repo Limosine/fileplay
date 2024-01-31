@@ -300,8 +300,9 @@ class Peer {
   async handle(did: number, data: Uint8Array) {
     console.log(data, typeof data);
 
-    const handleEncoded = async (data: webRTCData) => {
+    const handleDecoded = async (data: webRTCData) => {
       if (data.type == "update") {
+        if (this.connections[did] === undefined) this.connect(did, false);
         const id = await updateKey(did, data.key, data.id === 0 ? 1 : 0);
         if (data.initiator) {
           this.sendMessage(
@@ -321,12 +322,12 @@ class Peer {
       if (conn === undefined) return;
 
       if (conn.key !== undefined) {
-        handleEncoded(
+        handleDecoded(
           decode(await decryptData(data.slice(1), did)) as webRTCData,
         );
       } else {
         const decrypt = async () => {
-          handleEncoded(
+          handleDecoded(
             decode(await decryptData(data.slice(1), did)) as webRTCData,
           );
           conn.events.removeEventListener("encrypted", decrypt);
@@ -335,7 +336,7 @@ class Peer {
         conn.events.addEventListener("encrypted", decrypt);
       }
     } else {
-      handleEncoded(decode(data.slice(1)) as webRTCData);
+      handleDecoded(decode(data.slice(1)) as webRTCData);
     }
   }
 
