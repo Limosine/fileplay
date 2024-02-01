@@ -34,7 +34,7 @@ export async function createContext(
   if (env.COTURN_AUTH_SECRET === undefined)
     throw new Error("Please define a coturn auth secret.");
   const key = await loadKey(env.COOKIE_SIGNING_SECRET);
-  const coturnKey = await loadKey(env.COOKIE_SIGNING_SECRET, "SHA-1");
+  const coturnSecret = env.COOKIE_SIGNING_SECRET;
 
   const getUser = async () => {
     if (opts.req.headers.cookie !== undefined) {
@@ -73,7 +73,7 @@ export async function createContext(
     getCookies,
     getCookie,
     key,
-    coturnKey,
+    coturnSecret,
     database: db.message,
     device: did,
     user: uid,
@@ -87,7 +87,7 @@ export type Authorized = {
   getCookies: (req: IncomingMessage) => Record<string, string>;
   getCookie: (req: IncomingMessage, name: string) => string | undefined;
   key: CryptoKey;
-  coturnKey: CryptoKey;
+  coturnSecret: string;
   database: Database;
   device: number;
   user: number;
@@ -97,7 +97,7 @@ export type Guest = {
   getCookies: (req: IncomingMessage) => Record<string, string>;
   getCookie: (req: IncomingMessage, name: string) => string | undefined;
   key: CryptoKey;
-  coturnKey: CryptoKey;
+  coturnSecret: string;
   database: Database;
   guest: number;
 };
