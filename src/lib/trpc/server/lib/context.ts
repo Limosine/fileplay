@@ -31,7 +31,10 @@ export async function createContext(
   if (!db.success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   if (env.COOKIE_SIGNING_SECRET === undefined)
     throw new Error("Please define a cookie signing secret.");
+  if (env.COTURN_AUTH_SECRET === undefined)
+    throw new Error("Please define a coturn auth secret.");
   const key = await loadKey(env.COOKIE_SIGNING_SECRET);
+  const coturnKey = await loadKey(env.COOKIE_SIGNING_SECRET, "SHA-1");
 
   const getUser = async () => {
     if (opts.req.headers.cookie !== undefined) {
@@ -70,6 +73,7 @@ export async function createContext(
     getCookies,
     getCookie,
     key,
+    coturnKey,
     database: db.message,
     device: did,
     user: uid,
@@ -83,6 +87,7 @@ export type Authorized = {
   getCookies: (req: IncomingMessage) => Record<string, string>;
   getCookie: (req: IncomingMessage, name: string) => string | undefined;
   key: CryptoKey;
+  coturnKey: CryptoKey;
   database: Database;
   device: number;
   user: number;
@@ -92,6 +97,7 @@ export type Guest = {
   getCookies: (req: IncomingMessage) => Record<string, string>;
   getCookie: (req: IncomingMessage, name: string) => string | undefined;
   key: CryptoKey;
+  coturnKey: CryptoKey;
   database: Database;
   guest: number;
 };

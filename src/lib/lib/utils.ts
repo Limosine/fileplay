@@ -1,6 +1,6 @@
 import Filter from "bad-words";
 
-export function isProfane(s: string): boolean {
+export function isProfane(s: string) {
   return new Filter().isProfane(s);
 }
 
@@ -14,7 +14,7 @@ export function hexToArrayBuffer(hex: string): ArrayBuffer {
   return new Uint8Array(octets.map((o) => parseInt(o, 16))).buffer;
 }
 
-export function arrayBufferToHex(buffer: ArrayBuffer): string {
+export function arrayBufferToHex(buffer: ArrayBuffer) {
   return Array.from(new Uint8Array(buffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");

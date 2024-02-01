@@ -5,6 +5,7 @@ declare global {
     interface Platform {
       env?: {
         COOKIE_SIGNING_SECRET: string;
+        COTURN_AUTH_SECRET: string;
       };
     }
   }

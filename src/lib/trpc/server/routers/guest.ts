@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 
-import { getWebRTCData } from "../lib/common";
+import { getTurnCredentials, getWebRTCData } from "../lib/common";
 import { shareWebRTCData } from "../lib/guest";
 import { guest, router } from "../main";
 
@@ -10,6 +10,10 @@ export const guestRouter = () =>
   router({
     sendHeartbeat: guest.mutation(() => {
       return;
+    }),
+
+    getTurnCredentials: guest.query(async (opts) => {
+      return getTurnCredentials("guest" + opts.ctx.guest, opts.ctx.coturnKey);
     }),
 
     getWebRTCData: guest.subscription((opts) => {

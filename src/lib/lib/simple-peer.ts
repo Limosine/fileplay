@@ -2,6 +2,7 @@ import { page } from "$app/stores";
 import { decode, encode } from "@msgpack/msgpack";
 import SimplePeer, { WEBRTC_SUPPORT, type SignalData } from "simple-peer";
 import { get, writable } from "svelte/store";
+import type { MaybePromise } from "@sveltejs/kit";
 
 import { concatArrays, type webRTCData } from "$lib/sharing/common";
 import { handleData } from "$lib/sharing/main";
@@ -45,16 +46,25 @@ class Peer {
 
   private fallback: boolean;
 
+  private turn: MaybePromise<{ username: string, password: string}>;
+
   constructor() {
     this.connections = [];
     this.keys = [];
     this.buffer = [];
     this.fallback = !WEBRTC_SUPPORT;
+
+    if (this.fallback) this.turn = { username: "", password: ""};
+    else {
+      this.turn = (window.location.pathname.slice(0, 6) == "/guest") ?
+        trpc().guest.getTurnCredentials.query() :
+        trpc().authorized.getTurnCredentials.query();
+    }
   }
 
   // WebRTC
 
-  private connect(did: number, initiator: boolean, events = new EventTarget()) {
+  private async connect(did: number, initiator: boolean, events = new EventTarget()) {
     const establishWebRTC = () => {
       this.connections[did] = {
         data: "websocket",
@@ -85,13 +95,20 @@ class Peer {
           iceServers: [
             { urls: "stun:stun.l.google.com:19305" },
             {
-              urls: "turn:turn.wir-sind-frey.de:5349",
-              username: "fileplay",
-              credential: "9YYWrCUp34NCBa",
+              urls: "turns:turn.wir-sind-frey.de:443",
+              username: (await this.turn).username,
+              credential: (await this.turn).password,
+            },
+            {
+              urls: "turn:turn.wir-sind-frey.de:5349?transport=tcp",
+              username: (await this.turn).username,
+              credential: (await this.turn).password,
             },
           ],
         },
       });
+
+      console.log(await this.turn);
 
       peer.on("signal", (data) => {
         if (window.location.pathname.slice(0, 6) == "/guest")
@@ -273,7 +290,7 @@ class Peer {
     }
   }
 
-  signal(did: number, data: SignalData) {
+  async signal(did: number, data: SignalData) {
     const peer = this.connections[did];
 
     if (
@@ -283,7 +300,7 @@ class Peer {
     ) {
       peer.data.signal(data);
     } else {
-      this.connect(did, false)?.signal(data);
+      (await this.connect(did, false))?.signal(data);
     }
   }
 

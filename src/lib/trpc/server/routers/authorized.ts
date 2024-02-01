@@ -22,7 +22,7 @@ import {
   updateLastSeen,
   updateUser,
 } from "../lib/authorized";
-import { getWebRTCData } from "../lib/common";
+import { getTurnCredentials, getWebRTCData } from "../lib/common";
 import { authorized, router } from "../main";
 
 export const authorizedRouter = () =>
@@ -30,6 +30,10 @@ export const authorizedRouter = () =>
     sendHeartbeat: authorized.mutation(async ({ ctx }) => {
       startTimer(ctx.database, ctx.user, ctx.device);
       await updateLastSeen(ctx);
+    }),
+
+    getTurnCredentials: authorized.query(async (opts) => {
+      return getTurnCredentials(opts.ctx.device.toString(), opts.ctx.coturnKey);
     }),
 
     shareWebRTCData: authorized

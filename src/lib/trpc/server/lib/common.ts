@@ -4,6 +4,7 @@ import type { TRPCError } from "@trpc/server";
 import type { Observer } from "@trpc/server/observable";
 
 import { connections, guests } from "./stores";
+import { sign } from "$lib/server/signing";
 
 export const getEventEmitter = (did: number) => {
   if (did < 0) {
@@ -23,6 +24,18 @@ export const getEventEmitter = (did: number) => {
     }
     return get(connections)[did];
   }
+};
+
+export const getTurnCredentials = async (user: string, key: CryptoKey) => {
+  const unixTimeStamp = Math.ceil(Date.now() / 1000) + 12 * 3600; // 12 hours
+
+  const username = [unixTimeStamp, user].join(":");
+  const password = await sign(username, key, "base64");
+
+  return {
+    username,
+    password,
+  };
 };
 
 export const getWebRTCData = async (
