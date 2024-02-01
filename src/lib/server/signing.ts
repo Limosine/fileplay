@@ -55,11 +55,12 @@ export async function getDeviceID(
   }
 }
 
-export async function sign(data: string, key: CryptoKey) {
+export async function sign(data: string, key: CryptoKey, output: BufferEncoding = "hex") {
   const dataArray = new TextEncoder().encode(data);
   const buffer = await crypto.subtle.sign("HMAC", key, dataArray);
 
-  return arrayBufferToHex(buffer);
+  if (output == "hex") return arrayBufferToHex(buffer);
+  else return Buffer.from(buffer).toString(output);
 }
 
 export async function verify(data: string, signature: string, key: CryptoKey) {
@@ -68,24 +69,24 @@ export async function verify(data: string, signature: string, key: CryptoKey) {
   return crypto.subtle.verify("HMAC", key, signatureBuffer, dataArray);
 }
 
-export function loadKey(key: string) {
+export function loadKey(key: string, hash = "SHA-256") {
   return crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(key),
     {
       name: "HMAC",
-      hash: "SHA-256",
+      hash,
     },
     false,
     ["sign", "verify"],
   );
 }
 
-export function generateKey() {
+export function generateKey(hash = "SHA-256") {
   return crypto.subtle.generateKey(
     {
       name: "HMAC",
-      hash: { name: "SHA-256" },
+      hash: { name: hash },
     },
     false,
     ["sign", "verify"],

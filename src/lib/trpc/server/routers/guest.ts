@@ -15,7 +15,7 @@ export const guestRouter = () =>
     getTurnCredentials: guest.query(async (opts) => {
       return getTurnCredentials(
         "guest" + opts.ctx.guest,
-        opts.ctx.coturnSecret,
+        opts.ctx.coturnKey,
       );
     }),
 

@@ -35,7 +35,7 @@ export const authorizedRouter = () =>
     getTurnCredentials: authorized.query(async (opts) => {
       return getTurnCredentials(
         opts.ctx.device.toString(),
-        opts.ctx.coturnSecret,
+        opts.ctx.coturnKey,
       );
     }),
 

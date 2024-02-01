@@ -5,7 +5,6 @@ import type { Observer } from "@trpc/server/observable";
 
 import { connections, guests } from "./stores";
 import { sign } from "$lib/server/signing";
-import { createHmac } from "crypto";
 
 export const getEventEmitter = (did: number) => {
   if (did < 0) {
@@ -27,15 +26,11 @@ export const getEventEmitter = (did: number) => {
   }
 };
 
-export const getTurnCredentials = async (user: string, secret: string) => {
-  const unixTimeStamp = Math.floor(Date.now() / 1000) + 12 * 3600; // 12 hours
-  const username = [unixTimeStamp, user].join(":");
-  const hmac = createHmac("sha1", secret);
+export const getTurnCredentials = async (user: string, key: CryptoKey) => {
+  const unixTimeStamp = Math.ceil(Date.now() / 1000) + 12 * 3600; // 12 hours
 
-  hmac.setEncoding("base64");
-  hmac.write(username);
-  hmac.end();
-  const password = hmac.read() as string;
+  const username = [unixTimeStamp, user].join(":");
+  const password = await sign(username, key, "base64");
 
   return {
     username,
