@@ -30,8 +30,7 @@ export const peer = () => {
 
 class Peer {
   private connections: {
-    data?: SimplePeer.Instance | "websocket";
-    error: number;
+    data: SimplePeer.Instance | "websocket";
     events: EventTarget;
     key?: number; // key index
   }[];
@@ -56,14 +55,9 @@ class Peer {
   // WebRTC
 
   private connect(did: number, initiator: boolean, events = new EventTarget()) {
-    if (
-      this.fallback === true ||
-      (this.connections[did] !== undefined && this.connections[did].error)
-    ) {
+    const establishWebRTC = () => {
       this.connections[did] = {
         data: "websocket",
-        error:
-          this.connections[did] === undefined ? 0 : this.connections[did].error,
         events,
       };
 
@@ -79,8 +73,11 @@ class Peer {
         true,
       );
 
-      console.log("Connected over WebSocket");
-    } else {
+      console.log("Establishing WebSocket connection");
+    };
+
+    if (this.fallback === true) establishWebRTC();
+    else {
       const peer = new SimplePeer({
         initiator,
         trickle: true,
@@ -132,30 +129,29 @@ class Peer {
 
       const deletePeer = (err?: Error) => {
         if (!peer.destroyed) peer.destroy();
-        this.connections[did].data = undefined;
 
-        console.warn(err);
+        if (err !== undefined) {
+          console.warn(err);
 
-        if (
-          err !== undefined &&
-          err.message != "User-Initiated Abort, reason=Close called" &&
-          this.connections[did] !== undefined
-        ) {
-          this.connections[did].error++;
+          if (
+            err.message != "User-Initiated Abort, reason=Close called" &&
+            this.connections[did] !== undefined
+          )
+            establishWebRTC();
+        } else {
+          delete this.connections[did];
         }
       };
 
       peer.on("close", deletePeer);
-      // peer.on("error", (err) => deletePeer(err));
+      peer.on("error", (err) => deletePeer(err));
 
       this.connections[did] = {
         data: peer,
-        error:
-          this.connections[did] === undefined ? 0 : this.connections[did].error,
         events,
       };
 
-      console.log("Connected over WebRTC");
+      console.log("Establishing WebRTC connection");
       return peer;
     }
   }
@@ -243,16 +239,17 @@ class Peer {
         };
 
         events.addEventListener("encrypted", send);
+        if (peer === undefined) this.connect(did, true, events);
       } else {
         const chunk = concatArrays([numberToUint8Array(0, 1), encode(data)]);
         if (this.fallback || (peer !== undefined && peer.data == "websocket")) {
+          if (peer === undefined) this.connect(did, true, events);
           sendOverTrpc(chunk);
         } else {
           addToBuffer(chunk);
+          if (peer === undefined) this.connect(did, true, events);
         }
       }
-
-      if (peer === undefined) this.connect(did, true, events);
     } else {
       let chunk: Uint8Array;
       if (encrypt) {
