@@ -86,7 +86,7 @@ export const addFile = (did: number, uid: number, file: Uint8Array) => {
       get(files).findIndex((file) => file.id == uuid) !== -1
     ) {
       uuid = nanoid();
-      return generateUUID();
+      return generateUUID(uuid);
     } else {
       return uuid;
     }
