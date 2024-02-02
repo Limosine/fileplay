@@ -19,9 +19,9 @@ import {
   updateOnlineStatus,
 } from "$lib/server/db";
 
-import { getEventEmitter } from "./common";
 import type { Authorized } from "./context";
-import { filetransfers, guests, timers } from "./stores";
+import { events } from "./events";
+import { filetransfers, timers } from "./stores";
 
 export const startTimer = (db: Database, uid: number, did: number) => {
   timers.update((timers) => {
@@ -66,7 +66,7 @@ export const notifyOwnDevices = async (
 
     devices.forEach((device) => {
       if (!device.is_online) return;
-      const ee = getEventEmitter(device.did);
+      const ee = events().getEventEmitter(device.did);
       ee.emit(event);
     });
   } catch (e: any) {
@@ -83,7 +83,7 @@ export const notifyDevices = async (
   if (contacts.success) {
     contacts.message.forEach((contact) => {
       contact.devices.forEach((device) => {
-        const ee = getEventEmitter(device.did);
+        const ee = events().getEventEmitter(device.did);
         ee.emit("foreignUser");
       });
     });
@@ -132,7 +132,7 @@ export const getDevices = async (
   >,
   ctx: Authorized,
 ) => {
-  const ee = getEventEmitter(ctx.device);
+  const ee = events().getEventEmitter(ctx.device);
   ee.removeAllListeners("ownDevice");
 
   const ownDevice = async () => {
@@ -171,7 +171,7 @@ export const getUser = async (
   >,
   ctx: Authorized,
 ) => {
-  const ee = getEventEmitter(ctx.device);
+  const ee = events().getEventEmitter(ctx.device);
   ee.removeAllListeners("ownUser");
 
   const ownUser = async () => {
@@ -210,7 +210,7 @@ export const getContacts = async (
   >,
   ctx: Authorized,
 ) => {
-  const ee = getEventEmitter(ctx.device);
+  const ee = events().getEventEmitter(ctx.device);
   ee.removeAllListeners("foreignUser");
 
   const foreignUser = async () => {
@@ -299,28 +299,6 @@ export async function updateDevice(
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
 }
-
-export const shareWebRTCData = async (
-  ctx: Authorized,
-  did: number,
-  data: { type: "webrtc"; data?: any } | { type: "signal"; data: string },
-) => {
-  if (did >= 0) {
-    const contacts = await getContactsDB(ctx.database, ctx.user);
-    if (contacts.success) {
-      const result = contacts.message.find(
-        (contact) =>
-          contact.devices.find((device) => device.did === did) !== undefined,
-      );
-      if (result === undefined) throw new TRPCError({ code: "NOT_FOUND" });
-      getEventEmitter(did).emit("webrtc-data", ctx.device, data);
-    } else throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-  } else {
-    const ee = get(guests)[Math.abs(did)];
-    if (ee === undefined) throw new TRPCError({ code: "NOT_FOUND" });
-    ee.emit("webrtc-data", ctx.device, data);
-  }
-};
 
 // Guest
 export function createTransfer(ctx: Authorized) {

@@ -3,7 +3,7 @@ import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 
 import { getTurnCredentials, getWebRTCData } from "../lib/common";
-import { shareWebRTCData } from "../lib/guest";
+import { events } from "../lib/events";
 import { guest, router } from "../main";
 
 export const guestRouter = () =>
@@ -13,10 +13,7 @@ export const guestRouter = () =>
     }),
 
     getTurnCredentials: guest.query(async (opts) => {
-      return getTurnCredentials(
-        "guest" + opts.ctx.guest,
-        opts.ctx.coturnKey,
-      );
+      return getTurnCredentials("guest" + opts.ctx.guest, opts.ctx.coturnKey);
     }),
 
     getWebRTCData: guest.subscription((opts) => {
@@ -52,6 +49,6 @@ export const guestRouter = () =>
         }),
       )
       .query(async (opts) => {
-        await shareWebRTCData(opts.ctx, opts.input);
+        await events().shareGuest(opts.ctx, opts.input);
       }),
   });

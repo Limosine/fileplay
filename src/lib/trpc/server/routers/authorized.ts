@@ -16,7 +16,6 @@ import {
   getDevices,
   getUser,
   redeemContactLinkingCode,
-  shareWebRTCData,
   startTimer,
   updateDevice,
   updateLastSeen,
@@ -24,6 +23,7 @@ import {
 } from "../lib/authorized";
 import { getTurnCredentials, getWebRTCData } from "../lib/common";
 import { authorized, router } from "../main";
+import { events } from "../lib/events";
 
 export const authorizedRouter = () =>
   router({
@@ -57,7 +57,7 @@ export const authorizedRouter = () =>
         }),
       )
       .query(async (opts) => {
-        await shareWebRTCData(opts.ctx, opts.input.did, opts.input.data);
+        await events().shareAuthorized(opts.ctx, opts.input.did, opts.input.data);
       }),
 
     getWebRTCData: authorized.subscription((opts) => {

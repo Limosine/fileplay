@@ -162,19 +162,3 @@ export async function deleteAccount() {
     window.location.href = "/setup";
   }
 }
-
-export async function uploadFile(file: Uint8Array) {
-  const formData = new FormData();
-
-  formData.append("data", new Blob([file]));
-
-  const result = await fetch("/api/file", {
-    method: "POST",
-    body: formData,
-  });
-
-  return await result.json() as {
-    id: string;
-    password: string;
-  };
-}

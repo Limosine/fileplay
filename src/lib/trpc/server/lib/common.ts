@@ -1,32 +1,9 @@
-import EventEmitter from "events";
-import { nanoid } from "nanoid";
-import { get } from "svelte/store";
 import type { TRPCError } from "@trpc/server";
 import type { Observer } from "@trpc/server/observable";
 
 import { sign } from "$lib/server/signing";
 
-import { connections, files, guests } from "./stores";
-
-export const getEventEmitter = (did: number) => {
-  if (did < 0) {
-    if (get(guests)[Math.abs(did)] === undefined) {
-      guests.update((guests) => {
-        guests[Math.abs(did)] = new EventEmitter();
-        return guests;
-      });
-    }
-    return get(guests)[Math.abs(did)];
-  } else {
-    if (get(connections)[did] === undefined) {
-      connections.update((connections) => {
-        connections[did] = new EventEmitter();
-        return connections;
-      });
-    }
-    return get(connections)[did];
-  }
-};
+import { events } from "./events";
 
 export const getTurnCredentials = async (user: string, key: CryptoKey) => {
   const unixTimeStamp = Math.ceil(Date.now() / 1000) + 12 * 3600; // 12 hours
@@ -52,7 +29,7 @@ export const getWebRTCData = async (
   >,
   deviceID: number,
 ) => {
-  const ee = getEventEmitter(deviceID);
+  const ee = events().getEventEmitter(deviceID);
   ee.removeAllListeners("webrtc-data");
 
   const data = async (
@@ -70,68 +47,4 @@ export const getWebRTCData = async (
   return async () => {
     ee.off("webrtc-data", data);
   };
-};
-
-export const getFile = (id: string, password: string) => {
-  const file = get(files).find((file) => file.id == id && file.password == password);
-
-  if (file === undefined) return null;
-  else return file.data;
-};
-
-export const addFile = (did: number, uid: number, file: Uint8Array) => {
-  function generateUUID(uuid?: string) {
-    if (
-      uuid === undefined ||
-      get(files).findIndex((file) => file.id == uuid) !== -1
-    ) {
-      uuid = nanoid();
-      return generateUUID(uuid);
-    } else {
-      return uuid;
-    }
-  }
-
-  const uuid = generateUUID();
-  const password = nanoid();
-
-  files.update((files) => {
-    files.push({
-      id: uuid,
-      did,
-      uid,
-      password: nanoid(),
-      data: file,
-    });
-
-    return files;
-  });
-
-  setTimeout(() => {
-    files.update((files) => {
-      files = files.filter(
-        (file) => file.id !== uuid || file.password !== password,
-      );
-
-      return files;
-    });
-  }, 3600000);
-
-  return { id: uuid, password };
-};
-
-export const deleteFile = (
-  did: number,
-  uid: number,
-  mode: "one" | "device" | "user",
-  id?: string,
-) => {
-  files.update((files) => {
-    if (mode == "one" && id !== undefined)
-      files = files.filter((file) => file.did !== did || file.id !== id);
-    else if (mode == "device") files = files.filter((file) => file.did !== did);
-    else if (mode == "user") files = files.filter((file) => file.uid !== uid);
-
-    return files;
-  });
 };

@@ -31,7 +31,7 @@ export const peer = () => {
 
 class Peer {
   private connections: {
-    data: SimplePeer.Instance | "establishing" | "websocket";
+    data: Promise<SimplePeer.Instance> | "websocket";
     events: EventTarget;
     key?: number; // key index
   }[];
@@ -78,17 +78,7 @@ class Peer {
         events,
       };
 
-      this.sendMessage(
-        did,
-        {
-          type: "update",
-          key: publicKeyJwk,
-          id: 0,
-          initiator: true,
-        },
-        false,
-        true,
-      );
+      this.sendKey(did);
 
       if (this.buffer[did] !== undefined) {
         if (window.location.pathname.slice(0, 6) == "/guest") {
@@ -112,120 +102,110 @@ class Peer {
 
     if (this.fallback === true) establishWebSocket();
     else {
+      const establishWebRTC = async (timer: NodeJS.Timeout) => {
+        const peer = new SimplePeer({
+          initiator,
+          trickle: true,
+          config: {
+            iceServers: [
+              { urls: "stun:stun.l.google.com:19305" },
+              {
+                urls: "turns:turn.wir-sind-frey.de:443",
+                username: (await this.turn).username,
+                credential: (await this.turn).password,
+              },
+              {
+                urls: "turn:turn.wir-sind-frey.de:5349?transport=tcp",
+                username: (await this.turn).username,
+                credential: (await this.turn).password,
+              },
+            ],
+          },
+        });
+
+        console.log(await this.turn);
+
+        peer.on("signal", (data) => {
+          if (window.location.pathname.slice(0, 6) == "/guest")
+            trpc().guest.shareWebRTCData.query({
+              did,
+              guestTransfer: String(get(page).url.searchParams.get("id")),
+              data: { type: "signal", data: JSON.stringify(data) },
+            });
+          else
+            trpc().authorized.shareWebRTCData.query({
+              did,
+              data: { type: "signal", data: JSON.stringify(data) },
+            });
+        });
+
+        peer.on("connect", () => {
+          clearTimeout(timer);
+          if (initiator) this.sendKey(did);
+        });
+
+        peer.on("data", async (data) => {
+          this.handle(did, data);
+        });
+
+        const deletePeer = (err?: Error) => {
+          if (!peer.destroyed) peer.destroy();
+
+          if (err !== undefined) {
+            console.warn(err);
+
+            if (
+              err.message != "User-Initiated Abort, reason=Close called" &&
+              this.connections[did] !== undefined
+            )
+              establishWebSocket();
+          } else {
+            delete this.connections[did];
+          }
+        };
+
+        peer.on("close", deletePeer);
+        peer.on("error", (err) => deletePeer(err));
+
+        return peer;
+      };
+
       console.log("Establishing WebRTC connection");
 
+      const timer = setTimeout(() => {
+        this.connections[did].data = "websocket";
+        this.sendKey(did);
+      }, 3000);
+
+      const peer = establishWebRTC(timer);
+
       this.connections[did] = {
-        data: "establishing",
+        data: peer,
         events,
       };
-
-      const peer = new SimplePeer({
-        initiator,
-        trickle: true,
-        config: {
-          iceServers: [
-            { urls: "stun:stun.l.google.com:19305" },
-            {
-              urls: "turns:turn.wir-sind-frey.de:443",
-              username: (await this.turn).username,
-              credential: (await this.turn).password,
-            },
-            {
-              urls: "turn:turn.wir-sind-frey.de:5349?transport=tcp",
-              username: (await this.turn).username,
-              credential: (await this.turn).password,
-            },
-          ],
-        },
-      });
-
-      console.log(await this.turn);
-
-      peer.on("signal", (data) => {
-        if (window.location.pathname.slice(0, 6) == "/guest")
-          trpc().guest.shareWebRTCData.query({
-            did,
-            guestTransfer: String(get(page).url.searchParams.get("id")),
-            data: { type: "signal", data: JSON.stringify(data) },
-          });
-        else
-          trpc().authorized.shareWebRTCData.query({
-            did,
-            data: { type: "signal", data: JSON.stringify(data) },
-          });
-      });
-
-      if (initiator) {
-        peer.on("connect", () => {
-          this.sendMessage(
-            did,
-            {
-              type: "update",
-              key: publicKeyJwk,
-              id: 0,
-              initiator: true,
-            },
-            false,
-            true,
-          );
-        });
-      }
-
-      peer.on("data", async (data) => {
-        this.handle(did, data);
-      });
-
-      const deletePeer = (err?: Error) => {
-        if (!peer.destroyed) peer.destroy();
-
-        if (err !== undefined) {
-          console.warn(err);
-
-          if (
-            err.message != "User-Initiated Abort, reason=Close called" &&
-            this.connections[did] !== undefined
-          )
-            establishWebSocket();
-        } else {
-          delete this.connections[did];
-        }
-      };
-
-      peer.on("close", deletePeer);
-      peer.on("error", (err) => deletePeer(err));
-
-      this.connections[did].data = peer;
 
       return peer;
     }
   }
 
   closeConnections() {
-    this.connections.forEach((conn) => {
-      if (
-        conn.data !== undefined &&
-        conn.data !== "websocket" &&
-        conn.data !== "establishing"
-      )
-        conn.data.destroy();
+    this.connections.forEach(async (conn) => {
+      if (conn.data !== undefined && conn.data !== "websocket")
+        (await conn.data).destroy();
     });
     this.buffer = [];
     this.connections = [];
   }
 
-  private sendMessages(did: number) {
+  private async sendMessages(did: number) {
     if (this.buffer[did] === undefined || this.buffer[did].length <= 0) return;
 
     const peer = this.connections[did];
 
     if (peer === undefined) {
       this.connect(did, true);
-    } else if (
-      peer.data !== undefined &&
-      peer.data !== "websocket" &&
-      peer.data !== "establishing"
-    ) {
-      peer.data.write(this.buffer[did][0], undefined, () =>
+    } else if (peer.data !== undefined && peer.data !== "websocket") {
+      (await peer.data).write(this.buffer[did][0], undefined, () =>
         this.sendMessages(did),
       );
 
@@ -331,12 +311,10 @@ class Peer {
     if (
       peer !== undefined &&
       peer.data !== undefined &&
-      peer.data !== "websocket" &&
-      peer.data !== "establishing"
+      peer.data !== "websocket"
     ) {
-      peer.data.signal(data);
+      (await peer.data).signal(data);
     } else if (peer === undefined) {
-      // todo (maybe wrap instance in promise)
       (await this.connect(did, false))?.signal(data);
     }
   }
@@ -344,6 +322,20 @@ class Peer {
   clearBuffer(did?: number) {
     if (did === undefined) this.buffer = [];
     else this.buffer[did] = [];
+  }
+
+  private sendKey(did: number) {
+    this.sendMessage(
+      did,
+      {
+        type: "update",
+        key: publicKeyJwk,
+        id: 0,
+        initiator: true,
+      },
+      false,
+      true,
+    );
   }
 
   // Encryption
@@ -420,8 +412,6 @@ class Peer {
       throw new Error("Encryption: No connection to this device");
     }
   }
-
-  private sendKey(did: number) {}
 
   increaseCounter(did: number) {
     const peer = this.connections[did];
