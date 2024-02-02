@@ -99,7 +99,10 @@ export function startSubscriptions(guest: boolean) {
   };
   const onWebRTCData = (data: {
     data:
-      | { type: "webrtc"; data: any /* Raw Uint8Array (reality: { "0": 0, "1": 0, ... }) */ }
+      | {
+          type: "webrtc";
+          data: any /* Raw Uint8Array (reality: { "0": 0, "1": 0, ... }) */;
+        }
       | { type: "signal"; data: string };
     from: number;
   }) => {
@@ -158,4 +161,20 @@ export async function deleteAccount() {
     localStorage.removeItem("loggedIn");
     window.location.href = "/setup";
   }
+}
+
+export async function uploadFile(file: Uint8Array) {
+  const formData = new FormData();
+
+  formData.append("data", new Blob([file]));
+
+  const result = await fetch("/api/file", {
+    method: "POST",
+    body: formData,
+  });
+
+  return await result.json() as {
+    id: string;
+    password: string;
+  };
 }

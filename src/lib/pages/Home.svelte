@@ -3,7 +3,7 @@
 
   import { input, files } from "$lib/components/Input.svelte";
   import { getDicebearUrl } from "$lib/lib/common";
-  import { type IContact } from "$lib/lib/fetchers";
+  import { uploadFile, type IContact } from "$lib/lib/fetchers";
   import { sendState, SendState } from "$lib/lib/sendstate";
   import { current, contacts, generateQRCode } from "$lib/lib/UI";
   import {
@@ -13,6 +13,7 @@
   } from "$lib/sharing/common";
   import { addPendingFile, cancelFiletransfer } from "$lib/sharing/main";
   import { send } from "$lib/sharing/send";
+  import { blobToArrayBuffer } from "$lib/lib/utils";
 
   let qrCode: string;
   const setQRCode = async () => {
@@ -26,8 +27,9 @@
     if (state == SendState.REQUESTING || state == SendState.SENDING) {
       cancelFiletransfer(contact);
     } else {
-      devices.forEach((device) => {
+      devices.forEach(async (device) => {
         send($files, device.did, contact.cid, undefined);
+        console.log(await uploadFile(new Uint8Array(await blobToArrayBuffer($files[0]))));
       });
     }
   };

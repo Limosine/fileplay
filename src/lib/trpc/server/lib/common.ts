@@ -1,10 +1,12 @@
 import EventEmitter from "events";
+import { nanoid } from "nanoid";
 import { get } from "svelte/store";
 import type { TRPCError } from "@trpc/server";
 import type { Observer } from "@trpc/server/observable";
 
-import { connections, guests } from "./stores";
 import { sign } from "$lib/server/signing";
+
+import { connections, files, guests } from "./stores";
 
 export const getEventEmitter = (did: number) => {
   if (did < 0) {
@@ -68,4 +70,68 @@ export const getWebRTCData = async (
   return async () => {
     ee.off("webrtc-data", data);
   };
+};
+
+export const getFile = (id: string, password: string) => {
+  const file = get(files).find((file) => file.id == id && file.password == password);
+
+  if (file === undefined) return null;
+  else return file.data;
+};
+
+export const addFile = (did: number, uid: number, file: Uint8Array) => {
+  function generateUUID(uuid?: string) {
+    if (
+      uuid === undefined ||
+      get(files).findIndex((file) => file.id == uuid) !== -1
+    ) {
+      uuid = nanoid();
+      return generateUUID();
+    } else {
+      return uuid;
+    }
+  }
+
+  const uuid = generateUUID();
+  const password = nanoid();
+
+  files.update((files) => {
+    files.push({
+      id: uuid,
+      did,
+      uid,
+      password: nanoid(),
+      data: file,
+    });
+
+    return files;
+  });
+
+  setTimeout(() => {
+    files.update((files) => {
+      files = files.filter(
+        (file) => file.id !== uuid || file.password !== password,
+      );
+
+      return files;
+    });
+  }, 3600000);
+
+  return { id: uuid, password };
+};
+
+export const deleteFile = (
+  did: number,
+  uid: number,
+  mode: "one" | "device" | "user",
+  id?: string,
+) => {
+  files.update((files) => {
+    if (mode == "one" && id !== undefined)
+      files = files.filter((file) => file.did !== did || file.id !== id);
+    else if (mode == "device") files = files.filter((file) => file.did !== did);
+    else if (mode == "user") files = files.filter((file) => file.uid !== uid);
+
+    return files;
+  });
 };
