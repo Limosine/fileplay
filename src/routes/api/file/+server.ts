@@ -5,19 +5,15 @@ import { z } from "zod";
 import { httpAuthorized } from "$lib/server/db";
 import { addFile, deleteFile, getFile } from "$lib/trpc/server/lib/common";
 
-export const GET: RequestHandler = async ({ request }) => {
-  const schema = z.object({
-    id: z.string(),
-    password: z.string(),
-  });
+export const GET: RequestHandler = async ({ url }) => {
+  const id = url.searchParams.get("id");
+  const password = url.searchParams.get("password");
 
-  const data = schema.safeParse(await request.json());
-
-  if (!data.success) {
-    error(422, "Wrong data type");
+  if (id === null || password === null) {
+    error(422, "Missing parameters");
   }
 
-  const file = getFile(data.data.id, data.data.password);
+  const file = getFile(id, password);
 
   if (file !== null) {
     return new Response(file, { status: 200 });
