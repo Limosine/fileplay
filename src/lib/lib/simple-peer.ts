@@ -310,15 +310,14 @@ class Peer {
   async signal(did: number, data: SignalData) {
     const peer = this.connections[did];
 
-    if (
-      peer !== undefined &&
-      peer.data !== undefined &&
-      peer.data !== "websocket"
-    ) {
-      (await peer.data).signal(data);
-    } else if (peer === undefined) {
-      (await this.connect(did, false))?.signal(data);
-    }
+    const connect = async (events?: EventTarget) => (await this.connect(did, false, events))?.signal(data);
+
+    if (peer !== undefined) {
+      if (peer.data == "websocket") {
+        delete this.connections[did];
+        connect(peer.events);
+      } else (await peer.data).signal(data);
+    } else connect();
   }
 
   clearBuffer(did?: number) {
