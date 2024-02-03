@@ -75,9 +75,6 @@ const authenticated = (
 };
 
 export const handleData = (data: Exclude<webRTCData, Update>, did: number) => {
-  // Debugging
-  if (data.type != "chunk") console.log(data);
-
   if (data.type == "error") {
     console.warn(`Filetransfer: ${data.message}`);
   } else if (

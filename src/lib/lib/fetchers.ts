@@ -103,13 +103,13 @@ export function startSubscriptions(guest: boolean) {
           type: "webrtc";
           data: any /* Raw Uint8Array (reality: { "0": 0, "1": 0, ... }) */;
         }
-      | { type: "signal"; data: string };
+      | { type: "signal"; data: string }
     from: number;
   }) => {
     if (data.data.type == "signal")
       peer().signal(data.from, JSON.parse(data.data.data));
     else {
-      peer().handle(data.from, new Uint8Array(Object.values(data.data.data)));
+      peer().handle(data.from, new Uint8Array(Object.values(data.data.data)), "websocket");
     }
   };
 

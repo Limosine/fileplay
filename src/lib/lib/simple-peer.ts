@@ -69,6 +69,7 @@ class Peer {
     did: number,
     initiator: boolean,
     events = new EventTarget(),
+    forceWebSocket?: boolean,
   ) {
     const establishWebSocket = () => {
       console.log("Establishing WebSocket connection");
@@ -78,7 +79,7 @@ class Peer {
         events,
       };
 
-      this.sendKey(did);
+      this.sendKey(did, undefined, true);
 
       if (this.buffer[did] !== undefined) {
         if (window.location.pathname.slice(0, 6) == "/guest") {
@@ -100,7 +101,7 @@ class Peer {
       }
     };
 
-    if (this.fallback === true) establishWebSocket();
+    if (this.fallback === true || forceWebSocket) establishWebSocket();
     else {
       const establishWebRTC = async (timer: NodeJS.Timeout) => {
         const peer = new SimplePeer({
@@ -141,11 +142,11 @@ class Peer {
 
         peer.on("connect", () => {
           clearTimeout(timer);
-          if (initiator) this.sendKey(did);
+          if (initiator) this.sendKey(did, undefined, true);
         });
 
         peer.on("data", async (data) => {
-          this.handle(did, data);
+          this.handle(did, data, "webrtc");
         });
 
         const deletePeer = (err?: Error) => {
@@ -174,7 +175,8 @@ class Peer {
 
       const timer = setTimeout(() => {
         this.connections[did].data = "websocket";
-        this.sendKey(did);
+        console.log("Failed to establish WebRTC connection");
+        establishWebSocket();
       }, 3000);
 
       const peer = establishWebRTC(timer);
@@ -215,7 +217,7 @@ class Peer {
 
   async sendMessage(
     did: number,
-    data: webRTCData,
+    data: webRTCData | { type: "connect" },
     encrypt = true,
     immediately = false,
   ) {
@@ -324,14 +326,14 @@ class Peer {
     else this.buffer[did] = [];
   }
 
-  private sendKey(did: number) {
+  private sendKey(did: number, id: 0 | 1 = 0, initiator?: true) {
     this.sendMessage(
       did,
       {
         type: "update",
         key: publicKeyJwk,
-        id: 0,
-        initiator: true,
+        id,
+        initiator,
       },
       false,
       true,
@@ -340,20 +342,23 @@ class Peer {
 
   // Encryption
 
-  async handle(did: number, data: Uint8Array) {
-    console.log(data, typeof data);
+  async handle(did: number, data: Uint8Array, origin: "webrtc" | "websocket") {
+    console.log("Encoded data from " + did + ":", data);
 
     const handleDecoded = async (data: webRTCData) => {
+      console.log("Decoded data from " + did + ":", data);
+
       if (data.type == "update") {
-        if (this.connections[did] === undefined) this.connect(did, false);
+        if (this.connections[did] === undefined)
+          this.connect(
+            did,
+            false,
+            undefined,
+            origin === "websocket" ? true : undefined,
+          );
         const id = await updateKey(did, data.key, data.id === 0 ? 1 : 0);
         if (data.initiator) {
-          this.sendMessage(
-            did,
-            { type: "update", key: publicKeyJwk, id },
-            false,
-            true,
-          );
+          this.sendKey(did, id);
         }
       } else {
         handleData(data, did);
