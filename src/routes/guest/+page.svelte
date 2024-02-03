@@ -42,7 +42,7 @@
       filetransfer_id = String($page.url.searchParams.get("id"));
       sender = $page.url.searchParams.has("sender");
 
-      setup();
+      await setup();
       await setupGuest();
 
       if (!sender) connectAsListener(did, filetransfer_id);

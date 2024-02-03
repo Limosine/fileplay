@@ -11,7 +11,7 @@ export let publicKeyJwk: JsonWebKey;
 
 export const setup = async () => {
   if (!privateKey || !publicKeyJwk) {
-    generateKey();
+    await generateKey();
   }
 };
 

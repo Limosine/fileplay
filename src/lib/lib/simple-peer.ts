@@ -281,7 +281,8 @@ class Peer {
 
       if (encrypt) {
         const send = async () => {
-          events.removeEventListener("encrypted", send);
+          const peer = this.connections[did];
+          peer.events.removeEventListener("encrypted", send);
 
           const chunk = concatArrays([
             numberToUint8Array(1, 1),

@@ -77,9 +77,9 @@
     }
   };
 
-  onMount(() => {
+  onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
-      setup();
+      await setup();
       trpc();
     }
 
