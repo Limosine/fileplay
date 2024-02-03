@@ -146,7 +146,7 @@ class Peer {
     return peer;
   }
 
-  private async clearTimer(did: number) {
+  private clearTimer(did: number) {
     const peer = this.connections[did];
 
     if (
@@ -371,14 +371,21 @@ class Peer {
 
       if (data.type == "update") {
         const conn = this.connections[did];
-        if (conn === undefined)
-          this.connect(
+
+        if (conn !== undefined && conn.data != "websocket")
+          this.clearTimer(did);
+
+        if (
+          conn === undefined ||
+          (conn.data != "websocket" && origin == "websocket")
+        )
+          await this.connect(
             did,
             false,
             undefined,
             origin === "websocket" ? true : undefined,
           );
-        else if (conn.data != "websocket") await this.clearTimer(did);
+
         const id = await updateKey(did, data.key, data.id === 0 ? 1 : 0);
         if (data.initiator) {
           this.sendKey(did, id);
