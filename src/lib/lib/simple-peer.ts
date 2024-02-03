@@ -44,7 +44,7 @@ class Peer {
     id: 0 | 1; // Own key id
   }[];
 
-  private buffer: Uint8Array[][];
+  private buffer: { data: Uint8Array[]; state: "idle" | "working" }[];
 
   private fallback: boolean;
 
@@ -67,135 +67,137 @@ class Peer {
 
   // WebRTC
 
-  private async connect(
+  private async establishWebRTC(
+    did: number,
+    initiator: boolean,
+    events: EventTarget,
+  ) {
+    const awaitCredentials = async () => {
+      const peer = new SimplePeer({
+        initiator,
+        trickle: true,
+        config: {
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19305" },
+            {
+              urls: "turns:turn.wir-sind-frey.de:443",
+              username: (await this.turn).username,
+              credential: (await this.turn).password,
+            },
+            {
+              urls: "turn:turn.wir-sind-frey.de:5349?transport=tcp",
+              username: (await this.turn).username,
+              credential: (await this.turn).password,
+            },
+          ],
+        },
+      });
+
+      peer.on("signal", (data) => {
+        if (window.location.pathname.slice(0, 6) == "/guest")
+          trpc().guest.shareWebRTCData.query({
+            did,
+            guestTransfer: String(get(page).url.searchParams.get("id")),
+            data: { type: "signal", data: JSON.stringify(data) },
+          });
+        else
+          trpc().authorized.shareWebRTCData.query({
+            did,
+            data: { type: "signal", data: JSON.stringify(data) },
+          });
+      });
+
+      peer.on("connect", () => {
+        this.clearTimer(did);
+        if (initiator) this.sendKey(did, undefined, true);
+      });
+
+      peer.on("data", async (data) => {
+        this.handle(did, data, "webrtc");
+      });
+
+      const deletePeer = (err?: Error) => {
+        if (!peer.destroyed) peer.destroy();
+        if (err !== undefined) console.warn(err);
+
+        delete this.connections[did];
+      };
+
+      peer.on("close", deletePeer);
+      peer.on("error", (err) => deletePeer(err));
+
+      return peer;
+    };
+
+    console.log("Establishing WebRTC connection");
+
+    const peer = awaitCredentials();
+
+    const timer = setTimeout(() => {
+      console.log("Failed to establish WebRTC connection");
+      this.establishWebSocket(did, initiator, events);
+    }, 3000);
+
+    this.connections[did] = {
+      data: { data: peer, timer },
+      events,
+    };
+
+    return peer;
+  }
+
+  private async clearTimer(did: number) {
+    const peer = this.connections[did];
+
+    if (
+      peer !== undefined &&
+      peer.data !== "websocket" &&
+      peer.data.timer !== undefined
+    ) {
+      clearTimeout(peer.data.timer);
+      this.connections[did].data = {
+        data: peer.data.data,
+      };
+    }
+  }
+
+  private async establishWebSocket(
+    did: number,
+    initiator: boolean,
+    events: EventTarget,
+  ) {
+    console.log("Establishing WebSocket connection");
+
+    // Clear previous connection
+    const peer = this.connections[did];
+    this.clearTimer(did);
+
+    // Setup connection
+    this.connections[did] = {
+      data: "websocket",
+      events: peer !== undefined ? peer.events : events,
+    };
+    if (initiator) this.sendKey(did, undefined, true);
+
+    // Send buffered data
+    if (this.buffer[did] !== undefined) {
+      this.sendOverTrpc(did, this.buffer[did].data);
+      this.buffer[did] = {
+        data: [],
+        state: "idle",
+      };
+    }
+  }
+
+  private connect(
     did: number,
     initiator: boolean,
     events = new EventTarget(),
     forceWebSocket?: boolean,
   ) {
-    const establishWebSocket = () => {
-      console.log("Establishing WebSocket connection");
-
-      this.connections[did] = {
-        data: "websocket",
-        events,
-      };
-
-      this.sendKey(did, undefined, true);
-
-      if (this.buffer[did] !== undefined) {
-        if (window.location.pathname.slice(0, 6) == "/guest") {
-          this.buffer[did].forEach((buffered) => {
-            trpc().guest.shareWebRTCData.query({
-              did,
-              guestTransfer: String(get(page).url.searchParams.get("id")),
-              data: { type: "webrtc", data: buffered },
-            });
-          });
-        } else {
-          this.buffer[did].forEach((buffered) => {
-            trpc().authorized.shareWebRTCData.query({
-              did,
-              data: { type: "webrtc", data: buffered },
-            });
-          });
-        }
-      }
-    };
-
-    if (this.fallback === true || forceWebSocket) establishWebSocket();
-    else {
-      const establishWebRTC = async (timer: NodeJS.Timeout) => {
-        const peer = new SimplePeer({
-          initiator,
-          trickle: true,
-          config: {
-            iceServers: [
-              { urls: "stun:stun.l.google.com:19305" },
-              {
-                urls: "turns:turn.wir-sind-frey.de:443",
-                username: (await this.turn).username,
-                credential: (await this.turn).password,
-              },
-              {
-                urls: "turn:turn.wir-sind-frey.de:5349?transport=tcp",
-                username: (await this.turn).username,
-                credential: (await this.turn).password,
-              },
-            ],
-          },
-        });
-
-        console.log(await this.turn);
-
-        peer.on("signal", (data) => {
-          if (window.location.pathname.slice(0, 6) == "/guest")
-            trpc().guest.shareWebRTCData.query({
-              did,
-              guestTransfer: String(get(page).url.searchParams.get("id")),
-              data: { type: "signal", data: JSON.stringify(data) },
-            });
-          else
-            trpc().authorized.shareWebRTCData.query({
-              did,
-              data: { type: "signal", data: JSON.stringify(data) },
-            });
-        });
-
-        peer.on("connect", () => {
-          clearTimeout(timer);
-          const conn = this.connections[did];
-          if (conn !== undefined && conn.data !== "websocket") {
-            this.connections[did].data = {
-              data: conn.data.data,
-            };
-          }
-          if (initiator) this.sendKey(did, undefined, true);
-        });
-
-        peer.on("data", async (data) => {
-          this.handle(did, data, "webrtc");
-        });
-
-        const deletePeer = (err?: Error) => {
-          if (!peer.destroyed) peer.destroy();
-
-          if (err !== undefined) {
-            console.warn(err);
-
-            if (
-              err.message != "User-Initiated Abort, reason=Close called" &&
-              this.connections[did] !== undefined
-            )
-              establishWebSocket();
-          } else {
-            delete this.connections[did];
-          }
-        };
-
-        peer.on("close", deletePeer);
-        peer.on("error", (err) => deletePeer(err));
-
-        return peer;
-      };
-
-      console.log("Establishing WebRTC connection");
-
-      const timer = setTimeout(() => {
-        this.connections[did].data = "websocket";
-        console.log("Failed to establish WebRTC connection");
-        establishWebSocket();
-      }, 3000);
-
-      const peer = establishWebRTC(timer);
-
-      this.connections[did] = {
-        data: { data: peer, timer: timer },
-        events,
-      };
-
-      return peer;
-    }
+    if (this.fallback === true || forceWebSocket)
+      this.establishWebSocket(did, initiator, events);
+    else return this.establishWebRTC(did, initiator, events);
   }
 
   closeConnections() {
@@ -210,20 +212,44 @@ class Peer {
   }
 
   private async sendMessages(did: number) {
-    if (this.buffer[did] === undefined || this.buffer[did].length <= 0) return;
+    if (this.buffer[did] === undefined) return;
+    if (this.buffer[did].data.length <= 0) {
+      this.buffer[did].state = "idle";
+      return;
+    }
 
     const peer = this.connections[did];
 
     if (peer === undefined) {
       this.connect(did, true);
     } else if (peer.data !== undefined && peer.data !== "websocket") {
-      (await peer.data.data).write(this.buffer[did][0], undefined, () =>
+      this.buffer[did].state = "working";
+      (await peer.data.data).write(this.buffer[did].data[0], undefined, () =>
         this.sendMessages(did),
       );
 
-      this.buffer = this.buffer.slice(1);
+      this.buffer[did].data = this.buffer[did].data.slice(1);
     }
   }
+
+  private sendOverTrpc = (did: number, dataArray: Uint8Array[]) => {
+    if (window.location.pathname.slice(0, 6) == "/guest") {
+      dataArray.forEach((data) => {
+        trpc().guest.shareWebRTCData.query({
+          did,
+          guestTransfer: String(get(page).url.searchParams.get("id")),
+          data: { type: "webrtc", data: data },
+        });
+      });
+    } else {
+      dataArray.forEach((data) => {
+        trpc().authorized.shareWebRTCData.query({
+          did,
+          data: { type: "webrtc", data: data },
+        });
+      });
+    }
+  };
 
   async sendMessage(
     did: number,
@@ -231,30 +257,21 @@ class Peer {
     encrypt = true,
     immediately = false,
   ) {
-    console.log("Sending message to " + did);
-
-    const sendOverTrpc = (data: Uint8Array) => {
-      if (window.location.pathname.slice(0, 6) == "/guest") {
-        trpc().guest.shareWebRTCData.query({
-          did,
-          guestTransfer: String(get(page).url.searchParams.get("id")),
-          data: { type: "webrtc", data },
-        });
-      } else {
-        trpc().authorized.shareWebRTCData.query({
-          did,
-          data: { type: "webrtc", data },
-        });
-      }
-    };
-
     const addToBuffer = (chunk: Uint8Array) => {
-      if (this.buffer[did] === undefined) this.buffer[did] = [];
+      if (this.buffer[did] === undefined)
+        this.buffer[did] = { data: [], state: "idle" };
       if (immediately) {
-        this.buffer[did].unshift(chunk);
+        this.buffer[did].data.unshift(chunk);
       } else {
-        this.buffer[did].push(chunk);
+        this.buffer[did].data.push(chunk);
       }
+
+      if (
+        this.buffer[did].state == "idle" &&
+        this.connections[did] !== undefined &&
+        this.connections[did].data !== "websocket"
+      )
+        this.sendMessages(did);
     };
 
     const peer = this.connections[did];
@@ -275,10 +292,9 @@ class Peer {
             this.fallback ||
             (peer !== undefined && peer.data == "websocket")
           ) {
-            sendOverTrpc(chunk);
+            this.sendOverTrpc(did, [chunk]);
           } else {
             addToBuffer(chunk);
-            this.sendMessages(did);
           }
         };
 
@@ -288,7 +304,7 @@ class Peer {
         const chunk = concatArrays([numberToUint8Array(0, 1), encode(data)]);
         if (this.fallback || (peer !== undefined && peer.data == "websocket")) {
           if (peer === undefined) this.connect(did, true, events);
-          sendOverTrpc(chunk);
+          this.sendOverTrpc(did, [chunk]);
         } else {
           addToBuffer(chunk);
           if (peer === undefined) this.connect(did, true, events);
@@ -306,13 +322,9 @@ class Peer {
       }
 
       if (this.fallback || (peer !== undefined && peer.data == "websocket")) {
-        sendOverTrpc(chunk);
+        this.sendOverTrpc(did, [chunk]);
       } else {
         addToBuffer(chunk);
-
-        if (this.buffer[did].length === 1) {
-          this.sendMessages(did);
-        }
       }
     }
   }
@@ -333,7 +345,7 @@ class Peer {
 
   clearBuffer(did?: number) {
     if (did === undefined) this.buffer = [];
-    else this.buffer[did] = [];
+    else delete this.buffer[did];
   }
 
   private sendKey(did: number, id: 0 | 1 = 0, initiator?: true) {
@@ -353,10 +365,8 @@ class Peer {
   // Encryption
 
   async handle(did: number, data: Uint8Array, origin: "webrtc" | "websocket") {
-    console.log("Encoded data from " + did + ":", data);
-
     const handleDecoded = async (data: webRTCData) => {
-      console.log("Decoded data from " + did + ":", data);
+      if (data.type != "chunk") console.log(data);
 
       if (data.type == "update") {
         const conn = this.connections[did];
@@ -367,10 +377,7 @@ class Peer {
             undefined,
             origin === "websocket" ? true : undefined,
           );
-        else if (conn.data != "websocket")
-          this.connections[did].data = {
-            data: conn.data.data,
-          };
+        else if (conn.data != "websocket") await this.clearTimer(did);
         const id = await updateKey(did, data.key, data.id === 0 ? 1 : 0);
         if (data.initiator) {
           this.sendKey(did, id);
