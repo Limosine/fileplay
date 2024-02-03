@@ -31,7 +31,9 @@ export const peer = () => {
 
 class Peer {
   private connections: {
-    data: Promise<SimplePeer.Instance> | "websocket";
+    data:
+      | { data: Promise<SimplePeer.Instance>; timer?: NodeJS.Timeout }
+      | "websocket";
     events: EventTarget;
     key?: number; // key index
   }[];
@@ -142,6 +144,12 @@ class Peer {
 
         peer.on("connect", () => {
           clearTimeout(timer);
+          const conn = this.connections[did];
+          if (conn !== undefined && conn.data !== "websocket") {
+            this.connections[did].data = {
+              data: conn.data.data,
+            };
+          }
           if (initiator) this.sendKey(did, undefined, true);
         });
 
@@ -182,7 +190,7 @@ class Peer {
       const peer = establishWebRTC(timer);
 
       this.connections[did] = {
-        data: peer,
+        data: { data: peer, timer: timer },
         events,
       };
 
@@ -192,8 +200,10 @@ class Peer {
 
   closeConnections() {
     this.connections.forEach(async (conn) => {
-      if (conn.data !== undefined && conn.data !== "websocket")
-        (await conn.data).destroy();
+      if (conn.data !== undefined && conn.data !== "websocket") {
+        if (conn.data.timer !== undefined) clearTimeout(conn.data.timer);
+        (await conn.data.data).destroy();
+      }
     });
     this.buffer = [];
     this.connections = [];
@@ -207,7 +217,7 @@ class Peer {
     if (peer === undefined) {
       this.connect(did, true);
     } else if (peer.data !== undefined && peer.data !== "websocket") {
-      (await peer.data).write(this.buffer[did][0], undefined, () =>
+      (await peer.data.data).write(this.buffer[did][0], undefined, () =>
         this.sendMessages(did),
       );
 
@@ -310,13 +320,14 @@ class Peer {
   async signal(did: number, data: SignalData) {
     const peer = this.connections[did];
 
-    const connect = async (events?: EventTarget) => (await this.connect(did, false, events))?.signal(data);
+    const connect = async (events?: EventTarget) =>
+      (await this.connect(did, false, events))?.signal(data);
 
     if (peer !== undefined) {
       if (peer.data == "websocket") {
         delete this.connections[did];
         connect(peer.events);
-      } else (await peer.data).signal(data);
+      } else (await peer.data.data).signal(data);
     } else connect();
   }
 
@@ -348,13 +359,18 @@ class Peer {
       console.log("Decoded data from " + did + ":", data);
 
       if (data.type == "update") {
-        if (this.connections[did] === undefined)
+        const conn = this.connections[did];
+        if (conn === undefined)
           this.connect(
             did,
             false,
             undefined,
             origin === "websocket" ? true : undefined,
           );
+        else if (conn.data != "websocket")
+          this.connections[did].data = {
+            data: conn.data.data,
+          };
         const id = await updateKey(did, data.key, data.id === 0 ? 1 : 0);
         if (data.initiator) {
           this.sendKey(did, id);
