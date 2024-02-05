@@ -3,11 +3,15 @@ import { page } from "$app/stores";
 import { get, writable } from "svelte/store";
 import type { Unsubscribable } from "@trpc/server/observable";
 
+import { sendRequest } from "$lib/sharing/send";
 import { trpc } from "$lib/trpc/client";
 
 import { DeviceType, ONLINE_STATUS_REFRESH_TIME } from "./common";
 import { peer } from "./simple-peer";
 import { contacts, devices, own_did, user } from "./UI";
+import { files } from "$lib/components/Input.svelte";
+import { outgoing_filetransfers } from "$lib/sharing/common";
+import { SendState, sendState } from "./sendstate";
 
 // contacts
 export interface IContact {
@@ -103,13 +107,17 @@ export function startSubscriptions(guest: boolean) {
           type: "webrtc";
           data: any /* Raw Uint8Array (reality: { "0": 0, "1": 0, ... }) */;
         }
-      | { type: "signal"; data: string }
+      | { type: "signal"; data: string };
     from: number;
   }) => {
     if (data.data.type == "signal")
       peer().signal(data.from, JSON.parse(data.data.data));
     else {
-      peer().handle(data.from, new Uint8Array(Object.values(data.data.data)), "websocket");
+      peer().handle(
+        data.from,
+        new Uint8Array(Object.values(data.data.data)),
+        "websocket",
+      );
     }
   };
 
@@ -162,3 +170,43 @@ export async function deleteAccount() {
     window.location.href = "/setup";
   }
 }
+
+export const handleMessage = (
+  event: MessageEvent<{ data: any; action: string }>,
+) => {
+  if (event.data.action == "load-data") {
+    const swFiles: File[] = event.data.data;
+    const dataTransfer = new DataTransfer();
+
+    swFiles.forEach((file) => {
+      dataTransfer.items.add(file);
+      files.set(dataTransfer.files);
+    });
+
+    get(page).url.searchParams.delete("share-target");
+  } else if (event.data.action == "chunked-files") {
+    const index = get(outgoing_filetransfers).findIndex(
+      (transfer) => transfer.id == event.data.data.id,
+    );
+    const transfer = get(outgoing_filetransfers)[index];
+
+    if (index !== -1) {
+      if (
+        transfer.cid !== undefined &&
+        get(sendState)[transfer.cid] !== SendState.REQUESTING
+      ) {
+        sendState.set(transfer.cid, SendState.REQUESTING);
+      }
+
+      const previous = get(page).url.searchParams.get("id");
+
+      if (transfer.did !== undefined) {
+        sendRequest(
+          transfer.did,
+          transfer.id,
+          previous === null ? undefined : previous,
+        );
+      }
+    }
+  }
+};

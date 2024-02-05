@@ -11,7 +11,7 @@
   import { incoming_filetransfers } from "$lib/sharing/common";
   import { cancelFiletransfer, connectAsListener } from "$lib/sharing/main";
   import { send } from "$lib/sharing/send";
-  import { setupGuest, startHeartbeat, startSubscriptions } from "$lib/lib/fetchers";
+  import { handleMessage, setupGuest } from "$lib/lib/fetchers";
 
   let sentAccept = false;
   let did: number;
@@ -41,6 +41,8 @@
       did = Number($page.url.searchParams.get("did"));
       filetransfer_id = String($page.url.searchParams.get("id"));
       sender = $page.url.searchParams.has("sender");
+
+      navigator.serviceWorker.addEventListener("message", handleMessage);
 
       await setup();
       await setupGuest();
@@ -183,7 +185,7 @@
           <button
             class="center"
             style="margin-top: 7px;"
-            on:click={() => send($files, did, 0, undefined, filetransfer_id)}
+            on:click={() => send($files, did, 0, undefined)}
             >Send</button
           >
         {:else}
@@ -195,7 +197,7 @@
                 class="circle tertiary"
                 on:click={() => {
                   cancelFiletransfer();
-                  send($files, did, 0, undefined, filetransfer_id);
+                  send($files, did, 0, undefined);
                 }}
               >
                 <i>refresh</i>

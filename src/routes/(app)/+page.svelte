@@ -5,9 +5,8 @@
   import Input, { files } from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import {
-    startHeartbeat,
+    handleMessage,
     stopHeartbeat,
-    startSubscriptions,
     stopSubscriptions,
   } from "$lib/lib/fetchers";
   import {
@@ -19,7 +18,7 @@
     settings_page,
     user,
   } from "$lib/lib/UI";
-  
+
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
   import Settings from "$lib/pages/Settings.svelte";
@@ -60,32 +59,15 @@
     ui("#dialog-add");
   };
 
-  const handleMessage = (
-    event: MessageEvent<{ data: any; action: string }>,
-  ) => {
-    if (event.data.action == "load-data") {
-      const swFiles: File[] = event.data.data;
-      const dataTransfer = new DataTransfer();
-
-      swFiles.forEach((file) => {
-        dataTransfer.items.add(file);
-        $files = dataTransfer.files;
-      });
-
-      navigator.serviceWorker.removeEventListener("message", handleMessage);
-      $page.url.searchParams.delete("share-target");
-    }
-  };
-
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
+      navigator.serviceWorker.addEventListener("message", handleMessage);
       await setup();
       trpc();
-    }
 
-    if ($page.url.searchParams.has("share-target")) {
-      navigator.serviceWorker.addEventListener("message", handleMessage);
-      navigator.serviceWorker.controller?.postMessage("share-ready");
+      if ($page.url.searchParams.has("share-target")) {
+        navigator.serviceWorker.controller?.postMessage("share-ready");
+      }
     }
   });
 

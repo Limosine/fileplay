@@ -6,7 +6,6 @@ import { peer } from "$lib/lib/simple-peer";
 import { addNotification, deleteNotification } from "$lib/lib/UI";
 
 import {
-  chunkFiles,
   incoming_filetransfers,
   outgoing_filetransfers,
   type FileInfos,
@@ -21,7 +20,6 @@ export const send = async (
   did?: number,
   cid?: number,
   filetransfer_id?: string,
-  previous?: string,
 ) => {
   if (files.length <= 0)
     throw new Error("Filetransfer: One file has to be selected.");
@@ -33,10 +31,17 @@ export const send = async (
     filetransferID = filetransfer_id;
   }
 
+  navigator.serviceWorker.controller?.postMessage({
+    action: "chunk-files",
+    data: {
+      id: filetransferID,
+      files,
+    },
+  });
+
   const filetransfer_infos = {
     id: filetransferID,
     completed: false,
-    files: await chunkFiles(files),
     cid,
     did,
   };
@@ -45,14 +50,6 @@ export const send = async (
     ...get(outgoing_filetransfers),
     filetransfer_infos,
   ]);
-
-  if (cid !== undefined && get(sendState)[cid] !== SendState.REQUESTING) {
-    sendState.set(cid, SendState.REQUESTING);
-  }
-
-  if (did !== undefined) {
-    sendRequest(did, filetransfer_infos.id, previous);
-  }
 
   return filetransfer_infos.id;
 };
@@ -67,22 +64,26 @@ export const sendRequest = (
   );
 
   if (outgoing_filetransfer !== undefined) {
-    const files: Request["files"] = [];
+    if (outgoing_filetransfer.files !== undefined) {
+      const files: Request["files"] = [];
 
-    outgoing_filetransfer.files.forEach((file) => {
-      files.push({
-        id: file.id,
-        name: file.name,
-        chunks_length: file.chunks.length,
+      outgoing_filetransfer.files.forEach((file) => {
+        files.push({
+          id: file.id,
+          name: file.name,
+          chunks_length: file.chunks.length,
+        });
       });
-    });
 
-    peer().sendMessage(did, {
-      type: "request",
-      id: outgoing_filetransfer.id,
-      files,
-      previous,
-    });
+      peer().sendMessage(did, {
+        type: "request",
+        id: outgoing_filetransfer.id,
+        files,
+        previous,
+      });
+    } else {
+      console.log("Filetransfer: Files not yet chunked.");
+    }
   } else {
     console.log("Filetransfer: Wrong filetransfer id.");
   }
@@ -96,28 +97,30 @@ export const sendChunked = (
   const filetransfer_index = get(outgoing_filetransfers).findIndex(
     (transfer) => transfer.id == filetransfer_id,
   );
-
-  if (filetransfer_index === -1) {
+  if (filetransfer_index === -1)
     throw new Error("Filetransfer: Filetransfer not found.");
-  }
+
+  const filetransfer = get(outgoing_filetransfers)[filetransfer_index];
+  if (filetransfer.files === undefined)
+    throw new Error("Filetransfer: Files not yet chunked.");
 
   let file: Omit<FileInfos, "url">;
   if (previous_file_id === undefined) {
-    const cid = get(outgoing_filetransfers)[filetransfer_index].cid;
+    const cid = filetransfer.cid;
     if (cid !== undefined) sendState.set(cid, SendState.SENDING);
-    file = get(outgoing_filetransfers)[filetransfer_index].files[0];
+    file = filetransfer.files[0];
   } else {
-    let index = get(outgoing_filetransfers)[filetransfer_index].files.findIndex(
+    let index = filetransfer.files.findIndex(
       (file) => file.id == previous_file_id,
     );
     if (index === -1) throw new Error("Filetransfer: File not found.");
     outgoing_filetransfers.update((transfers) => {
-      transfers[filetransfer_index].files[index].completed++;
+      transfers[filetransfer_index].files![index].completed++;
       return transfers;
     });
     index++;
-    if (index < get(outgoing_filetransfers)[filetransfer_index].files.length) {
-      file = get(outgoing_filetransfers)[filetransfer_index].files[index];
+    if (index < filetransfer.files.length) {
+      file = filetransfer.files[index];
     } else {
       return;
     }
@@ -147,6 +150,7 @@ export const sendMissing = (
     (transfer) => transfer.id == filetransfer_id,
   );
   if (filetransfer === undefined) throw new Error("Filetransfer not found.");
+  if (filetransfer.files === undefined) throw new Error("Files not chunked.");
   const file = filetransfer.files.find((file) => file.id == file_id);
   if (file === undefined) throw new Error("File not found.");
 

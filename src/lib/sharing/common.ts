@@ -69,7 +69,7 @@ export interface FileInfos {
 export interface OutgoingFileTransfer {
   id: string;
   completed: boolean;
-  files: Omit<FileInfos, "url">[];
+  files?: Omit<FileInfos, "url">[];
   did?: number;
   cid?: number; // not always defined (--> via link)
 }
