@@ -38,7 +38,7 @@
   ) => {
     if (transfers.length != 0) {
       transfers.forEach((transfer) => {
-        if (transfer.cid !== undefined) {
+        if (transfer.cid !== undefined && transfer.files !== undefined) {
           let total = 0;
           let sent = 0;
 
