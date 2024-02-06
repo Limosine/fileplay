@@ -224,11 +224,19 @@ class Peer {
       this.connect(did, true);
     } else if (peer.data !== undefined && peer.data !== "websocket") {
       this.buffer[did].state = "working";
-      (await peer.data.data).write(this.buffer[did].data[0], undefined, () =>
-        this.sendMessages(did),
-      );
+      const conn = await peer.data.data;
 
+      const chunk = this.buffer[did].data[0];
       this.buffer[did].data = this.buffer[did].data.slice(1);
+
+      const promise = new Promise<null>((resolve) => {
+        conn.write(chunk, undefined, () => {
+          resolve(null);
+          this.sendMessages(did);
+        });
+      });
+
+      return await promise;
     }
   }
 
@@ -257,7 +265,7 @@ class Peer {
     encrypt = true,
     immediately = false,
   ) {
-    const addToBuffer = (chunk: Uint8Array) => {
+    const addToBuffer = async (chunk: Uint8Array) => {
       if (this.buffer[did] === undefined)
         this.buffer[did] = { data: [], state: "idle" };
       if (immediately) {
@@ -271,7 +279,7 @@ class Peer {
         this.connections[did] !== undefined &&
         this.connections[did].data !== "websocket"
       )
-        this.sendMessages(did);
+        await this.sendMessages(did);
     };
 
     const peer = this.connections[did];
@@ -295,7 +303,7 @@ class Peer {
           ) {
             this.sendOverTrpc(did, [chunk]);
           } else {
-            addToBuffer(chunk);
+            await addToBuffer(chunk);
           }
         };
 
@@ -307,7 +315,7 @@ class Peer {
           if (peer === undefined) this.connect(did, true, events);
           this.sendOverTrpc(did, [chunk]);
         } else {
-          addToBuffer(chunk);
+          await addToBuffer(chunk);
           if (peer === undefined) this.connect(did, true, events);
         }
       }
@@ -325,7 +333,7 @@ class Peer {
       if (this.fallback || (peer !== undefined && peer.data == "websocket")) {
         this.sendOverTrpc(did, [chunk]);
       } else {
-        addToBuffer(chunk);
+        await addToBuffer(chunk);
       }
     }
   }

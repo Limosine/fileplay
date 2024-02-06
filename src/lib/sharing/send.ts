@@ -91,7 +91,7 @@ export const sendRequest = (
   }
 };
 
-export const sendChunked = (
+export const sendChunked = async (
   did: number,
   filetransfer_id: string,
   previous_file_id?: string,
@@ -129,7 +129,7 @@ export const sendChunked = (
   }
 
   for (let i = 0; i < file.chunks.length; i++) {
-    peer().sendMessage(did, {
+    await peer().sendMessage(did, {
       type: "chunk",
       id: filetransfer_id,
       chunk: {
