@@ -92,6 +92,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
   // Event handler
   if (typeof event.data == "object") {
     if (event.data.action == "chunk-files") {
+      console.log(event.data);
       chunking(event.data, event.source);
     }
   }
@@ -100,4 +101,13 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
   if (!resolvers) return;
   nextMessageResolveMap.delete(event.data);
   for (const resolve of resolvers) resolve();
+});
+
+// Activate service worker
+self.addEventListener("install", (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
 });
