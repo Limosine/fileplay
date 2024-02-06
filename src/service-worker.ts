@@ -93,7 +93,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
   if (typeof event.data == "object") {
     if (event.data.action == "chunk-files") {
       console.log(event.data);
-      chunking(event.data, event.source);
+      chunking(event.data.data, event.source);
     }
   }
 
