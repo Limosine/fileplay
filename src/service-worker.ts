@@ -36,11 +36,11 @@ const chunking = async (
   const files = await chunkFiles(data.files);
 
   client!.postMessage({
+    action: "chunked-files",
     data: {
       id: data.id,
       files,
     },
-    action: "chunked-files",
   });
 };
 
@@ -91,7 +91,7 @@ const nextMessage = (dataVal: string) => {
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
   // Event handler
   if (typeof event.data == "object") {
-    if (event.data.action == "chunk-data") {
+    if (event.data.action == "chunk-files") {
       chunking(event.data, event.source);
     }
   }

@@ -31,6 +31,8 @@ export const send = async (
     filetransferID = filetransfer_id;
   }
 
+  console.log(navigator.serviceWorker.controller);
+
   navigator.serviceWorker.controller?.postMessage({
     action: "chunk-files",
     data: {
