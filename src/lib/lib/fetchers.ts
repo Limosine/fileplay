@@ -191,6 +191,11 @@ export const handleMessage = (
     const transfer = get(outgoing_filetransfers)[index];
 
     if (index !== -1) {
+      outgoing_filetransfers.update((transfers) => {
+        transfers[index].files = event.data.data.files;
+        return transfers;
+      });
+
       if (
         transfer.cid !== undefined &&
         get(sendState)[transfer.cid] !== SendState.REQUESTING
