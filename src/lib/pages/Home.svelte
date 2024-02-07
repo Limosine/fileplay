@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { writable } from "svelte/store";
+  import { get, writable } from "svelte/store";
 
   import { input, files } from "$lib/components/Input.svelte";
   import { getDicebearUrl } from "$lib/lib/common";
@@ -214,6 +214,39 @@
               />
               <span>{contact.display_name}</span>
             </button>
+          {/if}
+        {/each}
+      </div>
+    </article>
+    <article
+      style="padding: 15px 12px 15px 12px; margin: 0;"
+      class="secondary-container"
+    >
+      <div class="row">
+        <p class="bold">Outgoing filetransfers:</p>
+        <div class="max" />
+      </div>
+      <div class="row wrap">
+        {#each $outgoing_filetransfers as transfer}
+          {#if !transfer.completed && transfer.cid !== undefined}
+            <article class="tertiary">
+              <div class="row">
+                <p>
+                  Sending to contact id {transfer.cid}, state: {get(sendState)[
+                    transfer.cid
+                  ]}
+                </p>
+                <div class="max" />
+                <button
+                  class="transparent circle"
+                  on:click={() =>
+                    transfer.cid !== undefined &&
+                    cancelFiletransfer(transfer.cid)}
+                >
+                  <i>delete</i>
+                </button>
+              </div>
+            </article>
           {/if}
         {/each}
       </div>

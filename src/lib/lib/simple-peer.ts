@@ -1,6 +1,6 @@
 import { page } from "$app/stores";
 import { decode, encode } from "@msgpack/msgpack";
-import SimplePeer, { WEBRTC_SUPPORT, type SignalData } from "simple-peer";
+import SimplePeer, { type SignalData } from "simple-peer";
 import { get, writable } from "svelte/store";
 import type { MaybePromise } from "@sveltejs/kit";
 
@@ -54,7 +54,7 @@ class Peer {
     this.connections = [];
     this.keys = [];
     this.buffer = [];
-    this.fallback = !WEBRTC_SUPPORT;
+    this.fallback = !SimplePeer.WEBRTC_SUPPORT;
 
     if (this.fallback) this.turn = { username: "", password: "" };
     else {

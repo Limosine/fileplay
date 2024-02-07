@@ -31,9 +31,15 @@ export const send = async (
     filetransferID = filetransfer_id;
   }
 
-  console.log(navigator.serviceWorker.controller);
+  if (cid !== undefined && get(sendState)[cid] !== SendState.CHUNKING) {
+    sendState.set(cid, SendState.CHUNKING);
+  }
 
-  navigator.serviceWorker.controller?.postMessage({
+  const client = navigator.serviceWorker.controller;
+  if (client === null)
+    throw new Error("Filetransfer: Service worker not active.");
+
+  client.postMessage({
     action: "chunk-files",
     data: {
       id: filetransferID,

@@ -122,8 +122,11 @@ export const chunkFiles = async (files: FileList) => {
   const chunkedFiles: OutgoingFileTransfer["files"] = [];
 
   for (let i = 0; i < files.length; i++) {
+    const uint8 = new Uint8Array(await blobToArrayBuffer(files[i]));
+    console.log("Converted to Uint8Array");
+
     const array = chunkUint8Array(
-      new Uint8Array(await blobToArrayBuffer(files[i])),
+      uint8,
       16 * 1024,
     );
     chunkedFiles.push({

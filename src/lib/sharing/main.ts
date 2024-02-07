@@ -170,18 +170,23 @@ export const connectAsListener = (did: number, filetransfer_id: string) => {
   });
 };
 
-export const cancelFiletransfer = (contact?: IContact) => {
-  sendState.set(contact === undefined ? 0 : contact.cid, SendState.CANCELED);
+export const cancelFiletransfer = (contact?: IContact | number) => {
+  const con =
+    typeof contact == "number"
+      ? get(contacts).find((con) => con.cid === contact)
+      : contact;
+
+  sendState.set(con === undefined ? 0 : con.cid, SendState.CANCELED);
 
   outgoing_filetransfers.update((transfers) =>
     transfers.filter((transfer) =>
-      contact === undefined ? false : transfer.cid != contact.cid,
+      con === undefined ? false : transfer.cid != con.cid,
     ),
   );
 
-  if (contact === undefined) peer().clearBuffer();
+  if (con === undefined) peer().clearBuffer();
   else {
-    contact.devices.forEach((device) => {
+    con.devices.forEach((device) => {
       peer().clearBuffer(device.did);
     });
   }

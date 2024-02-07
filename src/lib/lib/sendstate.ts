@@ -2,12 +2,13 @@ import { get, writable } from "svelte/store";
 
 export enum SendState {
   IDLE = "Idle",
+  CHUNKING = "Chunking",
   REQUESTING = "Requesting",
   REJECTED = "Rejected",
-  FAILED = "Failed",
-  CANCELED = "Canceled",
   SENDING = "Sending",
   SENT = "Sent",
+  CANCELED = "Canceled",
+  FAILED = "Failed",
 }
 
 const createStore = () => {
