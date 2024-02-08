@@ -33,10 +33,7 @@ export const authorizedRouter = () =>
     }),
 
     getTurnCredentials: authorized.query(async (opts) => {
-      return getTurnCredentials(
-        opts.ctx.device.toString(),
-        opts.ctx.coturnKey,
-      );
+      return getTurnCredentials(opts.ctx.device.toString(), opts.ctx.coturnKey);
     }),
 
     shareWebRTCData: authorized
@@ -57,7 +54,11 @@ export const authorizedRouter = () =>
         }),
       )
       .query(async (opts) => {
-        await events().shareAuthorized(opts.ctx, opts.input.did, opts.input.data);
+        await events().shareAuthorized(
+          opts.ctx,
+          opts.input.did,
+          opts.input.data,
+        );
       }),
 
     getWebRTCData: authorized.subscription((opts) => {

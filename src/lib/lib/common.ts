@@ -6,21 +6,16 @@ export enum DeviceType {
   Tablet = "tablet",
 }
 
-export enum TimeFormat {
-  Date = "L",
-  MinuteDate = "L LT",
-}
-
-export const LINKING_EXPIRY_TIME = 15 * 60 * 1000; // 15 minutes
-export const LINKING_REFRESH_TIME = 10 * 60 * 1000; // 10 minutes
-export const ONLINE_STATUS_TIMEOUT: number = 7; // 7 seconds
-export const ONLINE_STATUS_REFRESH_TIME: number = 5; // 5 seconds
+export const LINKING_EXPIRY_TIME = 1000 * 60 * 15; // 15 minutes
+export const LINKING_REFRESH_TIME = 1000 * 60 * 10; // 10 minutes
+export const ONLINE_STATUS_TIMEOUT = 7; // 7 seconds
+export const ONLINE_STATUS_REFRESH_TIME = 5; // 5 seconds
 
 // Dicebear avatars
-export function getDicebearUrl(
+export const getDicebearUrl = (
   seed: string,
   size: number,
   radius: number = 50,
-): string {
+) => {
   return `https://api.dicebear.com/6.x/adventurer/svg?seed=${seed}&radius=${radius}&backgroundColor=b6e3f4&width=${size}&height=${size}`;
-}
+};

@@ -7,29 +7,29 @@
 
   let redeemCode_section = true;
 
-  async function generateContactCode() {
+  const generateContactCode = async () => {
     // todo refresh this code after specified interval
 
     const result = await trpc().authorized.getContactCode.query();
     expires_at = result.expires;
     return result;
-  }
+  };
 
-  async function generateDeviceCode() {
+  const generateDeviceCode = async () => {
     // todo refresh this code after specified interval
 
     const result = await trpc().authorized.getDeviceCode.query();
     expires_at = result.expires;
     return result;
-  }
+  };
 
   let expires_in: number;
   let expires_at: number;
   let updateInterval: any;
 
-  function updateExpiresIn() {
+  const updateExpiresIn = () => {
     if (expires_at) expires_in = Math.round((expires_at - dayjs().unix()) / 60);
-  }
+  };
 
   onMount(() => (updateInterval = setInterval(updateExpiresIn, 1000)));
   onDestroy(() => clearInterval(updateInterval));

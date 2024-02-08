@@ -9,7 +9,12 @@
     {#await generateQRCode($senderLink)}
       <p>Generating QR code...</p>
     {:then qrCode}
-      <img class="center" style="border-radius: 0.75rem" src={qrCode} alt="QR Code" />
+      <img
+        class="center"
+        style="border-radius: 0.75rem"
+        src={qrCode}
+        alt="QR Code"
+      />
     {:catch}
       <p>Failed to generate QR code.</p>
     {/await}

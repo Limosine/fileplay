@@ -136,7 +136,7 @@ class Peer {
     const timer = setTimeout(() => {
       console.log("Failed to establish WebRTC connection");
       this.establishWebSocket(did, initiator, events);
-    }, 3000);
+    }, 5000);
 
     this.connections[did] = {
       data: { data: peer, timer },

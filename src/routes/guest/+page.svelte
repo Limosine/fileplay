@@ -80,7 +80,10 @@
       </p>
       <div class="max" />
       <Input />
-      <button class="circle transparent" on:click={() => peer().closeConnections()}>
+      <button
+        class="circle transparent"
+        on:click={() => peer().closeConnections()}
+      >
         <i>block</i>
         <div class="tooltip bottom">Cancel</div>
       </button>
@@ -127,7 +130,7 @@
               {:else}
                 <article
                   class="border round row"
-                  style="width: 100%; height: 50px;"
+                  style="width: 80%; height: 50px;"
                 >
                   <div>
                     <span>
@@ -185,8 +188,7 @@
           <button
             class="center"
             style="margin-top: 7px;"
-            on:click={() => send($files, did, 0, undefined)}
-            >Send</button
+            on:click={() => send($files, did, 0, undefined)}>Send</button
           >
         {:else}
           <div class="row" style="margin-top: 7px;">

@@ -6,11 +6,11 @@ import { arrayBufferToHex, hexToArrayBuffer } from "$lib/lib/utils";
 
 import { getUID } from "./db";
 
-export async function setDeviceID(
+export const setDeviceID = async (
   did: number,
   cookies: Cookies,
   key: CryptoKey,
-) {
+) => {
   const id = did.toString();
   const signature = await sign(id, key);
   const cookie_opts: CookieSerializeOptions = {
@@ -21,7 +21,7 @@ export async function setDeviceID(
   cookies.set("did", id, cookie_opts);
   // @ts-ignore
   cookies.set("did_sig", signature, cookie_opts);
-}
+};
 
 export async function getDeviceID(
   signature: string,
@@ -55,21 +55,25 @@ export async function getDeviceID(
   }
 }
 
-export async function sign(data: string, key: CryptoKey, output: BufferEncoding = "hex") {
+export const sign = async (
+  data: string,
+  key: CryptoKey,
+  output: BufferEncoding = "hex",
+) => {
   const dataArray = new TextEncoder().encode(data);
   const buffer = await crypto.subtle.sign("HMAC", key, dataArray);
 
   if (output == "hex") return arrayBufferToHex(buffer);
   else return Buffer.from(buffer).toString(output);
-}
+};
 
-export async function verify(data: string, signature: string, key: CryptoKey) {
+export const verify = (data: string, signature: string, key: CryptoKey) => {
   const dataArray = new TextEncoder().encode(data);
   const signatureBuffer = hexToArrayBuffer(signature);
   return crypto.subtle.verify("HMAC", key, signatureBuffer, dataArray);
-}
+};
 
-export function loadKey(key: string, hash = "SHA-256") {
+export const loadKey = (key: string, hash = "SHA-256") => {
   return crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(key),
@@ -80,9 +84,9 @@ export function loadKey(key: string, hash = "SHA-256") {
     false,
     ["sign", "verify"],
   );
-}
+};
 
-export function generateKey(hash = "SHA-256") {
+export const generateKey = (hash = "SHA-256") => {
   return crypto.subtle.generateKey(
     {
       name: "HMAC",
@@ -91,4 +95,4 @@ export function generateKey(hash = "SHA-256") {
     false,
     ["sign", "verify"],
   );
-}
+};

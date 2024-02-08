@@ -16,7 +16,7 @@ export const loadGuestSecret = async () => {
   return secret;
 };
 
-export async function getGuestID(id?: string, signature?: string) {
+export const getGuestID = async (id?: string, signature?: string) => {
   const key = await loadGuestSecret();
 
   if (id !== undefined && signature !== undefined) {
@@ -26,9 +26,9 @@ export async function getGuestID(id?: string, signature?: string) {
   }
 
   return null;
-}
+};
 
-export async function setGuestID(cookies: Cookies) {
+export const setGuestID = async (cookies: Cookies) => {
   const key = await loadGuestSecret();
   const id = events().newGuestID().toString();
   const signature = await sign(id, key);
@@ -41,4 +41,4 @@ export async function setGuestID(cookies: Cookies) {
   cookies.set("gid", id, cookie_opts);
   // @ts-ignore
   cookies.set("gid_sig", signature, cookie_opts);
-}
+};

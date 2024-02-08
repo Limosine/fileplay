@@ -3,15 +3,15 @@ import { page } from "$app/stores";
 import { get, writable } from "svelte/store";
 import type { Unsubscribable } from "@trpc/server/observable";
 
+import { files } from "$lib/components/Input.svelte";
+import { outgoing_filetransfers } from "$lib/sharing/common";
 import { sendRequest } from "$lib/sharing/send";
 import { trpc } from "$lib/trpc/client";
 
 import { DeviceType, ONLINE_STATUS_REFRESH_TIME } from "./common";
+import { SendState, sendState } from "./sendstate";
 import { peer } from "./simple-peer";
 import { contacts, devices, own_did, user } from "./UI";
-import { files } from "$lib/components/Input.svelte";
-import { outgoing_filetransfers } from "$lib/sharing/common";
-import { SendState, sendState } from "./sendstate";
 
 // contacts
 export interface IContact {
@@ -57,10 +57,10 @@ export interface IUser {
   created_at: number;
 }
 
-export function withDeviceType(name: string): { type: string; name: string } {
+export const withDeviceType = (name: string) => {
   // @ts-ignore
   return { name, type: DeviceType[name] as string };
-}
+};
 
 export const setupGuest = async () => {
   const res = await fetch("/api/setup/guest", {
@@ -71,7 +71,7 @@ export const setupGuest = async () => {
 };
 
 const heartbeatInterval = writable<NodeJS.Timeout | undefined>();
-export function startHeartbeat(guest: boolean) {
+export const startHeartbeat = (guest: boolean) => {
   if (get(heartbeatInterval) !== undefined) return;
   heartbeatInterval.set(
     setInterval(() => {
@@ -80,15 +80,15 @@ export function startHeartbeat(guest: boolean) {
         : trpc().authorized.sendHeartbeat.mutate();
     }, ONLINE_STATUS_REFRESH_TIME * 1000),
   );
-}
+};
 
-export function stopHeartbeat() {
+export const stopHeartbeat = () => {
   clearInterval(get(heartbeatInterval));
   heartbeatInterval.set(undefined);
-}
+};
 
 const subscriptions = writable<Unsubscribable[]>([]);
-export function startSubscriptions(guest: boolean) {
+export const startSubscriptions = (guest: boolean) => {
   if (get(subscriptions).length !== 0) return;
 
   const onUser = (data: IUser) => {
@@ -150,15 +150,15 @@ export function startSubscriptions(guest: boolean) {
 
     return subs;
   });
-}
-export function stopSubscriptions() {
+};
+export const stopSubscriptions = () => {
   get(subscriptions).forEach((sub) => {
     sub.unsubscribe();
   });
   subscriptions.set([]);
-}
+};
 
-export async function deleteAccount() {
+export const deleteAccount = async () => {
   if (get(page).url.hostname == "localhost") return;
 
   const res = await fetch("/api/user", {
@@ -169,7 +169,7 @@ export async function deleteAccount() {
     localStorage.removeItem("loggedIn");
     window.location.href = "/setup";
   }
-}
+};
 
 export const handleMessage = (
   event: MessageEvent<{ data: any; action: string }>,

@@ -1,7 +1,4 @@
-import {
-  numberToUint8Array,
-  typedArrayToBuffer,
-} from "$lib/lib/utils";
+import { numberToUint8Array, typedArrayToBuffer } from "$lib/lib/utils";
 import { concatArrays } from "$lib/sharing/common";
 
 import { peer } from "./simple-peer";
@@ -65,7 +62,9 @@ const encryptAes = async (
   const idArray = numberToUint8Array(id, 1);
   const counterArray = numberToUint8Array(counter);
 
-  const iv = new Uint8Array(random.length + idArray.length + counterArray.length);
+  const iv = new Uint8Array(
+    random.length + idArray.length + counterArray.length,
+  );
   iv.set(random);
   iv.set(idArray, random.length);
   iv.set(counterArray, random.length + idArray.length);

@@ -39,16 +39,16 @@
   let existing = false;
 
   // setup (confirm)
-  async function handleResponseError(res: Response) {
+  const handleResponseError = async (res: Response) => {
     const json_ = (await res.json()) as any;
     if (json_) {
       setupError = json_.message;
     } else {
       setupError = res.statusText;
     }
-  }
+  };
 
-  async function handleConfirm() {
+  const handleConfirm = async () => {
     // setup device if not already done so
     let storedDeviceParams = localStorage.getItem("deviceParams");
     if (
@@ -108,7 +108,7 @@
     localStorage.setItem("loggedIn", "true");
 
     window.location.href = "/";
-  }
+  };
 </script>
 
 <Edit />

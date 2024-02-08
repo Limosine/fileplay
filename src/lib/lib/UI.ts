@@ -109,6 +109,11 @@ export const addContactDialog = writable<HTMLDialogElement>();
 export const editDialog = writable<HTMLDialogElement>();
 export const notificationDialog = writable<HTMLDialogElement>();
 export const qrCodeDialog = writable<HTMLDialogElement>();
+export const sendDialog = writable<HTMLDialogElement>();
+
+// Sending dialog
+export const contactId = writable<number>();
+export const deviceId = writable<number>();
 
 // Edit dialog
 export type edit_options =
@@ -188,7 +193,7 @@ export const profaneUsername = writable<{ loading: boolean; profane: boolean }>(
   },
 );
 
-export function updateIsProfaneUsername() {
+export const updateIsProfaneUsername = async () => {
   if (!browser || !get(userParams).display_name) return;
   profaneUsername.set({ loading: true, profane: get(profaneUsername).profane });
   fetch("/api/checkIsUsernameProfane", {
@@ -212,7 +217,7 @@ export function updateIsProfaneUsername() {
       console.error(e);
       profaneUsername.set({ loading: false, profane: false });
     });
-}
+};
 
 // Progress calculation:
 export const returnProgress = (

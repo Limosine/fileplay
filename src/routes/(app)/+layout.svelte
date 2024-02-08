@@ -13,6 +13,7 @@
   import Edit from "$lib/dialogs/Edit.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import QRCode from "$lib/dialogs/QRCode.svelte";
+  import Send from "$lib/dialogs/Send.svelte";
 
   let needRefresh: Writable<boolean>;
   let loading = 0;
@@ -87,6 +88,7 @@
 <Edit />
 <AddContact />
 <QRCode />
+<Send />
 
 <Notifications />
 

@@ -41,7 +41,7 @@ export function createKysely():
 
 /* If the user parameter is true, an error is thrown if the uid doesn't exist
  */
-export async function httpAuthorized(cookies: Cookies, user = true) {
+export const httpAuthorized = async (cookies: Cookies, user = true) => {
   const db = createKysely();
   if (env.COOKIE_SIGNING_SECRET === undefined)
     throw new Error("Please define a cookie signing secret.");
@@ -72,9 +72,9 @@ export async function httpAuthorized(cookies: Cookies, user = true) {
   } else {
     error(500, db.message);
   }
-}
+};
 
-export async function httpContext() {
+export const httpContext = async () => {
   const db = createKysely();
   if (env.COOKIE_SIGNING_SECRET === undefined)
     throw new Error("Please define a cookie signing secret.");
@@ -85,15 +85,15 @@ export async function httpContext() {
   } else {
     error(500, db.message);
   }
-}
+};
 
 // WebSocket server status codes: 0 (Offline | Error), 1 (Online)
 // WebSocket client status codes: 0 (Offline), 1 (Online), 2 (Error)
-export async function updateOnlineStatus(
+export const updateOnlineStatus = async (
   db: Database,
   did: number,
   status: number,
-) {
+) => {
   try {
     await db
       .updateTable("devices")
@@ -105,9 +105,9 @@ export async function updateOnlineStatus(
   } catch (e: any) {
     return { success: true, message: e };
   }
-}
+};
 
-export async function correctOnlineStatus(db: Database) {
+export const correctOnlineStatus = async (db: Database) => {
   try {
     await db
       .updateTable("devices")
@@ -119,7 +119,7 @@ export async function correctOnlineStatus(db: Database) {
   } catch (e: any) {
     return { success: false, message: e };
   }
-}
+};
 
 export async function getContacts(
   db: Database,
@@ -209,7 +209,7 @@ export async function getContacts(
   }
 }
 
-export async function getUID(db: Database, did: number) {
+export const getUID = async (db: Database, did: number) => {
   try {
     const device = await db
       .selectFrom("devices")
@@ -221,9 +221,9 @@ export async function getUID(db: Database, did: number) {
   } catch (e: any) {
     return { success: true, message: e };
   }
-}
+};
 
-export async function getDevices(db: Database, uid: number, did: number) {
+export const getDevices = async (db: Database, uid: number, did: number) => {
   try {
     const d_self = await db
       .selectFrom("devices")
@@ -249,14 +249,14 @@ export async function getDevices(db: Database, uid: number, did: number) {
   } catch (e: any) {
     return { success: true, message: e };
   }
-}
+};
 
-export async function deleteDevice(
+export const deleteDevice = async (
   db: Database,
   own_did: number,
   did: number,
   uid: number | null,
-) {
+) => {
   try {
     await db
       .deleteFrom("devices")
@@ -269,7 +269,7 @@ export async function deleteDevice(
   } catch (e: any) {
     return { success: false, message: e };
   }
-}
+};
 
 export async function getUser(
   db: Database,

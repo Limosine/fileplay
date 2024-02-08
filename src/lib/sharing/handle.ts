@@ -106,13 +106,19 @@ export const handleFileFinish = async (
   }
 };
 
-export const handleFileTransferFinished = (filetransfer_id: string, reject: boolean) => {
+export const handleFileTransferFinished = (
+  filetransfer_id: string,
+  reject: boolean,
+) => {
   const filetransfer = get(outgoing_filetransfers).find(
     (filetransfer) => filetransfer.id == filetransfer_id,
   );
 
   if (filetransfer !== undefined && filetransfer.cid !== undefined) {
-    sendState.set(filetransfer.cid, reject ? SendState.REJECTED : SendState.SENT);
+    sendState.set(
+      filetransfer.cid,
+      reject ? SendState.REJECTED : SendState.SENT,
+    );
 
     outgoing_filetransfers.update((filetransfers) =>
       filetransfers.filter(

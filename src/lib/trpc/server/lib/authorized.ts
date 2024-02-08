@@ -94,7 +94,7 @@ export const notifyDevices = async (
   else notifyOwnDevices(db, "ownUser", uid);
 };
 
-export async function updateLastSeen(ctx: Authorized) {
+export const updateLastSeen = async (ctx: Authorized) => {
   try {
     const res_device = await ctx.database
       .updateTable("devices")
@@ -107,7 +107,7 @@ export async function updateLastSeen(ctx: Authorized) {
   } catch (e: any) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
-}
+};
 
 export const getDevices = async (
   emit: Observer<
@@ -237,7 +237,7 @@ export const getContacts = async (
 };
 
 // Contacts
-export async function deleteContact(db: Database, uid: number, cid: number) {
+export const deleteContact = async (db: Database, uid: number, cid: number) => {
   try {
     const result = await db
       .deleteFrom("contacts")
@@ -252,17 +252,17 @@ export async function deleteContact(db: Database, uid: number, cid: number) {
   } catch (e: any) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
-}
+};
 
 // User
-export async function updateUser(
+export const updateUser = async (
   db: Database,
   uid: number,
   update: {
     display_name?: string;
     avatar_seed?: string;
   },
-) {
+) => {
   try {
     await db
       .updateTable("users")
@@ -274,17 +274,17 @@ export async function updateUser(
   } catch (e: any) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
-}
+};
 
 // Device
-export async function updateDevice(
+export const updateDevice = async (
   ctx: Authorized,
   data: {
     display_name?: string;
     type?: DeviceType;
   },
   didParam?: number,
-) {
+) => {
   try {
     const did = didParam === undefined ? ctx.device : didParam;
 
@@ -298,10 +298,10 @@ export async function updateDevice(
   } catch (e: any) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
-}
+};
 
 // Guest
-export function createTransfer(ctx: Authorized) {
+export const createTransfer = (ctx: Authorized) => {
   let uuid = nanoid();
   const insert = () => {
     if (
@@ -322,10 +322,10 @@ export function createTransfer(ctx: Authorized) {
   insert();
 
   return uuid;
-}
+};
 
 // Linking codes
-export async function createContactLinkingCode(ctx: Authorized) {
+export const createContactLinkingCode = async (ctx: Authorized) => {
   try {
     let code: string;
     const alphabet = "0123456789ABCDEF";
@@ -360,9 +360,12 @@ export async function createContactLinkingCode(ctx: Authorized) {
   } catch (e: any) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
-}
+};
 
-export async function redeemContactLinkingCode(ctx: Authorized, code: string) {
+export const redeemContactLinkingCode = async (
+  ctx: Authorized,
+  code: string,
+) => {
   try {
     const res1 = await ctx.database
       .selectFrom("contacts_link_codes")
@@ -405,9 +408,9 @@ export async function redeemContactLinkingCode(ctx: Authorized, code: string) {
   } catch (e: any) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
-}
+};
 
-export async function deleteContactLinkingCode(ctx: Authorized) {
+export const deleteContactLinkingCode = async (ctx: Authorized) => {
   try {
     await ctx.database
       .deleteFrom("contacts_link_codes")
@@ -418,9 +421,9 @@ export async function deleteContactLinkingCode(ctx: Authorized) {
   } catch (e: any) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
-}
+};
 
-export async function createDeviceLinkingCode(ctx: Authorized) {
+export const createDeviceLinkingCode = async (ctx: Authorized) => {
   try {
     let code: string;
     const alphabet = "0123456789ABCDEF";
@@ -455,9 +458,9 @@ export async function createDeviceLinkingCode(ctx: Authorized) {
   } catch (e: any) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
-}
+};
 
-export async function deleteDeviceLinkingCode(ctx: Authorized) {
+export const deleteDeviceLinkingCode = async (ctx: Authorized) => {
   try {
     await ctx.database
       .deleteFrom("devices_link_codes")
@@ -468,4 +471,4 @@ export async function deleteDeviceLinkingCode(ctx: Authorized) {
   } catch (e: any) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e });
   }
-}
+};

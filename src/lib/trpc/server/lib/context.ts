@@ -11,9 +11,9 @@ import { getDeviceID, loadKey } from "$lib/server/signing";
 
 import { getGuestID } from "./guest";
 
-export async function createContext(
+export const createContext = async (
   opts: CreateHTTPContextOptions | CreateWSSContextFnOptions,
-) {
+) => {
   const getCookies = (req: IncomingMessage) => {
     const cookieHeader = req.headers.cookie;
     if (!cookieHeader) return {};
@@ -79,7 +79,7 @@ export async function createContext(
     user: uid,
     guest: gid,
   };
-}
+};
 
 export type Context = inferAsyncReturnType<typeof createContext>;
 

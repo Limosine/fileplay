@@ -125,10 +125,7 @@ export const chunkFiles = async (files: FileList) => {
     const uint8 = new Uint8Array(await blobToArrayBuffer(files[i]));
     console.log("Converted to Uint8Array");
 
-    const array = chunkUint8Array(
-      uint8,
-      16 * 1024,
-    );
+    const array = chunkUint8Array(uint8, 16 * 1024);
     chunkedFiles.push({
       id: nanoid(),
       name: files[i].name,

@@ -32,7 +32,7 @@ function createTRPCWebSocketClient<Router extends AnyRouter>(): ReturnType<
   } as CreateTRPCClientOptions<Router>);
 }
 
-export function trpc() {
+export const trpc = () => {
   const isBrowser = typeof window !== "undefined";
   if (isBrowser && get(browserClient)) return get(browserClient);
   const client = createTRPCWebSocketClient<Router>();
@@ -42,4 +42,4 @@ export function trpc() {
   startHeartbeat(guest);
   startSubscriptions(guest);
   return client;
-}
+};

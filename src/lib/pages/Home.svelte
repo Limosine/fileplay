@@ -23,11 +23,16 @@
     const state = $sendState[contact.cid];
     const devices = contact.devices;
 
-    if (state == SendState.REQUESTING || state == SendState.SENDING) {
-      cancelFiletransfer(contact);
+    if (
+      state == SendState.CHUNKING ||
+      state == SendState.REQUESTING ||
+      state == SendState.SENDING
+    ) {
+      ui("#dialog-send");
     } else {
+      ui("#dialog-send");
       devices.forEach(async (device) => {
-        send($files, device.did, contact.cid, undefined);
+        await send($files, device.did, contact.cid, undefined);
       });
     }
   };

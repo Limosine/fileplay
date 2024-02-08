@@ -1,26 +1,26 @@
 import Filter from "bad-words";
 
-export function isProfane(s: string) {
+export const isProfane = (s: string) => {
   return new Filter().isProfane(s);
-}
+};
 
-export function stringToArrayBuffer(str: string) {
+export const stringToArrayBuffer = (str: string) => {
   return new TextEncoder().encode(str).buffer;
-}
+};
 
-export function hexToArrayBuffer(hex: string): ArrayBuffer {
+export const hexToArrayBuffer = (hex: string) => {
   const octets = hex.match(/.{2}/g);
   if (!octets) throw new Error("Conversion: Invalid hex string");
   return new Uint8Array(octets.map((o) => parseInt(o, 16))).buffer;
-}
+};
 
-export function arrayBufferToHex(buffer: ArrayBuffer) {
+export const arrayBufferToHex = (buffer: ArrayBuffer) => {
   return Array.from(new Uint8Array(buffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-}
+};
 
-export function blobToArrayBuffer(blob: Blob) {
+export const blobToArrayBuffer = (blob: Blob) => {
   return new Promise<ArrayBuffer>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = async () => {
@@ -39,16 +39,16 @@ export function blobToArrayBuffer(blob: Blob) {
     };
     reader.readAsArrayBuffer(blob);
   });
-}
+};
 
-export function typedArrayToBuffer(array: Uint8Array) {
+export const typedArrayToBuffer = (array: Uint8Array) => {
   return array.buffer.slice(
     array.byteOffset,
     array.byteLength + array.byteOffset,
   );
-}
+};
 
-export function numberToUint8Array(number: number, length = 4) {
+export const numberToUint8Array = (number: number, length = 4) => {
   const array = new Uint8Array(length);
 
   for (let i = 0; i < length; i++) {
@@ -58,9 +58,9 @@ export function numberToUint8Array(number: number, length = 4) {
   if (number % 256 !== 0) throw new Error("Conversion: Number to high.");
 
   return array;
-}
+};
 
-export function uint8ArrayToNumber(array: Uint8Array) {
+export const uint8ArrayToNumber = (array: Uint8Array) => {
   let number = 0;
 
   for (let i = array.length - 1; i >= 0; i--) {
@@ -68,4 +68,4 @@ export function uint8ArrayToNumber(array: Uint8Array) {
   }
 
   return number;
-}
+};
