@@ -78,10 +78,10 @@
         </div>
       </div>
     </article>
-    <p class="center-align" style="margin-top: 32px;">
+    <p class="center-align large-text" style="margin-top: 34px;">
       {get(sendState)[contact.cid] + finalString}
     </p>
-    <nav class="center-align">
+    <nav class="center-align" style="margin-top: 18;">
       <button class="border error" style="border: 0;" on:click={() => cancel()}>
         Cancel
       </button>
