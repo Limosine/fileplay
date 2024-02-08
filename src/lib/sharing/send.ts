@@ -135,16 +135,24 @@ export const sendChunked = async (
   }
 
   for (let i = 0; i < file.chunks.length; i++) {
-    await peer().sendMessage(did, {
-      type: "chunk",
-      id: filetransfer_id,
-      chunk: {
-        id: i,
-        file_id: file.id,
-        data: file.chunks[i],
-      },
-      final: i + 1 === file.chunks_length ? true : undefined,
-    });
+    const transfer = get(outgoing_filetransfers).find(
+      (transfer) => transfer.id == filetransfer_id,
+    );
+    if (
+      transfer !== undefined &&
+      (transfer.cid === undefined || !transfer.completed)
+    ) {
+      await peer().sendMessage(did, {
+        type: "chunk",
+        id: filetransfer_id,
+        chunk: {
+          id: i,
+          file_id: file.id,
+          data: file.chunks[i],
+        },
+        final: i + 1 === file.chunks_length ? true : undefined,
+      });
+    }
   }
 };
 

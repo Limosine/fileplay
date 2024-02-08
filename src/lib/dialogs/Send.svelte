@@ -4,13 +4,14 @@
 
   import { getDicebearUrl } from "$lib/lib/common";
   import type { IContact } from "$lib/lib/fetchers";
-  import { sendState } from "$lib/lib/sendstate";
+  import { SendState, sendState } from "$lib/lib/sendstate";
   import { contactId, contacts, deviceId, sendDialog } from "$lib/lib/UI";
   import { cancelFiletransfer } from "$lib/sharing/main";
 
   let contact: IContact | undefined;
   let device: IContact["devices"][0] | undefined;
 
+  let state = "";
   let interval: NodeJS.Timeout;
   let finalString = "";
   let counter = 0;
@@ -46,6 +47,24 @@
     ui("#dialog-send");
   };
 
+  const updateState = (cid?: number, stateParam?: SendState) => {
+    if (cid !== undefined) {
+      if (stateParam === undefined || stateParam == SendState.IDLE) {
+        if ($sendDialog.open) ui("#dialog-send");
+      } else {
+        if (
+          stateParam == SendState.CHUNKING ||
+          stateParam == SendState.REQUESTING ||
+          stateParam == SendState.SENDING
+        ) {
+          state = stateParam + finalString;
+        } else {
+          state = stateParam;
+        }
+      }
+    }
+  };
+
   onDestroy(() => {
     stop();
   });
@@ -59,6 +78,10 @@
 
       loadData($contactId, $deviceId);
     }
+  }
+
+  $: {
+    updateState($contactId, get(sendState)[$contactId]);
   }
 </script>
 
@@ -79,7 +102,7 @@
       </div>
     </article>
     <p class="center-align large-text" style="margin-top: 34px;">
-      {get(sendState)[contact.cid] + finalString}
+      {state}
     </p>
     <nav class="center-align" style="margin-top: 18;">
       <button class="border error" style="border: 0;" on:click={() => cancel()}>
