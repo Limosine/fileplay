@@ -78,7 +78,7 @@
         </div>
       </div>
     </article>
-    <p class="center-align" style="margin-topII: 32px;">
+    <p class="center-align" style="margin-top: 32px;">
       {get(sendState)[contact.cid] + finalString}
     </p>
     <nav class="center-align">
