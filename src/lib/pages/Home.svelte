@@ -5,7 +5,13 @@
   import { getDicebearUrl } from "$lib/lib/common";
   import { type IContact } from "$lib/lib/fetchers";
   import { sendState, SendState } from "$lib/lib/sendstate";
-  import { current, contacts, generateQRCode } from "$lib/lib/UI";
+  import {
+    current,
+    contacts,
+    generateQRCode,
+    contactId,
+    deviceId,
+  } from "$lib/lib/UI";
   import {
     link,
     outgoing_filetransfers,
@@ -28,10 +34,13 @@
       state == SendState.REQUESTING ||
       state == SendState.SENDING
     ) {
+      $contactId = contact.cid;
       ui("#dialog-send");
     } else {
+      $contactId = contact.cid;
       ui("#dialog-send");
       devices.forEach(async (device) => {
+        $deviceId = device.did;
         await send($files, device.did, contact.cid, undefined);
       });
     }
