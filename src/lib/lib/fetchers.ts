@@ -3,12 +3,11 @@ import { page } from "$app/stores";
 import { get, writable } from "svelte/store";
 import type { Unsubscribable } from "@trpc/server/observable";
 
-import { click } from "$lib/components/Input.svelte";
 import { trpc } from "$lib/trpc/client";
 
 import { DeviceType, ONLINE_STATUS_REFRESH_TIME } from "./common";
 import { peer } from "./simple-peer";
-import { contacts, devices, own_did, user } from "./UI";
+import { contacts, devices, own_did, rawFiles, user } from "./UI";
 
 // contacts
 export interface IContact {
@@ -177,7 +176,7 @@ export const handleMessage = (
 
     swFiles.forEach((file) => {
       dataTransfer.items.add(file);
-      click(dataTransfer.files);
+      rawFiles.set(dataTransfer.files);
     });
 
     get(page).url.searchParams.delete("share-target");

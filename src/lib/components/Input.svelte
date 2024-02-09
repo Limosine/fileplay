@@ -1,35 +1,25 @@
-<script lang="ts" context="module">
+<script lang="ts">
   import { nanoid } from "nanoid";
-  import { get, writable } from "svelte/store";
 
-  export const input = writable<HTMLInputElement>();
-  const rawFiles = writable<FileList>();
+  import { files, input, rawFiles } from "$lib/lib/UI";
 
-  export const files = writable<
-    {
-      id: string;
-      file: File;
-      bigChunks?: Blob[];
-      smallChunks?: Uint8Array[][];
-    }[]
-  >([]);
-
-  export const click = (action: "click" | FileList) => {
-    if (action == "click") get(input).click();
-    else {
-      rawFiles.set(action);
-    }
-
+  const update = (rawFiles: FileList) => {
     const tempFiles: { id: string; file: File }[] = [];
 
-    Array.from(get(rawFiles)).forEach((file) => {
-      const index = get(files).findIndex((f) => f.file == file);
+    Array.from(rawFiles).forEach((file) => {
+      const index = $files.findIndex((f) => f.file == file);
       if (index === -1) tempFiles.push({ id: nanoid(), file });
-      else tempFiles.push(get(files)[index]);
+      else tempFiles.push($files[index]);
     });
 
-    files.set(tempFiles);
+    $files = tempFiles;
   };
+
+  $: {
+    if ($rawFiles !== undefined) {
+      update($rawFiles);
+    }
+  }
 </script>
 
 <input type="file" bind:this={$input} bind:files={$rawFiles} multiple />

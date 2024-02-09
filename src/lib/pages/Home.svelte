@@ -1,7 +1,6 @@
 <script lang="ts">
   import { writable } from "svelte/store";
 
-  import { files, click } from "$lib/components/Input.svelte";
   import { getDicebearUrl } from "$lib/lib/common";
   import { type IContact } from "$lib/lib/fetchers";
   import { sendState, SendState } from "$lib/lib/sendstate";
@@ -11,6 +10,8 @@
     generateQRCode,
     contactId,
     deviceId,
+    input,
+    files,
   } from "$lib/lib/UI";
   import {
     link,
@@ -106,7 +107,7 @@
 
 {#if $files === undefined || $files.length == 0}
   <div class="centered">
-    <button on:click={() => click("click")} class="extra">
+    <button on:click={() => $input.click()} class="extra">
       <i>share</i>
       <span>Share</span>
     </button>
@@ -118,7 +119,7 @@
         <p class="bold">Selected files:</p>
         <div class="max" />
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
-        <a on:click={() => click("click")} style="color: var(--secondary)"
+        <a on:click={() => $input.click()} style="color: var(--secondary)"
           >Change</a
         >
       </div>

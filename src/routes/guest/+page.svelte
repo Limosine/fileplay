@@ -4,7 +4,7 @@
 
   import "beercss";
 
-  import Input, { click, files } from "$lib/components/Input.svelte";
+  import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import { SendState, sendState } from "$lib/lib/sendstate";
   import { peer } from "$lib/lib/simple-peer";
@@ -12,6 +12,7 @@
   import { cancelFiletransfer, connectAsListener } from "$lib/sharing/main";
   import { send } from "$lib/sharing/send";
   import { handleMessage, setupGuest } from "$lib/lib/fetchers";
+  import { files, input } from "$lib/lib/UI";
 
   let sentAccept = false;
   let did: number;
@@ -154,7 +155,7 @@
   {#if $incoming_filetransfers.length > 0 || sender}
     <article class="secondary-container" style="margin: 0;">
       {#if $files === undefined || $files.length === 0}
-        <button class="center" on:click={() => click("click")}
+        <button class="center" on:click={() => $input.click()}
           >Send files{sender ? "" : " back"}</button
         >
       {:else}
@@ -162,7 +163,7 @@
           <p class="bold">Selected files:</p>
           <div class="max" />
           <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
-          <a on:click={() => click("click")} style="color: var(--secondary)"
+          <a on:click={() => $input.click()} style="color: var(--secondary)"
             >Change</a
           >
         </div>

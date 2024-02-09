@@ -19,6 +19,18 @@ export const add_mode = writable<"contact" | "device">("contact");
 // Setup values:
 export const linkingCode = writable("");
 
+// Input:
+export const input = writable<HTMLInputElement>();
+export const rawFiles = writable<FileList>();
+export const files = writable<
+  {
+    id: string;
+    file: File;
+    bigChunks?: Blob[];
+    smallChunks?: Uint8Array[][];
+  }[]
+>([]);
+
 // Personal infos:
 export const own_did = writable<number>();
 

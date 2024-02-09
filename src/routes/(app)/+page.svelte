@@ -2,7 +2,7 @@
   import { page } from "$app/stores";
   import { onDestroy, onMount } from "svelte";
 
-  import Input, { click } from "$lib/components/Input.svelte";
+  import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import {
     handleMessage,
@@ -15,6 +15,7 @@
     current,
     editDialog,
     notificationDialog,
+    rawFiles,
     settings_page,
     user,
   } from "$lib/lib/UI";
@@ -29,7 +30,7 @@
     if (!e?.dataTransfer?.files) {
       return;
     }
-    click(e.dataTransfer.files);
+    rawFiles.set(e.dataTransfer.files);
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
