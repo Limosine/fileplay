@@ -13,7 +13,6 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
     plugins: [
       EnvironmentPlugin(["NODE_ENV"]),
       sveltekit(),
-      // SvelteKitPWA(),
       SvelteKitPWA({
         srcDir: "src",
         filename: "service-worker.ts",
@@ -26,6 +25,11 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         manifest: await import("./static/manifest.json"),
       }),
     ],
+    // build: {
+    //   rollupOptions: {
+    //     external: [/^virtual:.*/],
+    //   },
+    // },
     ssr: {
       noExternal: ["beercss"],
     },

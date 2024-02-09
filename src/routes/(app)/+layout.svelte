@@ -3,7 +3,6 @@
   import { onMount } from "svelte";
   import { type Writable } from "svelte/store";
   import { pwaInfo } from "virtual:pwa-info";
-  import { useRegisterSW } from "virtual:pwa-register/svelte";
 
   import "beercss";
 
@@ -15,7 +14,6 @@
   import QRCode from "$lib/dialogs/QRCode.svelte";
   import Send from "$lib/dialogs/Send.svelte";
 
-  let needRefresh: Writable<boolean>;
   let loading = 0;
 
   const getClass = (loading: number) => {
@@ -27,34 +25,14 @@
   };
 
   onMount(async () => {
-    // update service worker
     if (pwaInfo) {
-      const update = async (registration: ServiceWorkerRegistration) => {
-        // check if sw is installing or navigator is offline
-        if (!(!registration.installing && navigator)) return;
-        if ("connection" in navigator && !navigator.onLine) return;
-
-        await registration.update();
-      };
-
-      needRefresh = await useRegisterSW({
-        async onRegisteredSW(
-          _swScriptUrl: string,
-          registration: ServiceWorkerRegistration | undefined,
-        ) {
-          if (registration) {
-            setInterval(
-              async () => await update(registration),
-              30 * 60 * 1000, // 30 mins
-            );
-            await update(registration);
-            registration.waiting?.postMessage({ type: "skip_waiting" });
-          }
-        },
+      const { registerSW } = await import("virtual:pwa-register");
+      registerSW({
+        immediate: true,
         onRegisterError(error: any) {
-          console.error("SW registration error", error);
+          console.log("SW registration error", error);
         },
-      }).needRefresh;
+      });
     }
   });
 

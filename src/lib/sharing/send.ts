@@ -2,10 +2,9 @@ import { page } from "$app/stores";
 import { nanoid } from "nanoid";
 import { get } from "svelte/store";
 
-import { files } from "$lib/components/Input.svelte";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
-import { addNotification, deleteNotification } from "$lib/lib/UI";
+import { addNotification, deleteNotification, files } from "$lib/lib/UI";
 
 import {
   incoming_filetransfers,
