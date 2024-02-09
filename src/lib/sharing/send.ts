@@ -165,8 +165,8 @@ export const sendChunked = async (
 
         if (index !== -1) {
           files.update((files) => {
-            if (files[i].smallChunks === undefined) files[i].smallChunks = [];
-            files[i].smallChunks![i] = chunks;
+            if (files[index].smallChunks === undefined) files[index].smallChunks = [];
+            files[index].smallChunks![i] = chunks;
             return files;
           });
         }
