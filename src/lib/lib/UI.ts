@@ -62,7 +62,7 @@ export interface NotificationReceiving {
   title: "Receiving file(s)";
   tag: string;
   body: string;
-  data: { filetransfer_id: string };
+  data: { did: number; filetransfer_id: string };
 }
 
 export interface NotificationReceived {
@@ -143,30 +143,30 @@ export const openDialog = (
     original_value.set(original_valueU);
 
     switch (currentU) {
-    case "username":
-      userParams.update((user) => {
-        user.display_name = original_valueU;
-        return user;
-      });
-      break;
-    case "avatar":
-      userParams.update((user) => {
-        user.avatar_seed = original_valueU;
-        return user;
-      });
-      break;
-    case "deviceName":
-      deviceParams.update((device) => {
-        device.display_name = original_valueU;
-        return device;
-      });
-      break;
-    case "deviceType":
-      deviceParams.update((device) => {
-        device.type = original_valueU;
-        return device;
-      });
-      break;
+      case "username":
+        userParams.update((user) => {
+          user.display_name = original_valueU;
+          return user;
+        });
+        break;
+      case "avatar":
+        userParams.update((user) => {
+          user.avatar_seed = original_valueU;
+          return user;
+        });
+        break;
+      case "deviceName":
+        deviceParams.update((device) => {
+          device.display_name = original_valueU;
+          return device;
+        });
+        break;
+      case "deviceType":
+        deviceParams.update((device) => {
+          device.type = original_valueU;
+          return device;
+        });
+        break;
     }
   }
   ui("#dialog-edit");

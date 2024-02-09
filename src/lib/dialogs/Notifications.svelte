@@ -23,13 +23,9 @@
   ) => {
     deleteNotification(notification.tag);
 
-    if (notification.title == "File request") {
-      sendAnswer(
-        notification.data.did,
-        notification.data.filetransfer_id,
-        false,
-      );
-    } else {
+    sendAnswer(notification.data.did, notification.data.filetransfer_id, false);
+
+    if (notification.title == "Receiving file(s)") {
       incoming_filetransfers.update((filetransfers) =>
         filetransfers.filter(
           (filetransfer) =>
@@ -76,7 +72,7 @@
         .map((file) => file.name)
         .toString()}' is/are being received.`,
       tag: `filetransfer-${filetransfer.id}`,
-      data: { filetransfer_id: filetransfer.id },
+      data: { did: notification.data.did, filetransfer_id: filetransfer.id },
     });
 
     sendAnswer(notification.data.did, notification.data.filetransfer_id, true);

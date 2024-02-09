@@ -47,7 +47,11 @@
     ui("#dialog-send");
   };
 
-  const updateState = (cid?: number, stateParam?: SendState) => {
+  const updateState = (
+    finalString: string,
+    cid?: number,
+    stateParam?: SendState,
+  ) => {
     if (cid !== undefined) {
       if (stateParam === undefined || stateParam == SendState.IDLE) {
         if ($sendDialog.open) ui("#dialog-send");
@@ -81,7 +85,7 @@
   }
 
   $: {
-    updateState($contactId, get(sendState)[$contactId]);
+    updateState(finalString, $contactId, get(sendState)[$contactId]);
   }
 </script>
 
