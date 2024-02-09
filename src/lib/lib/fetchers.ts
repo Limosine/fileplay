@@ -3,13 +3,10 @@ import { page } from "$app/stores";
 import { get, writable } from "svelte/store";
 import type { Unsubscribable } from "@trpc/server/observable";
 
-import { click, files } from "$lib/components/Input.svelte";
-import { outgoing_filetransfers } from "$lib/sharing/common";
-import { sendRequest } from "$lib/sharing/send";
+import { click } from "$lib/components/Input.svelte";
 import { trpc } from "$lib/trpc/client";
 
 import { DeviceType, ONLINE_STATUS_REFRESH_TIME } from "./common";
-import { SendState, sendState } from "./sendstate";
 import { peer } from "./simple-peer";
 import { contacts, devices, own_did, user } from "./UI";
 
@@ -184,34 +181,5 @@ export const handleMessage = (
     });
 
     get(page).url.searchParams.delete("share-target");
-  } else if (event.data.action == "chunked-files") {
-    const index = get(outgoing_filetransfers).findIndex(
-      (transfer) => transfer.id == event.data.data.id,
-    );
-    const transfer = get(outgoing_filetransfers)[index];
-
-    if (index !== -1) {
-      outgoing_filetransfers.update((transfers) => {
-        transfers[index].files = event.data.data.files;
-        return transfers;
-      });
-
-      if (
-        transfer.cid !== undefined &&
-        get(sendState)[transfer.cid] !== SendState.REQUESTING
-      ) {
-        sendState.set(transfer.cid, SendState.REQUESTING);
-      }
-
-      const previous = get(page).url.searchParams.get("id");
-
-      if (transfer.did !== undefined) {
-        sendRequest(
-          transfer.did,
-          transfer.id,
-          previous === null ? undefined : previous,
-        );
-      }
-    }
   }
 };

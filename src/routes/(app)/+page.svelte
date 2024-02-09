@@ -2,7 +2,7 @@
   import { page } from "$app/stores";
   import { onDestroy, onMount } from "svelte";
 
-  import Input, { files } from "$lib/components/Input.svelte";
+  import Input, { click } from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import {
     handleMessage,
@@ -29,7 +29,7 @@
     if (!e?.dataTransfer?.files) {
       return;
     }
-    $files = e.dataTransfer.files;
+    click(e.dataTransfer.files);
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
