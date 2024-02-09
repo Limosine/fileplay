@@ -14,8 +14,6 @@ import {
   googleFontsCache,
 } from "workbox-recipes";
 
-import { chunkFiles } from "$lib/sharing/common";
-
 precacheAndRoute(self.__WB_MANIFEST);
 
 pageCache();
@@ -25,24 +23,6 @@ googleFontsCache();
 staticResourceCache();
 
 imageCache();
-
-const chunking = async (
-  data: {
-    id: string;
-    files: FileList;
-  },
-  client: ExtendableMessageEvent["source"],
-) => {
-  const files = await chunkFiles(data.files);
-
-  client!.postMessage({
-    action: "chunked-files",
-    data: {
-      id: data.id,
-      files,
-    },
-  });
-};
 
 // Following code from:
 // https://github.com/GoogleChromeLabs/squoosh/blob/dev/src/sw/util.ts
@@ -89,14 +69,6 @@ const nextMessage = (dataVal: string) => {
 };
 
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
-  // Event handler
-  if (typeof event.data == "object") {
-    if (event.data.action == "chunk-files") {
-      console.log(event.data);
-      chunking(event.data.data, event.source);
-    }
-  }
-
   const resolvers = nextMessageResolveMap.get(event.data);
   if (!resolvers) return;
   nextMessageResolveMap.delete(event.data);
