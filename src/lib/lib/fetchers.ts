@@ -3,7 +3,7 @@ import { page } from "$app/stores";
 import { get, writable } from "svelte/store";
 import type { Unsubscribable } from "@trpc/server/observable";
 
-import { files } from "$lib/components/Input.svelte";
+import { click, files } from "$lib/components/Input.svelte";
 import { outgoing_filetransfers } from "$lib/sharing/common";
 import { sendRequest } from "$lib/sharing/send";
 import { trpc } from "$lib/trpc/client";
@@ -180,7 +180,7 @@ export const handleMessage = (
 
     swFiles.forEach((file) => {
       dataTransfer.items.add(file);
-      files.set(dataTransfer.files);
+      click(dataTransfer.files);
     });
 
     get(page).url.searchParams.delete("share-target");

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { writable } from "svelte/store";
 
-  import { input, files } from "$lib/components/Input.svelte";
+  import { files, click } from "$lib/components/Input.svelte";
   import { getDicebearUrl } from "$lib/lib/common";
   import { type IContact } from "$lib/lib/fetchers";
   import { sendState, SendState } from "$lib/lib/sendstate";
@@ -41,7 +41,7 @@
       ui("#dialog-send");
       devices.forEach(async (device) => {
         $deviceId = device.did;
-        await send($files, device.did, contact.cid, undefined);
+        await send(device.did, contact.cid, undefined);
       });
     }
   };
@@ -57,8 +57,8 @@
           let sent = 0;
 
           transfer.files.forEach((file) => {
-            total = total + file.chunks_length;
-            if (file.completed !== 0) sent = sent + file.chunks_length;
+            total = total + file.small.chunks_length;
+            if (file.completed !== 0) sent = sent + file.small.chunks_length;
           });
 
           const progress_number = sent / total;
@@ -106,7 +106,7 @@
 
 {#if $files === undefined || $files.length == 0}
   <div class="centered">
-    <button on:click={() => $input.click()} class="extra">
+    <button on:click={() => click("click")} class="extra">
       <i>share</i>
       <span>Share</span>
     </button>
@@ -118,7 +118,7 @@
         <p class="bold">Selected files:</p>
         <div class="max" />
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
-        <a on:click={() => $input.click()} style="color: var(--secondary)"
+        <a on:click={() => click("click")} style="color: var(--secondary)"
           >Change</a
         >
       </div>
@@ -126,17 +126,17 @@
         {#each Array.from($files) as file}
           <article class="square round tertiary">
             <i class="center middle">
-              {#if file.type.slice(0, file.type.indexOf("/")) == "audio"}
+              {#if file.file.type.slice(0, file.file.type.indexOf("/")) == "audio"}
                 audio_file
-              {:else if file.type.slice(0, file.type.indexOf("/")) == "video"}
+              {:else if file.file.type.slice(0, file.file.type.indexOf("/")) == "video"}
                 video_file
-              {:else if file.type.slice(0, file.type.indexOf("/")) == "image"}
+              {:else if file.file.type.slice(0, file.file.type.indexOf("/")) == "image"}
                 image
               {:else}
                 description
               {/if}
             </i>
-            <div class="tooltip right">{file.name}</div>
+            <div class="tooltip right">{file.file.name}</div>
           </article>
         {/each}
       </div>
@@ -157,7 +157,7 @@
           <p>
             <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <a
-              on:click={() => addPendingFile($files)}
+              on:click={() => addPendingFile()}
               style="color: var(--secondary)">Generate a QR-Code</a
             >, which can be used to download files without needing to register.
           </p>

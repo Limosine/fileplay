@@ -1,6 +1,8 @@
+import { page } from "$app/stores";
 import { nanoid } from "nanoid";
 import { get } from "svelte/store";
 
+import { files } from "$lib/components/Input.svelte";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
 import { addNotification, deleteNotification } from "$lib/lib/UI";
@@ -16,29 +18,38 @@ import {
   chunkFileBig,
   chunkBlobSmall,
 } from "./common";
-import { page } from "$app/stores";
 
 // Sender:
 export const send = async (
-  files: FileList,
   did?: number,
   cid?: number,
   filetransfer_id?: string,
 ) => {
-  if (files.length <= 0)
+  if (get(files).length <= 0)
     throw new Error("Filetransfer: One file has to be selected.");
 
   filetransfer_id = filetransfer_id === undefined ? nanoid() : filetransfer_id;
 
   const fileInfos: OutgoingFileInfos[] = [];
-  for (let i = 0; i < files.length; i++) {
+  for (let i = 0; i < get(files).length; i++) {
+    let bigChunks = get(files)[i].bigChunks;
+
+    if (bigChunks === undefined) {
+      bigChunks = chunkFileBig(get(files)[i].file);
+      files.update((files) => {
+        files[i].bigChunks = bigChunks;
+        return files;
+      });
+    }
+
     fileInfos.push({
-      id: nanoid(),
-      name: files[i].name,
-      bigChunks: chunkFileBig(files[i]),
+      id: get(files)[i].id,
+      name: get(files)[i].file.name,
+      bigChunks,
       small: {
-        chunks_length: Math.ceil(files[i].size / (16 * 1024)),
+        chunks_length: Math.ceil(get(files)[i].file.size / (16 * 1024)),
       },
+      completed: 0,
     });
   }
 
@@ -124,6 +135,10 @@ export const sendChunked = async (
       (file) => file.id == previous_file_id,
     );
     if (index === -1) throw new Error("Filetransfer: File not found.");
+    outgoing_filetransfers.update((transfers) => {
+      transfers[filetransfer_index].files![index].completed++;
+      return transfers;
+    });
     index++;
     if (index < filetransfer.files.length) {
       file = filetransfer.files[index];
@@ -140,7 +155,25 @@ export const sendChunked = async (
       transfer !== undefined &&
       (transfer.cid === undefined || !transfer.completed)
     ) {
-      const chunks = await chunkBlobSmall(file.bigChunks[i]);
+      const index = get(files).findIndex((f) => f.id == file.id);
+      if (index === -1) console.warn("Filetransfer: Unable to cache chunks");
+
+      const smallChunks =
+        index === -1 ? undefined : get(files)[index].smallChunks;
+      let chunks: Uint8Array[];
+      if (smallChunks === undefined || smallChunks[i] === undefined) {
+        chunks = await chunkBlobSmall(file.bigChunks[i]);
+
+        if (index !== -1) {
+          files.update((files) => {
+            if (files[i].smallChunks === undefined) files[i].smallChunks = [];
+            files[i].smallChunks![i] = chunks;
+            return files;
+          });
+        }
+      } else {
+        chunks = smallChunks[i];
+      }
 
       for (let j = 0; j < chunks.length; j++) {
         await peer().sendMessage(did, {
@@ -151,7 +184,10 @@ export const sendChunked = async (
             file_id: file.id,
             data: chunks[j],
           },
-          final: i + 1 === file.bigChunks.length && j + 1 === chunks.length ? true : undefined,
+          final:
+            i + 1 === file.bigChunks.length && j + 1 === chunks.length
+              ? true
+              : undefined,
         });
       }
     }
@@ -172,8 +208,10 @@ export const sendMissing = async (
   const file = filetransfer.files.find((file) => file.id == file_id);
   if (file === undefined) throw new Error("File not found.");
 
+  const chunks = file.small.chunks;
+  if (chunks === undefined) throw new Error("Filetransfer: Chunks not cached.");
+
   for (let i = 0; i < missing.length; i++) {
-    // todo cache
     const bigChunk = Math.floor(missing[i] / 1000);
     peer().sendMessage(did, {
       type: "chunk",
@@ -181,7 +219,7 @@ export const sendMissing = async (
       chunk: {
         id: missing[i],
         file_id: file.id,
-        data: (await chunkBlobSmall(file.bigChunks[bigChunk]))[missing[i] - 1000 * bigChunk],
+        data: chunks[bigChunk][missing[i] - 1000 * bigChunk],
       },
       final: i + 1 === missing.length ? true : undefined,
     });

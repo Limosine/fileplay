@@ -73,6 +73,7 @@ export interface OutgoingFileInfos {
     chunks_length: number;
     chunks?: Uint8Array[][];
   };
+  completed: number;
 }
 export interface OutgoingFileTransfer {
   id: string;

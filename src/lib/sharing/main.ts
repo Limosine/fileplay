@@ -117,11 +117,10 @@ export const handleData = (data: Exclude<webRTCData, Update>, did: number) => {
   }
 };
 
-export const addPendingFile = async (files: FileList) => {
+export const addPendingFile = async () => {
   const filetransferID = await trpc().authorized.createTransfer.mutate();
 
   const filetransfer_id = await send(
-    files,
     undefined,
     undefined,
     filetransferID,

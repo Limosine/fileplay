@@ -4,7 +4,7 @@
 
   import "beercss";
 
-  import Input, { files, input } from "$lib/components/Input.svelte";
+  import Input, { click, files } from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import { SendState, sendState } from "$lib/lib/sendstate";
   import { peer } from "$lib/lib/simple-peer";
@@ -154,7 +154,7 @@
   {#if $incoming_filetransfers.length > 0 || sender}
     <article class="secondary-container" style="margin: 0;">
       {#if $files === undefined || $files.length === 0}
-        <button class="center" on:click={() => $input.click()}
+        <button class="center" on:click={() => click("click")}
           >Send files{sender ? "" : " back"}</button
         >
       {:else}
@@ -162,7 +162,7 @@
           <p class="bold">Selected files:</p>
           <div class="max" />
           <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
-          <a on:click={() => $input.click()} style="color: var(--secondary)"
+          <a on:click={() => click("click")} style="color: var(--secondary)"
             >Change</a
           >
         </div>
@@ -170,17 +170,17 @@
           {#each Array.from($files) as file}
             <article class="square round tertiary">
               <i class="center middle">
-                {#if file.type.slice(0, file.type.indexOf("/")) == "audio"}
+                {#if file.file.type.slice(0, file.file.type.indexOf("/")) == "audio"}
                   audio_file
-                {:else if file.type.slice(0, file.type.indexOf("/")) == "video"}
+                {:else if file.file.type.slice(0, file.file.type.indexOf("/")) == "video"}
                   video_file
-                {:else if file.type.slice(0, file.type.indexOf("/")) == "image"}
+                {:else if file.file.type.slice(0, file.file.type.indexOf("/")) == "image"}
                   image
                 {:else}
                   description
                 {/if}
               </i>
-              <div class="tooltip right">{file.name}</div>
+              <div class="tooltip right">{file.file.name}</div>
             </article>
           {/each}
         </div>
@@ -188,7 +188,7 @@
           <button
             class="center"
             style="margin-top: 7px;"
-            on:click={() => send($files, did, 0, undefined)}>Send</button
+            on:click={() => send(did, 0, undefined)}>Send</button
           >
         {:else}
           <div class="row" style="margin-top: 7px;">
@@ -199,7 +199,7 @@
                 class="circle tertiary"
                 on:click={() => {
                   cancelFiletransfer();
-                  send($files, did, 0, undefined);
+                  send(did, 0, undefined);
                 }}
               >
                 <i>refresh</i>
