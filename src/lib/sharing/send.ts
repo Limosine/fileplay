@@ -8,11 +8,15 @@ import { addNotification, deleteNotification } from "$lib/lib/UI";
 import {
   incoming_filetransfers,
   outgoing_filetransfers,
-  type FileInfos,
   createFileURL,
   type Request,
   concatArrays,
+  type OutgoingFileInfos,
+  type OutgoingFileTransfer,
+  chunkFileBig,
+  chunkBlobSmall,
 } from "./common";
+import { page } from "$app/stores";
 
 // Sender:
 export const send = async (
@@ -24,42 +28,44 @@ export const send = async (
   if (files.length <= 0)
     throw new Error("Filetransfer: One file has to be selected.");
 
-  let filetransferID: string;
-  if (filetransfer_id === undefined) {
-    filetransferID = nanoid();
-  } else {
-    filetransferID = filetransfer_id;
+  filetransfer_id = filetransfer_id === undefined ? nanoid() : filetransfer_id;
+
+  const fileInfos: OutgoingFileInfos[] = [];
+  for (let i = 0; i < files.length; i++) {
+    fileInfos.push({
+      id: nanoid(),
+      name: files[i].name,
+      bigChunks: chunkFileBig(files[i]),
+      small: {
+        chunks_length: Math.ceil(files[i].size / (16 * 1024)),
+      },
+    });
   }
 
-  if (cid !== undefined && get(sendState)[cid] !== SendState.CHUNKING) {
-    sendState.set(cid, SendState.CHUNKING);
-  }
-
-  const client = navigator.serviceWorker.controller;
-  if (client === null)
-    throw new Error("Filetransfer: Service worker not active.");
-
-  client.postMessage({
-    action: "chunk-files",
-    data: {
-      id: filetransferID,
-      files,
-    },
-  });
-
-  const filetransfer_infos = {
-    id: filetransferID,
+  const filetransfer_infos: OutgoingFileTransfer = {
+    id: filetransfer_id,
+    files: fileInfos,
     completed: false,
     cid,
     did,
   };
 
-  outgoing_filetransfers.set([
-    ...get(outgoing_filetransfers),
-    filetransfer_infos,
-  ]);
+  outgoing_filetransfers.update((transfers) => {
+    transfers.push(filetransfer_infos);
+    return transfers;
+  });
 
-  return filetransfer_infos.id;
+  if (cid !== undefined) {
+    sendState.set(cid, SendState.REQUESTING);
+  }
+
+  const previous = get(page).url.searchParams.get("id");
+
+  if (did !== undefined) {
+    sendRequest(did, filetransfer_id, previous === null ? undefined : previous);
+  }
+
+  return filetransfer_id;
 };
 
 export const sendRequest = (
@@ -72,26 +78,22 @@ export const sendRequest = (
   );
 
   if (outgoing_filetransfer !== undefined) {
-    if (outgoing_filetransfer.files !== undefined) {
-      const files: Request["files"] = [];
+    const files: Request["files"] = [];
 
-      outgoing_filetransfer.files.forEach((file) => {
-        files.push({
-          id: file.id,
-          name: file.name,
-          chunks_length: file.chunks.length,
-        });
+    outgoing_filetransfer.files.forEach((file) => {
+      files.push({
+        id: file.id,
+        name: file.name,
+        chunks_length: file.small.chunks_length,
       });
+    });
 
-      peer().sendMessage(did, {
-        type: "request",
-        id: outgoing_filetransfer.id,
-        files,
-        previous,
-      });
-    } else {
-      console.log("Filetransfer: Files not yet chunked.");
-    }
+    peer().sendMessage(did, {
+      type: "request",
+      id: outgoing_filetransfer.id,
+      files,
+      previous,
+    });
   } else {
     console.log("Filetransfer: Wrong filetransfer id.");
   }
@@ -112,7 +114,7 @@ export const sendChunked = async (
   if (filetransfer.files === undefined)
     throw new Error("Filetransfer: Files not yet chunked.");
 
-  let file: Omit<FileInfos, "url">;
+  let file: OutgoingFileInfos;
   if (previous_file_id === undefined) {
     const cid = filetransfer.cid;
     if (cid !== undefined) sendState.set(cid, SendState.SENDING);
@@ -122,10 +124,6 @@ export const sendChunked = async (
       (file) => file.id == previous_file_id,
     );
     if (index === -1) throw new Error("Filetransfer: File not found.");
-    outgoing_filetransfers.update((transfers) => {
-      transfers[filetransfer_index].files![index].completed++;
-      return transfers;
-    });
     index++;
     if (index < filetransfer.files.length) {
       file = filetransfer.files[index];
@@ -134,7 +132,7 @@ export const sendChunked = async (
     }
   }
 
-  for (let i = 0; i < file.chunks.length; i++) {
+  for (let i = 0; i < file.bigChunks.length; i++) {
     const transfer = get(outgoing_filetransfers).find(
       (transfer) => transfer.id == filetransfer_id,
     );
@@ -142,21 +140,25 @@ export const sendChunked = async (
       transfer !== undefined &&
       (transfer.cid === undefined || !transfer.completed)
     ) {
-      await peer().sendMessage(did, {
-        type: "chunk",
-        id: filetransfer_id,
-        chunk: {
-          id: i,
-          file_id: file.id,
-          data: file.chunks[i],
-        },
-        final: i + 1 === file.chunks_length ? true : undefined,
-      });
+      const chunks = await chunkBlobSmall(file.bigChunks[i]);
+
+      for (let j = 0; j < chunks.length; j++) {
+        await peer().sendMessage(did, {
+          type: "chunk",
+          id: filetransfer_id,
+          chunk: {
+            id: i * 1000 + j,
+            file_id: file.id,
+            data: chunks[j],
+          },
+          final: i + 1 === file.bigChunks.length && j + 1 === chunks.length ? true : undefined,
+        });
+      }
     }
   }
 };
 
-export const sendMissing = (
+export const sendMissing = async (
   did: number,
   filetransfer_id: string,
   file_id: string,
@@ -171,13 +173,15 @@ export const sendMissing = (
   if (file === undefined) throw new Error("File not found.");
 
   for (let i = 0; i < missing.length; i++) {
+    // todo cache
+    const bigChunk = Math.floor(missing[i] / 1000);
     peer().sendMessage(did, {
       type: "chunk",
       id: filetransfer_id,
       chunk: {
         id: missing[i],
         file_id: file.id,
-        data: file.chunks[missing[i]],
+        data: (await chunkBlobSmall(file.bigChunks[bigChunk]))[missing[i] - 1000 * bigChunk],
       },
       final: i + 1 === missing.length ? true : undefined,
     });

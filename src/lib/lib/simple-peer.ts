@@ -375,7 +375,7 @@ class Peer {
 
   async handle(did: number, data: Uint8Array, origin: "webrtc" | "websocket") {
     const handleDecoded = async (data: webRTCData) => {
-      if (data.type != "chunk") console.log(data);
+      console.log(data);
 
       if (data.type == "update") {
         const conn = this.connections[did];

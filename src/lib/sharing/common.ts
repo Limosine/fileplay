@@ -51,32 +51,40 @@ export interface Reject {
 export interface Request {
   type: "request";
   id: string;
-  files: Omit<Omit<Omit<FileInfos, "url">, "chunks">, "completed">[];
+  files: Omit<Omit<IncomingFileInfos, "url">, "chunks">[];
   previous?: string;
 }
 export interface Error {
   type: "error";
   message: string;
 }
-export interface FileInfos {
+export interface IncomingFileInfos {
   id: string;
   name: string;
   chunks_length: number;
   chunks: Uint8Array[];
-  completed: number;
   url?: string; // generated at the end
+}
+export interface OutgoingFileInfos {
+  id: string;
+  name: string;
+  bigChunks: Blob[];
+  small: {
+    chunks_length: number;
+    chunks?: Uint8Array[][];
+  };
 }
 export interface OutgoingFileTransfer {
   id: string;
   completed: boolean;
-  files?: Omit<FileInfos, "url">[];
+  files: OutgoingFileInfos[];
   did?: number;
   cid?: number; // not always defined (--> via link)
 }
 export interface IncomingFiletransfer {
   id: string;
   completed: boolean;
-  files: Omit<FileInfos, "completed">[];
+  files: IncomingFileInfos[];
   did: number;
   cid?: number; // no access to cid on guest page
 }
@@ -118,24 +126,24 @@ export const chunkUint8Array = (array: Uint8Array, size: number) => {
   return chunks;
 };
 
-export const chunkFiles = async (files: FileList) => {
-  const chunkedFiles: OutgoingFileTransfer["files"] = [];
+export const chunkFileBig = (file: File, size = 1000 * 16 * 1024) => {
+  const chunks: Blob[] = [];
+  let offset = 0;
 
-  for (let i = 0; i < files.length; i++) {
-    const uint8 = new Uint8Array(await blobToArrayBuffer(files[i]));
-    console.log("Converted to Uint8Array");
+  const totalChunks = Math.ceil(file.size / size);
 
-    const array = chunkUint8Array(uint8, 16 * 1024);
-    chunkedFiles.push({
-      id: nanoid(),
-      name: files[i].name,
-      chunks_length: array.length,
-      chunks: array,
-      completed: 0,
-    });
+  for (let i = 0; i < totalChunks; i++) {
+    chunks.push(file.slice(offset, offset + size));
+    offset += size;
   }
 
-  return chunkedFiles;
+  return chunks;
+};
+
+export const chunkBlobSmall = async (blob: Blob) => {
+  const uint8 = new Uint8Array(await blobToArrayBuffer(blob));
+
+  return chunkUint8Array(uint8, 16 * 1024);
 };
 
 export const concatArrays = (arrays: Uint8Array[]) => {
