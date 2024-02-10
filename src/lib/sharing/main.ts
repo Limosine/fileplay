@@ -120,11 +120,7 @@ export const handleData = (data: Exclude<webRTCData, Update>, did: number) => {
 export const addPendingFile = async () => {
   const filetransferID = await trpc().authorized.createTransfer.mutate();
 
-  const filetransfer_id = await send(
-    undefined,
-    undefined,
-    filetransferID,
-  );
+  await send(undefined, undefined, filetransferID);
 
   link.set(
     location.protocol +
@@ -133,7 +129,7 @@ export const addPendingFile = async () => {
       "/guest?did=" +
       get(own_did) +
       "&id=" +
-      filetransfer_id,
+      filetransferID,
   );
 };
 

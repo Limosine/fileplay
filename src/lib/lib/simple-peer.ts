@@ -120,7 +120,11 @@ class Peer {
         if (!peer.destroyed) peer.destroy();
         if (err !== undefined) console.warn(err);
 
-        delete this.connections[did];
+        if (
+          this.connections[did] !== undefined &&
+          this.connections[did].data !== "websocket"
+        )
+          delete this.connections[did];
       };
 
       peer.on("close", deletePeer);

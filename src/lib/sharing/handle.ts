@@ -1,4 +1,3 @@
-import { browser } from "$app/environment";
 import { get } from "svelte/store";
 
 import { sendState, SendState } from "$lib/lib/sendstate";
@@ -17,7 +16,7 @@ export const handleRequest = (
   filetransfer_id: string,
   files_unformatted: Request["files"],
 ) => {
-  if (browser && window.location.pathname.slice(0, 6) == "/guest") {
+  if (window.location.pathname.slice(0, 6) == "/guest") {
     const files: IncomingFiletransfer["files"] = [];
 
     files_unformatted.forEach((file) => {
@@ -42,7 +41,7 @@ export const handleRequest = (
   } else {
     addNotification({
       title: "File request",
-      body: `The file(s) '${files_unformatted
+      body: `The file${files_unformatted.length > 1 ? "s" : ""} '${files_unformatted
         .map((file) => file.name)
         .toString()}' can be received.`,
       tag: `filetransfer-${filetransfer_id}`,
@@ -66,31 +65,30 @@ export const handleChunk = (
   const filetransfer_index = get(incoming_filetransfers).findIndex(
     (filetransfer) => filetransfer.id == filetransfer_id,
   );
+  if (filetransfer_index === -1)
+    throw new Error("Filetransfer: No such filetransfer");
 
-  if (filetransfer_index !== -1) {
-    const file_index = get(incoming_filetransfers)[
-      filetransfer_index
-    ].files.findIndex((file) => file.id == file_id);
+  const file_index = get(incoming_filetransfers)[
+    filetransfer_index
+  ].files.findIndex((file) => file.id == file_id);
+  if (file_index === -1) throw new Error("Filetransfer: No such file");
 
-    if (file_index !== -1) {
-      incoming_filetransfers.update((filetransfers) => {
-        filetransfers[filetransfer_index].files[file_index].chunks[chunk_id] =
-          chunk;
-        return filetransfers;
-      });
+  incoming_filetransfers.update((filetransfers) => {
+    filetransfers[filetransfer_index].files[file_index].chunks[chunk_id] =
+      chunk;
+    return filetransfers;
+  });
 
-      if (final) {
-        if (
-          get(incoming_filetransfers)[filetransfer_index].files.slice(-1)[0]
-            .id === file_id
-        ) {
-          sendFinish(did, filetransfer_id, file_id, true);
-        } else {
-          sendFinish(did, filetransfer_id, file_id, false);
-        }
-      }
-    } else throw new Error("Filetransfer: No such file");
-  } else throw new Error("Filetransfer: No such filetransfer");
+  if (final) {
+    if (
+      get(incoming_filetransfers)[filetransfer_index].files.slice(-1)[0].id ===
+      file_id
+    ) {
+      sendFinish(did, filetransfer_id, file_id, true);
+    } else {
+      sendFinish(did, filetransfer_id, file_id, false);
+    }
+  }
 };
 
 export const handleFileFinish = async (
