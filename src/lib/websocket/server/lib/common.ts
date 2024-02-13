@@ -14,5 +14,9 @@ export const getTurnCredentials = async (
   const username = [unixTimeStamp, user].join(":");
   const password = await sign(username, key, "base64");
 
-  sendMessage(client, "turnCredentials", { username, password }, id);
+  sendMessage(client, {
+    id,
+    type: "turnCredentials",
+    data: { username, password },
+  });
 };

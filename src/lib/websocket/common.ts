@@ -42,6 +42,7 @@ export type MessageFromServer =
   | WebRTCData
   | Filetransfer
   | LinkingCode
+  | TurnCredentials
   | Error;
 
 export interface User {
@@ -121,6 +122,15 @@ export interface LinkingCode {
     code: string;
     expires: number;
     refresh: number;
+  };
+}
+
+export interface TurnCredentials {
+  id: number;
+  type: "turnCredentials";
+  data: {
+    username: string;
+    password: string;
   };
 }
 

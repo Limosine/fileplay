@@ -61,7 +61,8 @@ class APIClient {
     if (
       msg.type == "createTransfer" ||
       msg.type == "createContactCode" ||
-      msg.type == "createDeviceCode"
+      msg.type == "createDeviceCode" ||
+      msg.type == "getTurnCredentials"
     ) {
       return new Promise<any>((resolve) => {
         this.promises[msg.id] = resolve;
@@ -70,6 +71,8 @@ class APIClient {
   }
 
   private handleData(message: MessageFromServer) {
+    console.log(message);
+
     if (message.type == "user") {
       user.set(message.data);
     } else if (message.type == "devices") {
@@ -86,7 +89,8 @@ class APIClient {
     } else if (
       message.type == "filetransfer" ||
       message.type == "contactLinkingCode" ||
-      message.type == "deviceLinkingCode"
+      message.type == "deviceLinkingCode" ||
+      message.type == "turnCredentials"
     ) {
       const resolve = this.promises[message.id];
       if (resolve !== undefined) resolve(message.data);

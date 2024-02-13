@@ -39,7 +39,8 @@ if (!building) {
     client.on("message", async (data) => {
       const decodedData = decode(data as BufferSource) as MessageFromClient;
       try {
-        handleMessage(constants, client, ids, decodedData);
+        console.log(decodedData);
+        await handleMessage(constants, client, ids, decodedData);
       } catch (e: any) {
         sendMessage(client, { id: decodedData.id, type: "error", data: e });
       }
