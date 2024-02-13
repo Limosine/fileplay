@@ -50,6 +50,7 @@ class APIClient {
   }
 
   sendMessage(message: Omit<MessageFromClient, "id">) {
+    console.log(message);
     const msg = {
       id: ++this.messageId,
       type: message.type,

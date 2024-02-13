@@ -257,6 +257,7 @@ export const sendMessage = (
   client: WebSocket | number,
   message: MessageFromServer,
 ) => {
+  console.log(message);
   if (typeof client === "number") {
     for (const c of clients) {
       if (c.device === client) {
