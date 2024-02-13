@@ -4,22 +4,14 @@ import pkg from "pg";
 import { error, type Cookies } from "@sveltejs/kit";
 
 import { env } from "$env/dynamic/private";
-import { ONLINE_STATUS_TIMEOUT } from "$lib/lib/common";
+import { DeviceType, ONLINE_STATUS_TIMEOUT } from "$lib/lib/common";
 import type { DB, Database } from "$lib/lib/db";
 
 import { loadKey, getDeviceID } from "./signing";
 
 const { Pool } = pkg;
 
-export function createKysely():
-  | {
-      success: false;
-      message: string;
-    }
-  | {
-      success: true;
-      message: Kysely<DB>;
-      } {
+export const createConstants = async () => {
   const kys = new Kysely<DB>({
     dialect: new PostgresDialect({
       pool: async () =>
@@ -31,60 +23,57 @@ export function createKysely():
         }),
     }),
   });
+  if (!kys) throw new Error("Failed to access database");
 
-  if (!kys) {
-    return { success: false, message: "Database could not be accessed" };
-  } else {
-    return { success: true, message: kys };
-  }
-}
+  if (env.COOKIE_SIGNING_SECRET === undefined)
+    throw new Error("Please define a cookie signing secret.");
+  if (env.COTURN_AUTH_SECRET === undefined)
+    throw new Error("Please define a coturn auth secret.");
+
+  return {
+    db: kys,
+    cookieKey: await loadKey(env.COOKIE_SIGNING_SECRET),
+    turnKey: await loadKey(env.COTURN_AUTH_SECRET, "SHA-1"),
+  };
+};
 
 /* If the user parameter is true, an error is thrown if the uid doesn't exist
  */
 export const httpAuthorized = async (cookies: Cookies, user = true) => {
-  const db = createKysely();
-  if (env.COOKIE_SIGNING_SECRET === undefined)
-    throw new Error("Please define a cookie signing secret.");
-  const key = await loadKey(env.COOKIE_SIGNING_SECRET);
+  const cts = await createConstants();
+
   const signature = cookies.get("did_sig");
   const deviceID = cookies.get("did");
 
-  if (db.success) {
-    if (signature && deviceID) {
-      const signed = await getDeviceID(signature, deviceID, key, db.message);
+  if (signature && deviceID) {
+    const signed = await getDeviceID(
+      signature,
+      deviceID,
+      cts.cookieKey,
+      cts.db,
+    );
 
-      if (signed.success) {
-        if (user && !signed.message.uid)
-          error(401, "No user associated with this device");
+    if (signed.success) {
+      if (user && !signed.message.uid)
+        error(401, "No user associated with this device");
 
-        return {
-          key,
-          database: db.message,
-          device: signed.message.did,
-          user: signed.message.uid,
-        };
-      } else {
-        error(401, signed.message);
-      }
+      return {
+        key: cts.cookieKey,
+        database: cts.db,
+        device: signed.message.did,
+        user: signed.message.uid,
+      };
     } else {
-      error(401, "Missing cookies");
+      error(401, signed.message);
     }
   } else {
-    error(500, db.message);
+    error(401, "Missing cookies");
   }
 };
 
 export const httpContext = async () => {
-  const db = createKysely();
-  if (env.COOKIE_SIGNING_SECRET === undefined)
-    throw new Error("Please define a cookie signing secret.");
-  const key = await loadKey(env.COOKIE_SIGNING_SECRET);
-
-  if (db.success) {
-    return { key, database: db.message };
-  } else {
-    error(500, db.message);
-  }
+  const cts = await createConstants();
+  return { key: cts.cookieKey, database: cts.db };
 };
 
 // WebSocket server status codes: 0 (Offline | Error), 1 (Online)
@@ -223,7 +212,36 @@ export const getUID = async (db: Database, did: number) => {
   }
 };
 
-export const getDevices = async (db: Database, uid: number, did: number) => {
+export const getDevices = async (
+  db: Database,
+  uid: number,
+  did: number,
+): Promise<
+  | {
+      success: true;
+      message: {
+        self: {
+          created_at: number;
+          display_name: string;
+          did: number;
+          type: DeviceType;
+          last_seen_at: number;
+        };
+        others: {
+          did: number;
+          display_name: string;
+          is_online: number;
+          type: DeviceType;
+          created_at: number;
+          last_seen_at: number;
+        }[];
+      };
+    }
+  | {
+      success: false;
+      message: any;
+    }
+> => {
   try {
     const d_self = await db
       .selectFrom("devices")

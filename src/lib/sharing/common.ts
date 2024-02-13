@@ -1,6 +1,6 @@
-import { blobToArrayBuffer } from "$lib/lib/utils";
-import { nanoid } from "nanoid";
 import { writable } from "svelte/store";
+
+import { blobToArrayBuffer } from "$lib/lib/utils";
 
 // Types:
 export type webRTCData =

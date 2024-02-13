@@ -40,10 +40,10 @@
     } else {
       $contactId = contact.cid;
       ui("#dialog-send");
-      devices.forEach(async (device) => {
+      for (const device of devices) {
         $deviceId = device.did;
         await send(device.did, contact.cid, undefined);
-      });
+      }
     }
   };
 
@@ -157,9 +157,8 @@
         {#if !$link}
           <p>
             <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-            <a
-              on:click={() => addPendingFile()}
-              style="color: var(--secondary)">Generate a QR-Code</a
+            <a on:click={() => addPendingFile()} style="color: var(--secondary)"
+              >Generate a QR-Code</a
             >, which can be used to download files without needing to register.
           </p>
         {:else}

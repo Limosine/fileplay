@@ -1,7 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
-  import { type Writable } from "svelte/store";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";

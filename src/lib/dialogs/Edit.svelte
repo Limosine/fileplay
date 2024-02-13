@@ -15,7 +15,7 @@
     userParams,
     editDialog,
   } from "$lib/lib/UI";
-  import { trpc } from "$lib/trpc/client";
+  import { apiClient } from "$lib/websocket/client";
 
   onMount(() => {
     $editDialog.addEventListener("close", () => {
@@ -23,29 +23,40 @@
         switch ($current) {
           case "username":
             if ($original_value != $userParams.display_name)
-              trpc().authorized.updateUser.mutate({
-                display_name: $userParams.display_name,
+              apiClient().sendMessage({
+                type: "updateUser",
+                data: {
+                  display_name: $userParams.display_name,
+                },
               });
             break;
           case "avatar":
             if ($original_value != $userParams.avatar_seed)
-              trpc().authorized.updateUser.mutate({
-                avatar_seed: $userParams.avatar_seed,
+              apiClient().sendMessage({
+                type: "updateUser",
+                data: {
+                  avatar_seed: $userParams.avatar_seed,
+                },
               });
             break;
           case "deviceName":
             if ($original_value != $deviceParams.display_name)
-              trpc().authorized.updateDevice.mutate({
-                update: { display_name: $deviceParams.display_name },
-                did: $did,
+              apiClient().sendMessage({
+                type: "updateDevice",
+                data: {
+                  update: { display_name: $deviceParams.display_name },
+                  did: $did,
+                },
               });
             break;
           case "deviceType":
             if ($original_value != $deviceParams.type)
-              trpc().authorized.updateDevice.mutate({
-                // @ts-ignore
-                update: { type: $deviceParams.type },
-                did: $did,
+              apiClient().sendMessage({
+                type: "updateDevice",
+                data: {
+                  update: { type: $deviceParams.type },
+                  did: $did,
+                },
               });
             break;
         }

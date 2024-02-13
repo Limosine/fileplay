@@ -1,14 +1,10 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
 
   import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
-  import {
-    handleMessage,
-    stopHeartbeat,
-    stopSubscriptions,
-  } from "$lib/lib/fetchers";
+  import { handleMessage } from "$lib/lib/fetchers";
   import {
     addContactDialog,
     add_mode,
@@ -19,11 +15,11 @@
     settings_page,
     user,
   } from "$lib/lib/UI";
+  import { apiClient } from "$lib/websocket/client";
 
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
   import Settings from "$lib/pages/Settings.svelte";
-  import { trpc } from "$lib/trpc/client";
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -64,17 +60,12 @@
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
       navigator.serviceWorker.addEventListener("message", handleMessage);
       await setup();
-      trpc();
+      apiClient();
 
       if ($page.url.searchParams.has("share-target")) {
         navigator.serviceWorker.controller?.postMessage("share-ready");
       }
     }
-  });
-
-  onDestroy(() => {
-    stopHeartbeat();
-    stopSubscriptions();
   });
 </script>
 

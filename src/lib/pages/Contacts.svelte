@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getDicebearUrl } from "$lib/lib/common";
   import { contacts } from "$lib/lib/UI";
-  import { trpc } from "$lib/trpc/client";
+  import { apiClient } from "$lib/websocket/client";
 </script>
 
 <div id="contacts">
@@ -18,7 +18,7 @@
         </div>
         <button
           class="right transparent circle"
-          on:click={() => trpc().authorized.deleteContact.mutate(contact.cid)}
+          on:click={() => apiClient().sendMessage({ type: "deleteContact", data: contact.cid})}
         >
           <i>delete</i>
           <div class="tooltip left">Delete contact</div>

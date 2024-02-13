@@ -6,7 +6,6 @@ import type { MaybePromise } from "@sveltejs/kit";
 
 import { concatArrays, type webRTCData } from "$lib/sharing/common";
 import { handleData } from "$lib/sharing/main";
-import { trpc } from "$lib/trpc/client";
 
 import {
   decryptData,
@@ -15,6 +14,7 @@ import {
   updateKey,
 } from "./encryption";
 import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
+import { apiClient } from "$lib/websocket/client";
 
 const store = writable<Peer>();
 
@@ -48,7 +48,7 @@ class Peer {
 
   private fallback: boolean;
 
-  private turn: MaybePromise<{ username: string; password: string }>;
+  private turn: MaybePromise<{ username: string; password: string } | any>;
 
   constructor() {
     this.connections = [];
@@ -58,10 +58,7 @@ class Peer {
 
     if (this.fallback) this.turn = { username: "", password: "" };
     else {
-      this.turn =
-        window.location.pathname.slice(0, 6) == "/guest"
-          ? trpc().guest.getTurnCredentials.query()
-          : trpc().authorized.getTurnCredentials.query();
+      this.turn = apiClient().sendMessage({ type: "createTransfer" });
     }
   }
 
@@ -95,15 +92,21 @@ class Peer {
 
       peer.on("signal", (data) => {
         if (window.location.pathname.slice(0, 6) == "/guest")
-          trpc().guest.shareWebRTCData.query({
-            did,
-            guestTransfer: String(get(page).url.searchParams.get("id")),
-            data: { type: "signal", data: JSON.stringify(data) },
+          apiClient().sendMessage({
+            type: "shareFromGuest",
+            data: {
+              did,
+              guestTransfer: String(get(page).url.searchParams.get("id")), // TODO
+              data: { type: "signal", data: JSON.stringify(data) },
+            },
           });
         else
-          trpc().authorized.shareWebRTCData.query({
-            did,
-            data: { type: "signal", data: JSON.stringify(data) },
+          apiClient().sendMessage({
+            type: "share",
+            data: {
+              did,
+              data: { type: "signal", data: JSON.stringify(data) },
+            },
           });
       });
 
@@ -204,13 +207,13 @@ class Peer {
     else return this.establishWebRTC(did, initiator, events);
   }
 
-  closeConnections() {
-    this.connections.forEach(async (conn) => {
+  async closeConnections() {
+    for (const conn of this.connections) {
       if (conn.data !== undefined && conn.data !== "websocket") {
         if (conn.data.timer !== undefined) clearTimeout(conn.data.timer);
         (await conn.data.data).destroy();
       }
-    });
+    }
     this.buffer = [];
     this.connections = [];
   }
@@ -247,17 +250,23 @@ class Peer {
   private sendOverTrpc = (did: number, dataArray: Uint8Array[]) => {
     if (window.location.pathname.slice(0, 6) == "/guest") {
       dataArray.forEach((data) => {
-        trpc().guest.shareWebRTCData.query({
-          did,
-          guestTransfer: String(get(page).url.searchParams.get("id")),
-          data: { type: "webrtc", data: data },
+        apiClient().sendMessage({
+          type: "share",
+          data: {
+            did,
+            guestTransfer: String(get(page).url.searchParams.get("id")), // TODO
+            data: { type: "webrtc", data: data },
+          },
         });
       });
     } else {
       dataArray.forEach((data) => {
-        trpc().authorized.shareWebRTCData.query({
-          did,
-          data: { type: "webrtc", data: data },
+        apiClient().sendMessage({
+          type: "share",
+          data: {
+            did,
+            data: { type: "webrtc", data: data },
+          },
         });
       });
     }
@@ -350,6 +359,7 @@ class Peer {
 
     if (peer !== undefined) {
       if (peer.data == "websocket") {
+        // TODO
         delete this.connections[did];
         connect(peer.events);
       } else (await peer.data.data).signal(data);

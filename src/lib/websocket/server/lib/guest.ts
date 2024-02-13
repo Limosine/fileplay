@@ -4,8 +4,7 @@ import type { Cookies } from "@sveltejs/kit";
 
 import { generateKey, sign, verify } from "$lib/server/signing";
 
-import { events } from "./events";
-import { guestSecret } from "./stores";
+import { guestSecret, guests } from "./stores";
 
 export const loadGuestSecret = async () => {
   let secret = get(guestSecret);
@@ -14,6 +13,18 @@ export const loadGuestSecret = async () => {
     guestSecret.set(secret);
   }
   return secret;
+};
+
+const newGuestID = () => {
+  let index = get(guests).length;
+  if (index === 0) index = 1;
+
+  guests.update((guests) => {
+    guests[index] = true;
+    return guests;
+  });
+
+  return index;
 };
 
 export const getGuestID = async (id?: string, signature?: string) => {
@@ -30,15 +41,13 @@ export const getGuestID = async (id?: string, signature?: string) => {
 
 export const setGuestID = async (cookies: Cookies) => {
   const key = await loadGuestSecret();
-  const id = events().newGuestID().toString();
+  const id = newGuestID().toString();
   const signature = await sign(id, key);
-  const cookie_opts: CookieSerializeOptions = {
+  const cookie_opts: CookieSerializeOptions & { path: string } = {
     path: "/",
     maxAge: 60 * 60 * 24 * 60 * 12 * 10,
   };
 
-  // @ts-ignore
   cookies.set("gid", id, cookie_opts);
-  // @ts-ignore
   cookies.set("gid_sig", signature, cookie_opts);
 };

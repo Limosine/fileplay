@@ -1,6 +1,6 @@
 import type { RequestHandler } from "./$types";
 
-import { getGuestID, setGuestID } from "$lib/trpc/server/lib/guest";
+import { getGuestID, setGuestID } from "$lib/websocket/server/lib/guest";
 
 export const POST: RequestHandler = async ({ cookies }) => {
   if ((await getGuestID(cookies.get("gid"), cookies.get("gid_sig"))) !== null) {

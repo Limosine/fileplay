@@ -3,14 +3,14 @@
   import { onDestroy, onMount } from "svelte";
 
   import { code, addContactDialog, add_mode } from "$lib/lib/UI";
-  import { trpc } from "$lib/trpc/client";
+  import { apiClient } from "$lib/websocket/client";
 
   let redeemCode_section = true;
 
   const generateContactCode = async () => {
     // todo refresh this code after specified interval
 
-    const result = await trpc().authorized.getContactCode.query();
+    const result = await apiClient().sendMessage({ type: "createContactCode" });
     expires_at = result.expires;
     return result;
   };
@@ -18,7 +18,7 @@
   const generateDeviceCode = async () => {
     // todo refresh this code after specified interval
 
-    const result = await trpc().authorized.getDeviceCode.query();
+    const result = await apiClient().sendMessage({ type: "createDeviceCode" });
     expires_at = result.expires;
     return result;
   };
@@ -95,7 +95,10 @@
         class="border"
         style="border: 0;"
         on:click={async () => {
-          await trpc().authorized.redeemContactCode.mutate($code);
+          await apiClient().sendMessage({
+            type: "redeemContactCode",
+            data: $code,
+          });
           ui("#dialog-add");
         }}>Add</button
       >

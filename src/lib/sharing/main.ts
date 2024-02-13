@@ -6,7 +6,6 @@ import { type IContact } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
 import { contacts, own_did } from "$lib/lib/UI";
-import { trpc } from "$lib/trpc/client";
 
 import {
   incoming_filetransfers,
@@ -23,6 +22,7 @@ import {
   handleFileTransferFinished,
 } from "./handle";
 import { send, sendChunked, sendRequest } from "./send";
+import { apiClient } from "$lib/websocket/client";
 
 const authenticated = (
   did: number,
@@ -118,7 +118,9 @@ export const handleData = (data: Exclude<webRTCData, Update>, did: number) => {
 };
 
 export const addPendingFile = async () => {
-  const filetransferID = await trpc().authorized.createTransfer.mutate();
+  const filetransferID = await apiClient().sendMessage({
+    type: "createTransfer",
+  });
 
   await send(undefined, undefined, filetransferID);
 
@@ -134,7 +136,9 @@ export const addPendingFile = async () => {
 };
 
 export const authorizeGuestSender = async () => {
-  const filetransferID = await trpc().authorized.createTransfer.mutate();
+  const filetransferID = await apiClient().sendMessage({
+    type: "createTransfer",
+  });
 
   outgoing_filetransfers.update((transfers) => {
     transfers.push({
