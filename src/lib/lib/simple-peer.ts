@@ -210,14 +210,23 @@ class Peer {
     else return this.establishWebRTC(did, initiator, events);
   }
 
-  async closeConnections(did?: number) {
+  async closeConnections(did?: number | "websocket") {
     if (did !== undefined) {
-      const conn = this.connections[did];
-      if (conn !== undefined) {
-        delete this.connections[did];
-        if (conn.data !== "websocket") (await conn.data.data).destroy();
+      if (typeof did === "number") {
+        // Close specific connection
+        const conn = this.connections[did];
+        if (conn !== undefined) {
+          delete this.connections[did];
+          if (conn.data !== "websocket") (await conn.data.data).destroy();
+        }
+      } else {
+        // Close all websocket connections
+        this.connections = this.connections.filter(
+          (c) => c.data != "websocket",
+        );
       }
     } else {
+      // Close all connections
       for (const conn of this.connections) {
         if (conn.data !== undefined && conn.data !== "websocket") {
           if (conn.data.timer !== undefined) clearTimeout(conn.data.timer);
@@ -368,13 +377,8 @@ class Peer {
     const connect = async (events?: EventTarget) =>
       (await this.connect(did, false, events))?.signal(data);
 
-    if (peer !== undefined) {
-      if (peer.data == "websocket") {
-        // TODO
-        delete this.connections[did];
-        connect(peer.events);
-      } else (await peer.data.data).signal(data);
-    } else connect();
+    if (peer === undefined) connect();
+    else if (peer.data != "websocket") (await peer.data.data).signal(data);
   }
 
   clearBuffer(did?: number) {

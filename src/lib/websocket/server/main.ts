@@ -36,6 +36,7 @@ import { get } from "svelte/store";
 export const sendMessage = (
   client: WebSocket | number,
   message: MessageFromServer,
+  error = true,
 ) => {
   console.log(message);
   if (typeof client === "number") {
@@ -45,10 +46,10 @@ export const sendMessage = (
         break;
       }
     }
-    if (typeof client === "number") throw new Error("404");
+    if (typeof client === "number" && error) throw new Error("404");
   }
 
-  client.send(encode(message));
+  if (typeof client !== "number") client.send(encode(message));
 };
 
 export const handleMessage = async (
@@ -119,7 +120,7 @@ export const handleMessage = async (
     });
   } else if (data.type == "openConnectionFromGuest") {
     authorizeGuest(ids, (guest) => {
-      openConnection(guest*-1, data.data);
+      openConnection(guest * -1, data.data);
     });
 
     // Guest
@@ -242,7 +243,7 @@ export const closeConnections = (did: number) => {
     sendMessage(did, {
       type: "connectionClosed",
       data: element,
-    });
+    }, false);
   }
 };
 

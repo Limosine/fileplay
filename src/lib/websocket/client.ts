@@ -66,6 +66,7 @@ class APIClient {
     this.socket.addEventListener("close", (event) => {
       setTimeout(() => {
         console.log("WebSocket closed, reason: ", event.reason);
+        peer().closeConnections("websocket");
         if (event.code !== 1008) this.connect();
       }, 5000);
     });
