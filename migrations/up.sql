@@ -12,8 +12,6 @@ create table devices (
   uid int,
   linked_at int,
   created_at int not null default extract(epoch from now()),
-  last_seen_at int not null default extract(epoch from now()),
-  is_online int not null default 0,
   primary key (did),
   foreign key (uid) references users (uid) on delete cascade
 );

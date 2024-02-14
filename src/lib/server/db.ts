@@ -1,10 +1,9 @@
-import dayjs from "dayjs";
 import { Kysely, sql, PostgresDialect } from "kysely";
 import pkg from "pg";
 import { error, type Cookies } from "@sveltejs/kit";
 
 import { env } from "$env/dynamic/private";
-import { DeviceType, ONLINE_STATUS_TIMEOUT } from "$lib/lib/common";
+import { DeviceType } from "$lib/lib/common";
 import type { DB, Database } from "$lib/lib/db";
 
 import { loadKey, getDeviceID } from "./signing";
@@ -74,40 +73,6 @@ export const httpAuthorized = async (cookies: Cookies, user = true) => {
 export const httpContext = async () => {
   const cts = await createConstants();
   return { key: cts.cookieKey, database: cts.db };
-};
-
-// WebSocket server status codes: 0 (Offline | Error), 1 (Online)
-// WebSocket client status codes: 0 (Offline), 1 (Online), 2 (Error)
-export const updateOnlineStatus = async (
-  db: Database,
-  did: number,
-  status: number,
-) => {
-  try {
-    await db
-      .updateTable("devices")
-      .set({ is_online: status })
-      .where("did", "=", did)
-      .executeTakeFirst();
-
-    return { success: true };
-  } catch (e: any) {
-    return { success: true, message: e };
-  }
-};
-
-export const correctOnlineStatus = async (db: Database) => {
-  try {
-    await db
-      .updateTable("devices")
-      .set({ is_online: 0 })
-      .where("last_seen_at", "<", dayjs().unix() - ONLINE_STATUS_TIMEOUT)
-      .executeTakeFirst();
-
-    return { success: true };
-  } catch (e: any) {
-    return { success: false, message: e };
-  }
 };
 
 export async function getContacts(
@@ -180,9 +145,7 @@ export async function getContacts(
       did: number;
       type: string;
       display_name: string;
-    }>`SELECT cid, devices.did, devices.type, devices.display_name FROM (SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.a WHERE contacts.b = ${uid} UNION SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.b WHERE contacts.a = ${uid}) AS U JOIN devices ON U.uid = devices.uid WHERE "devices"."is_online" = 1 AND "devices"."last_seen_at" > ${
-      dayjs().unix() - ONLINE_STATUS_TIMEOUT
-    } ORDER BY devices.display_name`.execute(db);
+    }>`SELECT cid, devices.did, devices.type, devices.display_name FROM (SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.a WHERE contacts.b = ${uid} UNION SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.b WHERE contacts.a = ${uid}) AS U JOIN devices ON U.uid = devices.uid ORDER BY devices.display_name`.execute(db);
 
     devices.rows.forEach((device) => {
       const contact = contacts.find((con) => con.cid == device.cid);
@@ -208,7 +171,7 @@ export const getUID = async (db: Database, did: number) => {
 
     return { success: true, message: device.uid };
   } catch (e: any) {
-    return { success: true, message: e };
+    return { success: false, message: e };
   }
 };
 
@@ -225,15 +188,12 @@ export const getDevices = async (
           display_name: string;
           did: number;
           type: DeviceType;
-          last_seen_at: number;
         };
         others: {
           did: number;
           display_name: string;
-          is_online: number;
           type: DeviceType;
           created_at: number;
-          last_seen_at: number;
         }[];
       };
     }
@@ -245,7 +205,7 @@ export const getDevices = async (
   try {
     const d_self = await db
       .selectFrom("devices")
-      .select(["did", "type", "display_name", "created_at", "last_seen_at"])
+      .select(["did", "type", "display_name", "created_at"])
       .where("did", "=", did)
       .executeTakeFirstOrThrow();
 
@@ -256,8 +216,6 @@ export const getDevices = async (
         "type",
         "display_name",
         "created_at",
-        "last_seen_at",
-        "is_online",
       ])
       .where((eb) => eb("did", "!=", did).and("uid", "=", uid))
       .orderBy("display_name")
@@ -265,7 +223,7 @@ export const getDevices = async (
 
     return { success: true, message: { self: d_self, others: d_others } };
   } catch (e: any) {
-    return { success: true, message: e };
+    return { success: false, message: e };
   }
 };
 

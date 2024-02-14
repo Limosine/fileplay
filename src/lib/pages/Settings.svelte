@@ -134,8 +134,8 @@
             {device.display_name}
           </p>
           <p style="font-size: small; margin-top: 0;">
-            Last seen at {dayjs
-              .unix(device.last_seen_at)
+            Created at {dayjs
+              .unix(device.created_at)
               .format("HH:mm, DD.MM.YYYY")}.
           </p>
         </div>

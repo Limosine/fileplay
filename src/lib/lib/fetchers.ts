@@ -22,15 +22,12 @@ export interface IDevices {
     type: DeviceType;
     display_name: string;
     created_at: number;
-    last_seen_at: number;
   };
   others: {
     did: number;
     type: DeviceType;
     display_name: string;
     created_at: number;
-    last_seen_at: number;
-    is_online: number;
   }[];
 }
 

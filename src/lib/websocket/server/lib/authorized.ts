@@ -9,7 +9,7 @@ import {
 } from "$lib/lib/common";
 import type { Database } from "$lib/lib/db";
 import {
-  getContacts,
+  getContacts as getContactsDB,
   getDevices as getDevicesDB,
   getUser,
 } from "$lib/server/db";
@@ -36,14 +36,13 @@ export const notifyDevices = async (
   onlyOwnDevices = false,
 ) => {
   const contacts = await getContacts(db, uid);
-  if (contacts.success && !onlyOwnDevices) {
-    const foreignDevices = getDevices(contacts.message.map((c) => c.uid));
+  if (!onlyOwnDevices) {
+    const foreignDevices = getDevices(contacts.map((c) => c.uid));
 
     for (const device of foreignDevices) {
       if (device.user === null) break;
       const contacts = await getContacts(db, device.user);
-      if (!contacts.success) throw new Error("500");
-      sendMessage(device, { type: "contacts", data: contacts.message });
+      sendMessage(device, { type: "contacts", data: contacts });
     }
   }
 
@@ -56,9 +55,7 @@ export const notifyDevices = async (
       if (!deviceInfos.success) throw new Error("500");
       sendMessage(device, { type: "devices", data: deviceInfos.message });
     } else if (type == "contact") {
-      if (contacts.success) {
-        sendMessage(device, { type: "contacts", data: contacts.message });
-      }
+      sendMessage(device, { type: "contacts", data: contacts });
     } else {
       if (user.success) {
         sendMessage(device, { type: "user", data: user.message });
@@ -67,7 +64,35 @@ export const notifyDevices = async (
   }
 };
 
+const devicesOnline = (
+  devices: {
+    did: number;
+    type: string;
+    display_name: string;
+  }[],
+) => {
+  const onlineDevices = [];
+
+  for (const client of clients) {
+    const index = devices.findIndex((d) => d.did === client.device);
+    if (index !== -1) onlineDevices.push(devices[index]);
+  }
+
+  return onlineDevices;
+};
+
 // Contacts
+export const getContacts = async (db: Database, uid: number) => {
+  const result = await getContactsDB(db, uid);
+  if (!result.success) throw new Error("500");
+
+  for (let i = 0; i < result.message.length; i++) {
+    result.message[i].devices = devicesOnline(result.message[i].devices);
+  }
+
+  return result.message;
+};
+
 export const deleteContact = async (db: Database, uid: number, cid: number) => {
   try {
     const result = await db

@@ -13,10 +13,8 @@ interface DevicesTable {
   uid: number | null; // indexed, foreign key users.uid
   linked_at: number | null;
   display_name: string;
-  is_online: ColumnType<number, undefined, number>;
   type: DeviceType;
   created_at: ColumnType<number, undefined, undefined>;
-  last_seen_at: ColumnType<number, undefined, number>;
 }
 
 interface ContactsTable {

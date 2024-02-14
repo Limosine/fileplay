@@ -4,7 +4,7 @@ import type { WebSocket } from "ws";
 
 import type { DeviceType } from "$lib/lib/common";
 import type { Database } from "$lib/lib/db";
-import { deleteDevice, getContacts, getDevices, getUser } from "$lib/server/db";
+import { deleteDevice, getDevices, getUser } from "$lib/server/db";
 
 import { clients } from "../../hooks.server";
 import {
@@ -14,6 +14,7 @@ import {
   deleteContact,
   deleteContactLinkingCode,
   deleteDeviceLinkingCode,
+  getContacts,
   notifyDevices,
   redeemContactLinkingCode,
   updateDevice,
@@ -65,15 +66,12 @@ export interface Devices {
       display_name: string;
       did: number;
       type: DeviceType;
-      last_seen_at: number;
     };
     others: {
       did: number;
       display_name: string;
-      is_online: number;
       type: DeviceType;
       created_at: number;
-      last_seen_at: number;
     }[];
   };
 }
@@ -294,8 +292,7 @@ export const handleMessage = async (
       sendMessage(client, { type: "devices", data: deviceInfos.message });
       // Contacts
       const contacts = await getContacts(cts.db, user);
-      if (!contacts.success) throw new Error("500");
-      sendMessage(client, { type: "contacts", data: contacts.message });
+      sendMessage(client, { type: "contacts", data: contacts });
     });
 
     // WebRTC sharing
