@@ -74,7 +74,7 @@ class APIClient {
   }
 
   private sendBuffered() {
-    if (!this.socket.OPEN) return;
+    if (this.socket.readyState !== 1) return;
 
     while (this.buffer.length > 0) {
       this.socket.send(this.buffer[0]);
@@ -90,7 +90,7 @@ class APIClient {
       data: message.data,
     };
 
-    if (this.socket.OPEN) {
+    if (this.socket.readyState === 1) {
       this.socket.send(encode(msg));
     } else {
       this.buffer.push(encode(msg));
