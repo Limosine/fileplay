@@ -29,7 +29,7 @@ export const getContacts = async (db: Database, uid: number) => {
 
 export const deleteContact = async (db: Database, uid: number, cid: number) => {
   try {
-    const result = await db
+    await db
       .deleteFrom("contacts")
       .where((eb) =>
         eb("cid", "=", cid).and(eb("a", "=", uid).or("b", "=", uid)),
@@ -37,8 +37,7 @@ export const deleteContact = async (db: Database, uid: number, cid: number) => {
       .returning(["a", "b"])
       .executeTakeFirstOrThrow();
 
-    notifyDevices(db, "user", result.a, true);
-    notifyDevices(db, "user", result.b, true);
+    notifyDevices(db, "contact", uid);
   } catch (e: any) {
     console.log("Error 500: ", e);
     throw new Error("500");

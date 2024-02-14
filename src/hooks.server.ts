@@ -11,6 +11,7 @@ import { authenticate } from "$lib/websocket/server/context";
 import {
   closeConnections,
   handleMessage,
+  notifyDevices,
   sendMessage,
 } from "$lib/websocket/server/main";
 
@@ -37,6 +38,9 @@ if (!building) {
     client.device = ids.device;
     client.user = ids.user;
     client.guest = ids.guest;
+
+    // Notify devices
+    if (ids.user) notifyDevices(constants.db, "contact", ids.user);
 
     // Listeners
     client.on("message", async (data) => {

@@ -180,6 +180,7 @@ class Peer {
     this.clearTimer(did);
 
     // Setup connection
+    console.log("Opening connection, did: " + did);
     if (window.location.pathname.slice(0, 6) == "/guest")
       apiClient().sendMessage({ type: "openConnectionFromGuest", data: did });
     else apiClient().sendMessage({ type: "openConnection", data: did });
