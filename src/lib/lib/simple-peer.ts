@@ -234,7 +234,7 @@ class Peer {
       const conn = await peer.data.data;
 
       const chunk = this.buffer[did].data[0];
-      this.buffer[did].data = this.buffer[did].data.slice(1);
+      this.buffer[did].data.splice(0, 1);
 
       const promise = new Promise<null>((resolve) => {
         conn.write(chunk, undefined, () => {

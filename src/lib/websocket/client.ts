@@ -23,10 +23,17 @@ class APIClient {
   socket: WebSocket;
   messageId: number;
   promises: ((value: any) => void)[];
+  buffer: Uint8Array[];
 
   constructor() {
     this.messageId = 0;
     this.promises = [];
+    this.buffer = [];
+
+    this.socket = this.connect();
+  }
+
+  private connect() {
     this.socket = new WebSocket(
       `${location.protocol === "http:" ? "ws:" : "wss:"}//${
         location.host
@@ -38,6 +45,7 @@ class APIClient {
     if (window.location.pathname.slice(0, 6) != "/guest") {
       this.socket.addEventListener("open", () => {
         this.sendMessage({ type: "getInfos" });
+        this.sendBuffered();
       });
     }
 
@@ -58,9 +66,20 @@ class APIClient {
     this.socket.addEventListener("close", (event) => {
       setTimeout(() => {
         console.log("WebSocket closed, reason: ", event.reason);
-        if (event.code !== 1008) store.set(new APIClient());
+        if (event.code !== 1008) this.connect();
       }, 5000);
     });
+
+    return this.socket;
+  }
+
+  private sendBuffered() {
+    if (!this.socket.OPEN) return;
+
+    while (this.buffer.length > 0) {
+      this.socket.send(this.buffer[0]);
+      this.buffer.splice(0, 1);
+    }
   }
 
   sendMessage(message: Omit<MessageFromClient, "id">) {
@@ -71,7 +90,11 @@ class APIClient {
       data: message.data,
     };
 
-    this.socket.send(encode(msg));
+    if (this.socket.OPEN) {
+      this.socket.send(encode(msg));
+    } else {
+      this.buffer.push(encode(msg));
+    }
 
     if (
       msg.type == "createTransfer" ||
