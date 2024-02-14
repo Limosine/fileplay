@@ -2,7 +2,7 @@ import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit";
 
 import { deleteDevice, httpAuthorized } from "$lib/server/db";
-import { notifyDevices } from "$lib/websocket/server/authorized";
+import { notifyDevices } from "$lib/websocket/server/main";
 
 export const DELETE: RequestHandler = async ({ cookies, url }) => {
   const ctx = await httpAuthorized(cookies, false);

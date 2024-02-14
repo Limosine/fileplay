@@ -13,7 +13,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
     plugins: [
       EnvironmentPlugin(["NODE_ENV"]),
       sveltekit(),
-      SvelteKitPWA({
+      /* SvelteKitPWA({
         srcDir: "src",
         filename: "service-worker.ts",
         registerType: "prompt",
@@ -23,7 +23,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
           enabled: false,
         },
         manifest: await import("./static/manifest.json"),
-      }),
+      }), */
     ],
     // build: {
     //   rollupOptions: {
