@@ -33,12 +33,26 @@ class APIClient {
       }/api/websocket`,
     );
 
-    this.socket.addEventListener("open", () => {
-      this.socket.send(encode({}));
-    });
+    this.socket.binaryType = "arraybuffer";
+
+    if (window.location.pathname.slice(0, 6) != "/guest") {
+      this.socket.addEventListener("open", () => {
+        this.sendMessage({ type: "getInfos" });
+      });
+    }
 
     this.socket.addEventListener("message", (event) => {
-      this.handleData(decode(event.data) as MessageFromServer);
+      let data: MessageFromServer;
+      if (event.data instanceof ArrayBuffer) {
+        data = decode(new Uint8Array(event.data)) as any;
+      } else if (typeof event.data == "string") {
+        data = JSON.parse(event.data);
+      } else {
+        console.log(event.data);
+        throw new Error("WebSocket: Unknown type.");
+      }
+
+      this.handleData(data);
     });
 
     this.socket.addEventListener("close", (event) => {
