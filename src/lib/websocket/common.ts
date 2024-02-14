@@ -1,27 +1,7 @@
-import { encode } from "@msgpack/msgpack";
 import type { SignalData } from "simple-peer";
 import type { WebSocket } from "ws";
 
 import type { DeviceType } from "$lib/lib/common";
-import type { Database } from "$lib/lib/db";
-import { deleteDevice, getDevices, getUser } from "$lib/server/db";
-
-import { clients } from "../../hooks.server";
-import {
-  createContactLinkingCode,
-  createDeviceLinkingCode,
-  createTransfer,
-  deleteContact,
-  deleteContactLinkingCode,
-  deleteDeviceLinkingCode,
-  getContacts,
-  notifyDevices,
-  redeemContactLinkingCode,
-  updateDevice,
-  updateUser,
-} from "./server/lib/authorized";
-import { getTurnCredentials } from "./server/lib/common";
-import { authorize, authorizeGuest, authorizeMain } from "./server/lib/context";
 
 export interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean;
@@ -41,6 +21,7 @@ export type MessageFromServer =
   | Devices
   | Contacts
   | WebRTCData
+  | ConnectionClosed
   | Filetransfer
   | LinkingCode
   | TurnCredentials
@@ -107,6 +88,12 @@ export interface WebRTCData {
   };
 }
 
+export interface ConnectionClosed {
+  id?: number;
+  type: "connectionClosed";
+  data: number;
+}
+
 export interface Filetransfer {
   id: number;
   type: "filetransfer";
@@ -142,6 +129,7 @@ export type MessageFromClient =
   | GetInfos
   | GetTurnCredentials
   | Share
+  | OpenConnection
   | CreateTransfer
   | UpdateDevice
   | DeleteDevice
@@ -180,6 +168,12 @@ export interface Share {
           data: SignalData;
         };
   };
+}
+
+export interface OpenConnection {
+  id: number;
+  type: "openConnection" | "openConnectionFromGuest";
+  data: number;
 }
 
 export interface CreateTransfer {
@@ -250,151 +244,3 @@ export interface DeleteDeviceCode {
   type: "deleteDeviceCode";
   data?: any;
 }
-
-export const sendMessage = (
-  client: WebSocket | number,
-  message: MessageFromServer,
-) => {
-  console.log(message);
-  if (typeof client === "number") {
-    for (const c of clients) {
-      if (c.device === client) {
-        client = c;
-        break;
-      }
-    }
-    if (typeof client === "number") throw new Error("404");
-  }
-
-  client.send(encode(message));
-};
-
-export const handleMessage = async (
-  cts: {
-    db: Database;
-    cookieKey: CryptoKey;
-    turnKey: CryptoKey;
-  },
-  client: ExtendedWebSocket,
-  ids: AuthenticationIds,
-  data: MessageFromClient,
-) => {
-  // Initial infos
-  if (data.type == "getInfos") {
-    authorizeMain(ids, async (device, user) => {
-      // User
-      const userInfos = await getUser(cts.db, user);
-      if (!userInfos.success) throw new Error("500");
-      sendMessage(client, { type: "user", data: userInfos.message });
-      // Devices
-      const deviceInfos = await getDevices(cts.db, user, device);
-      if (!deviceInfos.success) throw new Error("500");
-      sendMessage(client, { type: "devices", data: deviceInfos.message });
-      // Contacts
-      const contacts = await getContacts(cts.db, user);
-      sendMessage(client, { type: "contacts", data: contacts });
-    });
-
-    // WebRTC sharing
-  } else if (data.type == "getTurnCredentials") {
-    authorize(ids, (AuthIds) => {
-      getTurnCredentials(
-        client,
-        data.id,
-        typeof AuthIds != "number"
-          ? AuthIds.device.toString()
-          : AuthIds.toString(),
-        cts.turnKey,
-      );
-    });
-  } else if (data.type == "share") {
-    authorizeMain(ids, (device) => {
-      sendMessage(data.data.did, {
-        type: "webRTCData",
-        data: {
-          from: device,
-          data: data.data.data,
-        },
-      });
-    });
-  } else if (data.type == "shareFromGuest") {
-    authorizeGuest(ids, (guest) => {
-      sendMessage(data.data.did, {
-        type: "webRTCData",
-        data: {
-          from: guest * -1,
-          data: data.data.data,
-        },
-      });
-    });
-
-    // Guest
-  } else if (data.type == "createTransfer") {
-    authorizeMain(ids, (device) => {
-      sendMessage(client, {
-        id: data.id,
-        type: "filetransfer",
-        data: createTransfer(device),
-      });
-    });
-
-    // Device
-  } else if (data.type == "updateDevice") {
-    authorizeMain(ids, (device, user) => {
-      updateDevice(cts.db, device, user, data.data.update, data.data.did);
-    });
-  } else if (data.type == "deleteDevice") {
-    authorizeMain(ids, async (device, user) => {
-      const result = await deleteDevice(
-        cts.db,
-        device,
-        data.data === undefined ? device : data.data,
-        user,
-      );
-      if (!result.success) throw new Error("500");
-      notifyDevices(cts.db, "device", user);
-    });
-
-    // User
-  } else if (data.type == "updateUser") {
-    authorizeMain(ids, (device, user) => {
-      updateUser(cts.db, user, data.data);
-    });
-
-    // Contacts
-  } else if (data.type == "deleteContact") {
-    authorizeMain(ids, (device, user) => {
-      deleteContact(cts.db, user, data.data);
-    });
-  } else if (data.type == "createContactCode") {
-    authorizeMain(ids, async (device, user) => {
-      sendMessage(client, {
-        id: data.id,
-        type: "contactLinkingCode",
-        data: await createContactLinkingCode(cts.db, device, user),
-      });
-    });
-  } else if (data.type == "redeemContactCode") {
-    authorizeMain(ids, (device, user) => {
-      redeemContactLinkingCode(cts.db, user, data.data);
-    });
-  } else if (data.type == "deleteContactCode") {
-    authorizeMain(ids, (device, user) => {
-      deleteContactLinkingCode(cts.db, device, user);
-    });
-
-    // Device linking code
-  } else if (data.type == "createDeviceCode") {
-    authorizeMain(ids, async (device, user) => {
-      sendMessage(client, {
-        id: data.id,
-        type: "deviceLinkingCode",
-        data: await createDeviceLinkingCode(cts.db, device, user),
-      });
-    });
-  } else if (data.type == "deleteDeviceCode") {
-    authorizeMain(ids, (device, user) => {
-      deleteDeviceLinkingCode(cts.db, device, user);
-    });
-  } else throw new Error("404");
-};

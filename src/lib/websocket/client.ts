@@ -121,6 +121,8 @@ class APIClient {
       else {
         peer().handle(message.data.from, message.data.data.data, "websocket");
       }
+    } else if (message.type == "connectionClosed") {
+      peer().closeConnections(message.data);
     } else if (
       message.type == "filetransfer" ||
       message.type == "contactLinkingCode" ||

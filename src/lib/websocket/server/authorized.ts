@@ -8,78 +8,12 @@ import {
   LINKING_REFRESH_TIME,
 } from "$lib/lib/common";
 import type { Database } from "$lib/lib/db";
-import {
-  getContacts as getContactsDB,
-  getDevices as getDevicesDB,
-  getUser,
-} from "$lib/server/db";
-import { sendMessage, type ExtendedWebSocket } from "$lib/websocket/common";
+import { getContacts as getContactsDB } from "$lib/server/db";
+import { sign } from "$lib/server/signing";
+import type { ExtendedWebSocket } from "$lib/websocket/common";
 
-import { clients } from "../../../../hooks.server";
 import { filetransfers } from "./stores";
-
-const getDevices = (userIds: number[]) => {
-  const connections: ExtendedWebSocket[] = [];
-
-  for (const client of clients) {
-    if (client.user !== null && userIds.includes(client.user))
-      connections.push(client);
-  }
-
-  return connections;
-};
-
-export const notifyDevices = async (
-  db: Database,
-  type: "device" | "user" | "contact",
-  uid: number,
-  onlyOwnDevices = false,
-) => {
-  const contacts = await getContacts(db, uid);
-  if (!onlyOwnDevices) {
-    const foreignDevices = getDevices(contacts.map((c) => c.uid));
-
-    for (const device of foreignDevices) {
-      if (device.user === null) break;
-      const contacts = await getContacts(db, device.user);
-      sendMessage(device, { type: "contacts", data: contacts });
-    }
-  }
-
-  const devices = getDevices([uid]);
-  const user = await getUser(db, uid);
-  for (const device of devices) {
-    if (device.device === null) break;
-    if (type == "device") {
-      const deviceInfos = await getDevicesDB(db, uid, device.device);
-      if (!deviceInfos.success) throw new Error("500");
-      sendMessage(device, { type: "devices", data: deviceInfos.message });
-    } else if (type == "contact") {
-      sendMessage(device, { type: "contacts", data: contacts });
-    } else {
-      if (user.success) {
-        sendMessage(device, { type: "user", data: user.message });
-      }
-    }
-  }
-};
-
-const devicesOnline = (
-  devices: {
-    did: number;
-    type: string;
-    display_name: string;
-  }[],
-) => {
-  const onlineDevices = [];
-
-  for (const client of clients) {
-    const index = devices.findIndex((d) => d.did === client.device);
-    if (index !== -1) onlineDevices.push(devices[index]);
-  }
-
-  return onlineDevices;
-};
+import { filterOnlineDevices, notifyDevices } from "./main";
 
 // Contacts
 export const getContacts = async (db: Database, uid: number) => {
@@ -87,7 +21,7 @@ export const getContacts = async (db: Database, uid: number) => {
   if (!result.success) throw new Error("500");
 
   for (let i = 0; i < result.message.length; i++) {
-    result.message[i].devices = devicesOnline(result.message[i].devices);
+    result.message[i].devices = filterOnlineDevices(result.message[i].devices);
   }
 
   return result.message;
@@ -183,6 +117,23 @@ export const createTransfer = (device: number) => {
   insert();
 
   return uuid;
+};
+
+// Turn credentials
+export const getTurnCredentials = async (
+  client: ExtendedWebSocket,
+  id: number,
+  user: string,
+  key: CryptoKey,
+) => {
+  const unixTimeStamp = Math.ceil(Date.now() / 1000) + 12 * 3600; // 12 hours
+
+  const username = [unixTimeStamp, user].join(":");
+  const password = await sign(username, key, "base64");
+
+  console.log("Credentials:", username, password);
+
+  return { username, password };
 };
 
 // Linking codes

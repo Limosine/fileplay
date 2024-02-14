@@ -1,7 +1,7 @@
 import { writable } from "svelte/store";
 
 // Main
-export const timers = writable<NodeJS.Timeout[]>([]);
+export const connections = writable<{ a: number; b: number }[]>([]);
 
 // Guest
 export const guests = writable<true[]>([]);

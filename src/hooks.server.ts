@@ -1,15 +1,18 @@
 import { building } from "$app/environment";
+import { decode } from "@msgpack/msgpack";
 import { WebSocketServer } from "ws";
 
 import { createConstants } from "$lib/server/db";
-import { authenticate } from "$lib/websocket/server/lib/context";
-import { decode } from "@msgpack/msgpack";
 import {
-  handleMessage,
-  sendMessage,
   type ExtendedWebSocket,
   type MessageFromClient,
 } from "$lib/websocket/common";
+import { authenticate } from "$lib/websocket/server/context";
+import {
+  closeConnections,
+  handleMessage,
+  sendMessage,
+} from "$lib/websocket/server/main";
 
 export let clients = new Set<ExtendedWebSocket>();
 
@@ -48,6 +51,13 @@ if (!building) {
     client.on("pong", () => {
       client.isAlive = true;
     });
+
+    if (ids.device !== null || ids.guest !== null) {
+      client.on("close", () => {
+        if (ids.device !== null) closeConnections(ids.device);
+        if (ids.guest !== null) closeConnections(ids.guest);
+      });
+    }
 
     client.on("error", (err) => {
       console.warn("Error from client:", err);

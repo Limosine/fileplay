@@ -1,10 +1,9 @@
 import cookie from "cookie";
 import type { IncomingMessage } from "http";
-import type { WebSocket } from "ws";
 
 import type { Database } from "$lib/lib/db";
 import { getDeviceID } from "$lib/server/signing";
-import { sendMessage, type AuthenticationIds } from "$lib/websocket/common";
+import { type AuthenticationIds } from "$lib/websocket/common";
 
 import { getGuestID } from "./guest";
 
@@ -15,6 +14,7 @@ const getCookie = (req: IncomingMessage, name: string) => {
   return cookies[name];
 };
 
+// Authentication
 export const authenticate = async (
   db: Database,
   key: CryptoKey,
@@ -57,6 +57,7 @@ export const authenticate = async (
   };
 };
 
+// Authorization
 export const authorize = (
   ids: AuthenticationIds,
   callback: (ids: { device: number; user: number } | number) => any,

@@ -180,6 +180,9 @@ class Peer {
     this.clearTimer(did);
 
     // Setup connection
+    if (window.location.pathname.slice(0, 6) == "/guest")
+      apiClient().sendMessage({ type: "openConnectionFromGuest", data: did });
+    else apiClient().sendMessage({ type: "openConnection", data: did });
     this.connections[did] = {
       data: "websocket",
       events: peer !== undefined ? peer.events : events,
@@ -207,15 +210,23 @@ class Peer {
     else return this.establishWebRTC(did, initiator, events);
   }
 
-  async closeConnections() {
-    for (const conn of this.connections) {
-      if (conn.data !== undefined && conn.data !== "websocket") {
-        if (conn.data.timer !== undefined) clearTimeout(conn.data.timer);
-        (await conn.data.data).destroy();
+  async closeConnections(did?: number) {
+    if (did !== undefined) {
+      const conn = this.connections[did];
+      if (conn !== undefined) {
+        delete this.connections[did];
+        if (conn.data !== "websocket") (await conn.data.data).destroy();
       }
+    } else {
+      for (const conn of this.connections) {
+        if (conn.data !== undefined && conn.data !== "websocket") {
+          if (conn.data.timer !== undefined) clearTimeout(conn.data.timer);
+          (await conn.data.data).destroy();
+        }
+      }
+      this.buffer = [];
+      this.connections = [];
     }
-    this.buffer = [];
-    this.connections = [];
   }
 
   private async sendMessages(did: number) {
