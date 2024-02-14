@@ -260,7 +260,7 @@ export const sendMessage = (
     for (const c of clients) {
       if (c.device === client) {
         client = c;
-        return;
+        break;
       }
     }
     if (typeof client === "number") throw new Error("404");

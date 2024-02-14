@@ -58,7 +58,7 @@ class Peer {
 
     if (this.fallback) this.turn = { username: "", password: "" };
     else {
-      this.turn = apiClient().sendMessage({ type: "createTransfer" });
+      this.turn = apiClient().sendMessage({ type: "getTurnCredentials" });
     }
   }
 
