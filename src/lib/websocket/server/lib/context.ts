@@ -58,32 +58,27 @@ export const authenticate = async (
 };
 
 export const authorize = (
-  client: WebSocket,
   ids: AuthenticationIds,
   callback: (ids: { device: number; user: number } | number) => any,
 ) => {
-  if (ids.device !== null && ids.user !== null) {
+  if (ids.device !== null && ids.user !== null)
     callback({ device: ids.device, user: ids.user });
-  } else {
-    if (ids.guest !== null) callback(ids.guest);
-    else sendMessage(client, "error", 401);
-  }
+  else if (ids.guest !== null) callback(ids.guest);
+  else throw new Error("401");
 };
 
 export const authorizeGuest = (
-  client: WebSocket,
   ids: AuthenticationIds,
   callback: (guest: number) => any,
 ) => {
   if (ids.guest !== null) callback(ids.guest);
-  else sendMessage(client, "error", 401);
+  else throw new Error("401");
 };
 
 export const authorizeMain = (
-  client: WebSocket,
   ids: AuthenticationIds,
   callback: (device: number, user: number) => any,
 ) => {
   if (ids.device !== null && ids.user !== null) callback(ids.device, ids.user);
-  else sendMessage(client, "error", 401);
+  else throw new Error("401");
 };

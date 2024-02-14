@@ -281,7 +281,7 @@ export const handleMessage = async (
 ) => {
   // Initial infos
   if (data.type == "getInfos") {
-    authorizeMain(client, ids, async (device, user) => {
+    authorizeMain(ids, async (device, user) => {
       // User
       const userInfos = await getUser(cts.db, user);
       if (!userInfos.success) throw new Error("500");
@@ -297,20 +297,18 @@ export const handleMessage = async (
 
     // WebRTC sharing
   } else if (data.type == "getTurnCredentials") {
-    authorize(client, ids, (AuthIds) => {
-      if (typeof AuthIds != "number") {
-        getTurnCredentials(
-          client,
-          data.id,
-          AuthIds.device.toString(),
-          cts.turnKey,
-        );
-      } else {
-        getTurnCredentials(client, data.id, AuthIds.toString(), cts.turnKey);
-      }
+    authorize(ids, (AuthIds) => {
+      getTurnCredentials(
+        client,
+        data.id,
+        typeof AuthIds != "number"
+          ? AuthIds.device.toString()
+          : AuthIds.toString(),
+        cts.turnKey,
+      );
     });
   } else if (data.type == "share") {
-    authorizeMain(client, ids, (device) => {
+    authorizeMain(ids, (device) => {
       sendMessage(data.data.did, {
         type: "webRTCData",
         data: {
@@ -320,7 +318,7 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "shareFromGuest") {
-    authorizeGuest(client, ids, (guest) => {
+    authorizeGuest(ids, (guest) => {
       sendMessage(data.data.did, {
         type: "webRTCData",
         data: {
@@ -332,7 +330,7 @@ export const handleMessage = async (
 
     // Guest
   } else if (data.type == "createTransfer") {
-    authorizeMain(client, ids, (device) => {
+    authorizeMain(ids, (device) => {
       sendMessage(client, {
         id: data.id,
         type: "filetransfer",
@@ -342,11 +340,11 @@ export const handleMessage = async (
 
     // Device
   } else if (data.type == "updateDevice") {
-    authorizeMain(client, ids, (device, user) => {
+    authorizeMain(ids, (device, user) => {
       updateDevice(cts.db, device, user, data.data.update, data.data.did);
     });
   } else if (data.type == "deleteDevice") {
-    authorizeMain(client, ids, async (device, user) => {
+    authorizeMain(ids, async (device, user) => {
       const result = await deleteDevice(
         cts.db,
         device,
@@ -359,17 +357,17 @@ export const handleMessage = async (
 
     // User
   } else if (data.type == "updateUser") {
-    authorizeMain(client, ids, (device, user) => {
+    authorizeMain(ids, (device, user) => {
       updateUser(cts.db, user, data.data);
     });
 
     // Contacts
   } else if (data.type == "deleteContact") {
-    authorizeMain(client, ids, (device, user) => {
+    authorizeMain(ids, (device, user) => {
       deleteContact(cts.db, user, data.data);
     });
   } else if (data.type == "createContactCode") {
-    authorizeMain(client, ids, async (device, user) => {
+    authorizeMain(ids, async (device, user) => {
       sendMessage(client, {
         id: data.id,
         type: "contactLinkingCode",
@@ -377,17 +375,17 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "redeemContactCode") {
-    authorizeMain(client, ids, (device, user) => {
+    authorizeMain(ids, (device, user) => {
       redeemContactLinkingCode(cts.db, user, data.data);
     });
   } else if (data.type == "deleteContactCode") {
-    authorizeMain(client, ids, (device, user) => {
+    authorizeMain(ids, (device, user) => {
       deleteContactLinkingCode(cts.db, device, user);
     });
 
     // Device linking code
   } else if (data.type == "createDeviceCode") {
-    authorizeMain(client, ids, async (device, user) => {
+    authorizeMain(ids, async (device, user) => {
       sendMessage(client, {
         id: data.id,
         type: "deviceLinkingCode",
@@ -395,7 +393,7 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "deleteDeviceCode") {
-    authorizeMain(client, ids, (device, user) => {
+    authorizeMain(ids, (device, user) => {
       deleteDeviceLinkingCode(cts.db, device, user);
     });
   } else throw new Error("404");

@@ -37,10 +37,8 @@ if (!building) {
 
     // Listeners
     client.on("message", async (data) => {
-      console.log(data);
       const decodedData = decode(data as BufferSource) as MessageFromClient;
       try {
-        console.log(decodedData);
         await handleMessage(constants, client, ids, decodedData);
       } catch (e: any) {
         sendMessage(client, { id: decodedData.id, type: "error", data: e });

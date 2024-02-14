@@ -83,7 +83,6 @@ class APIClient {
   }
 
   sendMessage(message: Omit<MessageFromClient, "id">) {
-    console.log(message);
     const msg = {
       id: ++this.messageId,
       type: message.type,
@@ -109,8 +108,6 @@ class APIClient {
   }
 
   private handleData(message: MessageFromServer) {
-    console.log(message);
-
     if (message.type == "user") {
       user.set(message.data);
     } else if (message.type == "devices") {
