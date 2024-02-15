@@ -58,6 +58,7 @@ if (!building) {
 
     if (ids.device !== null || ids.guest !== null) {
       client.on("close", () => {
+        if (ids.user !== null) notifyDevices(constants.db, "contact", ids.user);
         if (ids.device !== null) closeConnections(ids.device);
         if (ids.guest !== null) closeConnections(ids.guest);
       });

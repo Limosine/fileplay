@@ -115,10 +115,12 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "openConnection") {
+    console.log("Opening connection, did: " + data.data);
     authorizeMain(ids, (device) => {
       openConnection(device, data.data);
     });
   } else if (data.type == "openConnectionFromGuest") {
+    console.log("Opening connection, did: " + data.data);
     authorizeGuest(ids, (guest) => {
       openConnection(guest * -1, data.data);
     });
