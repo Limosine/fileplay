@@ -233,7 +233,7 @@ class Peer {
                 break;
               }
             }
-            if (!found) this.connections[i];
+            if (!found) delete this.connections[i];
           }
         }
       }
