@@ -5,6 +5,7 @@ import { peer } from "$lib/lib/simple-peer";
 import { contacts, devices, own_did, user } from "$lib/lib/UI";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
+import type { PartialBy } from "$lib/lib/utils";
 
 const store = writable<APIClient>();
 
@@ -83,11 +84,11 @@ class APIClient {
     }
   }
 
-  sendMessage(message: Omit<MessageFromClient, "id">) {
+  sendMessage(message: MessageFromClient) {
     const msg = {
       id: ++this.messageId,
       type: message.type,
-      data: message.data,
+      data: "data" in message ? message.data : undefined,
     };
 
     if (this.socket.readyState === 1) {

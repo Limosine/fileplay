@@ -54,7 +54,7 @@
               apiClient().sendMessage({
                 type: "updateDevice",
                 data: {
-                  update: { type: $deviceParams.type },
+                  update: { type: $deviceParams.type as DeviceType },
                   did: $did,
                 },
               });

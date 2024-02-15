@@ -122,6 +122,7 @@ export type MessageFromClient =
   | GetInfos
   | GetTurnCredentials
   | Share
+  | ShareFromGuest
   | CreateTransfer
   | UpdateDevice
   | DeleteDevice
@@ -134,42 +135,41 @@ export type MessageFromClient =
   | DeleteDeviceCode;
 
 export interface GetInfos {
-  id: number;
   type: "getInfos";
-  data?: any;
 }
 
 export interface GetTurnCredentials {
-  id: number;
   type: "getTurnCredentials";
-  data?: any;
+}
+
+interface DataOverWebSocket {
+  did: number;
+  data:
+    | {
+        type: "webrtc";
+        data: Uint8Array;
+      }
+    | {
+        type: "signal";
+        data: SignalData;
+      };
 }
 
 export interface Share {
-  id: number;
-  type: "share" | "shareFromGuest";
-  data: {
-    did: number;
-    data:
-      | {
-          type: "webrtc";
-          data: Uint8Array;
-        }
-      | {
-          type: "signal";
-          data: SignalData;
-        };
-  };
+  type: "share";
+  data: DataOverWebSocket;
+}
+
+export interface ShareFromGuest {
+  type: "shareFromGuest";
+  data: DataOverWebSocket & { guestTransfer: string };
 }
 
 export interface CreateTransfer {
-  id: number;
   type: "createTransfer";
-  data?: any;
 }
 
 export interface UpdateDevice {
-  id: number;
   type: "updateDevice";
   data: {
     did?: number;
@@ -181,13 +181,11 @@ export interface UpdateDevice {
 }
 
 export interface DeleteDevice {
-  id: number;
   type: "deleteDevice";
   data?: number;
 }
 
 export interface UpdateUser {
-  id: number;
   type: "updateUser";
   data: {
     display_name?: string;
@@ -196,37 +194,27 @@ export interface UpdateUser {
 }
 
 export interface DeleteContact {
-  id: number;
   type: "deleteContact";
   data: number;
 }
 
 export interface CreateContactCode {
-  id: number;
   type: "createContactCode";
-  data?: any;
 }
 
 export interface RedeemContactCode {
-  id: number;
   type: "redeemContactCode";
   data: string;
 }
 
 export interface DeleteContactCode {
-  id: number;
   type: "deleteContactCode";
-  data?: any;
 }
 
 export interface CreateDeviceCode {
-  id: number;
   type: "createDeviceCode";
-  data?: any;
 }
 
 export interface DeleteDeviceCode {
-  id: number;
   type: "deleteDeviceCode";
-  data?: any;
 }

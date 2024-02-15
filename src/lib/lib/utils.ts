@@ -1,5 +1,7 @@
 import Filter from "bad-words";
 
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
 export const isProfane = (s: string) => {
   return new Filter().isProfane(s);
 };

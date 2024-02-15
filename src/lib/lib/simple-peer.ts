@@ -6,6 +6,7 @@ import type { MaybePromise } from "@sveltejs/kit";
 
 import { concatArrays, type webRTCData } from "$lib/sharing/common";
 import { handleData } from "$lib/sharing/main";
+import { apiClient } from "$lib/websocket/client";
 
 import {
   decryptData,
@@ -13,9 +14,8 @@ import {
   publicKeyJwk,
   updateKey,
 } from "./encryption";
-import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
-import { apiClient } from "$lib/websocket/client";
 import type { IDeviceInfo } from "./fetchers";
+import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
 
 const store = writable<Peer>();
 
@@ -97,8 +97,8 @@ class Peer {
             type: "shareFromGuest",
             data: {
               did,
-              guestTransfer: String(get(page).url.searchParams.get("id")), // TODO
-              data: { type: "signal", data: JSON.stringify(data) },
+              guestTransfer: String(get(page).url.searchParams.get("id")),
+              data: { type: "signal", data },
             },
           });
         else
@@ -106,7 +106,7 @@ class Peer {
             type: "share",
             data: {
               did,
-              data: { type: "signal", data: JSON.stringify(data) },
+              data: { type: "signal", data },
             },
           });
       });
@@ -144,7 +144,7 @@ class Peer {
     const timer = setTimeout(() => {
       console.log("Failed to establish WebRTC connection");
       this.establishWebSocket(did, initiator, events);
-    }, 5000);
+    }, 3000);
 
     this.connections[did] = {
       data: { data: peer, timer },
@@ -225,7 +225,10 @@ class Peer {
       } else {
         // Close connections to offline contacts
         for (let i = 0; i < this.connections.length; i++) {
-          if (this.connections[i] !== undefined && this.connections[i].data == "websocket") {
+          if (
+            this.connections[i] !== undefined &&
+            this.connections[i].data == "websocket"
+          ) {
             let found = false;
             for (const devices of did) {
               if (devices.some((d) => d.did === i)) {
@@ -283,10 +286,10 @@ class Peer {
     if (window.location.pathname.slice(0, 6) == "/guest") {
       dataArray.forEach((data) => {
         apiClient().sendMessage({
-          type: "share",
+          type: "shareFromGuest",
           data: {
             did,
-            guestTransfer: String(get(page).url.searchParams.get("id")), // TODO
+            guestTransfer: String(get(page).url.searchParams.get("id")),
             data: { type: "webrtc", data: data },
           },
         });
@@ -416,7 +419,7 @@ class Peer {
 
   async handle(did: number, data: Uint8Array, origin: "webrtc" | "websocket") {
     const handleDecoded = async (data: webRTCData) => {
-      console.log(data);
+      if (data.type != "chunk") console.log(data);
 
       if (data.type == "update") {
         const conn = this.connections[did];

@@ -29,6 +29,8 @@ import {
 } from "./authorized";
 import { authorize, authorizeGuest, authorizeMain } from "./context";
 import { clients } from "../../../hooks.server";
+import { get } from "svelte/store";
+import { filetransfers } from "./stores";
 
 // Message handler
 export const sendMessage = (
@@ -58,7 +60,7 @@ export const handleMessage = async (
   },
   client: ExtendedWebSocket,
   ids: AuthenticationIds,
-  data: MessageFromClient,
+  data: MessageFromClient & { id: number },
 ) => {
   // Initial infos
   if (data.type == "getInfos") {
@@ -104,6 +106,14 @@ export const handleMessage = async (
     });
   } else if (data.type == "shareFromGuest") {
     authorizeGuest(ids, (guest) => {
+      if (
+        !get(filetransfers).some(
+          (transfer) =>
+            transfer.id == data.data.guestTransfer &&
+            transfer.did === data.data.did,
+        )
+      )
+        throw new Error("404");
       sendMessage(data.data.did, {
         type: "webRTCData",
         data: {

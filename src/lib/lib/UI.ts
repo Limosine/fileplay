@@ -11,6 +11,7 @@ import {
   type IDevices,
   type IUser,
 } from "./fetchers";
+import type { PartialBy } from "./utils";
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
 export const settings_page = writable<"main" | "devices" | "device">("main");
@@ -56,8 +57,6 @@ export const deviceInfos = writable<IDeviceInfo[]>();
 export const user = writable<IUser>();
 
 // Notifications
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export interface NotificationRequest {
   title: "File request";
