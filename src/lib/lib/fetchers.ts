@@ -1,11 +1,10 @@
-import { browser } from "$app/environment";
 import { page } from "$app/stores";
 import { get } from "svelte/store";
 
 import { DeviceType } from "./common";
 import { rawFiles } from "./UI";
 
-// contacts
+// Contacts
 export interface IContact {
   cid: number;
   uid: number;
@@ -15,7 +14,7 @@ export interface IContact {
   devices: IDeviceInfo[];
 }
 
-// devices
+// Devices
 export interface IDevices {
   self: {
     did: number;
@@ -31,14 +30,14 @@ export interface IDevices {
   }[];
 }
 
-// device infos
+// Device infos
 export interface IDeviceInfo {
   did: number;
   type: string;
   display_name: string;
 }
 
-// user
+// User
 export interface IUser {
   uid: number;
   display_name: string;
@@ -51,27 +50,7 @@ export const withDeviceType = (name: string) => {
   return { name, type: DeviceType[name] as string };
 };
 
-export const setupGuest = async () => {
-  const res = await fetch("/api/setup/guest", {
-    method: "POST",
-  });
-
-  if (!res.ok) throw new Error("Failed to setup guestId.");
-};
-
-export const deleteAccount = async () => {
-  if (get(page).url.hostname == "localhost") return;
-
-  const res = await fetch("/api/user", {
-    method: "DELETE",
-  });
-
-  if (browser && res) {
-    localStorage.removeItem("loggedIn");
-    window.location.href = "/setup";
-  }
-};
-
+// Service worker
 export const handleMessage = (
   event: MessageEvent<{ data: any; action: string }>,
 ) => {

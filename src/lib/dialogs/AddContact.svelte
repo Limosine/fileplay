@@ -46,7 +46,6 @@
             class="right-round border"
             on:click={() => {
               redeemCode_section = false;
-              generateContactCode();
             }}
           >
             Generate code

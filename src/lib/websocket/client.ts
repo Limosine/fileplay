@@ -1,3 +1,4 @@
+import { browser } from "$app/environment";
 import { decode, encode } from "@msgpack/msgpack";
 import { get, writable } from "svelte/store";
 
@@ -5,18 +6,17 @@ import { peer } from "$lib/lib/simple-peer";
 import { contacts, devices, own_did, user } from "$lib/lib/UI";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
-import type { PartialBy } from "$lib/lib/utils";
 
 const store = writable<APIClient>();
 
 export const apiClient = () => {
-  let peerStore = get(store);
-  if (peerStore === undefined) {
-    peerStore = new APIClient();
-    store.set(peerStore);
-    return peerStore;
+  let apiStore = get(store);
+  if (apiStore === undefined) {
+    apiStore = new APIClient();
+    store.set(apiStore);
+    return apiStore;
   } else {
-    return peerStore;
+    return apiStore;
   }
 };
 
@@ -43,12 +43,11 @@ class APIClient {
 
     this.socket.binaryType = "arraybuffer";
 
-    if (window.location.pathname.slice(0, 6) != "/guest") {
-      this.socket.addEventListener("open", () => {
+    this.socket.addEventListener("open", () => {
+      if (window.location.pathname.slice(0, 6) != "/guest")
         this.sendMessage({ type: "getInfos" });
-        this.sendBuffered();
-      });
-    }
+      this.sendBuffered();
+    });
 
     this.socket.addEventListener("message", (event) => {
       let data: MessageFromServer;
@@ -136,6 +135,26 @@ class APIClient {
       console.warn("Error from Server:", message.data);
     } else {
       console.log("Error: Type not found");
+    }
+  }
+
+  // HTTP
+  async setupGuest() {
+    const res = await fetch("/api/setup/guest", {
+      method: "POST",
+    });
+  
+    if (!res.ok) throw new Error("Failed to setup guestId.");
+  }
+  
+  async deleteAccount() {
+    const res = await fetch("/api/user", {
+      method: "DELETE",
+    });
+  
+    if (browser && res) {
+      localStorage.removeItem("loggedIn");
+      window.location.href = "/setup";
     }
   }
 }

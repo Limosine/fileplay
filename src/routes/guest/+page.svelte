@@ -11,8 +11,9 @@
   import { incoming_filetransfers } from "$lib/sharing/common";
   import { cancelFiletransfer, connectAsListener } from "$lib/sharing/main";
   import { send } from "$lib/sharing/send";
-  import { handleMessage, setupGuest } from "$lib/lib/fetchers";
+  import { handleMessage } from "$lib/lib/fetchers";
   import { files, input } from "$lib/lib/UI";
+  import { apiClient } from "$lib/websocket/client";
 
   let sentAccept = false;
   let did: number;
@@ -46,7 +47,7 @@
       navigator.serviceWorker.addEventListener("message", handleMessage);
 
       await setup();
-      await setupGuest();
+      await apiClient().setupGuest();
 
       if (!sender) connectAsListener(did, filetransfer_id);
     }
