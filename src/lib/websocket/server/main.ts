@@ -41,7 +41,12 @@ export const sendMessage = (
   console.log(message);
   if (typeof client === "number") {
     for (const c of clients) {
-      if (c.device === client) {
+      if (client < 0) {
+        if (c.guest === client * -1) {
+          client = c;
+          break;
+        }
+      } else if (c.device === client) {
         client = c;
         break;
       }
@@ -113,7 +118,7 @@ export const handleMessage = async (
             transfer.did === data.data.did,
         )
       )
-        throw new Error("404");
+        throw new Error("401 Filetransfer not found");
       sendMessage(data.data.did, {
         type: "webRTCData",
         data: {
