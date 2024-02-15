@@ -15,6 +15,7 @@ import {
 } from "./encryption";
 import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
 import { apiClient } from "$lib/websocket/client";
+import type { IDeviceInfo } from "./fetchers";
 
 const store = writable<Peer>();
 
@@ -180,10 +181,6 @@ class Peer {
     this.clearTimer(did);
 
     // Setup connection
-    console.log("Opening connection, did: " + did);
-    if (window.location.pathname.slice(0, 6) == "/guest")
-      apiClient().sendMessage({ type: "openConnectionFromGuest", data: did });
-    else apiClient().sendMessage({ type: "openConnection", data: did });
     this.connections[did] = {
       data: "websocket",
       events: peer !== undefined ? peer.events : events,
@@ -211,7 +208,7 @@ class Peer {
     else return this.establishWebRTC(did, initiator, events);
   }
 
-  async closeConnections(did?: number | "websocket") {
+  async closeConnections(did?: number | IDeviceInfo[][] | "websocket") {
     if (did !== undefined) {
       if (typeof did === "number") {
         // Close specific connection
@@ -220,11 +217,25 @@ class Peer {
           delete this.connections[did];
           if (conn.data !== "websocket") (await conn.data.data).destroy();
         }
-      } else {
+      } else if (did == "websocket") {
         // Close all websocket connections
         this.connections = this.connections.filter(
           (c) => c.data != "websocket",
         );
+      } else {
+        // Close connections to offline contacts
+        for (let i = 0; i < this.connections.length; i++) {
+          if (this.connections[i] !== undefined && this.connections[i].data == "websocket") {
+            let found = false;
+            for (const devices of did) {
+              if (devices.some((d) => d.did === i)) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) this.connections[i];
+          }
+        }
       }
     } else {
       // Close all connections

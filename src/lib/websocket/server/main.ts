@@ -29,8 +29,6 @@ import {
 } from "./authorized";
 import { authorize, authorizeGuest, authorizeMain } from "./context";
 import { clients } from "../../../hooks.server";
-import { connections } from "./stores";
-import { get } from "svelte/store";
 
 // Message handler
 export const sendMessage = (
@@ -113,16 +111,6 @@ export const handleMessage = async (
           data: data.data.data,
         },
       });
-    });
-  } else if (data.type == "openConnection") {
-    console.log("Opening connection, did: " + data.data);
-    authorizeMain(ids, (device) => {
-      openConnection(device, data.data);
-    });
-  } else if (data.type == "openConnectionFromGuest") {
-    console.log("Opening connection, did: " + data.data);
-    authorizeGuest(ids, (guest) => {
-      openConnection(guest * -1, data.data);
     });
 
     // Guest
@@ -212,41 +200,6 @@ export const filterOnlineDevices = (
   }
 
   return onlineDevices;
-};
-
-// P2P Connections
-export const openConnection = (a: number, b: number) => {
-  const exists = get(connections).some(
-    (c) => (c.a === a && c.b === b) || (c.a === b && c.b === a),
-  );
-
-  if (!exists) {
-    connections.update((connections) => {
-      connections.push({
-        a,
-        b,
-      });
-      return connections;
-    });
-  }
-};
-
-export const closeConnections = (did: number) => {
-  const elements = get(connections)
-    .filter((c) => c.a === did || c.b === did)
-    .map((c) => (c.a === did ? c.b : c.a));
-
-  connections.update((connections) => {
-    connections = connections.filter((c) => c.a !== did && c.b !== did);
-    return connections;
-  });
-
-  for (const element of elements) {
-    sendMessage(did, {
-      type: "connectionClosed",
-      data: element,
-    }, false);
-  }
 };
 
 // Notify devices

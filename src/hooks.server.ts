@@ -9,7 +9,6 @@ import {
 } from "$lib/websocket/common";
 import { authenticate } from "$lib/websocket/server/context";
 import {
-  closeConnections,
   handleMessage,
   notifyDevices,
   sendMessage,
@@ -56,11 +55,9 @@ if (!building) {
       client.isAlive = true;
     });
 
-    if (ids.device !== null || ids.guest !== null) {
+    if (ids.user !== null) {
       client.on("close", () => {
         if (ids.user !== null) notifyDevices(constants.db, "contact", ids.user);
-        if (ids.device !== null) closeConnections(ids.device);
-        if (ids.guest !== null) closeConnections(ids.guest);
       });
     }
 

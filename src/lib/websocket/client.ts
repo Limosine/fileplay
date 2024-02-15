@@ -116,14 +116,13 @@ class APIClient {
       own_did.set(message.data.self.did);
     } else if (message.type == "contacts") {
       contacts.set(message.data);
+      peer().closeConnections(message.data.map((c) => c.devices));
     } else if (message.type == "webRTCData") {
       if (message.data.data.type == "signal")
         peer().signal(message.data.from, message.data.data.data);
       else {
         peer().handle(message.data.from, message.data.data.data, "websocket");
       }
-    } else if (message.type == "connectionClosed") {
-      peer().closeConnections(message.data);
     } else if (
       message.type == "filetransfer" ||
       message.type == "contactLinkingCode" ||

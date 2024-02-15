@@ -21,7 +21,6 @@ export type MessageFromServer =
   | Devices
   | Contacts
   | WebRTCData
-  | ConnectionClosed
   | Filetransfer
   | LinkingCode
   | TurnCredentials
@@ -88,12 +87,6 @@ export interface WebRTCData {
   };
 }
 
-export interface ConnectionClosed {
-  id?: number;
-  type: "connectionClosed";
-  data: number;
-}
-
 export interface Filetransfer {
   id: number;
   type: "filetransfer";
@@ -129,7 +122,6 @@ export type MessageFromClient =
   | GetInfos
   | GetTurnCredentials
   | Share
-  | OpenConnection
   | CreateTransfer
   | UpdateDevice
   | DeleteDevice
@@ -168,12 +160,6 @@ export interface Share {
           data: SignalData;
         };
   };
-}
-
-export interface OpenConnection {
-  id: number;
-  type: "openConnection" | "openConnectionFromGuest";
-  data: number;
 }
 
 export interface CreateTransfer {
