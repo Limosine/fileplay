@@ -38,14 +38,16 @@ class APIClient {
     this.socket = new WebSocket(
       `${location.protocol === "http:" ? "ws:" : "wss:"}//${
         location.host
-      }/api/websocket`,
+      }/api/websocket?type=${window.location.pathname.slice(0, 6) == "/guest" ? "guest" : "main"}`,
     );
 
     this.socket.binaryType = "arraybuffer";
 
     this.socket.addEventListener("open", () => {
-      if (window.location.pathname.slice(0, 6) != "/guest")
+      if (window.location.pathname.slice(0, 6) != "/guest") {
+        this.sendMessage({ type: "deleteTransfer" });
         this.sendMessage({ type: "getInfos" });
+      }
       this.sendBuffered();
     });
 
@@ -143,15 +145,15 @@ class APIClient {
     const res = await fetch("/api/setup/guest", {
       method: "POST",
     });
-  
+
     if (!res.ok) throw new Error("Failed to setup guestId.");
   }
-  
+
   async deleteAccount() {
     const res = await fetch("/api/user", {
       method: "DELETE",
     });
-  
+
     if (browser && res) {
       localStorage.removeItem("loggedIn");
       window.location.href = "/setup";

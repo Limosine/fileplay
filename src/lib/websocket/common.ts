@@ -124,6 +124,7 @@ export type MessageFromClient =
   | Share
   | ShareFromGuest
   | CreateTransfer
+  | DeleteTransfer
   | UpdateDevice
   | DeleteDevice
   | UpdateUser
@@ -167,6 +168,10 @@ export interface ShareFromGuest {
 
 export interface CreateTransfer {
   type: "createTransfer";
+}
+
+export interface DeleteTransfer {
+  type: "deleteTransfer";
 }
 
 export interface UpdateDevice {

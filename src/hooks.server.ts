@@ -1,4 +1,5 @@
 import { building } from "$app/environment";
+import type { IncomingMessage } from "http";
 import { decode } from "@msgpack/msgpack";
 import { WebSocketServer } from "ws";
 
@@ -13,7 +14,6 @@ import {
   notifyDevices,
   sendMessage,
 } from "$lib/websocket/server/main";
-import { deleteTransfer } from "$lib/websocket/server/authorized";
 
 export let clients = new Set<ExtendedWebSocket>();
 
@@ -25,8 +25,19 @@ if (!building) {
   clients = wss.clients as Set<ExtendedWebSocket>;
   const constants = await createConstants();
 
-  wss.on("connection", async (client: ExtendedWebSocket, req) => {
+  wss.on("connection", async (client: ExtendedWebSocket, req: IncomingMessage) => {
     const ids = await authenticate(constants.db, constants.cookieKey, req);
+
+    if (req.url !== undefined) {
+      const url = new URL(req.url, `https://${req.headers.host}`);
+      const type = url.searchParams.get("type");
+
+      if (type == "main") ids.guest = null;
+      else if (type == "guest") {
+        ids.device = null;
+        ids.user = null;
+      }
+    } else return client.close(1008, "Unauthorized");
 
     // Check authorization
     if (ids.guest === null && (ids.device === null || ids.user === null)) {
@@ -62,9 +73,8 @@ if (!building) {
       client.isAlive = true;
     });
 
-    if (ids.user !== null || ids.device !== null) {
+    if (ids.user !== null) {
       client.on("close", () => {
-        if (ids.device !== null) deleteTransfer(ids.device);
         if (ids.user !== null) notifyDevices(constants.db, "contact", ids.user);
       });
     }

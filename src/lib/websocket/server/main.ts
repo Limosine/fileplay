@@ -21,6 +21,7 @@ import {
   deleteContact,
   deleteContactLinkingCode,
   deleteDeviceLinkingCode,
+  deleteTransfer,
   getContacts,
   getTurnCredentials,
   redeemContactLinkingCode,
@@ -136,6 +137,10 @@ export const handleMessage = async (
         type: "filetransfer",
         data: createTransfer(device),
       });
+    });
+  } else if (data.type == "deleteTransfer") {
+    authorizeMain(ids, (device) => {
+      deleteTransfer(device);
     });
 
     // Device
