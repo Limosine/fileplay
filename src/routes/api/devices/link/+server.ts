@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { z } from "zod";
 
 import { httpAuthorized } from "$lib/server/db";
-import { notifyDevices } from "$lib/websocket/server/main";
+import { notifyDevices } from "$lib/api/server/main";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
   const ctx = await httpAuthorized(cookies, false);

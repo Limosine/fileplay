@@ -2,15 +2,15 @@
   import dayjs from "dayjs";
   import { onDestroy, onMount } from "svelte";
 
+  import { apiClient } from "$lib/api/client";
   import { code, addContactDialog, add_mode } from "$lib/lib/UI";
-  import { apiClient } from "$lib/websocket/client";
 
   let redeemCode_section = true;
 
   const generateContactCode = async () => {
     // todo refresh this code after specified interval
 
-    const result = await apiClient().sendMessage({ type: "createContactCode" });
+    const result = await apiClient("ws").sendMessage({ type: "createContactCode" });
     expires_at = result.expires;
     return result;
   };
@@ -18,7 +18,7 @@
   const generateDeviceCode = async () => {
     // todo refresh this code after specified interval
 
-    const result = await apiClient().sendMessage({ type: "createDeviceCode" });
+    const result = await apiClient("ws").sendMessage({ type: "createDeviceCode" });
     expires_at = result.expires;
     return result;
   };
@@ -94,7 +94,7 @@
         class="border"
         style="border: 0;"
         on:click={async () => {
-          await apiClient().sendMessage({
+          await apiClient("ws").sendMessage({
             type: "redeemContactCode",
             data: $code,
           });

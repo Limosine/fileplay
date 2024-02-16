@@ -2,6 +2,7 @@ import { browser } from "$app/environment";
 import { page } from "$app/stores";
 import { get } from "svelte/store";
 
+import { apiClient } from "$lib/api/client";
 import { type IContact } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
@@ -22,7 +23,6 @@ import {
   handleFileTransferFinished,
 } from "./handle";
 import { send, sendChunked, sendRequest } from "./send";
-import { apiClient } from "$lib/websocket/client";
 
 const authenticated = (
   did: number,
@@ -118,7 +118,7 @@ export const handleData = (data: Exclude<webRTCData, Update>, did: number) => {
 };
 
 export const addPendingFile = async () => {
-  const filetransferID = await apiClient().sendMessage({
+  const filetransferID = await apiClient("ws").sendMessage({
     type: "createTransfer",
   });
 
@@ -136,7 +136,7 @@ export const addPendingFile = async () => {
 };
 
 export const authorizeGuestSender = async () => {
-  const filetransferID = await apiClient().sendMessage({
+  const filetransferID = await apiClient("ws").sendMessage({
     type: "createTransfer",
   });
 

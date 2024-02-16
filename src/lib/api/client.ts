@@ -1,30 +1,38 @@
 import { browser } from "$app/environment";
 import { decode, encode } from "@msgpack/msgpack";
-import { get, writable } from "svelte/store";
+import { get, readable, writable } from "svelte/store";
 
 import { peer } from "$lib/lib/simple-peer";
 import { contacts, devices, own_did, user } from "$lib/lib/UI";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
 
-const store = writable<APIClient>();
+class HTTPClient {
+  async setupGuest() {
+    const res = await fetch("/api/setup/guest", {
+      method: "POST",
+    });
 
-export const apiClient = () => {
-  let apiStore = get(store);
-  if (apiStore === undefined) {
-    apiStore = new APIClient();
-    store.set(apiStore);
-    return apiStore;
-  } else {
-    return apiStore;
+    if (!res.ok) throw new Error("Failed to setup guestId.");
   }
-};
 
-class APIClient {
-  socket: WebSocket;
-  messageId: number;
-  promises: ((value: any) => void)[];
-  buffer: Uint8Array[];
+  async deleteAccount() {
+    const res = await fetch("/api/user", {
+      method: "DELETE",
+    });
+
+    if (browser && res) {
+      localStorage.removeItem("loggedIn");
+      window.location.href = "/setup";
+    }
+  }
+}
+
+class WebSocketClient {
+  private socket: WebSocket;
+  private messageId: number;
+  private promises: ((value: any) => void)[];
+  private buffer: Uint8Array[];
 
   constructor() {
     this.messageId = 0;
@@ -125,6 +133,8 @@ class APIClient {
       else {
         peer().handle(message.data.from, message.data.data.data, "websocket");
       }
+    } else if (message.type == "closeConnection") {
+      peer().closeConnections(message.data);
     } else if (
       message.type == "filetransfer" ||
       message.type == "contactLinkingCode" ||
@@ -139,24 +149,24 @@ class APIClient {
       console.log("Error: Type not found");
     }
   }
+}
 
-  // HTTP
-  async setupGuest() {
-    const res = await fetch("/api/setup/guest", {
-      method: "POST",
-    });
-
-    if (!res.ok) throw new Error("Failed to setup guestId.");
-  }
-
-  async deleteAccount() {
-    const res = await fetch("/api/user", {
-      method: "DELETE",
-    });
-
-    if (browser && res) {
-      localStorage.removeItem("loggedIn");
-      window.location.href = "/setup";
+export function apiClient(method: "http"): HTTPClient;
+export function apiClient(method: "ws"): WebSocketClient;
+export function apiClient(method: "http" | "ws") {
+  if (method == "http") {
+    return get(httpStore);
+  } else {
+    let store = get(wsStore);
+    if (store === undefined) {
+      store = new WebSocketClient();
+      wsStore.set(store);
+      return store;
+    } else {
+      return store;
     }
   }
 }
+
+const httpStore = readable(new HTTPClient());
+const wsStore = writable<WebSocketClient>();

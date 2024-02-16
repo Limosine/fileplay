@@ -4,6 +4,7 @@
 
   import "beercss";
 
+  import { apiClient } from "$lib/api/client";
   import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import { SendState, sendState } from "$lib/lib/sendstate";
@@ -13,7 +14,6 @@
   import { send } from "$lib/sharing/send";
   import { handleMessage } from "$lib/lib/fetchers";
   import { files, input } from "$lib/lib/UI";
-  import { apiClient } from "$lib/websocket/client";
 
   let sentAccept = false;
   let did: number;
@@ -47,7 +47,7 @@
       navigator.serviceWorker.addEventListener("message", handleMessage);
 
       await setup();
-      await apiClient().setupGuest();
+      await apiClient("http").setupGuest();
 
       if (!sender) connectAsListener(did, filetransfer_id);
     }

@@ -1,9 +1,9 @@
 <script lang="ts">
   import dayjs from "dayjs";
 
+  import { apiClient } from "$lib/api/client";
   import { getDicebearUrl } from "$lib/lib/common";
   import { devices, did, openDialog, settings_page, user } from "$lib/lib/UI";
-  import { apiClient } from "$lib/websocket/client";
 </script>
 
 {#if $settings_page == "main"}
@@ -80,7 +80,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => apiClient().deleteAccount()}
+      on:click={() => apiClient("http").deleteAccount()}
     >
       <div class="column" style="color: red;">
         <p style="font-size: large; margin-bottom: 2px;">Delete account</p>

@@ -12,7 +12,7 @@ import type {
   ExtendedWebSocket,
   MessageFromClient,
   MessageFromServer,
-} from "$lib/websocket/common";
+} from "$lib/api/common";
 
 import {
   createContactLinkingCode,
@@ -120,6 +120,7 @@ export const handleMessage = async (
         )
       )
         throw new Error("401 Filetransfer not found");
+      client.guestTransfer = data.data.guestTransfer;
       sendMessage(data.data.did, {
         type: "webRTCData",
         data: {
@@ -202,6 +203,17 @@ export const handleMessage = async (
       deleteDeviceLinkingCode(cts.db, device, user);
     });
   } else throw new Error("404");
+};
+
+// Connections
+export const closeGuestConnection = (device: number, transfer: string) => {
+  const client = get(filetransfers).find(t => t.id == transfer);
+  if (client !== undefined) {
+    sendMessage(client.did, {
+      type: "closeConnection",
+      data: device,
+    });
+  }
 };
 
 // Utilities

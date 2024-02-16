@@ -8,6 +8,7 @@ export interface ExtendedWebSocket extends WebSocket {
   device: number | null;
   user: number | null;
   guest: number | null;
+  guestTransfer?: string;
 }
 
 export interface AuthenticationIds {
@@ -21,6 +22,7 @@ export type MessageFromServer =
   | Devices
   | Contacts
   | WebRTCData
+  | CloseConnection
   | Filetransfer
   | LinkingCode
   | TurnCredentials
@@ -85,6 +87,12 @@ export interface WebRTCData {
       | { type: "signal"; data: SignalData };
     from: number;
   };
+}
+
+export interface CloseConnection {
+  id?: number;
+  type: "closeConnection";
+  data: number;
 }
 
 export interface Filetransfer {

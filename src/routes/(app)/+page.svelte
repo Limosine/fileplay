@@ -2,6 +2,7 @@
   import { page } from "$app/stores";
   import { onMount } from "svelte";
 
+  import { apiClient } from "$lib/api/client";
   import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import { handleMessage } from "$lib/lib/fetchers";
@@ -15,7 +16,6 @@
     settings_page,
     user,
   } from "$lib/lib/UI";
-  import { apiClient } from "$lib/websocket/client";
 
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
@@ -60,7 +60,7 @@
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
       navigator.serviceWorker.addEventListener("message", handleMessage);
       await setup();
-      apiClient();
+      apiClient("ws");
 
       if ($page.url.searchParams.has("share-target")) {
         navigator.serviceWorker.controller?.postMessage("share-ready");

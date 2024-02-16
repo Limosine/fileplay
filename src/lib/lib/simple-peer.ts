@@ -4,9 +4,9 @@ import SimplePeer, { type SignalData } from "simple-peer";
 import { get, writable } from "svelte/store";
 import type { MaybePromise } from "@sveltejs/kit";
 
+import { apiClient } from "$lib/api/client";
 import { concatArrays, type webRTCData } from "$lib/sharing/common";
 import { handleData } from "$lib/sharing/main";
-import { apiClient } from "$lib/websocket/client";
 
 import {
   decryptData,
@@ -59,7 +59,7 @@ class Peer {
 
     if (this.fallback) this.turn = { username: "", password: "" };
     else {
-      this.turn = apiClient().sendMessage({ type: "getTurnCredentials" });
+      this.turn = apiClient("ws").sendMessage({ type: "getTurnCredentials" });
     }
   }
 
@@ -76,28 +76,16 @@ class Peer {
         trickle: true,
         config: {
           iceServers: [
+            { urls: "stun:stun.l.google.com:19305" },
             {
-              urls: "stun:stun.relay.metered.ca:80",
+              urls: "turns:turn.wir-sind-frey.de:443",
+              username: (await this.turn).username,
+              credential: (await this.turn).password,
             },
             {
-              urls: "turn:standard.relay.metered.ca:80",
-              username: "859cad45170559db115201d9",
-              credential: "nc+09uCR8L+629c7",
-            },
-            {
-              urls: "turn:standard.relay.metered.ca:80?transport=tcp",
-              username: "859cad45170559db115201d9",
-              credential: "nc+09uCR8L+629c7",
-            },
-            {
-              urls: "turn:standard.relay.metered.ca:443",
-              username: "859cad45170559db115201d9",
-              credential: "nc+09uCR8L+629c7",
-            },
-            {
-              urls: "turns:standard.relay.metered.ca:443?transport=tcp",
-              username: "859cad45170559db115201d9",
-              credential: "nc+09uCR8L+629c7",
+              urls: "turn:turn.wir-sind-frey.de:5349?transport=tcp",
+              username: (await this.turn).username,
+              credential: (await this.turn).password,
             },
           ],
         },
@@ -105,7 +93,7 @@ class Peer {
 
       peer.on("signal", (data) => {
         if (window.location.pathname.slice(0, 6) == "/guest")
-          apiClient().sendMessage({
+          apiClient("ws").sendMessage({
             type: "shareFromGuest",
             data: {
               did,
@@ -114,7 +102,7 @@ class Peer {
             },
           });
         else
-          apiClient().sendMessage({
+          apiClient("ws").sendMessage({
             type: "share",
             data: {
               did,
@@ -302,7 +290,7 @@ class Peer {
   private sendOverTrpc = (did: number, dataArray: Uint8Array[]) => {
     if (window.location.pathname.slice(0, 6) == "/guest") {
       dataArray.forEach((data) => {
-        apiClient().sendMessage({
+        apiClient("ws").sendMessage({
           type: "shareFromGuest",
           data: {
             did,
@@ -313,7 +301,7 @@ class Peer {
       });
     } else {
       dataArray.forEach((data) => {
-        apiClient().sendMessage({
+        apiClient("ws").sendMessage({
           type: "share",
           data: {
             did,

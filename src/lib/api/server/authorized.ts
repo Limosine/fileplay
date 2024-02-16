@@ -10,7 +10,7 @@ import {
 import type { Database } from "$lib/lib/db";
 import { getContacts as getContactsDB } from "$lib/server/db";
 import { sign } from "$lib/server/signing";
-import type { ExtendedWebSocket } from "$lib/websocket/common";
+import type { ExtendedWebSocket } from "$lib/api/common";
 
 import { filetransfers } from "./stores";
 import { filterOnlineDevices, notifyDevices } from "./main";

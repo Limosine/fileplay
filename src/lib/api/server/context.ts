@@ -3,7 +3,7 @@ import type { IncomingMessage } from "http";
 
 import type { Database } from "$lib/lib/db";
 import { getDeviceID } from "$lib/server/signing";
-import { type AuthenticationIds } from "$lib/websocket/common";
+import { type AuthenticationIds } from "$lib/api/common";
 
 import { getGuestID } from "./guest";
 

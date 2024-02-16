@@ -3,6 +3,7 @@
   import { nanoid } from "nanoid";
   import { onMount } from "svelte";
 
+  import { apiClient } from "$lib/api/client";
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
   import { withDeviceType } from "$lib/lib/fetchers";
   import {
@@ -15,7 +16,6 @@
     userParams,
     editDialog,
   } from "$lib/lib/UI";
-  import { apiClient } from "$lib/websocket/client";
 
   onMount(() => {
     $editDialog.addEventListener("close", () => {
@@ -23,7 +23,7 @@
         switch ($current) {
           case "username":
             if ($original_value != $userParams.display_name)
-              apiClient().sendMessage({
+              apiClient("ws").sendMessage({
                 type: "updateUser",
                 data: {
                   display_name: $userParams.display_name,
@@ -32,7 +32,7 @@
             break;
           case "avatar":
             if ($original_value != $userParams.avatar_seed)
-              apiClient().sendMessage({
+              apiClient("ws").sendMessage({
                 type: "updateUser",
                 data: {
                   avatar_seed: $userParams.avatar_seed,
@@ -41,7 +41,7 @@
             break;
           case "deviceName":
             if ($original_value != $deviceParams.display_name)
-              apiClient().sendMessage({
+              apiClient("ws").sendMessage({
                 type: "updateDevice",
                 data: {
                   update: { display_name: $deviceParams.display_name },
@@ -51,7 +51,7 @@
             break;
           case "deviceType":
             if ($original_value != $deviceParams.type)
-              apiClient().sendMessage({
+              apiClient("ws").sendMessage({
                 type: "updateDevice",
                 data: {
                   update: { type: $deviceParams.type as DeviceType },

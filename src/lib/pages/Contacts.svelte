@@ -1,7 +1,7 @@
 <script lang="ts">
+  import { apiClient } from "$lib/api/client";
   import { getDicebearUrl } from "$lib/lib/common";
   import { contacts } from "$lib/lib/UI";
-  import { apiClient } from "$lib/websocket/client";
 </script>
 
 <div id="contacts">
@@ -18,7 +18,7 @@
         </div>
         <button
           class="right transparent circle"
-          on:click={() => apiClient().sendMessage({ type: "deleteContact", data: contact.cid})}
+          on:click={() => apiClient("ws").sendMessage({ type: "deleteContact", data: contact.cid})}
         >
           <i>delete</i>
           <div class="tooltip left">Delete contact</div>
