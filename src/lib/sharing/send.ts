@@ -150,6 +150,11 @@ export const sendChunked = async (
     const index = get(files).findIndex((f) => f.id == file.id);
     if (index === -1) console.warn("Filetransfer: Unable to cache chunks.");
 
+    const filetransfer_index = get(outgoing_filetransfers).findIndex(
+      (transfer) => transfer.id == filetransfer_id,
+    );
+    if (filetransfer_index === -1) break;
+
     const smallChunks =
       index === -1 ? undefined : get(files)[index].smallChunks;
     let chunks: Uint8Array[];

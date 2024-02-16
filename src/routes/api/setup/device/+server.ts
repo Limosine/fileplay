@@ -5,11 +5,8 @@ import { z } from "zod";
 import { DeviceType } from "$lib/lib/common";
 import { httpContext } from "$lib/server/db";
 import { setDeviceID } from "$lib/server/signing";
-import { loadGuestSecret } from "$lib/websocket/server/guest";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
-  await loadGuestSecret();
-
   const ctx = await httpContext();
 
   const schema = z.object({

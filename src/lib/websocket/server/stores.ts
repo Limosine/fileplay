@@ -1,9 +1,9 @@
-import { writable } from "svelte/store";
+import { readable, writable } from "svelte/store";
 
-// Main
-export const connections = writable<{ a: number; b: number }[]>([]);
+import { generateKey } from "$lib/server/signing";
 
-// Guest
+// Secret (changed on every restart)
+export const guestSecret = readable<CryptoKey>(await generateKey());
+
 export const guests = writable<true[]>([]);
-export const guestSecret = writable<CryptoKey>(); // changed on every restart
 export const filetransfers = writable<{ id: string; did: number }[]>([]);

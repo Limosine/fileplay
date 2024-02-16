@@ -2,18 +2,9 @@ import type { CookieSerializeOptions } from "cookie";
 import { get } from "svelte/store";
 import type { Cookies } from "@sveltejs/kit";
 
-import { generateKey, sign, verify } from "$lib/server/signing";
+import { sign, verify } from "$lib/server/signing";
 
 import { guestSecret, guests } from "./stores";
-
-export const loadGuestSecret = async () => {
-  let secret = get(guestSecret);
-  if (secret === undefined) {
-    secret = await generateKey();
-    guestSecret.set(secret);
-  }
-  return secret;
-};
 
 const newGuestID = () => {
   let index = get(guests).length;
@@ -28,7 +19,7 @@ const newGuestID = () => {
 };
 
 export const getGuestID = async (id?: string, signature?: string) => {
-  const key = await loadGuestSecret();
+  const key = get(guestSecret);
 
   if (id !== undefined && signature !== undefined) {
     if (await verify(id, signature, key)) {
@@ -40,7 +31,7 @@ export const getGuestID = async (id?: string, signature?: string) => {
 };
 
 export const setGuestID = async (cookies: Cookies) => {
-  const key = await loadGuestSecret();
+  const key = get(guestSecret);
   const id = newGuestID().toString();
   const signature = await sign(id, key);
   const cookie_opts: CookieSerializeOptions & { path: string } = {

@@ -13,6 +13,7 @@ import {
   notifyDevices,
   sendMessage,
 } from "$lib/websocket/server/main";
+import { deleteTransfer } from "$lib/websocket/server/authorized";
 
 export let clients = new Set<ExtendedWebSocket>();
 
@@ -61,8 +62,9 @@ if (!building) {
       client.isAlive = true;
     });
 
-    if (ids.user !== null) {
+    if (ids.user !== null || ids.device !== null) {
       client.on("close", () => {
+        if (ids.device !== null) deleteTransfer(ids.device);
         if (ids.user !== null) notifyDevices(constants.db, "contact", ids.user);
       });
     }

@@ -106,7 +106,7 @@ export const createTransfer = (device: number) => {
         filetransfers.update((transfers) =>
           transfers.filter((transfer) => transfer.id != uuid),
         );
-      }, 3600000);
+      }, 3600000); // 1 hour
     } else {
       uuid = nanoid();
       insert();
@@ -116,6 +116,12 @@ export const createTransfer = (device: number) => {
   insert();
 
   return uuid;
+};
+
+export const deleteTransfer = (device: number) => {
+  filetransfers.update((transfers) =>
+    transfers.filter((transfer) => transfer.did !== device),
+  );
 };
 
 // Turn credentials
