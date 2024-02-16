@@ -4,6 +4,7 @@ import { get, readable, writable } from "svelte/store";
 
 import { peer } from "$lib/lib/simple-peer";
 import { contacts, devices, own_did, user } from "$lib/lib/UI";
+import { onGuestPage } from "$lib/lib/utils";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
 
@@ -46,13 +47,13 @@ class WebSocketClient {
     this.socket = new WebSocket(
       `${location.protocol === "http:" ? "ws:" : "wss:"}//${
         location.host
-      }/api/websocket?type=${window.location.pathname.slice(0, 6) == "/guest" ? "guest" : "main"}`,
+      }/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
 
     this.socket.binaryType = "arraybuffer";
 
     this.socket.addEventListener("open", () => {
-      if (window.location.pathname.slice(0, 6) != "/guest") {
+      if (!onGuestPage()) {
         this.sendMessage({ type: "deleteTransfer" });
         this.sendMessage({ type: "getInfos" });
       }

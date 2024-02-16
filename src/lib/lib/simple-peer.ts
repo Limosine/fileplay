@@ -15,7 +15,7 @@ import {
   updateKey,
 } from "./encryption";
 import type { IDeviceInfo } from "./fetchers";
-import { numberToUint8Array, uint8ArrayToNumber } from "./utils";
+import { numberToUint8Array, onGuestPage, uint8ArrayToNumber } from "./utils";
 
 const store = writable<Peer>();
 
@@ -92,7 +92,7 @@ class Peer {
       });
 
       peer.on("signal", (data) => {
-        if (window.location.pathname.slice(0, 6) == "/guest")
+        if (onGuestPage())
           apiClient("ws").sendMessage({
             type: "shareFromGuest",
             data: {
@@ -127,8 +127,10 @@ class Peer {
         if (
           this.connections[did] !== undefined &&
           this.connections[did].data !== "websocket"
-        )
+        ) {
           delete this.connections[did];
+          if (this.buffer[did] !== undefined) this.buffer[did].state = "idle";
+        }
       };
 
       peer.on("close", deletePeer);
@@ -215,7 +217,10 @@ class Peer {
         const conn = this.connections[did];
         if (conn !== undefined) {
           delete this.connections[did];
-          if (conn.data !== "websocket") (await conn.data.data).destroy();
+          if (conn.data !== "websocket") {
+            (await conn.data.data).destroy();
+            if (this.buffer[did] !== undefined) this.buffer[did].state = "idle";
+          }
         }
       } else if (did == "websocket") {
         // Close all websocket connections
@@ -267,8 +272,7 @@ class Peer {
     } else if (
       peer.data !== undefined &&
       peer.data !== "websocket" &&
-      !(await peer.data.data).destroyed &&
-      !(await peer.data.data).closed
+      (await peer.data.data).writable
     ) {
       this.buffer[did].state = "working";
       const conn = await peer.data.data;
@@ -276,19 +280,17 @@ class Peer {
       const chunk = this.buffer[did].data[0];
       this.buffer[did].data.splice(0, 1);
 
-      const promise = new Promise<null>((resolve) => {
+      return await new Promise<null>((resolve) => {
         conn.write(chunk, undefined, () => {
           resolve(null);
           this.sendMessages(did);
         });
       });
-
-      return await promise;
     } else this.buffer[did].state = "idle";
   }
 
   private sendOverTrpc = (did: number, dataArray: Uint8Array[]) => {
-    if (window.location.pathname.slice(0, 6) == "/guest") {
+    if (onGuestPage()) {
       dataArray.forEach((data) => {
         apiClient("ws").sendMessage({
           type: "shareFromGuest",

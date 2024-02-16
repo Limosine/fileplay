@@ -1,4 +1,3 @@
-import { browser } from "$app/environment";
 import { page } from "$app/stores";
 import { get } from "svelte/store";
 
@@ -7,6 +6,7 @@ import { type IContact } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
 import { contacts, own_did } from "$lib/lib/UI";
+import { onGuestPage } from "$lib/lib/utils";
 
 import {
   incoming_filetransfers,
@@ -31,7 +31,7 @@ const authenticated = (
   previous?: string,
 ) => {
   // Guest page
-  if (browser && window.location.pathname.slice(0, 6) == "/guest") {
+  if (onGuestPage()) {
     if (Number(get(page).url.searchParams.get("did")) === did) {
       return true;
     } else return false;

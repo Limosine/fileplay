@@ -17,6 +17,7 @@ import {
   chunkFileBig,
   chunkBlobSmall,
 } from "./common";
+import { onGuestPage } from "$lib/lib/utils";
 
 // Sender:
 export const send = async (
@@ -70,10 +71,7 @@ export const send = async (
     sendState.set(cid, SendState.REQUESTING);
   }
 
-  const previous =
-    window.location.pathname.slice(0, 6) == "/guest"
-      ? get(page).url.searchParams.get("id")
-      : null;
+  const previous = onGuestPage() ? get(page).url.searchParams.get("id") : null;
 
   if (did !== undefined) {
     sendRequest(did, filetransfer_id, previous === null ? undefined : previous);

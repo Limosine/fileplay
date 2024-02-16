@@ -2,6 +2,7 @@ import { get } from "svelte/store";
 
 import { sendState, SendState } from "$lib/lib/sendstate";
 import { addNotification } from "$lib/lib/UI";
+import { onGuestPage } from "$lib/lib/utils";
 
 import {
   incoming_filetransfers,
@@ -16,7 +17,7 @@ export const handleRequest = (
   filetransfer_id: string,
   files_unformatted: Request["files"],
 ) => {
-  if (window.location.pathname.slice(0, 6) == "/guest") {
+  if (onGuestPage()) {
     const files: IncomingFiletransfer["files"] = [];
 
     files_unformatted.forEach((file) => {
