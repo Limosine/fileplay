@@ -13,15 +13,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     code: z.string(),
   });
 
-  const update: {
-    code: string;
-  } = await request.json();
+  const update = schema.safeParse(await request.json());
 
-  if (!schema.safeParse(update).success) {
-    error(422, "Wrong data type");
-  }
+  if (!update.success) error(422, "Wrong data type");
 
-  const code = update.code.toUpperCase().replaceAll("O", "0");
+  const code = update.data.code.toUpperCase().replaceAll("O", "0");
 
   try {
     const response1 = await ctx.database

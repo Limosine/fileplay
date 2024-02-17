@@ -168,7 +168,7 @@ class WebSocketClient {
       peer().closeConnections(message.data.map((c) => c.devices));
     } else if (message.type == "webRTCData") {
       if (message.data.data.type == "signal")
-        peer().signal(message.data.from, message.data.data.data);
+        peer().signal(message.data.from, JSON.parse(message.data.data.data));
       else {
         peer().handle(message.data.from, message.data.data.data, "websocket");
       }

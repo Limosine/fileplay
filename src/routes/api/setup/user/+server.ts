@@ -16,22 +16,17 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
     avatar_seed: z.string(),
   });
 
-  const update: {
-    display_name: string;
-    avatar_seed: string;
-  } = await request.json();
+  const update = schema.safeParse(await request.json());
 
-  if (!schema.safeParse(update).success) {
-    error(422, "Wrong data type");
-  }
+  if (!update.success) error(422, "Wrong data type");
 
-  if (await isProfane(update.display_name))
+  if (await isProfane(update.data.display_name))
     error(418, "Display name is profane");
 
   try {
     const response = await ctx.database
       .insertInto("users")
-      .values(update)
+      .values(update.data)
       .returning("uid")
       .executeTakeFirst();
 

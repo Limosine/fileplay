@@ -119,7 +119,7 @@
         <p class="bold">Selected files:</p>
         <div class="max" />
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
-        <a on:click={() => { qrCode = ""; $input.click(); }} style="color: var(--secondary)"
+        <a on:click={() => { $link = ""; qrCode = ""; $input.click(); }} style="color: var(--secondary)"
           >Change</a
         >
       </div>

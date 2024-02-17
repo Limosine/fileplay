@@ -14,19 +14,14 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     type: z.nativeEnum(DeviceType),
   });
 
-  const update: {
-    display_name: string;
-    type: DeviceType;
-  } = await request.json();
+  const update = schema.safeParse(await request.json());
 
-  if (!schema.safeParse(update).success) {
-    error(422, "Wrong data type");
-  }
+  if (!update.success) error(422, "Wrong data type");
 
   try {
     const response = await ctx.database
       .insertInto("devices")
-      .values(update)
+      .values(update.data)
       .returning("did")
       .executeTakeFirst();
 

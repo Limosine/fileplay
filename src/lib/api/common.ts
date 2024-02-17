@@ -1,7 +1,7 @@
-import type { SignalData } from "simple-peer";
 import type { WebSocket } from "ws";
+import { z } from "zod";
 
-import type { DeviceType } from "$lib/lib/common";
+import { DeviceType } from "$lib/lib/common";
 
 export interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean;
@@ -84,7 +84,7 @@ export interface WebRTCData {
           type: "webrtc";
           data: Uint8Array;
         }
-      | { type: "signal"; data: SignalData };
+      | { type: "signal"; data: string };
     from: number;
   };
 }
@@ -126,108 +126,81 @@ export interface Error {
   data: any;
 }
 
-export type MessageFromClient =
-  | GetInfos
-  | GetTurnCredentials
-  | Share
-  | ShareFromGuest
-  | CreateTransfer
-  | DeleteTransfer
-  | UpdateDevice
-  | DeleteDevice
-  | UpdateUser
-  | DeleteContact
-  | CreateContactCode
-  | RedeemContactCode
-  | DeleteContactCode
-  | CreateDeviceCode
-  | DeleteDeviceCode;
+const data = z
+  .object({
+    type: z.enum(["webrtc"]),
+    data: z.instanceof(Uint8Array),
+  })
+  .or(
+    z.object({
+      type: z.enum(["signal"]),
+      data: z.string(),
+    }),
+  );
 
-export interface GetInfos {
-  type: "getInfos";
-}
+const messageFromClientSchemaWithoutId = z.union([
+  z.object({
+    type: z.enum([
+      "getInfos",
+      "getTurnCredentials",
+      "createTransfer",
+      "deleteTransfer",
+      "createContactCode",
+      "deleteContactCode",
+      "createDeviceCode",
+      "deleteDeviceCode",
+    ]),
+  }),
+  z.object({
+    type: z.enum(["share"]),
+    data: z.object({
+      did: z.number(),
+      data,
+    }),
+  }),
+  z.object({
+    type: z.enum(["shareFromGuest"]),
+    data: z.object({
+      did: z.number(),
+      data,
+      guestTransfer: z.string(),
+    }),
+  }),
+  z.object({
+    type: z.enum(["updateDevice"]),
+    data: z.object({
+      did: z.number().optional(),
+      update: z.object({
+        display_name: z.string().optional(),
+        type: z.nativeEnum(DeviceType).optional(),
+      }),
+    }),
+  }),
+  z.object({
+    type: z.enum(["deleteDevice"]),
+    data: z.number().optional(),
+  }),
+  z.object({
+    type: z.enum(["updateUser"]),
+    data: z.object({
+      display_name: z.string().optional(),
+      type: z.string().optional(),
+    }),
+  }),
+  z.object({
+    type: z.enum(["deleteContact"]),
+    data: z.number(),
+  }),
+  z.object({
+    type: z.enum(["redeemContactCode"]),
+    data: z.string(),
+  }),
+]);
 
-export interface GetTurnCredentials {
-  type: "getTurnCredentials";
-}
+export const messageFromClientSchema = messageFromClientSchemaWithoutId.and(
+  z.object({
+    id: z.number(),
+  }),
+);
 
-interface DataOverWebSocket {
-  did: number;
-  data:
-    | {
-        type: "webrtc";
-        data: Uint8Array;
-      }
-    | {
-        type: "signal";
-        data: SignalData;
-      };
-}
-
-export interface Share {
-  type: "share";
-  data: DataOverWebSocket;
-}
-
-export interface ShareFromGuest {
-  type: "shareFromGuest";
-  data: DataOverWebSocket & { guestTransfer: string };
-}
-
-export interface CreateTransfer {
-  type: "createTransfer";
-}
-
-export interface DeleteTransfer {
-  type: "deleteTransfer";
-}
-
-export interface UpdateDevice {
-  type: "updateDevice";
-  data: {
-    did?: number;
-    update: {
-      display_name?: string;
-      type?: DeviceType;
-    };
-  };
-}
-
-export interface DeleteDevice {
-  type: "deleteDevice";
-  data?: number;
-}
-
-export interface UpdateUser {
-  type: "updateUser";
-  data: {
-    display_name?: string;
-    avatar_seed?: string;
-  };
-}
-
-export interface DeleteContact {
-  type: "deleteContact";
-  data: number;
-}
-
-export interface CreateContactCode {
-  type: "createContactCode";
-}
-
-export interface RedeemContactCode {
-  type: "redeemContactCode";
-  data: string;
-}
-
-export interface DeleteContactCode {
-  type: "deleteContactCode";
-}
-
-export interface CreateDeviceCode {
-  type: "createDeviceCode";
-}
-
-export interface DeleteDeviceCode {
-  type: "deleteDeviceCode";
-}
+export type MessageFromClient = z.infer<typeof messageFromClientSchemaWithoutId>;

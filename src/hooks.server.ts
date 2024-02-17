@@ -5,6 +5,7 @@ import { WebSocketServer } from "ws";
 
 import { createConstants } from "$lib/server/db";
 import {
+  messageFromClientSchema,
   type ExtendedWebSocket,
   type MessageFromClient,
 } from "$lib/api/common";
@@ -64,7 +65,8 @@ if (!building) {
           id: number;
         };
         try {
-          await handleMessage(constants, client, ids, decodedData);
+          const message = messageFromClientSchema.parse(decodedData);
+          await handleMessage(constants, client, ids, message);
         } catch (e: any) {
           sendMessage(client, {
             id: decodedData.id,
