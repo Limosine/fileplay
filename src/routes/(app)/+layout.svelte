@@ -61,17 +61,19 @@
 
 <div id="overlay" class={getClass(loading)} />
 
-<!-- Dialogs -->
-<Edit />
-<AddContact />
-<QRCode />
-<Send />
+{#if loading !== 0}
+  <!-- Dialogs -->
+  <Edit />
+  <AddContact />
+  <QRCode />
+  <Send />
 
-<Notifications />
+  <Notifications />
 
-<Layout>
-  <slot />
-</Layout>
+  <Layout>
+    <slot />
+  </Layout>
+{/if}
 
 <style>
   .disappear {

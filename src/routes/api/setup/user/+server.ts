@@ -25,7 +25,8 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
     error(422, "Wrong data type");
   }
 
-  if (isProfane(update.display_name)) error(418, "Display name is profane");
+  if (await isProfane(update.display_name))
+    error(418, "Display name is profane");
 
   try {
     const response = await ctx.database

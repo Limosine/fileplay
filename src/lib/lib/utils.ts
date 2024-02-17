@@ -1,12 +1,12 @@
 import { browser } from "$app/environment";
-import Filter from "bad-words";
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export const onGuestPage = () =>
   browser && window.location.pathname.slice(0, 6) == "/guest";
 
-export const isProfane = (s: string) => {
+export const isProfane = async (s: string) => {
+  const Filter = (await import("bad-words")).default;
   return new Filter().isProfane(s);
 };
 

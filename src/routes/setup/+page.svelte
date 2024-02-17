@@ -7,6 +7,7 @@
   import Username from "$lib/components/Username.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
 
+  import { apiClient } from "$lib/api/client";
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
   import { withDeviceType } from "$lib/lib/fetchers";
   import {
@@ -57,9 +58,7 @@
     ) {
       storedDeviceParams = null;
       // delete old user with still present cookie auth
-      await fetch("/api/devices", {
-        method: "DELETE",
-      });
+      await apiClient("http").deleteDevice();
     }
     if (!storedDeviceParams) {
       const object = {
@@ -67,10 +66,7 @@
         type: $deviceParams.type,
       };
 
-      const res = await fetch("/api/setup/device", {
-        method: "POST",
-        body: JSON.stringify(object),
-      });
+      const res = await apiClient("http").setupDevice(object);
       if (String(res.status).charAt(0) !== "2") {
         handleResponseError(res);
         return;
@@ -79,10 +75,7 @@
     }
     if (existing) {
       // link to existing user
-      const res2 = await fetch("/api/devices/link", {
-        method: "POST",
-        body: JSON.stringify({ code: $linkingCode }),
-      });
+      const res2 = await apiClient("http").setupDevice($linkingCode);
       if (String(res2.status).charAt(0) !== "2") {
         handleResponseError(res2);
         return;
@@ -94,10 +87,7 @@
       };
 
       // create new user
-      const res = await fetch("/api/setup/user", {
-        method: "POST",
-        body: JSON.stringify(object),
-      });
+      const res = await apiClient("http").setupUser(object);
       if (String(res.status).charAt(0) !== "2") {
         handleResponseError(res);
         return;

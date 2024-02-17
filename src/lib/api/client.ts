@@ -9,12 +9,50 @@ import { onGuestPage } from "$lib/lib/utils";
 import type { MessageFromClient, MessageFromServer } from "./common";
 
 class HTTPClient {
+  async checkProfanity(username: string) {
+    const res = await fetch("/api/checkProfanity", {
+      method: "POST",
+      body: JSON.stringify({
+        username,
+      }),
+    });
+
+    return (await res.json()) as boolean;
+  }
+
+  async setupDevice(device: { display_name: string; type: string } | string) {
+    if (typeof device == "string") {
+      return await fetch("/api/devices/link", {
+        method: "POST",
+        body: JSON.stringify({ code: device }),
+      });
+    } else {
+      return await fetch("/api/setup/device", {
+        method: "POST",
+        body: JSON.stringify(device),
+      });
+    }
+  }
+
+  async setupUser(user: { display_name: string; avatar_seed: string }) {
+    return await fetch("/api/setup/user", {
+      method: "POST",
+      body: JSON.stringify(user),
+    });
+  }
+
   async setupGuest() {
     const res = await fetch("/api/setup/guest", {
       method: "POST",
     });
 
     if (!res.ok) throw new Error("Failed to setup guestId.");
+  }
+
+  async deleteDevice() {
+    await fetch("/api/devices", {
+      method: "DELETE",
+    });
   }
 
   async deleteAccount() {

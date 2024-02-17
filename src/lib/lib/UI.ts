@@ -2,6 +2,7 @@ import { browser } from "$app/environment";
 import QRCode from "qrcode";
 import { get, writable } from "svelte/store";
 
+import { apiClient } from "$lib/api/client";
 import type { IncomingFiletransfer, Request } from "$lib/sharing/common";
 
 import { DeviceType } from "./common";
@@ -197,37 +198,29 @@ export const ValueToName = (value: string) => {
 };
 
 // Profanity checking:
-export const profaneUsername = writable<{ loading: boolean; profane: boolean }>(
-  {
-    loading: false,
-    profane: false,
-  },
-);
+export const profaneUsername = writable({
+  loading: false,
+  profane: false,
+});
 
 export const updateIsProfaneUsername = async () => {
   if (!browser || !get(userParams).display_name) return;
-  profaneUsername.set({ loading: true, profane: get(profaneUsername).profane });
-  fetch("/api/checkIsUsernameProfane", {
-    method: "POST",
-    body: JSON.stringify({
-      username: get(userParams).display_name,
-    }),
-  })
-    .then((res) => res.json())
-    .then((json: any) => {
-      profaneUsername.set({
-        loading: get(profaneUsername).loading,
-        profane: json.isProfane,
-      });
-      profaneUsername.set({
-        loading: false,
-        profane: get(profaneUsername).profane,
-      });
-    })
-    .catch((e) => {
-      console.error(e);
-      profaneUsername.set({ loading: false, profane: false });
+  profaneUsername.update((username) => {
+    username.loading = true;
+    return username;
+  });
+  try {
+    const profane = await apiClient("http").checkProfanity(
+      get(userParams).display_name,
+    );
+    profaneUsername.set({
+      loading: false,
+      profane: profane,
     });
+  } catch (e: any) {
+    console.warn(e);
+    profaneUsername.set({ loading: false, profane: false });
+  }
 };
 
 // Progress calculation:
