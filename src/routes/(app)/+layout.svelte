@@ -11,7 +11,10 @@
   import Edit from "$lib/dialogs/Edit.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import QRCode from "$lib/dialogs/QRCode.svelte";
+  import Request from "$lib/dialogs/PushRequest.svelte";
   import Send from "$lib/dialogs/Send.svelte";
+
+  import { registration, subscribedToPush } from "$lib/lib/UI";
 
   let loading = 0;
 
@@ -25,9 +28,16 @@
 
   onMount(async () => {
     if (pwaInfo) {
-      const { registerSW } = await import("virtual:pwa-register");
-      registerSW({
+      const { useRegisterSW } = await import("virtual:pwa-register/svelte");
+      useRegisterSW({
         immediate: true,
+        onRegistered(r) {
+          if (r !== undefined) {
+            $registration = r;
+            console.log("Service worker registered.");
+            if ($subscribedToPush === undefined) ui("#dialog-request");
+          }
+        },
         onRegisterError(error: any) {
           console.log("SW registration error", error);
         },
@@ -66,6 +76,7 @@
   <Edit />
   <AddContact />
   <QRCode />
+  <Request />
   <Send />
 
   <Notifications />

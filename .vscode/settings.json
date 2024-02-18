@@ -8,9 +8,11 @@
     "dayjs",
     "Dicebear",
     "fileplay",
+    "filesharing",
     "filetransfer",
     "filetransfers",
     "frey",
+    "GCMAPI",
     "kysely",
     "Kysely",
     "msgpack",
@@ -22,6 +24,7 @@
     "trpc",
     "Unsubscribable",
     "vflex",
+    "webpush",
     "webrtc"
   ]
 }

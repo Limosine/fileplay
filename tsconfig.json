@@ -10,7 +10,7 @@
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "types": ["vite-plugin-pwa/client"],
+    "types": ["vite-plugin-pwa/svelte", "vite-plugin-pwa/info"],
     "lib": ["DOM", "ESNext"]
   },
   "include": [

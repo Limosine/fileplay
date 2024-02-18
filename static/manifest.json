@@ -8,6 +8,7 @@
   "display": "standalone",
   "background_color": "#201a19",
   "description": "A P2P filesharing app.",
+  "gcm_sender_id": "426417755617",
   "share_target": {
     "action": "/?share-target",
     "method": "POST",

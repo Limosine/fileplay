@@ -7,9 +7,7 @@
 </script>
 
 {#if $settings_page == "main"}
-  {#await $user}
-    <p>User infos are loading...</p>
-  {:then user}
+  {#if $user !== undefined}
     <p
       class="bold"
       style="color: var(--secondary); margin: 20px 0px 5px 0px; padding: 0px 20px 0px 20px;"
@@ -21,12 +19,12 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("username", "Username", user.display_name)}
+      on:click={() => openDialog("username", "Username", $user.display_name)}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Username</p>
         <p style="font-size: small; margin-top: 0;">
-          {user.display_name}
+          {$user.display_name}
         </p>
       </div>
     </a>
@@ -35,7 +33,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("avatar", "Avatar", user.avatar_seed)}
+      on:click={() => openDialog("avatar", "Avatar", $user.avatar_seed)}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Avatar</p>
@@ -45,7 +43,7 @@
       <img
         class="responsive"
         style="height: auto;"
-        src={getDicebearUrl(user.avatar_seed, 150)}
+        src={getDicebearUrl($user.avatar_seed, 150)}
         alt="Avatar"
       />
     </a>
@@ -89,9 +87,7 @@
         </p>
       </div>
     </a>
-  {:catch}
-    <p>Failed to load user infos.</p>
-  {/await}
+  {/if}
 {:else if $settings_page == "devices"}
   <button
     on:click={() => ($settings_page = "main")}

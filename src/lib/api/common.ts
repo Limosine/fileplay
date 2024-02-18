@@ -167,12 +167,20 @@ const messageFromClientSchemaWithoutId = z.union([
     }),
   }),
   z.object({
+    type: z.enum(["sendMessage"]),
+    data: z.object({
+      uid: z.number(),
+      message: z.string(),
+    }),
+  }),
+  z.object({
     type: z.enum(["updateDevice"]),
     data: z.object({
       did: z.number().optional(),
       update: z.object({
         display_name: z.string().optional(),
         type: z.nativeEnum(DeviceType).optional(),
+        push_subscription: z.string().optional(),
       }),
     }),
   }),
@@ -203,4 +211,6 @@ export const messageFromClientSchema = messageFromClientSchemaWithoutId.and(
   }),
 );
 
-export type MessageFromClient = z.infer<typeof messageFromClientSchemaWithoutId>;
+export type MessageFromClient = z.infer<
+  typeof messageFromClientSchemaWithoutId
+>;

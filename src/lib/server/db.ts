@@ -145,7 +145,9 @@ export async function getContacts(
       did: number;
       type: string;
       display_name: string;
-    }>`SELECT cid, devices.did, devices.type, devices.display_name FROM (SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.a WHERE contacts.b = ${uid} UNION SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.b WHERE contacts.a = ${uid}) AS U JOIN devices ON U.uid = devices.uid ORDER BY devices.display_name`.execute(db);
+    }>`SELECT cid, devices.did, devices.type, devices.display_name FROM (SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.a WHERE contacts.b = ${uid} UNION SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.b WHERE contacts.a = ${uid}) AS U JOIN devices ON U.uid = devices.uid ORDER BY devices.display_name`.execute(
+      db,
+    );
 
     devices.rows.forEach((device) => {
       const contact = contacts.find((con) => con.cid == device.cid);
@@ -211,12 +213,7 @@ export const getDevices = async (
 
     const d_others = await db
       .selectFrom("devices")
-      .select([
-        "did",
-        "type",
-        "display_name",
-        "created_at",
-      ])
+      .select(["did", "type", "display_name", "created_at"])
       .where((eb) => eb("did", "!=", did).and("uid", "=", uid))
       .orderBy("display_name")
       .execute();

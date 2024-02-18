@@ -12,6 +12,7 @@
     deviceId,
     input,
     files,
+    user,
   } from "$lib/lib/UI";
   import {
     link,
@@ -20,9 +21,10 @@
   } from "$lib/sharing/common";
   import { addPendingFile } from "$lib/sharing/main";
   import { send } from "$lib/sharing/send";
+  import { apiClient } from "$lib/api/client";
 
   let qrCode: string;
-  const setQRCode = async (link: string ) => {
+  const setQRCode = async (link: string) => {
     qrCode = await generateQRCode(link);
   };
 
@@ -40,9 +42,13 @@
     } else {
       $contactId = contact.cid;
       ui("#dialog-send");
-      for (const device of devices) {
-        $deviceId = device.did;
-        await send(device.did, contact.cid, undefined);
+      if (contact.devices.length < 0) {
+        apiClient("ws").sendMessage({ type: "sendMessage", data: { uid: contact.uid, message: `${$user.display_name} wants to share files with you.`}})
+      } else {
+        for (const device of devices) {
+          $deviceId = device.did;
+          await send(device.did, contact.cid, undefined);
+        }
       }
     }
   };
@@ -119,8 +125,13 @@
         <p class="bold">Selected files:</p>
         <div class="max" />
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
-        <a on:click={() => { $link = ""; qrCode = ""; $input.click(); }} style="color: var(--secondary)"
-          >Change</a
+        <a
+          on:click={() => {
+            $link = "";
+            qrCode = "";
+            $input.click();
+          }}
+          style="color: var(--secondary)">Change</a
         >
       </div>
       <div class="row wrap">
@@ -201,7 +212,7 @@
         <p class="bold">Available contacts:</p>
         <div class="max" />
       </div>
-      {#if $contacts.length <= 0 || $contacts.find((contact) => contact.devices.length > 0) === undefined}
+      {#if $contacts.length <= 0}
         <p class="center padding">
           No contact available. Add a new contact on the
           <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
@@ -213,22 +224,20 @@
       {/if}
       <div class="row wrap">
         {#each $contacts as contact}
-          {#if contact.devices.length > 0}
-            <button
-              class="border small-round"
-              style="border-color: {$progress[contact.cid] !== undefined
-                ? $progress[contact.cid]
-                : 'var(--primary)'};"
-              on:click={() => handleContactClick(contact)}
-            >
-              <img
-                class="responsive"
-                src={getDicebearUrl(contact.avatar_seed, 40, 0)}
-                alt="{contact.display_name}'s avatar"
-              />
-              <span>{contact.display_name}</span>
-            </button>
-          {/if}
+          <button
+            class="border small-round"
+            style="border-color: {$progress[contact.cid] !== undefined
+              ? $progress[contact.cid]
+              : 'var(--primary)'};"
+            on:click={() => handleContactClick(contact)}
+          >
+            <img
+              class="responsive"
+              src={getDicebearUrl(contact.avatar_seed, 40, 0)}
+              alt="{contact.display_name}'s avatar"
+            />
+            <span>{contact.display_name}</span>
+          </button>
         {/each}
       </div>
     </article>

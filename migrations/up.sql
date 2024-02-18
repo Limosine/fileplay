@@ -12,6 +12,7 @@ create table devices (
   uid int,
   linked_at int,
   created_at int not null default extract(epoch from now()),
+  push_subscription text,
   primary key (did),
   foreign key (uid) references users (uid) on delete cascade
 );

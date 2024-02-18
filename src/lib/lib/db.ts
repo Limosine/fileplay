@@ -15,6 +15,7 @@ interface DevicesTable {
   display_name: string;
   type: DeviceType;
   created_at: ColumnType<number, undefined, undefined>;
+  push_subscription: string | null;
 }
 
 interface ContactsTable {

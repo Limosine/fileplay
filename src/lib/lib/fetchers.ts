@@ -2,7 +2,9 @@ import { page } from "$app/stores";
 import { get } from "svelte/store";
 
 import { DeviceType } from "./common";
-import { rawFiles } from "./UI";
+import { rawFiles, subscribedToPush } from "./UI";
+import { env } from "$env/dynamic/public";
+import { apiClient } from "$lib/api/client";
 
 // Contacts
 export interface IContact {
@@ -48,6 +50,33 @@ export interface IUser {
 export const withDeviceType = (name: string) => {
   // @ts-ignore
   return { name, type: DeviceType[name] as string };
+};
+
+export const subscribeWebPush = async (
+  registration: ServiceWorkerRegistration,
+) => {
+  if (Notification.permission == "denied") return;
+  else if (Notification.permission == "default") {
+    const permission = await Notification.requestPermission();
+
+    if (permission != "granted") return;
+  }
+
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: env.PUBLIC_VAPID_KEY,
+  });
+
+  subscribedToPush.set(subscription);
+
+  apiClient("ws").sendMessage({
+    type: "updateDevice",
+    data: {
+      update: {
+        push_subscription: JSON.stringify(subscription),
+      },
+    },
+  });
 };
 
 // Service worker

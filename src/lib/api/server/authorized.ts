@@ -75,6 +75,7 @@ export const updateDevice = async (
   data: {
     display_name?: string;
     type?: DeviceType;
+    push_subscription?: string;
   },
   didParam?: number,
 ) => {

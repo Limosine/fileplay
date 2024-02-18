@@ -1,18 +1,19 @@
 import { encode } from "@msgpack/msgpack";
 import type { WebSocket } from "ws";
 
-import type { Database } from "$lib/lib/db";
-import {
-  deleteDevice,
-  getDevices as getDevicesDB,
-  getUser,
-} from "$lib/server/db";
 import type {
   AuthenticationIds,
   ExtendedWebSocket,
   MessageFromClient,
   MessageFromServer,
 } from "$lib/api/common";
+import type { Database } from "$lib/lib/db";
+import {
+  deleteDevice,
+  getDevices as getDevicesDB,
+  getUser,
+} from "$lib/server/db";
+import { webPush } from "$lib/server/web-push";
 
 import {
   createContactLinkingCode,
@@ -129,6 +130,10 @@ export const handleMessage = async (
         },
       });
     });
+  } else if (data.type == "sendMessage") {
+    authorizeMain(ids, (device, user) => {
+      webPush().sendMessage(cts.db, user, data.data.message);
+    });
 
     // Guest
   } else if (data.type == "createTransfer") {
@@ -207,7 +212,7 @@ export const handleMessage = async (
 
 // Connections
 export const closeGuestConnection = (device: number, transfer: string) => {
-  const client = get(filetransfers).find(t => t.id == transfer);
+  const client = get(filetransfers).find((t) => t.id == transfer);
   if (client !== undefined) {
     sendMessage(client.did, {
       type: "closeConnection",
