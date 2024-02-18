@@ -137,7 +137,7 @@ export const handleMessage = async (
 
       webPush().sendMessage(
         cts.db,
-        user,
+        data.data,
         JSON.stringify({
           username: userInfos.message.display_name,
           avatarSeed: userInfos.message.avatar_seed,

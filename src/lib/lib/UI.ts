@@ -129,7 +129,6 @@ export const sendDialog = writable<HTMLDialogElement>();
 
 // Sending dialog
 export const contactId = writable<number>();
-export const deviceId = writable<number>();
 
 // Edit dialog
 export type edit_options =

@@ -9,10 +9,8 @@
     contacts,
     generateQRCode,
     contactId,
-    deviceId,
     input,
     files,
-    user,
   } from "$lib/lib/UI";
   import {
     link,
@@ -32,18 +30,15 @@
     const state = $sendState[contact.cid];
     const devices = contact.devices;
 
-    if (state == SendState.REQUESTING || state == SendState.SENDING) {
-      $contactId = contact.cid;
-      ui("#dialog-send");
-    } else {
-      $contactId = contact.cid;
-      ui("#dialog-send");
+    $contactId = contact.cid;
+    ui("#dialog-send");
+
+    if (state != SendState.REQUESTING && state != SendState.SENDING) {
       if (contact.devices.length <= 0) {
         sendState.set(contact.cid, SendState.NOTIFYING);
         apiClient("ws").sendMessage({ type: "sendMessage", data: contact.uid });
       } else {
         for (const device of devices) {
-          $deviceId = device.did;
           await send(device.did, contact.cid, undefined);
         }
       }

@@ -5,11 +5,11 @@
   import { getDicebearUrl } from "$lib/lib/common";
   import type { IContact } from "$lib/lib/fetchers";
   import { SendState, sendState } from "$lib/lib/sendstate";
-  import { contactId, contacts, deviceId, sendDialog } from "$lib/lib/UI";
+  import { contactId, contacts, sendDialog } from "$lib/lib/UI";
   import { cancelFiletransfer } from "$lib/sharing/main";
 
   let contact: IContact | undefined;
-  let device: IContact["devices"][0] | undefined;
+  let devices: IContact["devices"] | undefined;
 
   let state = "";
   let interval: NodeJS.Timeout;
@@ -34,12 +34,10 @@
     }
   };
 
-  const loadData = (cid: number, did: number) => {
-    if (cid === undefined || did === undefined) return;
+  const loadData = (cid: number) => {
     contact = $contacts.find((con) => con.cid === cid);
 
-    if (contact === undefined) return;
-    device = contact.devices.find((dev) => dev.did === did);
+    if (contact !== undefined) devices = contact.devices;
   };
 
   const cancel = () => {
@@ -74,13 +72,13 @@
   });
 
   $: {
-    if ($contactId === undefined || $deviceId === undefined) {
+    if ($contactId === undefined) {
       stop();
     } else {
       stop();
       start();
 
-      loadData($contactId, $deviceId);
+      loadData($contactId);
     }
   }
 
@@ -90,7 +88,7 @@
 </script>
 
 <dialog id="dialog-send" bind:this={$sendDialog}>
-  {#if contact !== undefined && device !== undefined}
+  {#if contact !== undefined}
     <p style="font-size: large; margin-bottom: 10px;">Sending files</p>
     <i class="center">arrow_downward</i>
     <article class="tertiary">
