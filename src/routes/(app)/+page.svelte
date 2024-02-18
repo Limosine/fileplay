@@ -76,9 +76,11 @@
         navigator.serviceWorker.controller?.postMessage("share-ready");
       }
 
-      if ($page.url.searchParams.has("accept-target")) {
+      if (
+        $page.url.searchParams.has("accept-target") &&
+        sendAccept === undefined
+      )
         sendAccept = false;
-      }
     }
   });
 

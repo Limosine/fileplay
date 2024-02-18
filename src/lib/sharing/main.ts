@@ -15,7 +15,6 @@ import {
   type webRTCData,
   senderLink,
   type Update,
-  notification_requests,
 } from "./common";
 import {
   handleRequest,

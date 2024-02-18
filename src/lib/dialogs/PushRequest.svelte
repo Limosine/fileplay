@@ -4,8 +4,8 @@
 </script>
 
 <dialog id="dialog-request" bind:this={$requestDialog}>
-  <p style="font-size: large; margin-bottom: 10px;">Add contact</p>
-  <div>Do you want to enable Notifications?</div>
+  <p style="font-size: large; margin-bottom: 10px;">Enable notifications?</p>
+  <div>Do you want to enable notifications?</div>
   <nav class="right-align" style="padding: 10px 0 0 0;">
     <!-- eslint-disable no-undef -->
     <!-- svelte-ignore missing-declaration -->
@@ -22,8 +22,9 @@
       class="border"
       style="border: 0;"
       on:click={async () => {
-        await subscribeWebPush($registration);
+        localStorage.setItem("subscribedToPush", "false");
         ui("#dialog-request");
+        await subscribeWebPush($registration);
       }}>Allow</button
     >
     <!-- eslint-enable no-undef -->
