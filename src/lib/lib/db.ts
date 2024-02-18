@@ -1,4 +1,5 @@
 import type { Kysely, Generated, ColumnType } from "kysely";
+
 import type { DeviceType } from "$lib/lib/common";
 
 interface UsersTable {

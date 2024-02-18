@@ -17,11 +17,11 @@
     settings_page,
     user,
   } from "$lib/lib/UI";
+  import { sendReady } from "$lib/sharing/send";
 
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
   import Settings from "$lib/pages/Settings.svelte";
-  import { sendReady } from "$lib/sharing/send";
 
   let sendAccept: boolean;
 
@@ -83,8 +83,10 @@
   });
 
   $: {
-    if ($contacts !== undefined && sendAccept === false)
+    if ($contacts !== undefined && sendAccept === false) {
+      sendAccept = true;
       send($contacts, sendAccept);
+    }
   }
 </script>
 

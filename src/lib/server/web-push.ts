@@ -1,8 +1,8 @@
+import { get, writable } from "svelte/store";
 import * as webpush from "web-push";
 
 import { env } from "$env/dynamic/private";
 import { env as envPublic } from "$env/dynamic/public";
-import { get, writable } from "svelte/store";
 import type { Database } from "$lib/lib/db";
 
 const store = writable<WebPush>();

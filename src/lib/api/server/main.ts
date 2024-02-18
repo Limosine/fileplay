@@ -1,4 +1,5 @@
 import { encode } from "@msgpack/msgpack";
+import { get } from "svelte/store";
 import type { WebSocket } from "ws";
 
 import type {
@@ -31,7 +32,6 @@ import {
 } from "./authorized";
 import { authorize, authorizeGuest, authorizeMain } from "./context";
 import { clients } from "../../../hooks.server";
-import { get } from "svelte/store";
 import { filetransfers } from "./stores";
 
 // Message handler
