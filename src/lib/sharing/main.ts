@@ -2,7 +2,7 @@ import { page } from "$app/stores";
 import { get } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
-import { type IContact } from "$lib/lib/fetchers";
+import { type IContact, type IDeviceInfo } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
 import { contacts, own_did } from "$lib/lib/UI";
@@ -15,12 +15,14 @@ import {
   type webRTCData,
   senderLink,
   type Update,
+  notification_requests,
 } from "./common";
 import {
   handleRequest,
   handleChunk,
   handleFileFinish,
   handleFileTransferFinished,
+  handleReady,
 } from "./handle";
 import { send, sendChunked, sendRequest } from "./send";
 
@@ -36,6 +38,9 @@ const authenticated = (
       return true;
     } else return false;
   }
+
+  // Notification request - Authorization is checked in handler
+  if (type == "ready") return true;
 
   // Home page - Skip if sending via link or filetransfer is already running
   if (
@@ -86,7 +91,9 @@ export const handleData = (data: Exclude<webRTCData, Update>, did: number) => {
     )
   ) {
     // Sender:
-    if (data.type == "accept") {
+    if (data.type == "ready") {
+      handleReady(did, data.id);
+    } else if (data.type == "accept") {
       if (data.guest == true) sendRequest(did, data.id);
       else sendChunked(did, data.id);
     } else if (data.type == "reject") {

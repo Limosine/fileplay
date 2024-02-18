@@ -294,9 +294,9 @@ class Peer {
       const chunk = this.buffer[did].data[0];
       this.buffer[did].data.splice(0, 1);
 
-      return await new Promise<null>((resolve) => {
+      return await new Promise<void>((resolve) => {
         conn.write(chunk, undefined, () => {
-          resolve(null);
+          resolve();
           this.sendMessages(did);
         });
       });
@@ -330,7 +330,7 @@ class Peer {
 
   async sendMessage(
     did: number,
-    data: webRTCData | { type: "connect" },
+    data: webRTCData,
     encrypt = true,
     immediately = false,
   ) {

@@ -18,8 +18,7 @@
     type OutgoingFileTransfer,
   } from "$lib/sharing/common";
   import { addPendingFile } from "$lib/sharing/main";
-  import { send } from "$lib/sharing/send";
-  import { apiClient } from "$lib/api/client";
+  import { send, sendNotifications } from "$lib/sharing/send";
 
   let qrCode: string;
   const setQRCode = async (link: string) => {
@@ -35,11 +34,10 @@
 
     if (state != SendState.REQUESTING && state != SendState.SENDING) {
       if (contact.devices.length <= 0) {
-        sendState.set(contact.cid, SendState.NOTIFYING);
-        apiClient("ws").sendMessage({ type: "sendMessage", data: contact.uid });
+        sendNotifications(contact);
       } else {
         for (const device of devices) {
-          await send(device.did, contact.cid, undefined);
+          await send(device.did, contact.cid);
         }
       }
     }

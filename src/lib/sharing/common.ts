@@ -11,6 +11,7 @@ export type webRTCData =
   | Accept
   | Reject
   | Request
+  | Ready
   | Error;
 
 export interface Update {
@@ -54,6 +55,10 @@ export interface Request {
   files: Omit<Omit<IncomingFileInfos, "url">, "chunks">[];
   previous?: string;
 }
+export interface Ready {
+  type: "ready";
+  id: string;
+}
 export interface Error {
   type: "error";
   message: string;
@@ -92,6 +97,9 @@ export interface IncomingFiletransfer {
 
 // Sender Side:
 export const outgoing_filetransfers = writable<OutgoingFileTransfer[]>([]);
+export const notification_requests = writable<
+  { uid: number; id: string; files: OutgoingFileInfos[] }[]
+>([]);
 export const link = writable("");
 
 // Receiver Side:

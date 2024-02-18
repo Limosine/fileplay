@@ -2,9 +2,12 @@ import { page } from "$app/stores";
 import { nanoid } from "nanoid";
 import { get } from "svelte/store";
 
+import { apiClient } from "$lib/api/client";
+import type { IContact } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
 import { addNotification, deleteNotification, files } from "$lib/lib/UI";
+import { onGuestPage } from "$lib/lib/utils";
 
 import {
   incoming_filetransfers,
@@ -16,20 +19,10 @@ import {
   type OutgoingFileTransfer,
   chunkFileBig,
   chunkBlobSmall,
+  notification_requests,
 } from "./common";
-import { onGuestPage } from "$lib/lib/utils";
 
-// Sender:
-export const send = async (
-  did?: number,
-  cid?: number,
-  filetransfer_id?: string,
-) => {
-  if (get(files).length <= 0)
-    throw new Error("Filetransfer: One file has to be selected.");
-
-  filetransfer_id = filetransfer_id === undefined ? nanoid() : filetransfer_id;
-
+const generateInfos = () => {
   // Split the files into large chunks (16000 KB)
   const fileInfos: OutgoingFileInfos[] = [];
   for (let i = 0; i < get(files).length; i++) {
@@ -53,6 +46,42 @@ export const send = async (
       completed: 0,
     });
   }
+  return fileInfos;
+};
+
+// Sender:
+export const sendNotifications = async (contact: IContact) => {
+  sendState.set(contact.cid, SendState.NOTIFYING);
+
+  const id = nanoid();
+
+  notification_requests.update((requests) => {
+    requests.push({
+      uid: contact.uid,
+      id,
+      files: generateInfos(),
+    });
+    return requests;
+  });
+
+  apiClient("ws").sendMessage({
+    type: "sendMessage",
+    data: { uid: contact.uid, id },
+  });
+};
+
+export const send = async (
+  did?: number,
+  cid?: number,
+  filetransfer_id?: string,
+  fileInfos?: OutgoingFileInfos[],
+) => {
+  if (get(files).length <= 0)
+    throw new Error("Filetransfer: One file has to be selected.");
+
+  filetransfer_id = filetransfer_id === undefined ? nanoid() : filetransfer_id;
+
+  fileInfos = fileInfos === undefined ? generateInfos() : fileInfos;
 
   const filetransfer_infos: OutgoingFileTransfer = {
     id: filetransfer_id,
@@ -333,5 +362,12 @@ export const sendAnswer = (
   peer().sendMessage(did, {
     type: answer ? "accept" : "reject",
     id: filetransfer_id,
+  });
+};
+
+export const sendReady = (did: number, nid: string) => {
+  peer().sendMessage(did, {
+    type: "ready",
+    id: nid,
   });
 };

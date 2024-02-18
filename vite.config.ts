@@ -21,7 +21,7 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         useCredentials: true,
         devOptions: {
           enabled: false,
-        },
+        }, // @ts-ignore
         manifest: await import("./static/manifest.json"),
       }),
     ],

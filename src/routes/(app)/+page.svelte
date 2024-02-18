@@ -5,10 +5,11 @@
   import { apiClient } from "$lib/api/client";
   import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
-  import { handleMessage } from "$lib/lib/fetchers";
+  import { handleMessage, type IContact } from "$lib/lib/fetchers";
   import {
     addContactDialog,
     add_mode,
+    contacts,
     current,
     editDialog,
     notificationDialog,
@@ -20,6 +21,9 @@
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
   import Settings from "$lib/pages/Settings.svelte";
+  import { sendReady } from "$lib/sharing/send";
+
+  let sendAccept: boolean;
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -56,6 +60,12 @@
     ui("#dialog-add");
   };
 
+  const send = (contacts: IContact[], sendAccept: boolean) => {
+    const didString = $page.url.searchParams.get("did");
+    const nid = $page.url.searchParams.get("nid");
+    if (didString !== null && nid !== null) sendReady(Number(didString), nid);
+  };
+
   onMount(async () => {
     if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
       navigator.serviceWorker.addEventListener("message", handleMessage);
@@ -65,8 +75,17 @@
       if ($page.url.searchParams.has("share-target")) {
         navigator.serviceWorker.controller?.postMessage("share-ready");
       }
+
+      if ($page.url.searchParams.has("accept-target")) {
+        sendAccept = false;
+      }
     }
   });
+
+  $: {
+    if ($contacts !== undefined && sendAccept === false)
+      send($contacts, sendAccept);
+  }
 </script>
 
 <svelte:window

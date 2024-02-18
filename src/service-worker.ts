@@ -26,10 +26,11 @@ staticResourceCache();
 
 imageCache();
 
+type notificationData = { username: string; avatarSeed: string; did: number; nid: string };
+
 self.addEventListener("push", async (event) => {
   if (event.data === null) return;
-  const data: { username: string; avatarSeed: string; did: number } =
-    event.data.json();
+  const data: notificationData = event.data.json();
 
   self.registration.showNotification("Sharing request", {
     data,
@@ -41,20 +42,9 @@ self.addEventListener("push", async (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  event.waitUntil(
-    self.clients
-      .matchAll({
-        type: "window",
-      })
-      .then((clientList) => {
-        if (clientList.length > 0) {
-          for (const client of clientList) {
-            if ("focus" in client) return client.focus();
-          }
-        } else if ("openWindow" in self.clients)
-          return self.clients.openWindow("/");
-      }),
-  );
+  const data: notificationData = event.notification.data;
+
+  event.waitUntil(self.clients.openWindow(`/?accept-target&did=${data.did}&nid=${data.nid}`));
 });
 
 // Following code from:

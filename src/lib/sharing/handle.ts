@@ -1,7 +1,8 @@
 import { get } from "svelte/store";
 
+import type { IContact } from "$lib/lib/fetchers";
 import { sendState, SendState } from "$lib/lib/sendstate";
-import { addNotification } from "$lib/lib/UI";
+import { addNotification, contacts } from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
 
 import {
@@ -9,8 +10,30 @@ import {
   type IncomingFiletransfer,
   outgoing_filetransfers,
   type Request,
+  notification_requests,
 } from "./common";
-import { sendAnswer, sendChunked, sendFinish, sendMissing } from "./send";
+import { send, sendAnswer, sendChunked, sendFinish, sendMissing } from "./send";
+
+export const handleReady = (did: number, nid: string) => {
+  let contact: IContact | false = false;
+  for (const c of get(contacts)) {
+    const device = c.devices.find((device) => device.did === did);
+    if (device !== undefined) {
+      contact = c;
+      break;
+    }
+  }
+  if (contact === false) throw new Error("Filetransfer: Failed to find contact.");
+
+  const request = get(notification_requests).find(
+    (request) =>
+      request.id == nid && contact !== false && request.uid === contact.uid,
+  );
+
+  if (request === undefined) throw new Error("Filetransfer: Unauthorized");
+
+  send(did, contact.cid, undefined, request.files);
+};
 
 export const handleRequest = (
   did: number,

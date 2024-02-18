@@ -137,11 +137,12 @@ export const handleMessage = async (
 
       webPush().sendMessage(
         cts.db,
-        data.data,
+        data.data.uid,
         JSON.stringify({
           username: userInfos.message.display_name,
           avatarSeed: userInfos.message.avatar_seed,
           did: device,
+          nid: data.data.id
         }),
       );
     });
