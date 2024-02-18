@@ -56,7 +56,7 @@ export const subscribeWebPush = async (
   registration: ServiceWorkerRegistration,
 ) => {
   if (Notification.permission == "denied")
-    localStorage.setItem("subscribedToPush", "false");
+    return localStorage.setItem("subscribedToPush", "false");
   else if (Notification.permission == "default") {
     const permission = await Notification.requestPermission();
 

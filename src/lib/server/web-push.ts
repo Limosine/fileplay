@@ -1,6 +1,7 @@
 import * as webpush from "web-push";
 
 import { env } from "$env/dynamic/private";
+import { env as envPublic } from "$env/dynamic/public";
 import { get, writable } from "svelte/store";
 import type { Database } from "$lib/lib/db";
 
@@ -21,18 +22,18 @@ class WebPush {
   publicVapidKey: string;
 
   constructor() {
-    if (env.PUBLIC_VAPID_KEY === undefined)
+    if (envPublic.PUBLIC_VAPID_KEY === undefined)
       throw new Error("Please define a public vapid key.");
     if (env.PRIVATE_VAPID_KEY === undefined)
       throw new Error("Please define a private vapid key.");
     if (env.GCM_KEY === undefined) throw new Error("Please define a gcm key.");
 
-    this.publicVapidKey = env.PUBLIC_VAPID_KEY;
+    this.publicVapidKey = envPublic.PUBLIC_VAPID_KEY;
 
     webpush.setGCMAPIKey(env.GCM_KEY);
     webpush.setVapidDetails(
       "mailto:postmaster@wir-sind-frey.de",
-      env.PUBLIC_VAPID_KEY,
+      envPublic.PUBLIC_VAPID_KEY,
       env.PRIVATE_VAPID_KEY,
     );
   }
