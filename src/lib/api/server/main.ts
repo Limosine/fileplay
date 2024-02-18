@@ -131,8 +131,19 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "sendMessage") {
-    authorizeMain(ids, (device, user) => {
-      webPush().sendMessage(cts.db, user, data.data.message);
+    authorizeMain(ids, async (device, user) => {
+      const userInfos = await getUser(cts.db, user);
+      if (!userInfos.success) throw new Error("500");
+
+      webPush().sendMessage(
+        cts.db,
+        user,
+        JSON.stringify({
+          username: userInfos.message.display_name,
+          avatarSeed: userInfos.message.avatar_seed,
+          did: device,
+        }),
+      );
     });
 
     // Guest

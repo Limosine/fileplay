@@ -168,10 +168,7 @@ const messageFromClientSchemaWithoutId = z.union([
   }),
   z.object({
     type: z.enum(["sendMessage"]),
-    data: z.object({
-      uid: z.number(),
-      message: z.string(),
-    }),
+    data: z.number(),
   }),
   z.object({
     type: z.enum(["updateDevice"]),

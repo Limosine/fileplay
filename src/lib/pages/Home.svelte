@@ -32,18 +32,15 @@
     const state = $sendState[contact.cid];
     const devices = contact.devices;
 
-    if (
-      state == SendState.CHUNKING ||
-      state == SendState.REQUESTING ||
-      state == SendState.SENDING
-    ) {
+    if (state == SendState.REQUESTING || state == SendState.SENDING) {
       $contactId = contact.cid;
       ui("#dialog-send");
     } else {
       $contactId = contact.cid;
       ui("#dialog-send");
       if (contact.devices.length <= 0) {
-        apiClient("ws").sendMessage({ type: "sendMessage", data: { uid: contact.uid, message: `${$user.display_name} wants to share files with you.`}})
+        sendState.set(contact.cid, SendState.NOTIFYING);
+        apiClient("ws").sendMessage({ type: "sendMessage", data: contact.uid });
       } else {
         for (const device of devices) {
           $deviceId = device.did;

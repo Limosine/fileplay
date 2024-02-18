@@ -14,6 +14,8 @@ import {
   googleFontsCache,
 } from "workbox-recipes";
 
+import { getDicebearUrl } from "$lib/lib/common";
+
 precacheAndRoute(self.__WB_MANIFEST);
 
 pageCache();
@@ -23,6 +25,37 @@ googleFontsCache();
 staticResourceCache();
 
 imageCache();
+
+self.addEventListener("push", async (event) => {
+  if (event.data === null) return;
+  const data: { username: string; avatarSeed: string; did: number } =
+    event.data.json();
+
+  self.registration.showNotification("Sharing request", {
+    data,
+    body: `${data.username} wants to share files with you. Click to accept.`,
+    icon: getDicebearUrl(data.avatarSeed, 192),
+  });
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    self.clients
+      .matchAll({
+        type: "window",
+      })
+      .then((clientList) => {
+        if (clientList.length > 0) {
+          for (const client of clientList) {
+            if ("focus" in client) return client.focus();
+          }
+        } else if ("openWindow" in self.clients)
+          return self.clients.openWindow("/");
+      }),
+  );
+});
 
 // Following code from:
 // https://github.com/GoogleChromeLabs/squoosh/blob/dev/src/sw/util.ts

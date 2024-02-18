@@ -2,7 +2,7 @@ import { get, writable } from "svelte/store";
 
 export enum SendState {
   IDLE = "Idle",
-  CHUNKING = "Chunking",
+  NOTIFYING = "Notifying",
   REQUESTING = "Requesting",
   REJECTED = "Rejected",
   SENDING = "Sending",

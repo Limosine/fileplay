@@ -57,7 +57,7 @@
         if ($sendDialog.open) ui("#dialog-send");
       } else {
         if (
-          stateParam == SendState.CHUNKING ||
+          stateParam == SendState.NOTIFYING ||
           stateParam == SendState.REQUESTING ||
           stateParam == SendState.SENDING
         ) {
