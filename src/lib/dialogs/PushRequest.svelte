@@ -1,6 +1,6 @@
 <script lang="ts">
   import { subscribeWebPush } from "$lib/lib/fetchers";
-  import { registration, requestDialog, subscribedToPush } from "$lib/lib/UI";
+  import { registration, requestDialog } from "$lib/lib/UI";
 </script>
 
 <dialog id="dialog-request" bind:this={$requestDialog}>
@@ -13,7 +13,7 @@
       class="border"
       style="border: 0;"
       on:click={() => {
-        $subscribedToPush = false;
+        localStorage.setItem("subscribedToPush", "false");
         ui("#dialog-request");
       }}>Deny</button
     >

@@ -2,7 +2,7 @@ import { page } from "$app/stores";
 import { get } from "svelte/store";
 
 import { DeviceType } from "./common";
-import { rawFiles, subscribedToPush } from "./UI";
+import { rawFiles } from "./UI";
 import { env } from "$env/dynamic/public";
 import { apiClient } from "$lib/api/client";
 
@@ -55,28 +55,34 @@ export const withDeviceType = (name: string) => {
 export const subscribeWebPush = async (
   registration: ServiceWorkerRegistration,
 ) => {
-  if (Notification.permission == "denied") return;
+  if (Notification.permission == "denied")
+    localStorage.setItem("subscribedToPush", "false");
   else if (Notification.permission == "default") {
     const permission = await Notification.requestPermission();
 
     if (permission != "granted") return;
   }
 
-  const subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: env.PUBLIC_VAPID_KEY,
-  });
+  try {
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: env.PUBLIC_VAPID_KEY,
+    });
 
-  subscribedToPush.set(subscription);
+    localStorage.setItem("subscribedToPush", JSON.stringify(subscription));
 
-  apiClient("ws").sendMessage({
-    type: "updateDevice",
-    data: {
-      update: {
-        push_subscription: JSON.stringify(subscription),
+    apiClient("ws").sendMessage({
+      type: "updateDevice",
+      data: {
+        update: {
+          push_subscription: JSON.stringify(subscription),
+        },
       },
-    },
-  });
+    });
+  } catch (e: any) {
+    localStorage.setItem("subscribedToPush", "false");
+    console.log("Failed to subscribe to web-push.");
+  }
 };
 
 // Service worker

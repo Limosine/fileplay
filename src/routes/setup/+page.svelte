@@ -339,7 +339,7 @@
         <span class="max" />
         <img
           class="responsive"
-          style="height: auto;"
+          style="height: 50px; width: 50px; margin-right: 5px;"
           src={getDicebearUrl($userParams.avatar_seed, 150)}
           alt="Avatar"
         />

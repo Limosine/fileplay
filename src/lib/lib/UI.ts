@@ -16,7 +16,6 @@ import type { PartialBy } from "./utils";
 
 // Service worker
 export const registration = writable<ServiceWorkerRegistration>();
-export const subscribedToPush = writable<PushSubscription | false>();
 
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
 export const settings_page = writable<"main" | "devices" | "device">("main");

@@ -14,7 +14,7 @@
   import Request from "$lib/dialogs/PushRequest.svelte";
   import Send from "$lib/dialogs/Send.svelte";
 
-  import { registration, subscribedToPush } from "$lib/lib/UI";
+  import { registration } from "$lib/lib/UI";
 
   let loading = 0;
 
@@ -34,8 +34,7 @@
         onRegistered(r) {
           if (r !== undefined) {
             $registration = r;
-            console.log("Service worker registered.");
-            if ($subscribedToPush === undefined) ui("#dialog-request");
+            if (localStorage.getItem("subscribedToPush") === null) ui("#dialog-request");
           }
         },
         onRegisterError(error: any) {
