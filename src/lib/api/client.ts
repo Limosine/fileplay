@@ -10,7 +10,7 @@ import type { MessageFromClient, MessageFromServer } from "./common";
 
 const getHost = (url = false) => {
   if (!browser || location.host == "localhost" || url) {
-    return "fileplay.wir-sind-frey.de";
+    return "https://fileplay.wir-sind-frey.de";
   } else return "";
 };
 
@@ -95,9 +95,7 @@ class WebSocketClient {
 
   private connect() {
     this.socket = new WebSocket(
-      `${location.protocol === "http:" ? "ws:" : "wss:"}//${getHost(
-        true,
-      )}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
+      `wss://fileplay.wir-sind-frey.de/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
 
     this.socket.binaryType = "arraybuffer";
