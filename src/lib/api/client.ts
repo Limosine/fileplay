@@ -1,4 +1,5 @@
 import { browser } from "$app/environment";
+import { Capacitor } from "@capacitor/core";
 import { decode, encode } from "@msgpack/msgpack";
 import { get, readable, writable } from "svelte/store";
 
@@ -8,9 +9,21 @@ import { onGuestPage } from "$lib/lib/utils";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
 
+const getHost = (url = false) => {
+  if (Capacitor.isNativePlatform() || url) {
+    return "fileplay.wir-sind-frey.de";
+  } else return "";
+};
+
 class HTTPClient {
+  private host: string;
+
+  constructor() {
+    this.host = getHost();
+  }
+
   async checkProfanity(username: string) {
-    const res = await fetch("/api/checkProfanity", {
+    const res = await fetch(`${this.host}/api/checkProfanity`, {
       method: "POST",
       body: JSON.stringify({
         username,
@@ -22,12 +35,12 @@ class HTTPClient {
 
   async setupDevice(device: { display_name: string; type: string } | string) {
     if (typeof device == "string") {
-      return await fetch("/api/devices/link", {
+      return await fetch(`${this.host}/api/devices/link`, {
         method: "POST",
         body: JSON.stringify({ code: device }),
       });
     } else {
-      return await fetch("/api/setup/device", {
+      return await fetch(`${this.host}/api/setup/device`, {
         method: "POST",
         body: JSON.stringify(device),
       });
@@ -35,14 +48,14 @@ class HTTPClient {
   }
 
   async setupUser(user: { display_name: string; avatar_seed: string }) {
-    return await fetch("/api/setup/user", {
+    return await fetch(`${this.host}/api/setup/user`, {
       method: "POST",
       body: JSON.stringify(user),
     });
   }
 
   async setupGuest() {
-    const res = await fetch("/api/setup/guest", {
+    const res = await fetch(`${this.host}/api/setup/guest`, {
       method: "POST",
     });
 
@@ -50,13 +63,13 @@ class HTTPClient {
   }
 
   async deleteDevice() {
-    await fetch("/api/devices", {
+    await fetch(`${this.host}/api/devices`, {
       method: "DELETE",
     });
   }
 
   async deleteAccount() {
-    const res = await fetch("/api/user", {
+    const res = await fetch(`${this.host}/api/user`, {
       method: "DELETE",
     });
 
@@ -83,9 +96,9 @@ class WebSocketClient {
 
   private connect() {
     this.socket = new WebSocket(
-      `${location.protocol === "http:" ? "ws:" : "wss:"}//${
-        location.host
-      }/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
+      `${location.protocol === "http:" ? "ws:" : "wss:"}//${getHost(
+        true,
+      )}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
 
     this.socket.binaryType = "arraybuffer";

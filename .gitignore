@@ -164,7 +164,8 @@ dist
 
 # SvelteKit build / generate output
 .svelte-kit
-build/
+build-node/
+build-static/
 
 ### Svelte ###
 # gitignore template for the SvelteKit, frontend web component framework

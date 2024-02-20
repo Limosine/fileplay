@@ -4,15 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build:node": "ADAPTER=node vite build",
+    "build:static": "ADAPTER=static vite build && cap sync && cap build android --keystorepath ~/Development/fileplay.jks --keystorepass $KSPASSWD --keystorealias key0 --keystorealiaspass $KSPASSWD --androidreleasetype 'APK'",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "pwassets": "pwa-asset-generator ./static/favicon.svg ./static/pwa-assets/ -v /pwa-assets -o -b '#201a19' -e -p 15%"
   },
   "devDependencies": {
+    "@capacitor/cli": "^5.7.0",
     "@msgpack/msgpack": "^3.0.0-beta2",
     "@sveltejs/adapter-node": "^4.0.1",
+    "@sveltejs/adapter-static": "^3.0.1",
     "@sveltejs/kit": "^2.5.0",
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
     "@types/bad-words": "^3.0.3",
@@ -55,5 +58,9 @@
     "yarn-upgrade-all": "^0.7.2",
     "zod": "^3.22.4"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@capacitor/android": "^5.7.0",
+    "@capacitor/core": "^5.7.0"
+  }
 }

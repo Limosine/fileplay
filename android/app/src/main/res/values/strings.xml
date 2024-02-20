@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Fileplay</string>
+    <string name="title_activity_main">Fileplay</string>
+    <string name="package_name">me.fileplay.app</string>
+    <string name="custom_url_scheme">me.fileplay.app</string>
+</resources>
