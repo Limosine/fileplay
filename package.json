@@ -12,7 +12,9 @@
     "pwassets": "pwa-asset-generator ./static/favicon.svg ./static/pwa-assets/ -v /pwa-assets -o -b '#201a19' -e -p 15%"
   },
   "devDependencies": {
+    "@capacitor/android": "^5.7.0",
     "@capacitor/cli": "^5.7.0",
+    "@capacitor/core": "^5.7.0",
     "@msgpack/msgpack": "^3.0.0-beta2",
     "@sveltejs/adapter-node": "^4.0.1",
     "@sveltejs/adapter-static": "^3.0.1",

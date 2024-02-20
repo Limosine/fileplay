@@ -1,5 +1,4 @@
 import { browser } from "$app/environment";
-import { Capacitor } from "@capacitor/core";
 import { decode, encode } from "@msgpack/msgpack";
 import { get, readable, writable } from "svelte/store";
 
@@ -10,7 +9,7 @@ import { onGuestPage } from "$lib/lib/utils";
 import type { MessageFromClient, MessageFromServer } from "./common";
 
 const getHost = (url = false) => {
-  if (Capacitor.isNativePlatform() || url) {
+  if (!browser || location.host == "localhost" || url) {
     return "fileplay.wir-sind-frey.de";
   } else return "";
 };
