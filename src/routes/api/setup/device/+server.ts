@@ -14,7 +14,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     type: z.nativeEnum(DeviceType),
   });
 
-  console.log(request);
+  console.log(await request.text());
 
   const update = schema.safeParse(await request.json());
 
