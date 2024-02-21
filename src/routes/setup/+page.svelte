@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { HttpResponse } from "@capacitor/core";
   import { get } from "svelte/store";
 
   import "beercss";
@@ -40,12 +41,12 @@
   let existing = false;
 
   // setup (confirm)
-  const handleResponseError = async (res: Response) => {
-    const json_ = (await res.json()) as any;
+  const handleResponseError = async (res: HttpResponse) => {
+    const json_ = JSON.parse(res.data);
     if (json_) {
       setupError = json_.message;
     } else {
-      setupError = res.statusText;
+      setupError = res.status.toString();
     }
   };
 
@@ -67,7 +68,7 @@
       };
 
       const res = await apiClient("http").setupDevice(object);
-      if (String(res.status).charAt(0) !== "2") {
+      if (Array.from(res.status.toString())[0] != "2") {
         handleResponseError(res);
         return;
       }
@@ -76,7 +77,7 @@
     if (existing) {
       // link to existing user
       const res2 = await apiClient("http").setupDevice($linkingCode);
-      if (String(res2.status).charAt(0) !== "2") {
+      if (Array.from(res2.status.toString())[0] != "2") {
         handleResponseError(res2);
         return;
       }
@@ -88,7 +89,7 @@
 
       // create new user
       const res = await apiClient("http").setupUser(object);
-      if (String(res.status).charAt(0) !== "2") {
+      if (Array.from(res.status.toString())[0] != "2") {
         handleResponseError(res);
         return;
       }

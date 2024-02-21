@@ -1,4 +1,5 @@
 import { browser } from "$app/environment";
+import { CapacitorHttp } from "@capacitor/core";
 import { decode, encode } from "@msgpack/msgpack";
 import { get, readable, writable } from "svelte/store";
 
@@ -8,7 +9,7 @@ import { onGuestPage } from "$lib/lib/utils";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
 
-const getHost = async (url = false) => {
+const getHost = async (url = true) => {
   if (!url) {
     if (browser && location.hostname == "localhost") {
       const { Capacitor } = await import("@capacitor/core");
@@ -29,55 +30,77 @@ class HTTPClient {
   }
 
   async checkProfanity(username: string) {
-    const res = await fetch(`${await this.host}/api/checkProfanity`, {
-      method: "POST",
-      body: JSON.stringify({
+    const res = await CapacitorHttp.post({
+      url: `${await this.host}/api/checkProfanity`,
+      data: {
         username,
-      }),
+      },
     });
 
-    return (await res.json()) as boolean;
+    console.log(res);
+
+    return JSON.parse(res.data) as boolean;
   }
 
   async setupDevice(device: { display_name: string; type: string } | string) {
     if (typeof device == "string") {
-      return await fetch(`${await this.host}/api/devices/link`, {
-        method: "POST",
-        body: JSON.stringify({ code: device }),
+      const res =  await CapacitorHttp.post({
+        url: `${await this.host}/api/devices/link`,
+        data: {
+          code: device,
+        },
       });
+
+      console.log(res);
+
+      return res;
     } else {
-      return await fetch(`${await this.host}/api/setup/device`, {
-        method: "POST",
-        body: JSON.stringify(device),
+      const res = await CapacitorHttp.post({
+        url: `${await this.host}/api/setup/device`,
+        data: device,
       });
+
+      console.log(res);
+
+      return res;
     }
   }
 
   async setupUser(user: { display_name: string; avatar_seed: string }) {
-    return await fetch(`${await this.host}/api/setup/user`, {
-      method: "POST",
-      body: JSON.stringify(user),
+    const res = await CapacitorHttp.post({
+      url: `${await this.host}/api/setup/user`,
+      data: user,
     });
+
+    console.log(res);
+
+    return res;
   }
 
   async setupGuest() {
-    const res = await fetch(`${await this.host}/api/setup/guest`, {
-      method: "POST",
+    const res = await CapacitorHttp.post({
+      url: `${await this.host}/api/setup/guest`,
     });
 
-    if (!res.ok) throw new Error("Failed to setup guestId.");
+    if (Array.from(res.status.toString())[0] != "2") throw new Error("Failed to setup guestId.");
   }
 
   async deleteDevice() {
-    await fetch(`${await this.host}/api/devices`, {
-      method: "DELETE",
+    const res = await CapacitorHttp.delete({
+      url: `${await this.host}/api/devices`,
     });
+
+    console.log(res);
+
+    return res;
   }
 
   async deleteAccount() {
-    const res = await fetch(`${await this.host}/api/user`, {
-      method: "DELETE",
+    const res = await CapacitorHttp.delete({
+      url: `${await this.host}/api/setup/user`,
     });
+
+    console.log(res);
 
     if (browser && res) {
       localStorage.removeItem("loggedIn");

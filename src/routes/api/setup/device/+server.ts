@@ -14,6 +14,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     type: z.nativeEnum(DeviceType),
   });
 
+  console.log(request);
+
   const update = schema.safeParse(await request.json());
 
   if (!update.success) error(422, "Wrong data type");
