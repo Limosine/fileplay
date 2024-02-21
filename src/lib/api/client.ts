@@ -32,6 +32,9 @@ class HTTPClient {
   async checkProfanity(username: string) {
     const res = await CapacitorHttp.post({
       url: `${await this.host}/api/checkProfanity`,
+      headers: {
+        "Content-Type": "application/json",
+      },
       data: {
         username,
       },
@@ -44,8 +47,11 @@ class HTTPClient {
 
   async setupDevice(device: { display_name: string; type: string } | string) {
     if (typeof device == "string") {
-      const res =  await CapacitorHttp.post({
+      const res = await CapacitorHttp.post({
         url: `${await this.host}/api/devices/link`,
+        headers: {
+          "Content-Type": "application/json",
+        },
         data: {
           code: device,
         },
@@ -57,6 +63,9 @@ class HTTPClient {
     } else {
       const res = await CapacitorHttp.post({
         url: `${await this.host}/api/setup/device`,
+        headers: {
+          "Content-Type": "application/json",
+        },
         data: device,
       });
 
@@ -69,6 +78,9 @@ class HTTPClient {
   async setupUser(user: { display_name: string; avatar_seed: string }) {
     const res = await CapacitorHttp.post({
       url: `${await this.host}/api/setup/user`,
+      headers: {
+        "Content-Type": "application/json",
+      },
       data: user,
     });
 
@@ -82,7 +94,8 @@ class HTTPClient {
       url: `${await this.host}/api/setup/guest`,
     });
 
-    if (Array.from(res.status.toString())[0] != "2") throw new Error("Failed to setup guestId.");
+    if (Array.from(res.status.toString())[0] != "2")
+      throw new Error("Failed to setup guestId.");
   }
 
   async deleteDevice() {
