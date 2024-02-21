@@ -33,6 +33,8 @@ if (!building) {
     async (client: ExtendedWebSocket, req: IncomingMessage) => {
       const ids = await authenticate(constants.db, constants.cookieKey, req);
 
+      console.log(ids);
+
       if (req.url !== undefined) {
         const url = new URL(req.url, `https://${req.headers.host}`);
         const type = url.searchParams.get("type");
@@ -42,7 +44,7 @@ if (!building) {
           ids.device = null;
           ids.user = null;
         }
-      } else return client.close(1008, "Unauthorized");
+      } else return client.close(1008, "Unauthorized, no type specified");
 
       // Check authorization
       if (ids.guest === null && (ids.device === null || ids.user === null)) {

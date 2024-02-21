@@ -67,7 +67,7 @@
   };
 
   onMount(async () => {
-    if ($page.url.hostname != "localhost" && localStorage.getItem("loggedIn")) {
+    if (localStorage.getItem("loggedIn")) {
       navigator.serviceWorker.addEventListener("message", handleMessage);
       await setup();
       apiClient("ws");

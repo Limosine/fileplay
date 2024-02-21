@@ -8,21 +8,28 @@ import { onGuestPage } from "$lib/lib/utils";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
 
-const getHost = (url = false) => {
-  if (!browser || location.host == "localhost" || url) {
-    return "https://fileplay.wir-sind-frey.de";
-  } else return "";
+const getHost = async (url = false) => {
+  if (!url) {
+    if (browser && location.hostname == "localhost") {
+      const { Capacitor } = await import("@capacitor/core");
+      if (!Capacitor.isNativePlatform()) throw new Error();
+    }
+
+    return "";
+  }
+
+  return "https://fileplay.wir-sind-frey.de";
 };
 
 class HTTPClient {
-  private host: string;
+  private host: Promise<string>;
 
   constructor() {
     this.host = getHost();
   }
 
   async checkProfanity(username: string) {
-    const res = await fetch(`${this.host}/api/checkProfanity`, {
+    const res = await fetch(`${await this.host}/api/checkProfanity`, {
       method: "POST",
       body: JSON.stringify({
         username,
@@ -34,12 +41,12 @@ class HTTPClient {
 
   async setupDevice(device: { display_name: string; type: string } | string) {
     if (typeof device == "string") {
-      return await fetch(`${this.host}/api/devices/link`, {
+      return await fetch(`${await this.host}/api/devices/link`, {
         method: "POST",
         body: JSON.stringify({ code: device }),
       });
     } else {
-      return await fetch(`${this.host}/api/setup/device`, {
+      return await fetch(`${await this.host}/api/setup/device`, {
         method: "POST",
         body: JSON.stringify(device),
       });
@@ -47,14 +54,14 @@ class HTTPClient {
   }
 
   async setupUser(user: { display_name: string; avatar_seed: string }) {
-    return await fetch(`${this.host}/api/setup/user`, {
+    return await fetch(`${await this.host}/api/setup/user`, {
       method: "POST",
       body: JSON.stringify(user),
     });
   }
 
   async setupGuest() {
-    const res = await fetch(`${this.host}/api/setup/guest`, {
+    const res = await fetch(`${await this.host}/api/setup/guest`, {
       method: "POST",
     });
 
@@ -62,13 +69,13 @@ class HTTPClient {
   }
 
   async deleteDevice() {
-    await fetch(`${this.host}/api/devices`, {
+    await fetch(`${await this.host}/api/devices`, {
       method: "DELETE",
     });
   }
 
   async deleteAccount() {
-    const res = await fetch(`${this.host}/api/user`, {
+    const res = await fetch(`${await this.host}/api/user`, {
       method: "DELETE",
     });
 
@@ -97,6 +104,8 @@ class WebSocketClient {
     this.socket = new WebSocket(
       `wss://fileplay.wir-sind-frey.de/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
+
+    console.log(this.socket);
 
     this.socket.binaryType = "arraybuffer";
 

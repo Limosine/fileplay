@@ -1,6 +1,7 @@
 {
   "typescript.tsdk": "node_modules\\typescript\\lib",
   "cSpell.words": [
+    "androidreleasetype",
     "beercss",
     "codeproperties",
     "coturn",
@@ -16,6 +17,11 @@
     "filetransfers",
     "frey",
     "GCMAPI",
+    "keystorealias",
+    "keystorealiaspass",
+    "keystorepass",
+    "keystorepath",
+    "KSPASSWD",
     "kysely",
     "Kysely",
     "linebreak",
