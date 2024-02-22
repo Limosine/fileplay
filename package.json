@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite dev",
     "build:node": "ADAPTER=node vite build",
-    "build:static": "ADAPTER=static vite build && cap sync",
+    "build:static": "export ADAPTER=static && vite build && cap sync",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

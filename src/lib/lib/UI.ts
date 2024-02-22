@@ -126,6 +126,7 @@ export const notificationDialog = writable<HTMLDialogElement>();
 export const qrCodeDialog = writable<HTMLDialogElement>();
 export const requestDialog = writable<HTMLDialogElement>();
 export const sendDialog = writable<HTMLDialogElement>();
+export const privacyDialog = writable<HTMLDialogElement>();
 
 // Sending dialog
 export const contactId = writable<number>();

@@ -121,7 +121,8 @@
             qrCode = "";
             $input.click();
           }}
-          style="color: var(--secondary)">Change</a
+          style="color: var(--secondary)"
+          ><span class="clickableText">Change</span></a
         >
       </div>
       <div class="row wrap">
@@ -159,7 +160,7 @@
           <p>
             <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <a on:click={() => addPendingFile()} style="color: var(--secondary)"
-              >Generate a QR-Code</a
+              ><span class="clickableText">Generate a QR-Code</span></a
             >, which can be used to download files without needing to register.
           </p>
         {:else}
@@ -208,7 +209,8 @@
           <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
           <a
             on:click={() => ($current = "Contacts")}
-            style="color: var(--primary)">contact page</a
+            style="color: var(--primary)"
+            ><span class="clickableText">contact page</span></a
           >.
         </p>
       {/if}
@@ -254,5 +256,9 @@
     flex-flow: row;
     gap: 30px;
     padding-top: 10px;
+  }
+
+  .clickableText {
+    font-weight: bold;
   }
 </style>

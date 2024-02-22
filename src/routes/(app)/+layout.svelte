@@ -14,7 +14,8 @@
   import Request from "$lib/dialogs/PushRequest.svelte";
   import Send from "$lib/dialogs/Send.svelte";
 
-  import { registration } from "$lib/lib/UI";
+  import { registration, privacyDialog } from "$lib/lib/UI";
+  import Privacy from "$lib/dialogs/Privacy.svelte";
 
   let loading = 0;
 
@@ -34,7 +35,8 @@
         onRegistered(r) {
           if (r !== undefined) {
             $registration = r;
-            if (localStorage.getItem("subscribedToPush") === null) ui("#dialog-request");
+            if (localStorage.getItem("subscribedToPush") === null)
+              ui("#dialog-request");
           }
         },
         onRegisterError(error: any) {
@@ -51,6 +53,12 @@
         setTimeout(() => {
           loading = 2;
         }, 1100);
+      } else if (
+        !localStorage.getItem("privacyAccepted") &&
+        !$privacyDialog.open
+      ) {
+        ui("#dialog-privacy");
+        console.log("Dialog opened");
       }
     }
   }
@@ -72,6 +80,7 @@
 
 {#if loading !== 0}
   <!-- Dialogs -->
+  <Privacy />
   <Edit />
   <AddContact />
   <QRCode />
