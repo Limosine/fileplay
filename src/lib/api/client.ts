@@ -27,7 +27,7 @@ class HTTPClient {
 
   async checkProfanity(username: string) {
     const res = await CapacitorHttp.post({
-      url: `${this.host}/api/checkProfanity`,
+      url: `https://${this.host}/api/checkProfanity`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -42,7 +42,7 @@ class HTTPClient {
   async setupDevice(device: { display_name: string; type: string } | string) {
     if (typeof device == "string") {
       return await CapacitorHttp.post({
-        url: `${this.host}/api/devices/link`,
+        url: `https://${this.host}/api/devices/link`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -52,7 +52,7 @@ class HTTPClient {
       });
     } else {
       return await CapacitorHttp.post({
-        url: `${this.host}/api/setup/device`,
+        url: `https://${this.host}/api/setup/device`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -63,7 +63,7 @@ class HTTPClient {
 
   async setupUser(user: { display_name: string; avatar_seed: string }) {
     return await CapacitorHttp.post({
-      url: `${this.host}/api/setup/user`,
+      url: `https://${this.host}/api/setup/user`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -73,7 +73,7 @@ class HTTPClient {
 
   async setupGuest() {
     const res = await CapacitorHttp.post({
-      url: `${this.host}/api/setup/guest`,
+      url: `https://${this.host}/api/setup/guest`,
     });
 
     if (Array.from(res.status.toString())[0] != "2")
@@ -82,13 +82,13 @@ class HTTPClient {
 
   async deleteDevice() {
     await CapacitorHttp.delete({
-      url: `${this.host}/api/devices`,
+      url: `https://${this.host}/api/devices`,
     });
   }
 
   async deleteAccount() {
     const res = await CapacitorHttp.delete({
-      url: `${this.host}/api/user`,
+      url: `https://${this.host}/api/user`,
     });
 
     if (browser && res) {
