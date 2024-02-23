@@ -2,8 +2,6 @@ import { JWT } from "google-auth-library";
 import { get, writable } from "svelte/store";
 import * as webpush from "web-push";
 
-// @ts-ignore
-import firebaseAdminSdk from "/etc/nixos/fileplay-me-firebase-adminsdk-ehpoc-8f5289af8c.json" with { type: "json" };
 import { env } from "$env/dynamic/private";
 import { env as envPublic } from "$env/dynamic/public";
 import type { Database } from "$lib/lib/db";
@@ -42,10 +40,15 @@ class WebPush {
   }
 
   async getAccessToken() {
+    const { default: key } = await import(
+      // @ts-ignore
+      "/etc/nixos/fileplay-me-firebase-adminsdk-ehpoc-8f5289af8c.json",
+      { with: { type: "json" } }
+    );
     const jwtClient = new JWT(
-      firebaseAdminSdk.client_email,
+      key.client_email,
       undefined,
-      firebaseAdminSdk.private_key,
+      key.private_key,
       "https://www.googleapis.com/auth/firebase.messaging",
     );
     return await new Promise<string | null | undefined>(function (
