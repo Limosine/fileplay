@@ -1,5 +1,5 @@
 import { browser } from "$app/environment";
-import { CapacitorHttp } from "@capacitor/core";
+import { Capacitor, CapacitorHttp } from "@capacitor/core";
 import { decode, encode } from "@msgpack/msgpack";
 import { get, readable, writable } from "svelte/store";
 
@@ -12,7 +12,6 @@ import type { MessageFromClient, MessageFromServer } from "./common";
 const getHost = async (url = true) => {
   if (!url) {
     if (browser && location.hostname == "localhost") {
-      const { Capacitor } = await import("@capacitor/core");
       if (!Capacitor.isNativePlatform()) throw new Error();
     }
 
@@ -40,14 +39,12 @@ class HTTPClient {
       },
     });
 
-    console.log(res);
-
     return JSON.parse(res.data) as boolean;
   }
 
   async setupDevice(device: { display_name: string; type: string } | string) {
     if (typeof device == "string") {
-      const res = await CapacitorHttp.post({
+      return await CapacitorHttp.post({
         url: `${await this.host}/api/devices/link`,
         headers: {
           "Content-Type": "application/json",
@@ -56,37 +53,25 @@ class HTTPClient {
           code: device,
         },
       });
-
-      console.log(res);
-
-      return res;
     } else {
-      const res = await CapacitorHttp.post({
+      return await CapacitorHttp.post({
         url: `${await this.host}/api/setup/device`,
         headers: {
           "Content-Type": "application/json",
         },
         data: device,
       });
-
-      console.log(res);
-
-      return res;
     }
   }
 
   async setupUser(user: { display_name: string; avatar_seed: string }) {
-    const res = await CapacitorHttp.post({
+    return await CapacitorHttp.post({
       url: `${await this.host}/api/setup/user`,
       headers: {
         "Content-Type": "application/json",
       },
       data: user,
     });
-
-    console.log(res);
-
-    return res;
   }
 
   async setupGuest() {
@@ -99,21 +84,15 @@ class HTTPClient {
   }
 
   async deleteDevice() {
-    const res = await CapacitorHttp.delete({
+    await CapacitorHttp.delete({
       url: `${await this.host}/api/devices`,
     });
-
-    console.log(res);
-
-    return res;
   }
 
   async deleteAccount() {
     const res = await CapacitorHttp.delete({
-      url: `${await this.host}/api/setup/user`,
+      url: `${await this.host}/api/user`,
     });
-
-    console.log(res);
 
     if (browser && res) {
       localStorage.removeItem("loggedIn");
@@ -140,8 +119,6 @@ class WebSocketClient {
     this.socket = new WebSocket(
       `wss://fileplay.wir-sind-frey.de/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
-
-    console.log(this.socket);
 
     this.socket.binaryType = "arraybuffer";
 

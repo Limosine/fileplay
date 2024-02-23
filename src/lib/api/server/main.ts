@@ -40,7 +40,6 @@ export const sendMessage = (
   message: MessageFromServer,
   error = true,
 ) => {
-  console.log(message);
   if (typeof client === "number") {
     for (const c of clients) {
       if (client < 0) {
@@ -71,7 +70,7 @@ export const handleMessage = async (
 ) => {
   // Initial infos
   if (data.type == "getInfos") {
-    authorizeMain(ids, async (device, user) => {
+    await authorizeMain(ids, async (device, user) => {
       // User
       const userInfos = await getUser(cts.db, user);
       if (!userInfos.success) throw new Error("500");
@@ -87,7 +86,7 @@ export const handleMessage = async (
 
     // WebRTC sharing
   } else if (data.type == "getTurnCredentials") {
-    authorize(ids, async (AuthIds) => {
+    await authorize(ids, async (AuthIds) => {
       sendMessage(client, {
         id: data.id,
         type: "turnCredentials",
@@ -102,7 +101,7 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "share") {
-    authorizeMain(ids, (device) => {
+    await authorizeMain(ids, (device) => {
       sendMessage(data.data.did, {
         type: "webRTCData",
         data: {
@@ -112,7 +111,7 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "shareFromGuest") {
-    authorizeGuest(ids, (guest) => {
+    await authorizeGuest(ids, (guest) => {
       if (
         !get(filetransfers).some(
           (transfer) =>
@@ -131,25 +130,25 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "sendMessage") {
-    authorizeMain(ids, async (device, user) => {
+    await authorizeMain(ids, async (device, user) => {
       const userInfos = await getUser(cts.db, user);
       if (!userInfos.success) throw new Error("500");
 
       webPush().sendMessage(
         cts.db,
         data.data.uid,
-        JSON.stringify({
+        {
           username: userInfos.message.display_name,
           avatarSeed: userInfos.message.avatar_seed,
           did: device,
-          nid: data.data.id
-        }),
+          nid: data.data.id,
+        },
       );
     });
 
     // Guest
   } else if (data.type == "createTransfer") {
-    authorizeMain(ids, (device) => {
+    await authorizeMain(ids, (device) => {
       sendMessage(client, {
         id: data.id,
         type: "filetransfer",
@@ -157,17 +156,17 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "deleteTransfer") {
-    authorizeMain(ids, (device) => {
+    await authorizeMain(ids, (device) => {
       deleteTransfer(device);
     });
 
     // Device
   } else if (data.type == "updateDevice") {
-    authorizeMain(ids, (device, user) => {
-      updateDevice(cts.db, device, user, data.data.update, data.data.did);
+    await authorizeMain(ids, async (device, user) => {
+      await updateDevice(cts.db, device, user, data.data.update, data.data.did);
     });
   } else if (data.type == "deleteDevice") {
-    authorizeMain(ids, async (device, user) => {
+    await authorizeMain(ids, async (device, user) => {
       const result = await deleteDevice(
         cts.db,
         device,
@@ -180,17 +179,17 @@ export const handleMessage = async (
 
     // User
   } else if (data.type == "updateUser") {
-    authorizeMain(ids, (device, user) => {
-      updateUser(cts.db, user, data.data);
+    await authorizeMain(ids, async (device, user) => {
+      await updateUser(cts.db, user, data.data);
     });
 
     // Contacts
   } else if (data.type == "deleteContact") {
-    authorizeMain(ids, (device, user) => {
-      deleteContact(cts.db, user, data.data);
+    await authorizeMain(ids, async (device, user) => {
+      await deleteContact(cts.db, user, data.data);
     });
   } else if (data.type == "createContactCode") {
-    authorizeMain(ids, async (device, user) => {
+    await authorizeMain(ids, async (device, user) => {
       sendMessage(client, {
         id: data.id,
         type: "contactLinkingCode",
@@ -198,17 +197,17 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "redeemContactCode") {
-    authorizeMain(ids, (device, user) => {
-      redeemContactLinkingCode(cts.db, user, data.data);
+    await authorizeMain(ids, async (device, user) => {
+      await redeemContactLinkingCode(cts.db, user, data.data);
     });
   } else if (data.type == "deleteContactCode") {
-    authorizeMain(ids, (device, user) => {
-      deleteContactLinkingCode(cts.db, device, user);
+    await authorizeMain(ids, async (device, user) => {
+      await deleteContactLinkingCode(cts.db, device, user);
     });
 
     // Device linking code
   } else if (data.type == "createDeviceCode") {
-    authorizeMain(ids, async (device, user) => {
+    await authorizeMain(ids, async (device, user) => {
       sendMessage(client, {
         id: data.id,
         type: "deviceLinkingCode",
@@ -216,8 +215,8 @@ export const handleMessage = async (
       });
     });
   } else if (data.type == "deleteDeviceCode") {
-    authorizeMain(ids, (device, user) => {
-      deleteDeviceLinkingCode(cts.db, device, user);
+    await authorizeMain(ids, async (device, user) => {
+      await deleteDeviceLinkingCode(cts.db, device, user);
     });
   } else throw new Error("404");
 };
