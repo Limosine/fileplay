@@ -1,28 +1,25 @@
 import { browser } from "$app/environment";
-import { Capacitor, CapacitorHttp } from "@capacitor/core";
+import { CapacitorHttp } from "@capacitor/core";
 import { decode, encode } from "@msgpack/msgpack";
 import { get, readable, writable } from "svelte/store";
 
+import { env } from "$env/dynamic/public";
 import { peer } from "$lib/lib/simple-peer";
 import { contacts, devices, own_did, user } from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
 
-const getHost = async (url = true) => {
-  if (!url) {
-    if (browser && location.hostname == "localhost") {
-      if (!Capacitor.isNativePlatform()) throw new Error();
-    }
-
-    return "";
+const getHost = () => {
+  if (env.PUBLIC_HOSTNAME) {
+    return env.PUBLIC_HOSTNAME;
+  } else {
+    throw new Error("Please define a public hostname.");
   }
-
-  return "https://fileplay.wir-sind-frey.de";
 };
 
 class HTTPClient {
-  private host: Promise<string>;
+  private host: string;
 
   constructor() {
     this.host = getHost();
@@ -30,7 +27,7 @@ class HTTPClient {
 
   async checkProfanity(username: string) {
     const res = await CapacitorHttp.post({
-      url: `${await this.host}/api/checkProfanity`,
+      url: `${this.host}/api/checkProfanity`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -45,7 +42,7 @@ class HTTPClient {
   async setupDevice(device: { display_name: string; type: string } | string) {
     if (typeof device == "string") {
       return await CapacitorHttp.post({
-        url: `${await this.host}/api/devices/link`,
+        url: `${this.host}/api/devices/link`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -55,7 +52,7 @@ class HTTPClient {
       });
     } else {
       return await CapacitorHttp.post({
-        url: `${await this.host}/api/setup/device`,
+        url: `${this.host}/api/setup/device`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -66,7 +63,7 @@ class HTTPClient {
 
   async setupUser(user: { display_name: string; avatar_seed: string }) {
     return await CapacitorHttp.post({
-      url: `${await this.host}/api/setup/user`,
+      url: `${this.host}/api/setup/user`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -76,7 +73,7 @@ class HTTPClient {
 
   async setupGuest() {
     const res = await CapacitorHttp.post({
-      url: `${await this.host}/api/setup/guest`,
+      url: `${this.host}/api/setup/guest`,
     });
 
     if (Array.from(res.status.toString())[0] != "2")
@@ -85,13 +82,13 @@ class HTTPClient {
 
   async deleteDevice() {
     await CapacitorHttp.delete({
-      url: `${await this.host}/api/devices`,
+      url: `${this.host}/api/devices`,
     });
   }
 
   async deleteAccount() {
     const res = await CapacitorHttp.delete({
-      url: `${await this.host}/api/user`,
+      url: `${this.host}/api/user`,
     });
 
     if (browser && res) {
