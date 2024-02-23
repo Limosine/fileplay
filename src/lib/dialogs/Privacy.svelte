@@ -7,9 +7,9 @@
   <hr style="margin-bottom: 10px;" />
 
   <div class="flex-container">
-    <div class="left">The transmitted data is end-to-end encrypted</div>
+    <div class="left">All transmitted data is end-to-end encrypted</div>
     <div class="right">
-      <i> lock </i>
+      <i class="fill" style="transform: scale(0.75);"> lock </i>
     </div>
   </div>
 
@@ -28,8 +28,8 @@
     display: flex;
   }
 
-  .right {
-    margin-top: -3px;
-    margin-left: 3px;
+  .left {
+    font-size: large;
   }
+
 </style>
