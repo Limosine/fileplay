@@ -58,28 +58,29 @@ export const authenticate = async (
 };
 
 // Authorization
-export const authorize = (
+export const authorize = async (
   ids: AuthenticationIds,
   callback: (ids: { device: number; user: number } | number) => any,
 ) => {
   if (ids.device !== null && ids.user !== null)
-    callback({ device: ids.device, user: ids.user });
-  else if (ids.guest !== null) callback(ids.guest);
+    await callback({ device: ids.device, user: ids.user });
+  else if (ids.guest !== null) await callback(ids.guest);
   else throw new Error("401");
 };
 
-export const authorizeGuest = (
+export const authorizeGuest = async (
   ids: AuthenticationIds,
   callback: (guest: number) => any,
 ) => {
-  if (ids.guest !== null) callback(ids.guest);
+  if (ids.guest !== null) await callback(ids.guest);
   else throw new Error("401");
 };
 
-export const authorizeMain = (
+export const authorizeMain = async (
   ids: AuthenticationIds,
   callback: (device: number, user: number) => any,
 ) => {
-  if (ids.device !== null && ids.user !== null) callback(ids.device, ids.user);
+  if (ids.device !== null && ids.user !== null)
+    await callback(ids.device, ids.user);
   else throw new Error("401");
 };

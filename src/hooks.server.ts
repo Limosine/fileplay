@@ -65,8 +65,12 @@ if (!building) {
           id: number;
         };
         try {
-          const message = messageFromClientSchema.parse(decodedData);
-          await handleMessage(constants, client, ids, message);
+          await handleMessage(
+            constants,
+            client,
+            ids,
+            messageFromClientSchema.parse(decodedData),
+          );
         } catch (e: any) {
           sendMessage(client, {
             id: decodedData.id,

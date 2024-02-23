@@ -63,7 +63,11 @@ class WebPush {
     });
   }
 
-  async sendMessage(db: Database, uid: number, message: string) {
+  async sendMessage(
+    db: Database,
+    uid: number,
+    message: { username: string; avatarSeed: string; did: number; nid: string },
+  ) {
     const devices = await db
       .selectFrom("devices")
       .select(["push_subscription"])
@@ -74,12 +78,6 @@ class WebPush {
       if (device.push_subscription !== null) {
         const data = JSON.parse(device.push_subscription);
         if (typeof data === "string") {
-          const user = await db
-            .selectFrom("users")
-            .select(["display_name", "avatar_seed"])
-            .where("uid", "=", JSON.parse(message).uid)
-            .executeTakeFirstOrThrow();
-
           await fetch(
             "https://fcm.googleapis.com/v1/projects/fileplay-me/messages:send",
             {
@@ -93,16 +91,16 @@ class WebPush {
                   token: data,
                   notification: {
                     title: "Sharing request",
-                    body: `${user.display_name} wants to share files with you. Click to accept.`,
+                    body: `${message.username} wants to share files with you. Click to accept.`,
                   },
                 },
               }),
             },
           );
         } else
-          webpush.sendNotification(
+          await webpush.sendNotification(
             JSON.parse(device.push_subscription),
-            message,
+            JSON.stringify(message),
           );
       }
     }
