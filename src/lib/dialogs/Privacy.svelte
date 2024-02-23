@@ -14,6 +14,7 @@
   </div>
 
   <div style="margin-bottom: 10px;"></div>
+  <!-- svelte-ignore missing-declaration -->
   <button
     style="margin-left: -3px;"
     on:click={() => {

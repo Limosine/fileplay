@@ -25,11 +25,13 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         manifest: await import("./static/manifest.json"),
       }),
     ],
-    // build: {
-    //   rollupOptions: {
-    //     external: [/^virtual:.*/],
-    //   },
-    // },
+    build: {
+      rollupOptions: {
+        external: [
+          "/etc/nixos/fileplay-me-firebase-adminsdk-ehpoc-8f5289af8c.json",
+        ],
+      },
+    },
     ssr: {
       noExternal: ["beercss"],
     },
