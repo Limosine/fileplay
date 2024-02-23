@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { subscribeWebPush } from "$lib/lib/fetchers";
+  import { notifications } from "$lib/lib/notifications";
   import { registration, requestDialog } from "$lib/lib/UI";
 </script>
 
@@ -24,7 +24,7 @@
       on:click={async () => {
         localStorage.setItem("subscribedToPush", "false");
         ui("#dialog-request");
-        await subscribeWebPush($registration);
+        notifications($registration);
       }}>Allow</button
     >
     <!-- eslint-enable no-undef -->

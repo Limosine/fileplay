@@ -9,11 +9,11 @@ const config: CapacitorConfig = {
     hostname: "fileplay.wir-sind-frey.de",
   },
   plugins: {
-    CapacitorCookies: {
-      enabled: true,
-    },
     CapacitorHttp: {
       enabled: true,
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
     },
   },
 };

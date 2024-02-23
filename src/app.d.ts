@@ -6,6 +6,9 @@ declare global {
       env?: {
         COOKIE_SIGNING_SECRET: string;
         COTURN_AUTH_SECRET: string;
+        PRIVATE_VAPID_KEY: string;
+        PUBLIC_VAPID_KEY: string;
+        GCM_KEY: string;
       };
     }
   }

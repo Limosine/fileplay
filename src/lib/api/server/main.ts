@@ -40,7 +40,6 @@ export const sendMessage = (
   message: MessageFromServer,
   error = true,
 ) => {
-  console.log(message);
   if (typeof client === "number") {
     for (const c of clients) {
       if (client < 0) {
