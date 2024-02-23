@@ -114,7 +114,7 @@ class WebSocketClient {
 
   private connect() {
     this.socket = new WebSocket(
-      `wss://fileplay.wir-sind-frey.de/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
+      `wss://${getHost()}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
 
     this.socket.binaryType = "arraybuffer";

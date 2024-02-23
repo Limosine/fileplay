@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: "build-static",
   server: {
     androidScheme: "https",
-    hostname: "fileplay.wir-sind-frey.de",
+    hostname: "dev.fileplay.me",
   },
   plugins: {
     CapacitorHttp: {
