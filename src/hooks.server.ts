@@ -1,6 +1,7 @@
 import { building } from "$app/environment";
 import type { IncomingMessage } from "http";
 import { decode } from "@msgpack/msgpack";
+import type { Handle } from "@sveltejs/kit";
 import { WebSocketServer } from "ws";
 
 import { createConstants } from "$lib/server/db";
@@ -16,6 +17,7 @@ import {
   notifyDevices,
   sendMessage,
 } from "$lib/api/server/main";
+import { env } from "$env/dynamic/public";
 
 export let clients = new Set<ExtendedWebSocket>();
 
@@ -123,3 +125,38 @@ if (!building) {
     process.exit(143);
   });
 }
+
+export const handle: Handle = async ({ resolve, event }) => {
+  if (env.PUBLIC_HOSTNAME === undefined)
+    throw new Error("Please define a public hostname.");
+
+  const allowedOrigins: string[] = ["localhost", env.PUBLIC_HOSTNAME];
+
+  const getOriginHeader = () =>
+    allowedOrigins.includes(event.url.hostname)
+      ? `${event.url.protocol}//${event.url.hostname}`
+      : env.PUBLIC_HOSTNAME === undefined
+        ? ""
+        : `https://${env.PUBLIC_HOSTNAME}`;
+
+  if (event.url.pathname.startsWith("/api")) {
+    if (event.request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Methods":
+            "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": getOriginHeader(),
+          Vary: "Origin",
+        },
+      });
+    }
+  }
+
+  const response = await resolve(event);
+  if (event.url.pathname.startsWith("/api")) {
+    response.headers.append("Access-Control-Allow-Origin", getOriginHeader());
+    response.headers.append("Vary", "Origin");
+  }
+  return response;
+};

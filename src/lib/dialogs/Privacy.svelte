@@ -3,13 +3,20 @@
 </script>
 
 <dialog id="dialog-privacy" bind:this={$privacyDialog}>
-  <h4>Privacy and Safety</h4>
-  <hr style="margin-bottom: 10px;" />
+  <h4>Welcome to Fileplay</h4>
 
-  <div class="flex-container">
-    <div class="left">All transmitted data is end-to-end encrypted</div>
-    <div class="right">
-      <i class="fill" style="transform: scale(0.75);"> lock </i>
+  <div class="column">
+    <div class="row">
+      <i class="icon large">encrypted</i>
+      <p>End-to-end encryption</p>
+    </div>
+    <div class="row">
+      <i class="icon large">security</i>
+      <p>Only necessary data is stored</p>
+    </div>
+    <div class="row">
+      <i class="icon large">p2p</i>
+      <p>Peer-to-Peer communication</p>
     </div>
   </div>
 
@@ -20,17 +27,12 @@
     on:click={() => {
       localStorage.setItem("privacyAccepted", "true");
       ui("#dialog-privacy");
-    }}>Okay, I got it!</button
+    }}>Let's share</button
   >
 </dialog>
 
 <style>
-  .flex-container {
-    display: flex;
+  .icon {
+    margin-right: 15px;
   }
-
-  .left {
-    font-size: large;
-  }
-
 </style>

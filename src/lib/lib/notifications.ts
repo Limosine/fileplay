@@ -82,7 +82,7 @@ class Notifications {
           notification.actionId,
           notification.inputValue,
         );
-        goto("/?accept-target&did=${data.did}&nid=${data.nid}");
+        window.location.href = "/?accept-target&did=${data.did}&nid=${data.nid}";
       },
     );
   }
