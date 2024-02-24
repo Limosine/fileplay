@@ -93,8 +93,8 @@ class WebPush {
                   notification: {
                     title: "Sharing request",
                     body: `${message.username} wants to share files with you. Click to accept.`,
-                    data: message
                   },
+                  data: message,
                 },
               }),
             },
