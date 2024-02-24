@@ -1,11 +1,22 @@
 <script lang="ts">
-  import { privacyDialog } from "$lib/lib/UI";
+  import { privacyDialog, registration } from "$lib/lib/UI";
+
+  const click = () => {
+    localStorage.setItem("privacyAccepted", "true");
+    ui("#dialog-privacy");
+
+    if (
+      $registration !== undefined &&
+      localStorage.getItem("subscribedToPush") === null
+    )
+      ui("#dialog-request");
+  };
 </script>
 
 <dialog id="dialog-privacy" bind:this={$privacyDialog}>
-  <h4>Welcome to Fileplay</h4>
+  <h6>Welcome to Fileplay</h6>
 
-  <div class="column">
+  <div id="properties">
     <div class="row">
       <i class="icon large">encrypted</i>
       <p>End-to-end encryption</p>
@@ -20,19 +31,19 @@
     </div>
   </div>
 
-  <div style="margin-bottom: 10px;"></div>
-  <!-- svelte-ignore missing-declaration -->
-  <button
-    style="margin-left: -3px;"
-    on:click={() => {
-      localStorage.setItem("privacyAccepted", "true");
-      ui("#dialog-privacy");
-    }}>Let's share</button
-  >
+  <nav class="right-align" style="padding: 10px 0 0 0;">
+    <button on:click={click}>Let's share</button>
+  </nav>
 </dialog>
 
 <style>
   .icon {
     margin-right: 15px;
+  }
+
+  #properties {
+    display: flex;
+    flex-flow: column;
+    gap: 10px;
   }
 </style>

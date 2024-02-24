@@ -35,7 +35,10 @@
         onRegistered(r) {
           if (r !== undefined) {
             $registration = r;
-            if (localStorage.getItem("subscribedToPush") === null)
+            if (
+              localStorage.getItem("subscribedToPush") === null &&
+              localStorage.getItem("privacyAccepted") == "true"
+            )
               ui("#dialog-request");
           }
         },
@@ -44,6 +47,8 @@
         },
       });
     }
+
+    if (!localStorage.getItem("privacyAccepted")) ui("#dialog-privacy");
   });
 
   $: {
@@ -53,12 +58,6 @@
         setTimeout(() => {
           loading = 2;
         }, 1100);
-      } else if (
-        !localStorage.getItem("privacyAccepted") &&
-        !$privacyDialog.open
-      ) {
-        ui("#dialog-privacy");
-        console.log("Dialog opened");
       }
     }
   }

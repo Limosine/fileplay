@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { HttpResponse } from "@capacitor/core";
   import { get } from "svelte/store";
+  import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
 
@@ -100,7 +101,15 @@
 
     window.location.href = "/";
   };
+
+  $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
 </script>
+
+<svelte:head>
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+  {@html webManifest}
+  <title>Fileplay</title>
+</svelte:head>
 
 <Edit />
 
