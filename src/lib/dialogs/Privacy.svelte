@@ -14,7 +14,7 @@
 </script>
 
 <dialog id="dialog-privacy" bind:this={$privacyDialog}>
-  <h6>Welcome to Fileplay</h6>
+  <h6 id="welcome" class="center-align">Welcome to Fileplay</h6>
 
   <div id="properties">
     <div class="row">
@@ -31,7 +31,7 @@
     </div>
   </div>
 
-  <nav class="right-align" style="padding: 10px 0 0 0;">
+  <nav id="navigation" class="right-align">
     <button on:click={click}>Let's share</button>
   </nav>
 </dialog>
@@ -41,9 +41,17 @@
     margin-right: 15px;
   }
 
+  #welcome {
+    margin-bottom: 15px;
+  }
+
   #properties {
     display: flex;
     flex-flow: column;
     gap: 10px;
+  }
+
+  #navigation {
+    padding-top: 10px;
   }
 </style>

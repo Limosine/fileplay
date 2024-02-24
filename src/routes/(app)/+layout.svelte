@@ -10,12 +10,13 @@
   import AddContact from "$lib/dialogs/AddContact.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
+  import Privacy from "$lib/dialogs/Privacy.svelte";
   import QRCode from "$lib/dialogs/QRCode.svelte";
   import Request from "$lib/dialogs/PushRequest.svelte";
   import Send from "$lib/dialogs/Send.svelte";
 
-  import { registration, privacyDialog } from "$lib/lib/UI";
-  import Privacy from "$lib/dialogs/Privacy.svelte";
+  import { registration } from "$lib/lib/UI";
+  import { notifications } from "$lib/lib/notifications";
 
   let loading = 0;
 
@@ -35,6 +36,7 @@
         onRegistered(r) {
           if (r !== undefined) {
             $registration = r;
+            notifications(r, false).initNativeListeners();
             if (
               localStorage.getItem("subscribedToPush") === null &&
               localStorage.getItem("privacyAccepted") == "true"

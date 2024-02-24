@@ -317,6 +317,7 @@ class Peer {
       });
     } else {
       dataArray.forEach((data) => {
+        console.log("sending message", did, data);
         apiClient("ws").sendMessage({
           type: "share",
           data: {
