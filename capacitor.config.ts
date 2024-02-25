@@ -12,7 +12,7 @@ const config: CapacitorConfig = {
     CapacitorHttp: {
       enabled: true,
     },
-    PushNotifications: {
+    FirebaseMessaging: {
       presentationOptions: ["badge", "sound", "alert"],
     },
   },

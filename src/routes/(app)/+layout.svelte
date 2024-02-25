@@ -36,7 +36,7 @@
         onRegistered(r) {
           if (r !== undefined) {
             $registration = r;
-            notifications(r, false).initNativeListeners();
+            notifications().initNativeListeners();
             if (
               localStorage.getItem("subscribedToPush") === null &&
               localStorage.getItem("privacyAccepted") == "true"

@@ -24,7 +24,7 @@
       on:click={async () => {
         localStorage.setItem("subscribedToPush", "false");
         ui("#dialog-request");
-        notifications($registration, true);
+        notifications().create($registration);
       }}>Allow</button
     >
     <!-- eslint-enable no-undef -->

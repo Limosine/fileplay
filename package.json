@@ -12,11 +12,11 @@
     "pwassets": "pwa-asset-generator ./static/favicon.svg ./static/pwa-assets/ -v /pwa-assets -o -b '#201a19' -e -p 15%"
   },
   "devDependencies": {
+    "@capacitor-firebase/messaging": "^5.4.1",
     "@capacitor/android": "^5.7.0",
     "@capacitor/cli": "^5.7.0",
     "@capacitor/core": "^5.7.0",
     "@capacitor/local-notifications": "^5.0.7",
-    "@capacitor/push-notifications": "^5.1.1",
     "@msgpack/msgpack": "^3.0.0-beta2",
     "@sveltejs/adapter-node": "^4.0.1",
     "@sveltejs/adapter-static": "^3.0.1",
@@ -38,6 +38,7 @@
     "dayjs": "^1.11.10",
     "eslint": "^8.56.0",
     "eslint-plugin-svelte": "^2.35.1",
+    "firebase": "^10.8.0",
     "google-auth-library": "^9.6.3",
     "kysely": "^0.27.2",
     "nanoid": "^5.0.5",
