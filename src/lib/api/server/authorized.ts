@@ -13,7 +13,7 @@ import { sign } from "$lib/server/signing";
 import type { ExtendedWebSocket } from "$lib/api/common";
 
 import { filetransfers } from "./stores";
-import { filterOnlineDevices, notifyDevices } from "./main";
+import { filterOnlineDevices, notifyDevices, sendMessage } from "./main";
 
 // Contacts
 export const getContacts = async (db: Database, uid: number) => {
@@ -193,9 +193,10 @@ export const redeemContactLinkingCode = async (
   try {
     const res1 = await db
       .selectFrom("contacts_link_codes")
-      .select("uid")
-      .where("code", "=", code)
-      .where("expires", ">", dayjs().unix())
+      .select(["uid", "created_did"])
+      .where((eb) =>
+        eb.and([eb("code", "=", code), eb("expires", ">", dayjs().unix())]),
+      )
       .executeTakeFirst();
 
     if (!res1) throw new Error("400 Invalid code");
@@ -207,11 +208,17 @@ export const redeemContactLinkingCode = async (
     const res2 = await db
       .selectFrom("contacts")
       .select("cid")
-      .where("a", "=", user)
-      .where("b", "=", uid_b)
+      .where((eb) => eb.and([eb("a", "=", user), eb("b", "=", uid_b)]))
       .executeTakeFirst();
 
     if (res2) throw new Error("400 Contacts already linked");
+
+    await db
+      .deleteFrom("contacts_link_codes")
+      .where((eb) =>
+        eb.or([eb("code", "=", code), eb("expires", "<=", dayjs().unix())]),
+      )
+      .execute();
 
     await db
       .insertInto("contacts")
@@ -219,6 +226,9 @@ export const redeemContactLinkingCode = async (
       .returning("cid")
       .executeTakeFirst();
 
+    sendMessage(res1.created_did, {
+      type: "contactCodeRedeemed",
+    });
     notifyDevices(db, "contact", user);
   } catch (e: any) {
     console.log("Error:", e);
@@ -234,10 +244,10 @@ export const deleteContactLinkingCode = async (
   try {
     await db
       .deleteFrom("contacts_link_codes")
-      .where("uid", "=", user)
-      .where("created_did", "=", device)
-      .returning("uid")
-      .executeTakeFirst();
+      .where((eb) =>
+        eb.and([eb("uid", "=", user), eb("created_did", "=", device)]),
+      )
+      .execute();
   } catch (e: any) {
     console.log("Error:", e);
     throw new Error("500");
@@ -273,8 +283,7 @@ export const createDeviceLinkingCode = async (
     await db
       .insertInto("devices_link_codes")
       .values({ code, uid: user, expires, created_did: device })
-      .returning("code")
-      .executeTakeFirst();
+      .execute();
 
     return { code, expires, refresh: LINKING_REFRESH_TIME };
   } catch (e: any) {
@@ -291,10 +300,13 @@ export const deleteDeviceLinkingCode = async (
   try {
     await db
       .deleteFrom("devices_link_codes")
-      .where("uid", "=", user)
-      .where("created_did", "=", device)
-      .returning("uid")
-      .executeTakeFirst();
+      .where((eb) =>
+        eb.or([
+          eb.and([eb("uid", "=", user), eb("created_did", "=", device)]),
+          eb("expires", "<=", dayjs().unix()),
+        ]),
+      )
+      .execute();
   } catch (e: any) {
     console.log("Error:", e);
     throw new Error("500");

@@ -70,8 +70,7 @@
 
       const res = await apiClient("http").setupDevice(object);
       if (Array.from(res.status.toString())[0] != "2") {
-        handleResponseError(res);
-        return;
+        return handleResponseError(res);
       }
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
     }
@@ -79,8 +78,7 @@
       // link to existing user
       const res2 = await apiClient("http").setupDevice($linkingCode);
       if (Array.from(res2.status.toString())[0] != "2") {
-        handleResponseError(res2);
-        return;
+        return handleResponseError(res2);
       }
     } else {
       const object = {
@@ -91,8 +89,7 @@
       // create new user
       const res = await apiClient("http").setupUser(object);
       if (Array.from(res.status.toString())[0] != "2") {
-        handleResponseError(res);
-        return;
+        return handleResponseError(res);
       }
     }
 
@@ -137,33 +134,13 @@
         </div>
 
         <div class="field label suffix">
-          <!-- svelte-ignore missing-declaration -->
-          <select
-            style="min-width: 200px;"
-            on:mousedown|preventDefault
-            on:click={() => ui("#menu-deviceType")}
-          />
-          <menu id="menu-deviceType">
-            <!-- eslint-disable svelte/valid-compile -->
-            <!-- svelte-ignore a11y-no-static-element-interactions a11y-missing-attribute missing-declaration -->
+          <select bind:value={$deviceParams.type}>
             {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-              <a
-                on:mousedown={() => {
-                  ui("#menu-deviceType");
-                  $deviceParams.type = type;
-                }}>{name}</a
-              >
+              <option value={type}>{name}</option>
             {/each}
-            <!-- eslint-enable svelte/valid-compile -->
-          </menu>
+          </select>
           <!-- svelte-ignore a11y-label-has-associated-control -->
-          <label>
-            {#if $deviceParams.type == ""}
-              Device Type
-            {:else}
-              {ValueToName($deviceParams.type)}
-            {/if}
-          </label>
+          <label>Device Type</label>
           <i>arrow_drop_down</i>
         </div>
       </div>

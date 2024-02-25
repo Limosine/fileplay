@@ -2,7 +2,6 @@
   import { nanoid } from "nanoid";
 
   import { getDicebearUrl } from "$lib/lib/common";
-  import type { IUser } from "$lib/lib/fetchers";
   import {
     userParams,
     user,
@@ -10,22 +9,14 @@
     updateIsProfaneUsername,
   } from "$lib/lib/UI";
 
-  const loadInfos = (user: IUser) => {
-    $userParams.display_name = user.display_name;
-    $userParams.avatar_seed = user.avatar_seed;
-    // $original_username = user.displayName;
-    // $original_avatarSeed = user.avatarSeed;
-  };
-
-  const generateAvatar = () => {
-    $userParams.avatar_seed = nanoid(8);
-  };
-
   $: {
     if ($user !== undefined) {
-      loadInfos($user);
+      // Load infos
+      $userParams.display_name = $user.display_name;
+      $userParams.avatar_seed = $user.avatar_seed;
     } else {
-      generateAvatar();
+      // Generate avatar seed
+      $userParams.avatar_seed = nanoid(8);
     }
   }
 </script>

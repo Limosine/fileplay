@@ -8,7 +8,7 @@
 
   import logo from "$lib/assets/Fileplay.svg";
   import Layout from "$lib/components/Layout.svelte";
-  import AddContact from "$lib/dialogs/AddContact.svelte";
+  import Add from "$lib/dialogs/Add.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
   import Notifications from "$lib/dialogs/Notifications.svelte";
   import Privacy from "$lib/dialogs/Privacy.svelte";
@@ -37,7 +37,8 @@
         onRegistered(r) {
           if (r !== undefined) {
             $registration = r;
-            if (Capacitor.isNativePlatform()) notifications().initNativeListeners();
+            if (Capacitor.isNativePlatform())
+              notifications().initNativeListeners();
             if (
               localStorage.getItem("subscribedToPush") === null &&
               localStorage.getItem("privacyAccepted") == "true"
@@ -84,7 +85,7 @@
   <!-- Dialogs -->
   <Privacy />
   <Edit />
-  <AddContact />
+  <Add />
   <QRCode />
   <Request />
   <Send />

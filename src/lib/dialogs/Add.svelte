@@ -3,14 +3,14 @@
   import { onDestroy, onMount } from "svelte";
 
   import { apiClient } from "$lib/api/client";
-  import { code, addContactDialog, add_mode } from "$lib/lib/UI";
-
-  let redeemCode_section = true;
+  import { code, addDialog, add_mode, redeemCode_section } from "$lib/lib/UI";
 
   const generateContactCode = async () => {
     // todo refresh this code after specified interval
 
-    const result = await apiClient("ws").sendMessage({ type: "createContactCode" });
+    const result = await apiClient("ws").sendMessage({
+      type: "createContactCode",
+    });
     expires_at = result.expires;
     return result;
   };
@@ -18,7 +18,9 @@
   const generateDeviceCode = async () => {
     // todo refresh this code after specified interval
 
-    const result = await apiClient("ws").sendMessage({ type: "createDeviceCode" });
+    const result = await apiClient("ws").sendMessage({
+      type: "createDeviceCode",
+    });
     expires_at = result.expires;
     return result;
   };
@@ -35,17 +37,17 @@
   onDestroy(() => clearInterval(updateInterval));
 </script>
 
-<dialog id="dialog-add" bind:this={$addContactDialog}>
+<dialog id="dialog-add" bind:this={$addDialog}>
   {#if $add_mode == "contact"}
     <p style="font-size: large; margin-bottom: 10px;">Add contact</p>
     <div id="content">
       <nav class="no-space center-align">
-        {#if redeemCode_section}
+        {#if $redeemCode_section}
           <button class="left-round">Redeem code</button>
           <button
             class="right-round border"
             on:click={() => {
-              redeemCode_section = false;
+              $redeemCode_section = false;
             }}
           >
             Generate code
@@ -54,13 +56,13 @@
           <button
             class="left-round border"
             on:click={() => {
-              redeemCode_section = true;
+              $redeemCode_section = true;
             }}>Redeem code</button
           >
           <button class="right-round"> Generate code </button>
         {/if}
       </nav>
-      {#if redeemCode_section}
+      {#if $redeemCode_section}
         <div class="field label border">
           <input type="text" maxlength={6} bind:value={$code} />
           <!-- svelte-ignore a11y-label-has-associated-control -->

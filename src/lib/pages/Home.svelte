@@ -1,17 +1,11 @@
 <script lang="ts">
+  import QRCode from "qrcode";
   import { writable } from "svelte/store";
 
   import { getDicebearUrl } from "$lib/lib/common";
   import { type IContact } from "$lib/lib/fetchers";
   import { sendState, SendState } from "$lib/lib/sendstate";
-  import {
-    current,
-    contacts,
-    generateQRCode,
-    contactId,
-    input,
-    files,
-  } from "$lib/lib/UI";
+  import { current, contacts, contactId, input, files } from "$lib/lib/UI";
   import {
     link,
     outgoing_filetransfers,
@@ -22,7 +16,7 @@
 
   let qrCode: string;
   const setQRCode = async (link: string) => {
-    qrCode = await generateQRCode(link);
+    qrCode = await QRCode.toDataURL(link);
   };
 
   const handleContactClick = async (contact: IContact) => {

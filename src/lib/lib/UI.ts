@@ -20,6 +20,7 @@ export const registration = writable<ServiceWorkerRegistration>();
 export const current = writable<"Home" | "Contacts" | "Settings">("Home");
 export const settings_page = writable<"main" | "devices" | "device">("main");
 export const add_mode = writable<"contact" | "device">("contact");
+export const redeemCode_section = writable(true);
 
 // Setup values:
 export const linkingCode = writable("");
@@ -100,14 +101,16 @@ export const notifications = writable<Notification[]>([]);
 export const addNotification = (
   notification: PartialBy<Notification, "tag">,
 ) => {
-  // replace notifications with the same tag
   if (notification.tag !== undefined) deleteNotification(notification.tag);
+
   notifications.update((notifications) => {
     if (!("tag" in notification))
       notification.tag = Math.random().toString(36).substring(7);
     notifications.push(notification as Notification);
     return notifications;
   });
+
+  if (!get(notificationDialog).open) ui("#dialog-notifications");
 };
 
 export const deleteNotification = (tag: string) => {
@@ -120,7 +123,7 @@ export const deleteNotification = (tag: string) => {
 export const code = writable("");
 
 // Dialogs
-export const addContactDialog = writable<HTMLDialogElement>();
+export const addDialog = writable<HTMLDialogElement>();
 export const editDialog = writable<HTMLDialogElement>();
 export const notificationDialog = writable<HTMLDialogElement>();
 export const qrCodeDialog = writable<HTMLDialogElement>();
@@ -250,14 +253,5 @@ export const returnProgress = (
     return progress;
   } else {
     return 0;
-  }
-};
-
-// QR Code generation:
-export const generateQRCode = async (link: string) => {
-  try {
-    return await QRCode.toDataURL(link);
-  } catch (err: any) {
-    throw new Error("Failed to generate QR code:", err);
   }
 };

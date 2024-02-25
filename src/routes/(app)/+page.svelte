@@ -7,7 +7,7 @@
   import { setup } from "$lib/lib/encryption";
   import { handleMessage } from "$lib/lib/fetchers";
   import {
-    addContactDialog,
+    addDialog,
     add_mode,
     current,
     editDialog,
@@ -21,7 +21,6 @@
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
   import Settings from "$lib/pages/Settings.svelte";
-
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -38,7 +37,7 @@
         ui("#dialog-notifications");
       } else if ($editDialog.open) {
         ui("#dialog-edit");
-      } else if ($addContactDialog.open) {
+      } else if ($addDialog.open) {
         ui("#dialog-add");
       }
     } else if (event.key === "Enter") {

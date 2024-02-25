@@ -25,6 +25,7 @@ export type MessageFromServer =
   | CloseConnection
   | Filetransfer
   | LinkingCode
+  | CodeRedeemed
   | TurnCredentials
   | Error;
 
@@ -109,6 +110,11 @@ export interface LinkingCode {
     expires: number;
     refresh: number;
   };
+}
+
+export interface CodeRedeemed {
+  id?: number;
+  type: "contactCodeRedeemed" | "deviceCodeRedeemed";
 }
 
 export interface TurnCredentials {

@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { z } from "zod";
 
 import { httpAuthorized } from "$lib/server/db";
-import { notifyDevices } from "$lib/api/server/main";
+import { notifyDevices, sendMessage } from "$lib/api/server/main";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
   const ctx = await httpAuthorized(cookies, false);
@@ -22,12 +22,19 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   try {
     const response1 = await ctx.database
       .selectFrom("devices_link_codes")
-      .select("uid")
+      .select(["uid", "created_did"])
       .where("code", "=", code)
       .where("expires", ">", dayjs().unix())
       .executeTakeFirst();
 
     if (!response1) error(404, "Invalid code");
+
+    await ctx.database
+      .deleteFrom("devices_link_codes")
+      .where((eb) =>
+        eb.or([eb("code", "=", code), eb("expires", "<=", dayjs().unix())]),
+      )
+      .execute();
 
     await ctx.database
       .updateTable("devices")
@@ -36,6 +43,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       .returning("did")
       .executeTakeFirst();
 
+    sendMessage(response1.created_did, {
+      type: "deviceCodeRedeemed",
+    });
     if (typeof ctx.user === "number")
       notifyDevices(ctx.database, "device", ctx.user);
     return new Response(null, { status: 200 });

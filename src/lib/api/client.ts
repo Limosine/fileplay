@@ -5,7 +5,14 @@ import { get, readable, writable } from "svelte/store";
 
 import { env } from "$env/dynamic/public";
 import { peer } from "$lib/lib/simple-peer";
-import { contacts, devices, own_did, user } from "$lib/lib/UI";
+import {
+  addDialog,
+  contacts,
+  devices,
+  own_did,
+  redeemCode_section,
+  user,
+} from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
@@ -203,6 +210,12 @@ class WebSocketClient {
       }
     } else if (message.type == "closeConnection") {
       peer().closeConnections(message.data);
+    } else if (
+      message.type == "contactCodeRedeemed" ||
+      message.type == "deviceCodeRedeemed"
+    ) {
+      if (get(addDialog).open) ui("#dialog-add");
+      if (message.type == "contactCodeRedeemed") redeemCode_section.set(true);
     } else if (
       message.type == "filetransfer" ||
       message.type == "contactLinkingCode" ||
