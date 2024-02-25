@@ -39,7 +39,7 @@ export const handleReady = (did: number, nid: string) => {
       message: "401 Unauthorized",
     });
   } else {
-    send(did, contact.cid, undefined, request.files);
+    send(did, contact.cid, undefined, request.files, nid);
   }
 };
 
