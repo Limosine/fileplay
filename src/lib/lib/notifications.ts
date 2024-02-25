@@ -59,7 +59,6 @@ class Notifications {
       vapidKey: env.PUBLIC_VAPID_KEY,
     });
 
-    console.log("Firebase messaging token:", token);
     apiClient("ws").sendMessage({
       type: "updateDevice",
       data: {
@@ -71,21 +70,9 @@ class Notifications {
   }
 
   async initNativeListeners() {
-    console.log(await FirebaseMessaging.getDeliveredNotifications());
-
-    await FirebaseMessaging.addListener("notificationReceived", (event) => {
-      console.log("notificationReceived", { event });
-    });
-
     await FirebaseMessaging.addListener(
       "notificationActionPerformed",
       (event) => {
-        console.log(
-          "Push notification action performed",
-          event.actionId,
-          event.inputValue,
-        );
-
         const data = event.notification.data as any;
         awaitReady(Number(data.did), data.nid);
       },

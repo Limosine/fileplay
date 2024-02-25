@@ -1,15 +1,10 @@
 {
   "recommendations": [
+    "bierner.github-markdown-preview",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "capaj.graphql-codegen-vscode",
-    "mikestead.dotenv",
-    "editorconfig.editorconfig",
-    "graphql.vscode-graphql",
-    "graphql.vscode-graphql-syntax",
-    "bierner.markdown-preview-github-styles",
-    "syler.sass-indented",
-    "redhat.vscode-yaml",
-    "bungcip.better-toml"
+    "streetsidesoftware.code-spell-checker",
+    "streetsidesoftware.code-spell-checker-german",
+    "svelte.svelte-vscode"
   ]
 }
