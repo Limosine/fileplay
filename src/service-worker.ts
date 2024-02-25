@@ -26,7 +26,13 @@ staticResourceCache();
 
 imageCache();
 
-type notificationData = { username: string; avatarSeed: string; did: number; nid: string };
+type notificationData = {
+  username: string;
+  avatarSeed: string;
+  did: number;
+  nid: string;
+  files: string[];
+};
 
 self.addEventListener("push", async (event) => {
   if (event.data === null) return;
@@ -34,7 +40,7 @@ self.addEventListener("push", async (event) => {
 
   self.registration.showNotification("Sharing request", {
     data,
-    body: `${data.username} wants to share files with you. Click to accept.`,
+    body: `${data.username} wants to share the file${data.files.length > 1 ? "s" : ""} '${data.files.toString()}' with you. Click to accept.`,
     icon: getDicebearUrl(data.avatarSeed, 192),
   });
 });
@@ -43,10 +49,12 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const data: notificationData = event.notification.data;
-  
+
   console.log("SW: Notification clicked");
 
-  event.waitUntil(self.clients.openWindow(`/?accept-target&did=${data.did}&nid=${data.nid}`));
+  event.waitUntil(
+    self.clients.openWindow(`/?accept-target&did=${data.did}&nid=${data.nid}`),
+  );
 });
 
 // Following code from:

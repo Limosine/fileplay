@@ -167,10 +167,11 @@ const messageFromClientSchemaWithoutId = z.union([
     }),
   }),
   z.object({
-    type: z.enum(["sendMessage"]),
+    type: z.enum(["sendNotification"]),
     data: z.object({
       uid: z.number(),
       id: z.string(),
+      files: z.array(z.string()),
     }),
   }),
   z.object({

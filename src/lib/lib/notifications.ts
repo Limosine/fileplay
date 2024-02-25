@@ -5,6 +5,7 @@ import { get, writable } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import { env } from "$env/dynamic/public";
+import { awaitReady } from "$lib/sharing/send";
 
 const store = writable<Notifications>();
 
@@ -86,20 +87,17 @@ class Notifications {
         );
 
         const data = event.notification.data as any;
-        window.location.href = `/?accept-target&did=${data.did}&nid=${data.nid}`;
+        awaitReady(Number(data.did), data.nid);
       },
     );
   }
 
   // Web
   private async initWeb(registration: ServiceWorkerRegistration) {
-    if (Notification.permission == "denied")
-      return localStorage.setItem("subscribedToPush", "false");
-    else if (Notification.permission == "default") {
-      const permission = await Notification.requestPermission();
-
-      if (permission != "granted") return;
+    if (Notification.permission == "default") {
+      await Notification.requestPermission();
     }
+    if (Notification.permission != "granted") return;
 
     try {
       const subscription = await registration.pushManager.subscribe({
@@ -118,7 +116,6 @@ class Notifications {
         },
       });
     } catch (e: any) {
-      localStorage.setItem("subscribedToPush", "false");
       console.log("Failed to subscribe to web-push.");
     }
   }

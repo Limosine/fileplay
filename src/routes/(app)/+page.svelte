@@ -5,11 +5,10 @@
   import { apiClient } from "$lib/api/client";
   import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
-  import { handleMessage, type IContact } from "$lib/lib/fetchers";
+  import { handleMessage } from "$lib/lib/fetchers";
   import {
     addContactDialog,
     add_mode,
-    contacts,
     current,
     editDialog,
     notificationDialog,
@@ -17,13 +16,12 @@
     settings_page,
     user,
   } from "$lib/lib/UI";
-  import { sendReady } from "$lib/sharing/send";
+  import { awaitReady } from "$lib/sharing/send";
 
   import Contacts from "$lib/pages/Contacts.svelte";
   import Home from "$lib/pages/Home.svelte";
   import Settings from "$lib/pages/Settings.svelte";
 
-  let sendAccept: boolean;
 
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -60,13 +58,8 @@
     ui("#dialog-add");
   };
 
-  const send = (contacts: IContact[], sendAccept: boolean) => {
-    const didString = $page.url.searchParams.get("did");
-    const nid = $page.url.searchParams.get("nid");
-    if (didString !== null && nid !== null) sendReady(Number(didString), nid);
-  };
-
-  onMount(async () => {
+  let loaded = false;
+  const onLoading = async () => {
     if (localStorage.getItem("loggedIn")) {
       navigator.serviceWorker.addEventListener("message", handleMessage);
       await setup();
@@ -76,20 +69,21 @@
         navigator.serviceWorker.controller?.postMessage("share-ready");
       }
 
-      if (
-        $page.url.searchParams.has("accept-target") &&
-        sendAccept === undefined
-      )
-        sendAccept = false;
+      if ($page.url.searchParams.has("accept-target")) {
+        const didString = $page.url.searchParams.get("did");
+        const nid = $page.url.searchParams.get("nid");
+        if (didString !== null && nid !== null)
+          awaitReady(Number(didString), nid);
+      }
+    }
+  };
+
+  onMount(() => {
+    if (!loaded) {
+      loaded = true;
+      onLoading();
     }
   });
-
-  $: {
-    if ($contacts !== undefined && sendAccept === false) {
-      sendAccept = true;
-      send($contacts, sendAccept);
-    }
-  }
 </script>
 
 <svelte:window

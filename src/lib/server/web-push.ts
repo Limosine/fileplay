@@ -67,7 +67,13 @@ class WebPush {
   async sendMessage(
     db: Database,
     uid: number,
-    message: { username: string; avatarSeed: string; did: number; nid: string },
+    message: {
+      username: string;
+      avatarSeed: string;
+      did: number;
+      nid: string;
+      files: string[];
+    },
   ) {
     const devices = await db
       .selectFrom("devices")
@@ -92,11 +98,15 @@ class WebPush {
                   token: data,
                   notification: {
                     title: "Sharing request",
-                    body: `${message.username} wants to share files with you. Click to accept.`,
+                    body: `${message.username} wants to share the file${message.files.length > 1 ? "s" : ""} '${message.files.toString()}' with you. Click to accept.`,
                   },
                   data: {
                     did: message.did.toString(),
                     nid: message.nid,
+                  },
+                  android: {
+                    ttl: "900s",
+                    priority: "high",
                   },
                 },
               }),

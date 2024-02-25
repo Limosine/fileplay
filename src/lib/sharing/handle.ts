@@ -2,6 +2,7 @@ import { get } from "svelte/store";
 
 import type { IContact } from "$lib/lib/fetchers";
 import { sendState, SendState } from "$lib/lib/sendstate";
+import { peer } from "$lib/lib/simple-peer";
 import { addNotification, contacts } from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
 
@@ -10,7 +11,8 @@ import {
   type IncomingFiletransfer,
   outgoing_filetransfers,
   type Request,
-  notification_requests,
+  outgoing_notifications,
+  incoming_notifications,
 } from "./common";
 import { send, sendAnswer, sendChunked, sendFinish, sendMissing } from "./send";
 
@@ -23,24 +25,39 @@ export const handleReady = (did: number, nid: string) => {
       break;
     }
   }
-  if (contact === false) throw new Error("Filetransfer: Failed to find contact.");
+  if (contact === false)
+    throw new Error("Filetransfer: Failed to find contact.");
 
-  const request = get(notification_requests).find(
+  const request = get(outgoing_notifications).find(
     (request) =>
       request.id == nid && contact !== false && request.uid === contact.uid,
   );
 
-  if (request === undefined) throw new Error("Filetransfer: Unauthorized");
+  if (request === undefined) {
+    peer().sendMessage(did, {
+      type: "error",
+      message: "401 Unauthorized",
+    });
+  } else {
+    send(did, contact.cid, undefined, request.files);
+  }
+};
 
-  send(did, contact.cid, undefined, request.files);
+const knownNotification = (did: number, nid?: string) => {
+  if (nid === undefined) return false;
+
+  return get(incoming_notifications).some(
+    (request) => request.id == nid && request.did === did,
+  );
 };
 
 export const handleRequest = (
   did: number,
   filetransfer_id: string,
   files_unformatted: Request["files"],
+  nid?: string,
 ) => {
-  if (onGuestPage()) {
+  if (onGuestPage() || knownNotification(did, nid)) {
     const files: IncomingFiletransfer["files"] = [];
 
     files_unformatted.forEach((file) => {

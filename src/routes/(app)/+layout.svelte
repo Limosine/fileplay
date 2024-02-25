@@ -1,5 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
+  import { Capacitor } from "@capacitor/core";
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
 
@@ -36,7 +37,7 @@
         onRegistered(r) {
           if (r !== undefined) {
             $registration = r;
-            notifications().initNativeListeners();
+            if (Capacitor.isNativePlatform()) notifications().initNativeListeners();
             if (
               localStorage.getItem("subscribedToPush") === null &&
               localStorage.getItem("privacyAccepted") == "true"

@@ -6,7 +6,12 @@ import { apiClient } from "$lib/api/client";
 import type { IContact } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
-import { addNotification, deleteNotification, files } from "$lib/lib/UI";
+import {
+  addNotification,
+  contacts,
+  deleteNotification,
+  files,
+} from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
 
 import {
@@ -19,7 +24,8 @@ import {
   type OutgoingFileTransfer,
   chunkFileBig,
   chunkBlobSmall,
-  notification_requests,
+  outgoing_notifications,
+  incoming_notifications,
 } from "./common";
 
 const generateInfos = () => {
@@ -54,19 +60,20 @@ export const sendNotifications = async (contact: IContact) => {
   sendState.set(contact.cid, SendState.NOTIFYING);
 
   const id = nanoid();
+  const files = generateInfos();
 
-  notification_requests.update((requests) => {
+  outgoing_notifications.update((requests) => {
     requests.push({
       uid: contact.uid,
       id,
-      files: generateInfos(),
+      files,
     });
     return requests;
   });
 
   apiClient("ws").sendMessage({
-    type: "sendMessage",
-    data: { uid: contact.uid, id },
+    type: "sendNotification",
+    data: { uid: contact.uid, id, files: files.map(f => f.name) },
   });
 };
 
@@ -75,6 +82,7 @@ export const send = async (
   cid?: number,
   filetransfer_id?: string,
   fileInfos?: OutgoingFileInfos[],
+  notification_id?: string,
 ) => {
   if (get(files).length <= 0)
     throw new Error("Filetransfer: One file has to be selected.");
@@ -103,7 +111,12 @@ export const send = async (
   const previous = onGuestPage() ? get(page).url.searchParams.get("id") : null;
 
   if (did !== undefined) {
-    sendRequest(did, filetransfer_id, previous === null ? undefined : previous);
+    sendRequest(
+      did,
+      filetransfer_id,
+      previous === null ? undefined : previous,
+      notification_id,
+    );
   }
 
   return filetransfer_id;
@@ -113,6 +126,7 @@ export const sendRequest = (
   did: number,
   filetransfer_id: string,
   previous?: string,
+  notification_id?: string,
 ) => {
   const outgoing_filetransfer = get(outgoing_filetransfers).find(
     (transfer) => transfer.id == filetransfer_id,
@@ -135,6 +149,7 @@ export const sendRequest = (
     id: outgoing_filetransfer.id,
     files,
     previous,
+    nid: notification_id,
   });
 };
 
@@ -365,7 +380,28 @@ export const sendAnswer = (
   });
 };
 
-export const sendReady = (did: number, nid: string) => {
+export const awaitReady = (did: number, nid: string) => {
+  const contactState = get(contacts);
+  if (contactState.length > 0) sendReady(did, nid);
+  else {
+    const unsubscribe = contacts.subscribe(async (contacts) => {
+      if (contacts.length > 0) {
+        unsubscribe();
+        sendReady(did, nid);
+      }
+    });
+  }
+};
+
+const sendReady = (did: number, nid: string) => {
+  incoming_notifications.update((requests) => {
+    requests.push({
+      did,
+      id: nid,
+    });
+    return requests;
+  });
+
   peer().sendMessage(did, {
     type: "ready",
     id: nid,

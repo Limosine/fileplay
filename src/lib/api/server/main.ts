@@ -129,7 +129,7 @@ export const handleMessage = async (
         },
       });
     });
-  } else if (data.type == "sendMessage") {
+  } else if (data.type == "sendNotification") {
     await authorizeMain(ids, async (device, user) => {
       const userInfos = await getUser(cts.db, user);
       if (!userInfos.success) throw new Error("500");
@@ -142,6 +142,7 @@ export const handleMessage = async (
           avatarSeed: userInfos.message.avatar_seed,
           did: device,
           nid: data.data.id,
+          files: data.data.files
         },
       );
     });

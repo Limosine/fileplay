@@ -54,6 +54,7 @@ export interface Request {
   id: string;
   files: Omit<Omit<IncomingFileInfos, "url">, "chunks">[];
   previous?: string;
+  nid?: string;
 }
 export interface Ready {
   type: "ready";
@@ -97,13 +98,16 @@ export interface IncomingFiletransfer {
 
 // Sender Side:
 export const outgoing_filetransfers = writable<OutgoingFileTransfer[]>([]);
-export const notification_requests = writable<
+export const outgoing_notifications = writable<
   { uid: number; id: string; files: OutgoingFileInfos[] }[]
 >([]);
 export const link = writable("");
 
 // Receiver Side:
 export const incoming_filetransfers = writable<IncomingFiletransfer[]>([]);
+export const incoming_notifications = writable<
+  { did: number; id: string; }[]
+>([]);
 export const senderLink = writable("");
 
 // Functions:

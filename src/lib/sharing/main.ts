@@ -104,7 +104,7 @@ export const handleData = (data: Exclude<webRTCData, Update>, did: number) => {
 
       // Receiver:
     } else if (data.type == "request") {
-      handleRequest(did, data.id, data.files);
+      handleRequest(did, data.id, data.files, data.nid);
     } else if (data.type == "chunk") {
       handleChunk(
         did,
