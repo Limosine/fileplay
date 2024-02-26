@@ -134,7 +134,7 @@
         </div>
 
         <div class="field label suffix">
-          <select bind:value={$deviceParams.type}>
+          <select bind:value={$deviceParams.type} style="min-width: 200px;">
             {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
               <option value={type}>{name}</option>
             {/each}

@@ -1,22 +1,15 @@
 <script lang="ts">
-  import { get } from "svelte/store";
-
   import {
     notifications,
     deleteNotification,
-    addNotification,
     returnProgress,
     notificationDialog,
-    contacts,
     type NotificationRequest,
     type NotificationReceiving,
   } from "$lib/lib/UI";
-  import {
-    incoming_filetransfers,
-    type IncomingFiletransfer,
-    type Request,
-  } from "$lib/sharing/common";
+  import { incoming_filetransfers } from "$lib/sharing/common";
   import { sendAnswer } from "$lib/sharing/send";
+  import { acceptRequest } from "$lib/sharing/handle";
 
   const cancelFiletransfer = async (
     notification: NotificationRequest | NotificationReceiving,
@@ -37,45 +30,11 @@
 
   const acceptFileTransfer = async (notification: NotificationRequest) => {
     deleteNotification(notification.tag);
-    let files: IncomingFiletransfer["files"] = [];
-
-    notification.data.files.forEach((file: Request["files"][0]) => {
-      files.push({
-        id: file.id,
-        name: file.name,
-        chunks_length: file.chunks_length,
-        chunks: [],
-      });
-    });
-
-    const contact = get(contacts).find(
-      (contact) =>
-        contact.devices.find(
-          (device) => device.did == notification.data.did,
-        ) !== undefined,
+    acceptRequest(
+      notification.data.did,
+      notification.data.filetransfer_id,
+      notification.data.files,
     );
-    const cid = contact !== undefined ? contact.cid : undefined;
-
-    const filetransfer: IncomingFiletransfer = {
-      id: notification.data.filetransfer_id,
-      completed: false,
-      files,
-      did: notification.data.did,
-      cid,
-    };
-
-    incoming_filetransfers.set([...get(incoming_filetransfers), filetransfer]);
-
-    addNotification({
-      title: "Receiving file(s)",
-      body: `The file(s) '${filetransfer.files
-        .map((file) => file.name)
-        .toString()}' is/are being received.`,
-      tag: `filetransfer-${filetransfer.id}`,
-      data: { did: notification.data.did, filetransfer_id: filetransfer.id },
-    });
-
-    sendAnswer(notification.data.did, notification.data.filetransfer_id, true);
   };
 </script>
 

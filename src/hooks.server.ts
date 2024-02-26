@@ -130,7 +130,7 @@ export const handle: Handle = async ({ resolve, event }) => {
   if (env.PUBLIC_HOSTNAME === undefined)
     throw new Error("Please define a public hostname.");
 
-  const allowedOrigins: string[] = ["localhost", env.PUBLIC_HOSTNAME];
+  const allowedOrigins: string[] = ["cap.fileplay.me", env.PUBLIC_HOSTNAME];
 
   const getOriginHeader = () =>
     allowedOrigins.includes(event.url.hostname)

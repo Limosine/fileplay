@@ -51,6 +51,55 @@ const knownNotification = (did: number, nid?: string) => {
   );
 };
 
+export const acceptRequest = (
+  did: number,
+  filetransfer_id: string,
+  fileInfos: Request["files"],
+) => {
+  const files: IncomingFiletransfer["files"] = [];
+
+  fileInfos.forEach((file) => {
+    files.push({
+      id: file.id,
+      name: file.name,
+      chunks_length: file.chunks_length,
+      chunks: [],
+    });
+  });
+
+  let cid: number | undefined = undefined;
+  if (!onGuestPage()) {
+    const contact = get(contacts).find(
+      (contact) =>
+        contact.devices.find((device) => device.did == did) !== undefined,
+    );
+    cid = contact !== undefined ? contact.cid : undefined;
+  }
+
+  const filetransfer: IncomingFiletransfer = {
+    id: filetransfer_id,
+    completed: false,
+    files,
+    did,
+    cid,
+  };
+
+  incoming_filetransfers.set([...get(incoming_filetransfers), filetransfer]);
+
+  if (!onGuestPage()) {
+    addNotification({
+      title: "Receiving file(s)",
+      body: `The file(s) '${filetransfer.files
+        .map((file) => file.name)
+        .toString()}' is/are being received.`,
+      tag: `filetransfer-${filetransfer.id}`,
+      data: { did, filetransfer_id: filetransfer.id },
+    });
+  }
+
+  sendAnswer(did, filetransfer_id, true);
+};
+
 export const handleRequest = (
   did: number,
   filetransfer_id: string,
@@ -58,27 +107,7 @@ export const handleRequest = (
   nid?: string,
 ) => {
   if (onGuestPage() || knownNotification(did, nid)) {
-    const files: IncomingFiletransfer["files"] = [];
-
-    files_unformatted.forEach((file) => {
-      files.push({
-        id: file.id,
-        name: file.name,
-        chunks_length: file.chunks_length,
-        chunks: [],
-      });
-    });
-
-    const filetransfer: IncomingFiletransfer = {
-      id: filetransfer_id,
-      completed: false,
-      files,
-      did,
-    };
-
-    incoming_filetransfers.set([...get(incoming_filetransfers), filetransfer]);
-
-    sendAnswer(did, filetransfer_id, true);
+    acceptRequest(did, filetransfer_id, files_unformatted);
   } else {
     addNotification({
       title: "File request",

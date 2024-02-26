@@ -33,7 +33,14 @@
     if (expires_at) expires_in = Math.round((expires_at - dayjs().unix()) / 60);
   };
 
-  onMount(() => (updateInterval = setInterval(updateExpiresIn, 1000)));
+  onMount(() => {
+    updateInterval = setInterval(updateExpiresIn, 1000);
+
+    $addDialog.addEventListener("close", () => {
+      $redeemCode_section = true;
+      $code = "";
+    });
+  });
   onDestroy(() => clearInterval(updateInterval));
 </script>
 
