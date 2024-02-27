@@ -30,20 +30,25 @@
   };
 
   onMount(async () => {
-    if (pwaInfo) {
+    const open = () => {
+      if (
+        localStorage.getItem("subscribedToPush") === null &&
+        localStorage.getItem("privacyAccepted") == "true"
+      )
+        ui("#dialog-request");
+    };
+
+    if (Capacitor.isNativePlatform()) {
+      notifications().initNativeListeners();
+      open();
+    } else if (pwaInfo) {
       const { useRegisterSW } = await import("virtual:pwa-register/svelte");
       useRegisterSW({
         immediate: true,
         onRegistered(r) {
           if (r !== undefined) {
             $registration = r;
-            if (Capacitor.isNativePlatform())
-              notifications().initNativeListeners();
-            if (
-              localStorage.getItem("subscribedToPush") === null &&
-              localStorage.getItem("privacyAccepted") == "true"
-            )
-              ui("#dialog-request");
+            open();
           }
         },
         onRegisterError(error: any) {

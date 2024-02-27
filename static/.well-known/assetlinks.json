@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "me.fileplay.app",
+      "sha256_cert_fingerprints": [
+        "0D:24:33:9B:D6:EE:57:BB:C1:36:F4:D7:E6:FE:C0:36:32:D2:86:ED:32:5E:B6:AA:40:10:FC:5E:93:5B:F5:E1"
+      ]
+    }
+  }
+]

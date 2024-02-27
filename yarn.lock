@@ -966,7 +966,17 @@
   resolved "https://registry.yarnpkg.com/@capacitor/android/-/android-5.7.0.tgz#d67e0432c60e115672007e18a8492b0e7d2aa9ea"
   integrity sha512-0bnG1dqfT/nTjzMeHF/a5kF8mqGjHrPLADNqn41seWDfb2ch6AMiKUHsmHpEOWmGIrWOM25qNTrTOytoCSpuXg==
 
-"@capacitor/cli@^5.7.0":
+"@capacitor/app-launcher@^5.0.7":
+  version "5.0.7"
+  resolved "https://registry.yarnpkg.com/@capacitor/app-launcher/-/app-launcher-5.0.7.tgz#f3dbe9dfb2dd4faaaef0643f97873dc716175413"
+  integrity sha512-FJacB/mK/iwWUKNf1PJz1d7sGyVNRLvEYyYSwbmn9F9+6onj/T2lCL7TU40qhsVwFt8oDmdvygjOnoIoqU9Bpg==
+
+"@capacitor/app@^5.0.7":
+  version "5.0.7"
+  resolved "https://registry.yarnpkg.com/@capacitor/app/-/app-5.0.7.tgz#f71e81320bcd504c400c1f503ba43a88ccac96e8"
+  integrity sha512-oad0jwQu+vgQDukeS9UV56yG10dlxkAGGl26IQpZlTmg3dTI9qSJtvhmlLfkF0nEtoj5IsVQUPE+NLH1oZkgGQ==
+
+"@capacitor/cli@^5.0.0", "@capacitor/cli@^5.7.0":
   version "5.7.0"
   resolved "https://registry.npmjs.org/@capacitor/cli/-/cli-5.7.0.tgz"
   integrity sha512-md6217RXFQwSNo9vr1gDgBqR88MJaQVwu3C5W3bpWlmajhec6NUR7yT7QNcBWErhCIJfqOOqXu4ZSSShndF0ug==
@@ -989,12 +999,17 @@
     tslib "^2.4.0"
     xml2js "^0.5.0"
 
-"@capacitor/core@^5.7.0":
+"@capacitor/core@^5.0.0", "@capacitor/core@^5.7.0":
   version "5.7.0"
   resolved "https://registry.npmjs.org/@capacitor/core/-/core-5.7.0.tgz"
   integrity sha512-wa9Fao+Axa1t2ZERMyQD9r0xyfglQyC4DHQKintzKaIqcRuVe9J31TmfD3IxROYi9LGpY4X8cq4m4bjb0W94Qg==
   dependencies:
     tslib "^2.1.0"
+
+"@capacitor/filesystem@^5.2.1":
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/@capacitor/filesystem/-/filesystem-5.2.1.tgz#c6183dce64fe95375a254d841029c5b88211392a"
+  integrity sha512-mexkJHUbNhydzfJywEUTIGARlB/HRogrtbjCZdA+mQxOi07T2887a70CwFaYRu1nKLMoKoliTM5UsLSsdl0PlA==
 
 "@capacitor/local-notifications@^5.0.7":
   version "5.0.7"
@@ -3361,6 +3376,11 @@ eslint-compat-utils@^0.1.2:
   resolved "https://registry.npmjs.org/eslint-compat-utils/-/eslint-compat-utils-0.1.2.tgz"
   integrity sha512-Jia4JDldWnFNIru1Ehx1H5s9/yxiRHY/TimCuUc0jNexew3cF1gI6CYZil1ociakfWO3rRqFjl1mskBblB3RYg==
 
+eslint-config-prettier@^9.1.0:
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-9.1.0.tgz#31af3d94578645966c082fcb71a5846d3c94867f"
+  integrity sha512-NSWl5BFQWEPi1j4TjVNItzYV7dZXZ+wP6I6ZhrBGpChQhZRUaElihE9uRRkcbRnNb76UMKDF3r+WTmNcGPKsqw==
+
 eslint-plugin-svelte@^2.35.1:
   version "2.35.1"
   resolved "https://registry.npmjs.org/eslint-plugin-svelte/-/eslint-plugin-svelte-2.35.1.tgz"
@@ -5717,6 +5737,14 @@ semver@^7.3.7:
   integrity sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==
   dependencies:
     lru-cache "^6.0.0"
+
+send-intent@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/send-intent/-/send-intent-5.0.0.tgz#95d00455a7db4d95d9f79f8203698e96760c7408"
+  integrity sha512-d3moLwVdQlv/lWPR8MYPUv3HufOrfcbyAvELla8DnJZwzLD9vYWF4UlgsEp/l5ADOyNW0KuvRVIE2cuCZqZLxA==
+  dependencies:
+    "@capacitor/cli" "^5.0.0"
+    "@capacitor/core" "^5.0.0"
 
 serialize-javascript@^4.0.0:
   version "4.0.0"

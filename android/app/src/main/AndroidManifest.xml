@@ -4,6 +4,10 @@
   <!-- Permissions -->
   <uses-permission android:name="android.permission.INTERNET" />
 
+  <queries>
+    <package android:name="me.fileplay.app" />
+  </queries>
+
   <application
     android:allowBackup="true"
     android:icon="@mipmap/ic_launcher"
@@ -25,6 +29,31 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
 
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data android:scheme="me.fileplay.app" />
+      </intent-filter>
+    </activity>
+
+    <activity
+      android:name="de.mindlib.sendIntent.SendIntentActivity"
+      android:exported="true"
+      android:theme="@style/AppTheme.NoActionBar">
+      <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <action android:name="android.intent.action.SEND_MULTIPLE" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+
+        <data android:mimeType="text/plain" />
+        <data android:mimeType="image/*" />
+        <data android:mimeType="application/*" />
+        <data android:mimeType="video/*" />
+      </intent-filter>
     </activity>
 
     <provider
@@ -35,7 +64,6 @@
       <meta-data
         android:name="android.support.FILE_PROVIDER_PATHS"
         android:resource="@xml/file_paths" />
-
     </provider>
 
     <meta-data

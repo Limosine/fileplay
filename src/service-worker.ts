@@ -50,8 +50,6 @@ self.addEventListener("notificationclick", (event) => {
 
   const data: notificationData = event.notification.data;
 
-  console.log("SW: Notification clicked");
-
   event.waitUntil(
     self.clients.openWindow(`/?accept-target&did=${data.did}&nid=${data.nid}`),
   );

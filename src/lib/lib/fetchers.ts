@@ -50,18 +50,22 @@ export const withDeviceType = (name: string) => {
   return { name, type: DeviceType[name] as string };
 };
 
+export const arrayToFileList = (files: File[]) => {
+  const dataTransfer = new DataTransfer();
+
+  for (const file of files) {
+    dataTransfer.items.add(file);
+  };
+
+  return dataTransfer.files;
+};
+
 // Service worker
 export const handleMessage = (
   event: MessageEvent<{ data: any; action: string }>,
 ) => {
   if (event.data.action == "load-data") {
-    const swFiles: File[] = event.data.data;
-    const dataTransfer = new DataTransfer();
-
-    swFiles.forEach((file) => {
-      dataTransfer.items.add(file);
-      rawFiles.set(dataTransfer.files);
-    });
+    rawFiles.set(arrayToFileList(event.data.data));
 
     get(page).url.searchParams.delete("share-target");
   }

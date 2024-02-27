@@ -23,18 +23,16 @@ public class MainActivity extends BridgeActivity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    if (Build.VERSION.SDK_INT >= 24) {
-      ServiceWorkerController swController = ServiceWorkerController.getInstance();
+    ServiceWorkerController swController = ServiceWorkerController.getInstance();
 
-      swController.setServiceWorkerClient(new ServiceWorkerClient() {
-        @Override
-        public WebResourceResponse shouldInterceptRequest(WebResourceRequest request) {
-          if (request.getUrl().toString().contains("index.html")) {
-            request.getRequestHeaders().put("Accept", "text/html");
-          }
-          return bridge.getLocalServer().shouldInterceptRequest(request);
+    swController.setServiceWorkerClient(new ServiceWorkerClient() {
+      @Override
+      public WebResourceResponse shouldInterceptRequest(WebResourceRequest request) {
+        if (request.getUrl().toString().contains("index.html")) {
+          request.getRequestHeaders().put("Accept", "text/html");
         }
-      });
-    }
+        return bridge.getLocalServer().shouldInterceptRequest(request);
+      }
+    });
   }
 }

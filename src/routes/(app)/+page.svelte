@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import { Capacitor } from "@capacitor/core";
   import { onMount } from "svelte";
 
   import { apiClient } from "$lib/api/client";
@@ -16,6 +17,7 @@
     settings_page,
     user,
   } from "$lib/lib/UI";
+  import { addListeners } from "$lib/lib/send-target";
   import { awaitReady } from "$lib/sharing/send";
 
   import Contacts from "$lib/pages/Contacts.svelte";
@@ -60,7 +62,9 @@
   let loaded = false;
   const onLoading = async () => {
     if (localStorage.getItem("loggedIn")) {
-      navigator.serviceWorker.addEventListener("message", handleMessage);
+      if (Capacitor.isNativePlatform()) await addListeners();
+      else navigator.serviceWorker.addEventListener("message", handleMessage);
+
       await setup();
       apiClient("ws");
 
