@@ -7,11 +7,8 @@
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
   import { withDeviceType } from "$lib/lib/fetchers";
   import {
-    edit_current as current,
-    title,
+    editProperties,
     linkingCode,
-    original_value,
-    did,
     deviceParams,
     userParams,
     editDialog,
@@ -20,9 +17,9 @@
   onMount(() => {
     $editDialog.addEventListener("close", () => {
       if ($page.url.pathname == "/") {
-        switch ($current) {
+        switch ($editProperties.mode) {
           case "username":
-            if ($original_value != $userParams.display_name)
+            if ($editProperties.originalValue != $userParams.display_name)
               apiClient("ws").sendMessage({
                 type: "updateUser",
                 data: {
@@ -31,7 +28,7 @@
               });
             break;
           case "avatar":
-            if ($original_value != $userParams.avatar_seed)
+            if ($editProperties.originalValue != $userParams.avatar_seed)
               apiClient("ws").sendMessage({
                 type: "updateUser",
                 data: {
@@ -40,22 +37,22 @@
               });
             break;
           case "deviceName":
-            if ($original_value != $deviceParams.display_name)
+            if ($editProperties.originalValue != $deviceParams.display_name)
               apiClient("ws").sendMessage({
                 type: "updateDevice",
                 data: {
                   update: { display_name: $deviceParams.display_name },
-                  did: $did,
+                  did: $editProperties.did,
                 },
               });
             break;
           case "deviceType":
-            if ($original_value != $deviceParams.type)
+            if ($editProperties.originalValue != $deviceParams.type)
               apiClient("ws").sendMessage({
                 type: "updateDevice",
                 data: {
                   update: { type: $deviceParams.type as DeviceType },
-                  did: $did,
+                  did: $editProperties.did,
                 },
               });
             break;
@@ -68,20 +65,20 @@
 <dialog
   bind:this={$editDialog}
   id="dialog-edit"
-  style={$current == "deviceType"
+  style={$editProperties.mode == "deviceType"
     ? "min-height: 250px;"
-    : $current == "avatar"
+    : $editProperties.mode == "avatar"
       ? "min-height: 240px;"
       : ""}
 >
-  <p style="font-size: large; margin-bottom: 2px;">{$title}</p>
+  <p style="font-size: large; margin-bottom: 2px;">{$editProperties.title}</p>
   <div class="field">
-    {#if $current == "deviceName"}
+    {#if $editProperties.mode == "deviceName"}
       <input
         bind:value={$deviceParams.display_name}
         placeholder="Google Pixel 5"
       />
-    {:else if $current == "deviceType"}
+    {:else if $editProperties.mode == "deviceType"}
       <nav style="display: grid; padding: 0;">
         {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
           <label class="radio">
@@ -97,13 +94,13 @@
           </label>
         {/each}
       </nav>
-    {:else if $current == "linkingCode"}
+    {:else if $editProperties.mode == "linkingCode"}
       <input
         bind:value={$linkingCode}
         maxlength={6}
         placeholder="6-digit code"
       />
-    {:else if $current == "avatar"}
+    {:else if $editProperties.mode == "avatar"}
       <div class="center-align">
         <img
           id="avatar-image"
@@ -121,7 +118,10 @@
         >
       </nav>
     {:else}
-      <input bind:value={$userParams.display_name} placeholder={$title} />
+      <input
+        bind:value={$userParams.display_name}
+        placeholder={$editProperties.title}
+      />
     {/if}
   </div>
 </dialog>

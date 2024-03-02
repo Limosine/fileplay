@@ -200,6 +200,7 @@ const messageFromClientSchemaWithoutId = z.union([
     data: z.object({
       display_name: z.string().optional(),
       type: z.string().optional(),
+      avatar_seed: z.string().optional(),
     }),
   }),
   z.object({

@@ -16,10 +16,10 @@
     deviceParams,
     userParams,
     profaneUsername,
-    ValueToName,
     openDialog,
     linkingCode,
   } from "$lib/lib/UI";
+  import { ValueToName } from "$lib/lib/utils";
 
   let progress = 0;
   let setupError: string;

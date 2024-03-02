@@ -7,10 +7,10 @@ import { env } from "$env/dynamic/public";
 import { peer } from "$lib/lib/simple-peer";
 import {
   addDialog,
+  addProperties,
   contacts,
   devices,
   own_did,
-  redeemCode_section,
   user,
 } from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
@@ -215,7 +215,11 @@ class WebSocketClient {
       message.type == "deviceCodeRedeemed"
     ) {
       if (get(addDialog).open) ui("#dialog-add");
-      if (message.type == "contactCodeRedeemed") redeemCode_section.set(true);
+      if (message.type == "contactCodeRedeemed")
+        addProperties.update((properties) => {
+          properties.redeem = true;
+          return properties;
+        });
     } else if (
       message.type == "filetransfer" ||
       message.type == "contactLinkingCode" ||

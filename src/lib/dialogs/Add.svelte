@@ -3,7 +3,7 @@
   import { onDestroy, onMount } from "svelte";
 
   import { apiClient } from "$lib/api/client";
-  import { code, addDialog, add_mode, redeemCode_section } from "$lib/lib/UI";
+  import { addDialog, addProperties } from "$lib/lib/UI";
 
   const generateContactCode = async () => {
     // todo refresh this code after specified interval
@@ -37,24 +37,24 @@
     updateInterval = setInterval(updateExpiresIn, 1000);
 
     $addDialog.addEventListener("close", () => {
-      $redeemCode_section = true;
-      $code = "";
+      $addProperties.redeem = true;
+      $addProperties.code = "";
     });
   });
   onDestroy(() => clearInterval(updateInterval));
 </script>
 
 <dialog id="dialog-add" bind:this={$addDialog}>
-  {#if $add_mode == "contact"}
+  {#if $addProperties.mode == "contact"}
     <p style="font-size: large; margin-bottom: 10px;">Add contact</p>
     <div id="content">
       <nav class="no-space center-align">
-        {#if $redeemCode_section}
+        {#if $addProperties.redeem}
           <button class="left-round">Redeem code</button>
           <button
             class="right-round border"
             on:click={() => {
-              $redeemCode_section = false;
+              $addProperties.redeem = false;
             }}
           >
             Generate code
@@ -63,15 +63,15 @@
           <button
             class="left-round border"
             on:click={() => {
-              $redeemCode_section = true;
+              $addProperties.redeem = true;
             }}>Redeem code</button
           >
           <button class="right-round"> Generate code </button>
         {/if}
       </nav>
-      {#if $redeemCode_section}
+      {#if $addProperties.redeem}
         <div class="field label border">
-          <input type="text" maxlength={6} bind:value={$code} />
+          <input type="text" maxlength={6} bind:value={$addProperties.code} />
           <!-- svelte-ignore a11y-label-has-associated-control -->
           <label>Linking code</label>
         </div>
@@ -99,13 +99,13 @@
       >
       <!-- svelte-ignore missing-declaration -->
       <button
-        disabled={$code == ""}
+        disabled={$addProperties.code == ""}
         class="border"
         style="border: 0;"
         on:click={async () => {
           await apiClient("ws").sendMessage({
             type: "redeemContactCode",
-            data: $code,
+            data: $addProperties.code,
           });
           ui("#dialog-add");
         }}>Add</button

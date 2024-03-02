@@ -5,7 +5,7 @@
   import { getDicebearUrl } from "$lib/lib/common";
   import type { IContact } from "$lib/lib/fetchers";
   import { SendState, sendState } from "$lib/lib/sendstate";
-  import { contactId, contacts, sendDialog } from "$lib/lib/UI";
+  import { sendProperties, contacts, sendDialog } from "$lib/lib/UI";
   import { cancelFiletransfer } from "$lib/sharing/main";
 
   let contact: IContact | undefined;
@@ -72,18 +72,23 @@
   });
 
   $: {
-    if ($contactId === undefined) {
+    if ($sendProperties.cid === undefined) {
       stop();
     } else {
       stop();
       start();
 
-      loadData($contactId);
+      loadData($sendProperties.cid);
     }
   }
 
   $: {
-    updateState(finalString, $contactId, get(sendState)[$contactId]);
+    if ($sendProperties.cid !== undefined)
+      updateState(
+        finalString,
+        $sendProperties.cid,
+        get(sendState)[$sendProperties.cid],
+      );
   }
 </script>
 

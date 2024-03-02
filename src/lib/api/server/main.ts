@@ -134,17 +134,13 @@ export const handleMessage = async (
       const userInfos = await getUser(cts.db, user);
       if (!userInfos.success) throw new Error("500");
 
-      webPush().sendMessage(
-        cts.db,
-        data.data.uid,
-        {
-          username: userInfos.message.display_name,
-          avatarSeed: userInfos.message.avatar_seed,
-          did: device,
-          nid: data.data.id,
-          files: data.data.files
-        },
-      );
+      await webPush().sendMessage(cts.db, data.data.uid, {
+        username: userInfos.message.display_name,
+        avatarSeed: userInfos.message.avatar_seed,
+        did: device,
+        nid: data.data.id,
+        files: data.data.files,
+      });
     });
 
     // Guest

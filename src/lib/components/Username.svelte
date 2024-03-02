@@ -6,7 +6,7 @@
     userParams,
     user,
     profaneUsername,
-    updateIsProfaneUsername,
+    checkProfanity,
   } from "$lib/lib/UI";
 
   $: {
@@ -25,7 +25,7 @@
   <div class="field label {$profaneUsername.profane ? 'invalid' : ''}">
     <input
       bind:value={$userParams.display_name}
-      on:focusout={() => updateIsProfaneUsername()}
+      on:focusout={() => checkProfanity()}
       maxlength={32}
     />
     <!-- svelte-ignore a11y-label-has-associated-control-->

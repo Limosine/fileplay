@@ -7,17 +7,16 @@
   import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import { handleMessage } from "$lib/lib/fetchers";
+  import { addListeners } from "$lib/lib/send-target";
   import {
     addDialog,
-    add_mode,
-    current,
+    addProperties,
     editDialog,
     notificationDialog,
+    path,
     rawFiles,
-    settings_page,
     user,
   } from "$lib/lib/UI";
-  import { addListeners } from "$lib/lib/send-target";
   import { awaitReady } from "$lib/sharing/send";
 
   import Contacts from "$lib/pages/Contacts.svelte";
@@ -29,7 +28,7 @@
     if (!e?.dataTransfer?.files) {
       return;
     }
-    rawFiles.set(e.dataTransfer.files);
+    $rawFiles = e.dataTransfer.files;
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -51,10 +50,10 @@
   };
 
   const openAddDialog = () => {
-    if ($current == "Contacts") {
-      $add_mode = "contact";
+    if ($path.main == "contacts") {
+      $addProperties.mode = "contact";
     } else {
-      $add_mode = "device";
+      $addProperties.mode = "device";
     }
     ui("#dialog-add");
   };
@@ -68,15 +67,17 @@
       await setup();
       apiClient("ws");
 
-      if ($page.url.searchParams.has("share-target")) {
-        navigator.serviceWorker.controller?.postMessage("share-ready");
-      }
+      if (!Capacitor.isNativePlatform()) {
+        if ($page.url.searchParams.has("share-target")) {
+          navigator.serviceWorker.controller?.postMessage("share-ready");
+        }
 
-      if ($page.url.searchParams.has("accept-target")) {
-        const didString = $page.url.searchParams.get("did");
-        const nid = $page.url.searchParams.get("nid");
-        if (didString !== null && nid !== null)
-          awaitReady(Number(didString), nid);
+        if ($page.url.searchParams.has("accept-target")) {
+          const didString = $page.url.searchParams.get("did");
+          const nid = $page.url.searchParams.get("nid");
+          if (didString !== null && nid !== null)
+            awaitReady(Number(didString), nid);
+        }
       }
     }
   };
@@ -97,15 +98,15 @@
 
 <Input />
 
-{#if $current == "Home"}
+{#if $path.main == "home"}
   <Home />
-{:else if $current == "Contacts"}
+{:else if $path.main == "contacts"}
   <Contacts />
-{:else if $current == "Settings" && $user !== undefined}
+{:else if $path.main == "settings" && $user !== undefined}
   <Settings />
 {/if}
 
-{#if $current == "Contacts" || ($current == "Settings" && $settings_page == "devices")}
+{#if $path.main == "contacts" || ($path.main == "settings" && "sub" in $path)}
   <button
     id="add-mobile"
     class="s square round extra"

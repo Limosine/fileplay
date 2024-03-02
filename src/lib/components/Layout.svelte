@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { current, notifications, settings_page } from "$lib/lib/UI";
+  import { changePath, notifications, path } from "$lib/lib/UI";
+  import { capitalizeFirstLetter } from "$lib/lib/utils";
   import { authorizeGuestSender } from "$lib/sharing/main";
 </script>
 
@@ -10,15 +11,15 @@
       <img class="circle" src="/favicon.svg" />
     </a>
     <a
-      class={$current == "Home" ? "active" : ""}
-      on:click={() => ($current = "Home")}
+      class={$path.main == "home" ? "active" : ""}
+      on:click={() => changePath({ main: "home" })}
     >
       <i>home</i>
       <span>Home</span>
     </a>
     <a
-      class={$current == "Contacts" ? "active" : ""}
-      on:click={() => ($current = "Contacts")}
+      class={$path.main == "contacts" ? "active" : ""}
+      on:click={() => changePath({ main: "contacts" })}
     >
       <i>Contacts</i>
       <span>Contacts</span>
@@ -26,11 +27,13 @@
   </nav>
 </div>
 
-{#if $current != "Settings" || $settings_page == "main"}
+{#if $path.main != "settings" || !("sub" in $path)}
   <div id="header">
     <header class="fixed">
       <nav>
-        <p class="s" style="font-size: large; font-weight: 600;">{$current}</p>
+        <p class="s" style="font-size: large; font-weight: 600;">
+          {capitalizeFirstLetter($path.main)}
+        </p>
         <div class="max" />
         <!-- eslint-disable no-undef -->
         <!-- svelte-ignore missing-declaration -->
@@ -78,25 +81,31 @@
   <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
   <nav class="bottom" style="z-index: 99;">
     <a
-      class={$current == "Home" ? "active" : ""}
-      on:click={() => ($current = "Home")}
+      class={$path.main == "home" ? "active" : ""}
+      on:click={() =>
+        changePath({
+          main: "home",
+        })}
     >
       <i>home</i>
       <span>Home</span>
     </a>
     <a
-      class={$current == "Contacts" ? "active" : ""}
-      on:click={() => ($current = "Contacts")}
+      class={$path.main == "contacts" ? "active" : ""}
+      on:click={() =>
+        changePath({
+          main: "contacts",
+        })}
     >
       <i>Contacts</i>
       <span>Contacts</span>
     </a>
     <a
-      class={$current == "Settings" ? "active" : ""}
-      on:click={() => {
-        $settings_page = "main";
-        $current = "Settings";
-      }}
+      class={$path.main == "settings" ? "active" : ""}
+      on:click={() =>
+        changePath({
+          main: "settings",
+        })}
     >
       <i>settings</i>
       <span>Settings</span>

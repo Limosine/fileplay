@@ -1,5 +1,7 @@
 import { browser } from "$app/environment";
 
+import { DeviceType } from "./common";
+
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export const onGuestPage = () =>
@@ -9,6 +11,21 @@ export const isProfane = async (s: string) => {
   const Filter = (await import("bad-words")).default;
   return new Filter().isProfane(s);
 };
+
+export const ValueToName = (value: string) => {
+  for (const key in DeviceType) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (DeviceType.hasOwnProperty(key)) {
+      // @ts-ignore
+      if (DeviceType[key] == value) {
+        return key;
+      }
+    }
+  }
+};
+
+export const capitalizeFirstLetter = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1);
 
 export const stringToArrayBuffer = (str: string) => {
   return new TextEncoder().encode(str).buffer;

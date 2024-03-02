@@ -1,10 +1,14 @@
 <script lang="ts">
   import { browser } from "$app/environment";
+  import { page } from "$app/stores";
   import { Capacitor } from "@capacitor/core";
   import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
+
+  import { notifications } from "$lib/lib/notifications";
+  import { getPath, path, registration } from "$lib/lib/UI";
 
   import logo from "$lib/assets/Fileplay.svg";
   import Layout from "$lib/components/Layout.svelte";
@@ -15,9 +19,6 @@
   import QRCode from "$lib/dialogs/QRCode.svelte";
   import Request from "$lib/dialogs/PushRequest.svelte";
   import Send from "$lib/dialogs/Send.svelte";
-
-  import { registration } from "$lib/lib/UI";
-  import { notifications } from "$lib/lib/notifications";
 
   let loading = 0;
 
@@ -70,6 +71,8 @@
       }
     }
   }
+
+  $: if (browser) $path = getPath(location.pathname, $page.url.pathname);
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
 </script>

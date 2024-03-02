@@ -1,12 +1,20 @@
 <script lang="ts">
+  import { page } from "$app/stores";
   import dayjs from "dayjs";
 
   import { apiClient } from "$lib/api/client";
   import { getDicebearUrl } from "$lib/lib/common";
-  import { devices, did, openDialog, settings_page, user } from "$lib/lib/UI";
+  import {
+    changePath,
+    devices,
+    editProperties,
+    openDialog,
+    path,
+    user,
+  } from "$lib/lib/UI";
 </script>
 
-{#if $settings_page == "main"}
+{#if !("sub" in $path)}
   {#if $user !== undefined}
     <p
       class="bold"
@@ -59,7 +67,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => ($settings_page = "devices")}
+      on:click={() => changePath({ main: "settings", sub: "devices" })}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Devices</p>
@@ -88,9 +96,9 @@
       </div>
     </a>
   {/if}
-{:else if $settings_page == "devices"}
+{:else}
   <button
-    on:click={() => ($settings_page = "main")}
+    on:click={() => changePath({ main: "settings" })}
     class="transparent circle"
     style="margin: 8px;"
   >
@@ -104,7 +112,7 @@
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
       on:click={() => {
-        $did = $devices.self.did;
+        $editProperties.did = $devices.self.did;
         openDialog("deviceName", "Device Name", $devices.self.display_name);
       }}
     >
@@ -121,7 +129,7 @@
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
         on:click={() => {
-          $did = device.did;
+          $editProperties.did = device.did;
           openDialog("deviceName", "Device Name", device.display_name);
         }}
       >

@@ -13,7 +13,7 @@
   import { cancelFiletransfer, connectAsListener } from "$lib/sharing/main";
   import { send } from "$lib/sharing/send";
   import { handleMessage } from "$lib/lib/fetchers";
-  import { files, input } from "$lib/lib/UI";
+  import { files, getProgress, input } from "$lib/lib/UI";
 
   let sentAccept = false;
   let did: number;
@@ -130,20 +130,20 @@
                   </button>
                 </a>
               {:else}
-                <article
-                  class="border round row"
-                  style="width: 80%; height: 50px;"
-                >
-                  <div>
-                    <span>
-                      {file.name.length > 25
-                        ? returnSubstring(file.name)
-                        : file.name}
-                    </span>
-                    <div class="tooltip">{file.name}</div>
-                  </div>
-                  <div class="max" />
-                  <progress class="circle small" />
+                <article class="border round row" style="height: 50px;">
+                  <span>
+                    {file.name.length > 25
+                      ? returnSubstring(file.name)
+                      : file.name}
+                  </span>
+                  <div class="tooltip">{file.name}</div>
+                  <progress
+                    class="max"
+                    value={getProgress(
+                      filetransfer.id,
+                      $incoming_filetransfers,
+                    )}
+                  ></progress>
                 </article>
               {/if}
             </div>

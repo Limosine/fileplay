@@ -2,10 +2,10 @@
   import {
     notifications,
     deleteNotification,
-    returnProgress,
     notificationDialog,
     type NotificationRequest,
     type NotificationReceiving,
+    getProgress,
   } from "$lib/lib/UI";
   import { incoming_filetransfers } from "$lib/sharing/common";
   import { sendAnswer } from "$lib/sharing/send";
@@ -61,10 +61,7 @@
           <progress
             style="margin-top: 7px;"
             class="left"
-            value={returnProgress(
-              n.data.filetransfer_id,
-              $incoming_filetransfers,
-            )}
+            value={getProgress(n.data.filetransfer_id, $incoming_filetransfers)}
           />
         {/if}
 

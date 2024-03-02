@@ -5,7 +5,6 @@
   - [ ] Settings page on desktop
   - [ ] More contact infos
   - [ ] Keybinding
-  - [ ] Progress on guest page
   - [ ] Check for browser compatibility and redirect
 
 - [ ] Backend

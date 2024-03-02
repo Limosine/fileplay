@@ -5,7 +5,13 @@
   import { getDicebearUrl } from "$lib/lib/common";
   import { type IContact } from "$lib/lib/fetchers";
   import { sendState, SendState } from "$lib/lib/sendstate";
-  import { current, contacts, contactId, input, files } from "$lib/lib/UI";
+  import {
+    changePath,
+    contacts,
+    sendProperties,
+    input,
+    files,
+  } from "$lib/lib/UI";
   import {
     link,
     outgoing_filetransfers,
@@ -23,7 +29,7 @@
     const state = $sendState[contact.cid];
     const devices = contact.devices;
 
-    $contactId = contact.cid;
+    $sendProperties.cid = contact.cid;
     ui("#dialog-send");
 
     if (state != SendState.REQUESTING && state != SendState.SENDING) {
@@ -201,7 +207,7 @@
           No contact available. Add a new contact on the
           <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
           <a
-            on:click={() => ($current = "Contacts")}
+            on:click={() => changePath({ main: "contacts" })}
             style="color: var(--primary)"
             ><span class="clickable">contact page</span></a
           >.
