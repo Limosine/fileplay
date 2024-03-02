@@ -105,7 +105,6 @@
 <svelte:head>
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html webManifest}
-  <title>Fileplay</title>
 </svelte:head>
 
 <Edit />

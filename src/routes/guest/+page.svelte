@@ -130,7 +130,10 @@
                   </button>
                 </a>
               {:else}
-                <article class="border round row" style="height: 50px;">
+                <article
+                  class="border round row"
+                  style="width: 100%; height: 50px;"
+                >
                   <span>
                     {file.name.length > 25
                       ? returnSubstring(file.name)
@@ -139,6 +142,7 @@
                   <div class="tooltip">{file.name}</div>
                   <progress
                     class="max"
+                    style="color: var(--on-secondary);"
                     value={getProgress(
                       filetransfer.id,
                       $incoming_filetransfers,
