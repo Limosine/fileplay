@@ -225,7 +225,7 @@ export const closeGuestConnection = (device: number, transfer: string) => {
     sendMessage(client.did, {
       type: "closeConnection",
       data: device,
-    });
+    }, false);
   }
 };
 

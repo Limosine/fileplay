@@ -73,7 +73,7 @@ export const sendNotifications = async (contact: IContact) => {
 
   apiClient("ws").sendMessage({
     type: "sendNotification",
-    data: { uid: contact.uid, id, files: files.map(f => f.name) },
+    data: { uid: contact.uid, id, files: files.map((f) => f.name) },
   });
 };
 
@@ -334,7 +334,7 @@ export const sendFinish = async (
       id: filetransfer_id,
     });
 
-    deleteNotification(`filetransfer-${filetransfer_id}`);
+    if (!onGuestPage()) deleteNotification(`filetransfer-${filetransfer_id}`);
 
     incoming_filetransfers.update((transfer) => {
       transfer[filetransfer_index].completed = true;
@@ -353,19 +353,20 @@ export const sendFinish = async (
     return filetransfers;
   });
 
-  addNotification({
-    title: "File received",
-    body: `The file '${
-      get(incoming_filetransfers)[filetransfer_index].files[file_index].name
-    }' was received.`,
-    tag: `file-${file_id}`,
-    data: {
-      filename: get(incoming_filetransfers)[filetransfer_index].files[
-        file_index
-      ].name,
-      url: url,
-    },
-  });
+  if (!onGuestPage())
+    addNotification({
+      title: "File received",
+      body: `The file '${
+        get(incoming_filetransfers)[filetransfer_index].files[file_index].name
+      }' was received.`,
+      tag: `file-${file_id}`,
+      data: {
+        filename: get(incoming_filetransfers)[filetransfer_index].files[
+          file_index
+        ].name,
+        url: url,
+      },
+    });
 };
 
 // Receiver:

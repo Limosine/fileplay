@@ -78,7 +78,7 @@ if (!building) {
             id: decodedData.id,
             type: "error",
             data: e instanceof Error ? e.message : e,
-          });
+          }, false);
         }
       });
 
