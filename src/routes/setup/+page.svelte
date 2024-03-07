@@ -237,7 +237,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("deviceName")}
+      on:click={() => openDialog("deviceName", 0)}
     >
       <div>
         <p style="font-size: large; margin-bottom: 2px;">Device name</p>
@@ -258,7 +258,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("deviceType")}
+      on:click={() => openDialog("deviceType", 0)}
     >
       <div>
         <p style="font-size: large; margin-bottom: 2px;">Device type</p>

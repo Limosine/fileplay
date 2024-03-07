@@ -266,7 +266,7 @@
       <span class="max" />
       <img
         class="responsive"
-        style="height: 48px; width: 48px; margin-right: 16px;"
+        style="height: 50px; width: 50px; margin-right: 5px;"
         src={getDicebearUrl($user.avatar_seed, 150)}
         alt="Avatar"
       />

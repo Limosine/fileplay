@@ -55,7 +55,7 @@ export const arrayToFileList = (files: File[]) => {
 
   for (const file of files) {
     dataTransfer.items.add(file);
-  };
+  }
 
   return dataTransfer.files;
 };

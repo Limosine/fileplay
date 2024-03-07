@@ -18,7 +18,11 @@
         </div>
         <button
           class="right transparent circle"
-          on:click={() => apiClient("ws").sendMessage({ type: "deleteContact", data: contact.cid})}
+          on:click={() =>
+            apiClient("ws").sendMessage({
+              type: "deleteContact",
+              data: contact.cid,
+            })}
         >
           <i>delete</i>
           <div class="tooltip left">Delete contact</div>

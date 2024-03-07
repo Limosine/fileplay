@@ -105,9 +105,9 @@ export const link = writable("");
 
 // Receiver Side:
 export const incoming_filetransfers = writable<IncomingFiletransfer[]>([]);
-export const incoming_notifications = writable<
-  { did: number; id: string; }[]
->([]);
+export const incoming_notifications = writable<{ did: number; id: string }[]>(
+  [],
+);
 export const senderLink = writable("");
 
 // Functions:
