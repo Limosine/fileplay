@@ -100,18 +100,15 @@ class HTTPClient {
       throw new Error("Failed to setup guestId.");
   }
 
-  async deleteDevice() {
-    await CapacitorHttp.delete({
-      url: `${getProtocol()}//${this.host}/api/devices`,
-    });
-  }
-
-  async deleteAccount() {
+  async deleteAccount(onlyOwn: boolean, forward = true) {
     const res = await CapacitorHttp.delete({
-      url: `${getProtocol()}//${this.host}/api/user`,
+      url:
+        `${getProtocol()}//${this.host}` + onlyOwn
+          ? "/api/devices"
+          : "/api/user",
     });
 
-    if (browser && res) {
+    if (browser && res && forward) {
       localStorage.removeItem("loggedIn");
       window.location.href = "/setup";
     }

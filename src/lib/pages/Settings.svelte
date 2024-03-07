@@ -131,7 +131,7 @@
                       <!-- svelte-ignore a11y-missing-attribute a11y-no-static-element-interactions a11y-click-events-have-key-events -->
                       <a
                         class="chip primary round"
-                        on:click={() => apiClient("http").deleteAccount()}
+                        on:click={() => apiClient("http").deleteAccount(false)}
                         >Delete Account</a
                       >
                     </div>
@@ -142,11 +142,19 @@
           </div>
           <div class="page {'sub' in $path ? 'active' : ''}">
             <table class="border secondary-container">
+              <colgroup>
+                <col />
+                <col />
+                <col />
+                <col style="width: 60px;" />
+              </colgroup>
+
               <thead>
                 <tr>
                   <th>Device name</th>
                   <th>Type</th>
                   <th>Created at</th>
+                  <th />
                 </tr>
               </thead>
 
@@ -187,6 +195,15 @@
                         .unix($devices.self.created_at)
                         .format("HH:mm, DD.MM.YYYY")}</td
                     >
+                    <td
+                      ><button
+                        class="transparent circle"
+                        on:click={() =>
+                          apiClient("http").deleteAccount(true)}
+                      >
+                        <i>delete</i>
+                      </button></td
+                    >
                   </tr>
                   {#each $devices.others as device}
                     <tr>
@@ -221,6 +238,18 @@
                         >{dayjs
                           .unix(device.created_at)
                           .format("HH:mm, DD.MM.YYYY")}</td
+                      >
+                      <td
+                        ><button
+                          class="transparent circle"
+                          on:click={() =>
+                            apiClient("ws").sendMessage({
+                              type: "deleteDevice",
+                              data: device.did,
+                            })}
+                        >
+                          <i>delete</i>
+                        </button></td
                       >
                     </tr>
                   {/each}
@@ -302,7 +331,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => apiClient("http").deleteAccount()}
+      on:click={() => apiClient("http").deleteAccount(false)}
     >
       <div class="column" style="color: red;">
         <p style="font-size: large; margin-bottom: 2px;">Delete account</p>

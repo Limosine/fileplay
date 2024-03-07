@@ -62,7 +62,7 @@
     ) {
       storedDeviceParams = null;
       // delete old user with still present cookie auth
-      await apiClient("http").deleteDevice();
+      await apiClient("http").deleteAccount(true, false);
     }
     if (!storedDeviceParams) {
       const object = {
