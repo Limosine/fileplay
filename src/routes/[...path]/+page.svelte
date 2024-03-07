@@ -12,10 +12,12 @@
     addDialog,
     addProperties,
     editDialog,
+    layout,
     notificationDialog,
     path,
     rawFiles,
     user,
+    width,
   } from "$lib/lib/UI";
   import { awaitReady } from "$lib/sharing/send";
 
@@ -88,9 +90,12 @@
       onLoading();
     }
   });
+
+  $: $layout = $width < 840 ? "mobile" : "desktop";
 </script>
 
 <svelte:window
+  bind:innerWidth={$width}
   on:drop|preventDefault={handleDrop}
   on:dragover|preventDefault
   on:keydown={handleKeyDown}
@@ -107,21 +112,23 @@
 {/if}
 
 {#if $path.main == "contacts" || ($path.main == "settings" && "sub" in $path)}
-  <button
-    id="add-mobile"
-    class="s square round extra"
-    on:click={() => openAddDialog()}
-  >
-    <i>add</i>
-  </button>
-
-  <button
-    id="add-desktop"
-    class="l m square round extra"
-    on:click={() => openAddDialog()}
-  >
-    <i>add</i>
-  </button>
+  {#if $layout == "mobile"}
+    <button
+      id="add-mobile"
+      class="square round extra"
+      on:click={() => openAddDialog()}
+    >
+      <i>add</i>
+    </button>
+  {:else}
+    <button
+      id="add-desktop"
+      class="square round extra"
+      on:click={() => openAddDialog()}
+    >
+      <i>add</i>
+    </button>
+  {/if}
 {/if}
 
 <style>

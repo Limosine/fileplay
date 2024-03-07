@@ -110,7 +110,7 @@
   </div>
 {:else}
   <div id="home">
-    <article style="padding: 15px 12px 15px 12px;" class="secondary-container">
+    <article style="padding: 15px 12px;" class="secondary-container">
       <div class="row">
         <p class="bold">Selected files:</p>
         <div class="max" />
@@ -143,10 +143,7 @@
         {/each}
       </div>
     </article>
-    <article
-      style="padding: 15px 12px 15px 12px; margin: 0;"
-      class="secondary-container"
-    >
+    <article style="padding: 15px 12px; margin: 0;" class="secondary-container">
       <details>
         <summary class="none">
           <div class="row">
@@ -194,10 +191,7 @@
         {/if}
       </details>
     </article>
-    <article
-      style="padding: 15px 12px 15px 12px; margin: 0;"
-      class="secondary-container"
-    >
+    <article style="padding: 15px 12px; margin: 0;" class="secondary-container">
       <div class="row">
         <p class="bold">Available contacts:</p>
         <div class="max" />

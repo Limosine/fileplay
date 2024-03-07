@@ -9,19 +9,32 @@ import {
   addDialog,
   addProperties,
   contacts,
+  deviceParams,
   devices,
-  own_did,
   user,
+  userParams,
 } from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
 
-const getHost = () => {
+const getHost = (ws = false) => {
   if (env.PUBLIC_HOSTNAME) {
-    return env.PUBLIC_HOSTNAME;
+    if (env.PUBLIC_HOSTNAME.split(":")[0] == "localhost" && ws)
+      return "localhost:3001";
+    else return env.PUBLIC_HOSTNAME;
   } else {
     throw new Error("Please define a public hostname.");
+  }
+};
+
+const getProtocol = (ws = false) => {
+  if (browser && location.protocol == "https:") {
+    if (!ws) return location.protocol;
+    else return "wss:";
+  } else {
+    if (!ws) return "http:";
+    else return "ws:";
   }
 };
 
@@ -34,7 +47,7 @@ class HTTPClient {
 
   async checkProfanity(username: string) {
     const res = await CapacitorHttp.post({
-      url: `https://${this.host}/api/checkProfanity`,
+      url: `${getProtocol()}//${this.host}/api/checkProfanity`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -49,7 +62,7 @@ class HTTPClient {
   async setupDevice(device: { display_name: string; type: string } | string) {
     if (typeof device == "string") {
       return await CapacitorHttp.post({
-        url: `https://${this.host}/api/devices/link`,
+        url: `${getProtocol()}//${this.host}/api/devices/link`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -59,7 +72,7 @@ class HTTPClient {
       });
     } else {
       return await CapacitorHttp.post({
-        url: `https://${this.host}/api/setup/device`,
+        url: `${getProtocol()}//${this.host}/api/setup/device`,
         headers: {
           "Content-Type": "application/json",
         },
@@ -70,7 +83,7 @@ class HTTPClient {
 
   async setupUser(user: { display_name: string; avatar_seed: string }) {
     return await CapacitorHttp.post({
-      url: `https://${this.host}/api/setup/user`,
+      url: `${getProtocol()}//${this.host}/api/setup/user`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -80,7 +93,7 @@ class HTTPClient {
 
   async setupGuest() {
     const res = await CapacitorHttp.post({
-      url: `https://${this.host}/api/setup/guest`,
+      url: `${getProtocol()}//${this.host}/api/setup/guest`,
     });
 
     if (Array.from(res.status.toString())[0] != "2")
@@ -89,13 +102,13 @@ class HTTPClient {
 
   async deleteDevice() {
     await CapacitorHttp.delete({
-      url: `https://${this.host}/api/devices`,
+      url: `${getProtocol()}//${this.host}/api/devices`,
     });
   }
 
   async deleteAccount() {
     const res = await CapacitorHttp.delete({
-      url: `https://${this.host}/api/user`,
+      url: `${getProtocol()}//${this.host}/api/user`,
     });
 
     if (browser && res) {
@@ -121,7 +134,7 @@ class WebSocketClient {
 
   private connect() {
     this.socket = new WebSocket(
-      `wss://${getHost()}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
+      `${getProtocol(true)}//${getHost(true)}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
 
     this.socket.binaryType = "arraybuffer";
@@ -195,10 +208,32 @@ class WebSocketClient {
 
   private handleData(message: MessageFromServer) {
     if (message.type == "user") {
+      userParams.set({
+        display_name: message.data.display_name,
+        avatar_seed: message.data.avatar_seed,
+      });
+
       user.set(message.data);
     } else if (message.type == "devices") {
+      deviceParams.update((deviceParams) => {
+        deviceParams = [];
+
+        deviceParams[message.data.self.did] = {
+          display_name: message.data.self.display_name,
+          type: message.data.self.type,
+        };
+
+        for (const infos of message.data.others) {
+          deviceParams[infos.did] = {
+            display_name: infos.display_name,
+            type: infos.type,
+          };
+        }
+
+        return deviceParams;
+      });
+
       devices.set(message.data);
-      own_did.set(message.data.self.did);
     } else if (message.type == "contacts") {
       contacts.set(message.data);
       peer().closeConnections(message.data.map((c) => c.devices));

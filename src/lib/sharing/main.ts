@@ -2,10 +2,10 @@ import { page } from "$app/stores";
 import { get } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
-import { type IContact, type IDeviceInfo } from "$lib/lib/fetchers";
+import { type IContact } from "$lib/lib/fetchers";
 import { SendState, sendState } from "$lib/lib/sendstate";
 import { peer } from "$lib/lib/simple-peer";
-import { contacts, own_did } from "$lib/lib/UI";
+import { contacts, devices } from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
 
 import {
@@ -135,7 +135,7 @@ export const addPendingFile = async () => {
       "//" +
       location.host +
       "/guest?did=" +
-      get(own_did) +
+      get(devices).self.did +
       "&id=" +
       filetransferID,
   );
@@ -160,7 +160,7 @@ export const authorizeGuestSender = async () => {
       "//" +
       location.host +
       "/guest?did=" +
-      get(own_did) +
+      get(devices).self.did +
       "&id=" +
       filetransferID +
       "&sender",

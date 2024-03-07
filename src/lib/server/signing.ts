@@ -28,31 +28,16 @@ export async function getDeviceID(
   did_s: string,
   key: CryptoKey,
   db: Database,
-): Promise<
-  | {
-      success: true;
-      message: {
-        did: number;
-        uid: number | null;
-      };
-    }
-  | {
-      success: false;
-      message: any;
-    }
-> {
-  if (!did_s || !signature) error(401, "Not authenticated");
+) {
+  if (!did_s || !signature) throw new Error("Not authenticated");
   if (!(await verify(did_s, signature, key)))
-    error(401, "Wrong authentication signature");
+    throw new Error("Wrong authentication signature");
 
   const did = parseInt(did_s);
   const uid = await getUID(db, did);
 
-  if (uid.success) {
-    return { success: true, message: { did, uid: uid.message } };
-  } else {
-    return { success: false, message: uid.message };
-  }
+  if (!uid.success) throw new Error(uid.message);
+  else return { did, uid: uid.message };
 }
 
 export const sign = async (

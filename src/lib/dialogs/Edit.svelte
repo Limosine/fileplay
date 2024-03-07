@@ -5,61 +5,104 @@
 
   import { apiClient } from "$lib/api/client";
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
-  import { withDeviceType } from "$lib/lib/fetchers";
+  import { withDeviceType, type IDevices } from "$lib/lib/fetchers";
   import {
     editProperties,
     linkingCode,
     deviceParams,
     userParams,
     editDialog,
+    user,
+    devices,
+    checkProfanity,
   } from "$lib/lib/UI";
 
+  let title = "";
+
   onMount(() => {
-    $editDialog.addEventListener("close", () => {
-      if ($page.url.pathname == "/") {
-        switch ($editProperties.mode) {
-          case "username":
-            if ($editProperties.originalValue != $userParams.display_name)
-              apiClient("ws").sendMessage({
-                type: "updateUser",
-                data: {
-                  display_name: $userParams.display_name,
-                },
-              });
-            break;
-          case "avatar":
-            if ($editProperties.originalValue != $userParams.avatar_seed)
-              apiClient("ws").sendMessage({
-                type: "updateUser",
-                data: {
-                  avatar_seed: $userParams.avatar_seed,
-                },
-              });
-            break;
-          case "deviceName":
-            if ($editProperties.originalValue != $deviceParams.display_name)
-              apiClient("ws").sendMessage({
-                type: "updateDevice",
-                data: {
-                  update: { display_name: $deviceParams.display_name },
-                  did: $editProperties.did,
-                },
-              });
-            break;
-          case "deviceType":
-            if ($editProperties.originalValue != $deviceParams.type)
-              apiClient("ws").sendMessage({
-                type: "updateDevice",
-                data: {
-                  update: { type: $deviceParams.type as DeviceType },
-                  did: $editProperties.did,
-                },
-              });
-            break;
+    $editDialog.addEventListener("close", async () => {
+      if ($editProperties.mode == "username") {
+        await checkProfanity();
+      }
+
+      if ($page.url.pathname == "/setup") return;
+
+      if ($editProperties.mode == "username") {
+        if ($user.display_name != $userParams.display_name)
+          apiClient("ws").sendMessage({
+            type: "updateUser",
+            data: {
+              display_name: $userParams.display_name,
+            },
+          });
+      } else if ($editProperties.mode == "avatar") {
+        if ($user.avatar_seed != $userParams.avatar_seed)
+          apiClient("ws").sendMessage({
+            type: "updateUser",
+            data: {
+              avatar_seed: $userParams.avatar_seed,
+            },
+          });
+      } else if (
+        $editProperties.mode == "deviceName" ||
+        $editProperties.mode == "deviceType"
+      ) {
+        if ($editProperties.did === undefined) return;
+
+        let device: IDevices["self"];
+        if ($devices.self.did === $editProperties.did) device = $devices.self;
+        else {
+          const d = $devices.others.find((d) => d.did === $editProperties.did);
+          if (d !== undefined) device = d;
+          else return;
         }
+
+        if (
+          $editProperties.mode == "deviceName" &&
+          $editProperties.did !== undefined &&
+          $deviceParams[$editProperties.did] !== undefined &&
+          device.display_name != $deviceParams[$editProperties.did].display_name
+        )
+          apiClient("ws").sendMessage({
+            type: "updateDevice",
+            data: {
+              update: {
+                display_name: $deviceParams[$editProperties.did].display_name,
+              },
+              did: $editProperties.did,
+            },
+          });
+        else if (
+          $editProperties.mode == "deviceType" &&
+          $editProperties.did !== undefined &&
+          $deviceParams[$editProperties.did] !== undefined &&
+          device.type != $deviceParams[$editProperties.did].type
+        )
+          apiClient("ws").sendMessage({
+            type: "updateDevice",
+            data: {
+              update: {
+                type: $deviceParams[$editProperties.did].type as DeviceType,
+              },
+              did: $editProperties.did,
+            },
+          });
       }
     });
   });
+
+  $: title =
+    $editProperties.mode == "deviceName"
+      ? "Device name"
+      : $editProperties.mode == "deviceType"
+        ? "Device type"
+        : $editProperties.mode == "username"
+          ? "Username"
+          : $editProperties.mode == "avatar"
+            ? "Avatar"
+            : $editProperties.mode == "linkingCode"
+              ? "Linking code"
+              : "";
 </script>
 
 <dialog
@@ -71,11 +114,13 @@
       ? "min-height: 240px;"
       : ""}
 >
-  <p style="font-size: large; margin-bottom: 2px;">{$editProperties.title}</p>
+  <p style="font-size: large; margin-bottom: 2px;">
+    {title}
+  </p>
   <div class="field">
-    {#if $editProperties.mode == "deviceName"}
+    {#if $editProperties.mode == "deviceName" && $editProperties.did !== undefined && $deviceParams[$editProperties.did] !== undefined}
       <input
-        bind:value={$deviceParams.display_name}
+        bind:value={$deviceParams[$editProperties.did].display_name}
         placeholder="Google Pixel 5"
       />
     {:else if $editProperties.mode == "deviceType"}
@@ -83,9 +128,12 @@
         {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
           <label class="radio">
             <input
-              checked={$deviceParams.type == type}
+              checked={$editProperties.did !== undefined &&
+                $deviceParams[$editProperties.did].type == type}
               on:change={(event) =>
-                ($deviceParams.type = event.currentTarget.value)}
+                $editProperties.did !== undefined &&
+                ($deviceParams[$editProperties.did].type =
+                  event.currentTarget.value)}
               type="radio"
               name="deviceType"
               value={type}
@@ -118,10 +166,7 @@
         >
       </nav>
     {:else}
-      <input
-        bind:value={$userParams.display_name}
-        placeholder={$editProperties.title}
-      />
+      <input bind:value={$userParams.display_name} placeholder={title} />
     {/if}
   </div>
 </dialog>

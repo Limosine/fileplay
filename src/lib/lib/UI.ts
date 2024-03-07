@@ -9,6 +9,10 @@ import type { IncomingFiletransfer, Request } from "$lib/sharing/common";
 import { type IContact, type IDevices, type IUser } from "./fetchers";
 import type { PartialBy } from "./utils";
 
+// Window
+export const width = writable(0);
+export const layout = writable<"mobile" | "desktop">("mobile");
+
 // Navigation
 export const path = writable<Routes>({
   main: "home",
@@ -37,12 +41,12 @@ export const files = writable<
 >([]);
 
 // Personal infos
-export const own_did = writable<number>();
-
-export const deviceParams = writable({
-  display_name: "",
-  type: "",
-});
+export const deviceParams = writable<
+  {
+    display_name: string;
+    type: string;
+  }[]
+>([{ display_name: "", type: "" }]);
 
 export const userParams = writable({
   display_name: "",
@@ -79,13 +83,8 @@ export const sendProperties = writable<{
 
 export const editProperties = writable<{
   mode?: EditOptions;
-  title: string;
   did?: number;
-  originalValue: string;
-}>({
-  title: "",
-  originalValue: "",
-});
+}>({});
 
 // Notifications
 export const notifications = writable<Notification[]>([]);
@@ -113,51 +112,46 @@ export const deleteNotification = (tag: string) => {
   );
 };
 
-export const openDialog = (
-  currentU: EditOptions,
-  titleU: string,
-  original_valueU?: string,
-  didU?: number,
-) => {
+export const openDialog = (currentU: EditOptions, didU?: number) => {
   editProperties.update((properties) => {
     properties.mode = currentU;
-    properties.title = titleU;
 
     if (didU !== undefined) properties.did = didU;
-
-    if (original_valueU !== undefined)
-      properties.originalValue = original_valueU;
 
     return properties;
   });
 
-  if (original_valueU !== undefined) {
-    switch (currentU) {
-      case "username":
-        userParams.update((user) => {
-          user.display_name = original_valueU;
-          return user;
-        });
-        break;
-      case "avatar":
-        userParams.update((user) => {
-          user.avatar_seed = original_valueU;
-          return user;
-        });
-        break;
-      case "deviceName":
-        deviceParams.update((device) => {
-          device.display_name = original_valueU;
-          return device;
-        });
-        break;
-      case "deviceType":
-        deviceParams.update((device) => {
-          device.type = original_valueU;
-          return device;
-        });
-        break;
+  if (
+    get(user) !== undefined &&
+    (currentU == "username" || currentU == "avatar")
+  ) {
+    userParams.update((u) => {
+      u.display_name = get(user).display_name;
+      u.avatar_seed = get(user).avatar_seed;
+      return u;
+    });
+  } else if (
+    get(devices) !== undefined &&
+    (currentU == "deviceName" || currentU == "deviceType")
+  ) {
+    if (didU === undefined) return;
+
+    let device: IDevices["self"];
+    if (get(devices).self.did === didU) device = get(devices).self;
+    else {
+      const d = get(devices).others.find((d) => d.did === didU);
+      if (d !== undefined) device = d;
+      else return;
     }
+
+    deviceParams.update((d) => {
+      d[didU] = {
+        display_name: device.display_name,
+        type: device.type,
+      };
+
+      return d;
+    });
   }
 
   ui("#dialog-edit");
@@ -165,22 +159,18 @@ export const openDialog = (
 
 export const checkProfanity = async () => {
   if (!browser || !get(userParams).display_name) return;
+
   profaneUsername.update((username) => {
     username.loading = true;
     return username;
   });
-  try {
-    const profane = await apiClient("http").checkProfanity(
+
+  profaneUsername.set({
+    loading: false,
+    profane: await apiClient("http").checkProfanity(
       get(userParams).display_name,
-    );
-    profaneUsername.set({
-      loading: false,
-      profane: profane,
-    });
-  } catch (e: any) {
-    console.warn(e);
-    profaneUsername.set({ loading: false, profane: false });
-  }
+    ),
+  });
 };
 
 export const getProgress = (

@@ -130,18 +130,11 @@ export const deleteTransfer = (device: number) => {
 };
 
 // Turn credentials
-export const getTurnCredentials = async (
-  client: ExtendedWebSocket,
-  id: number,
-  user: string,
-  key: CryptoKey,
-) => {
+export const getTurnCredentials = async (user: string, key: CryptoKey) => {
   const unixTimeStamp = Math.ceil(Date.now() / 1000) + 12 * 3600; // 12 hours
 
   const username = [unixTimeStamp, user].join(":");
   const password = await sign(username, key, "base64");
-
-  console.log("Credentials:", username, password);
 
   return { username, password };
 };

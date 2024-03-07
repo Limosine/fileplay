@@ -18,21 +18,23 @@
     profaneUsername,
     openDialog,
     linkingCode,
+    width,
+    layout,
   } from "$lib/lib/UI";
   import { ValueToName } from "$lib/lib/utils";
 
   let progress = 0;
   let setupError: string;
 
-  let actionDisabled: boolean;
+  let actionDisabled = true;
   $: {
-    if (!$deviceParams.display_name || !$deviceParams.type)
+    if (!$deviceParams[0].display_name || !$deviceParams[0].type)
       actionDisabled = true;
     else if (!existing) {
       actionDisabled =
         !$userParams.display_name ||
-        get(profaneUsername).profane ||
-        get(profaneUsername).loading;
+        $profaneUsername.profane ||
+        $profaneUsername.loading;
     } else {
       actionDisabled = !$linkingCode;
     }
@@ -64,8 +66,8 @@
     }
     if (!storedDeviceParams) {
       const object = {
-        display_name: $deviceParams.display_name,
-        type: $deviceParams.type,
+        display_name: $deviceParams[0].display_name,
+        type: $deviceParams[0].type,
       };
 
       const res = await apiClient("http").setupDevice(object);
@@ -100,7 +102,10 @@
   };
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
+  $: $layout = $width < 840 ? "mobile" : "desktop";
 </script>
+
+<svelte:window bind:innerWidth={$width} />
 
 <svelte:head>
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -120,88 +125,95 @@
     </button>
   </div>
 {:else if progress == 1}
-  <article class="l m border center middle" style="width: 600px">
-    <h6 id="title" style="padding: 16px 16px 0px 16px;">Setup</h6>
-    <div class="medium-divider" />
-    <div style="padding: 0px 16px 16px 16px;">
-      <p class="bold" style="font-size: large">Device</p>
-      <div id="content" class="row center-align" style="padding-bottom: 30px;">
-        <div class="field label">
-          <input bind:value={$deviceParams.display_name} maxlength={32} />
-          <!-- svelte-ignore a11y-label-has-associated-control-->
-          <label>Device Name</label>
-        </div>
-
-        <div class="field label suffix">
-          <select bind:value={$deviceParams.type} style="min-width: 200px;">
-            {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-              <option value={type}>{name}</option>
-            {/each}
-          </select>
-          <!-- svelte-ignore a11y-label-has-associated-control -->
-          <label>Device Type</label>
-          <i>arrow_drop_down</i>
-        </div>
-      </div>
-      <br />
-      <p class="bold" style="font-size: large">User</p>
-      <div id="content" style="padding-bottom: 20px;">
-        <nav class="no-space center-align">
-          {#if !existing}
-            <button class="left-round">New</button>
-            <button
-              class="right-round border"
-              on:click={() => {
-                existing = true;
-                setupError = "";
-              }}
-            >
-              Connect to existing
-            </button>
-          {:else}
-            <button
-              class="left-round border"
-              on:click={() => {
-                existing = false;
-                setupError = "";
-              }}>New</button
-            >
-            <button class="right-round"> Connect to existing </button>
-          {/if}
-        </nav>
-      </div>
-      {#if !existing}
-        <Username />
-      {:else}
-        <div>
-          <p>
-            Please generate a linking code on a device already connected to the
-            user by going to <br />
-            <strong>Settings</strong> > <strong>Devices</strong> >
-            <strong>Generate linking code</strong>.
-          </p>
+  {#if $layout == "desktop"}
+    <article class="border center middle" style="width: 600px">
+      <h6 id="title" style="padding: 16px 16px 0px 16px;">Setup</h6>
+      <div class="medium-divider" />
+      <div style="padding: 0px 16px 16px 16px;">
+        <p class="bold" style="font-size: large">Device</p>
+        <div
+          id="content"
+          class="row center-align"
+          style="padding-bottom: 30px;"
+        >
           <div class="field label">
-            <input bind:value={$linkingCode} maxlength={6} />
+            <input bind:value={$deviceParams[0].display_name} maxlength={32} />
             <!-- svelte-ignore a11y-label-has-associated-control-->
-            <label>Linking Code</label>
+            <label>Device Name</label>
+          </div>
+
+          <div class="field label suffix">
+            <select
+              bind:value={$deviceParams[0].type}
+              style="min-width: 200px;"
+            >
+              {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
+                <option value={type}>{name}</option>
+              {/each}
+            </select>
+            <!-- svelte-ignore a11y-label-has-associated-control -->
+            <label>Device Type</label>
+            <i>arrow_drop_down</i>
           </div>
         </div>
-      {/if}
-      <nav class="right-align" style="margin-top: 40px;">
-        {#if setupError}
-          <p style="color:red">{setupError}</p>
+        <br />
+        <p class="bold" style="font-size: large">User</p>
+        <div id="content" style="padding-bottom: 20px;">
+          <nav class="no-space center-align">
+            {#if !existing}
+              <button class="left-round">New</button>
+              <button
+                class="right-round border"
+                on:click={() => {
+                  existing = true;
+                  setupError = "";
+                }}
+              >
+                Connect to existing
+              </button>
+            {:else}
+              <button
+                class="left-round border"
+                on:click={() => {
+                  existing = false;
+                  setupError = "";
+                }}>New</button
+              >
+              <button class="right-round"> Connect to existing </button>
+            {/if}
+          </nav>
+        </div>
+        {#if !existing}
+          <Username />
+        {:else}
+          <div>
+            <p>
+              Please generate a linking code on a device already connected to
+              the user by going to <br />
+              <strong>Settings</strong> > <strong>Devices</strong> >
+              <strong>Generate linking code</strong>.
+            </p>
+            <div class="field label">
+              <input bind:value={$linkingCode} maxlength={6} />
+              <!-- svelte-ignore a11y-label-has-associated-control-->
+              <label>Linking Code</label>
+            </div>
+          </div>
         {/if}
+        <nav class="right-align" style="margin-top: 40px;">
+          {#if setupError}
+            <p style="color:red">{setupError}</p>
+          {/if}
 
-        <button
-          disabled={actionDisabled}
-          on:click={handleConfirm}
-          class={actionDisabled ? "border" : ""}>Finish</button
-        >
-      </nav>
-    </div>
-  </article>
-
-  <div class="s">
+          <button
+            disabled={actionDisabled}
+            on:click={handleConfirm}
+            class={actionDisabled ? "border" : ""}>Finish</button
+          >
+        </nav>
+      </div>
+    </article>
+  {:else}
     <button
       on:click={() => (progress -= 1)}
       class="transparent circle"
@@ -225,17 +237,18 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("deviceName", "Device name")}
+      on:click={() => openDialog("deviceName")}
     >
-      <div class="column">
+      <div>
         <p style="font-size: large; margin-bottom: 2px;">Device name</p>
         <p
-          style="font-size: small; margin-top: 0; {!$deviceParams.display_name
+          style="font-size: small; margin-top: 0; {!$deviceParams[0]
+            .display_name
             ? 'font-style: italic;'
             : ''}"
         >
-          {$deviceParams.display_name
-            ? $deviceParams.display_name
+          {$deviceParams[0].display_name
+            ? $deviceParams[0].display_name
             : "Google Pixel 5"}
         </p>
       </div>
@@ -245,13 +258,13 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("deviceType", "Device type")}
+      on:click={() => openDialog("deviceType")}
     >
-      <div class="column">
+      <div>
         <p style="font-size: large; margin-bottom: 2px;">Device type</p>
-        {#if $deviceParams.type}
+        {#if $deviceParams[0].type}
           <p style="font-size: small; margin-top: 0;">
-            {ValueToName($deviceParams.type)}
+            {ValueToName($deviceParams[0].type)}
           </p>
         {/if}
       </div>
@@ -270,7 +283,7 @@
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
       on:click={() => (existing = !existing)}
     >
-      <div class="column">
+      <div>
         <p style="font-size: large; margin-bottom: 2px;">Connect to existing</p>
         <p style="font-size: small; margin-top: 0;">
           Link your device to an existing user
@@ -288,9 +301,9 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("linkingCode", "Linking code")}
+        on:click={() => openDialog("linkingCode")}
       >
-        <div class="column">
+        <div>
           <p style="font-size: large; margin-bottom: 2px;">Linking code</p>
           <p style="font-size: small; margin-top: 0;">6-digit code</p>
         </div>
@@ -300,9 +313,9 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("username", "Username")}
+        on:click={() => openDialog("username")}
       >
-        <div class="column">
+        <div>
           <p style="font-size: large; margin-bottom: 2px;">Username</p>
           {#if $userParams.display_name}
             <p style="font-size: small; margin-top: 0;">
@@ -316,9 +329,9 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("avatar", "Avatar")}
+        on:click={() => openDialog("avatar")}
       >
-        <div class="column">
+        <div>
           <p style="font-size: large; margin-bottom: 2px;">Avatar</p>
           <p style="font-size: small; margin-top: 0;">Choose your Avatar</p>
         </div>
@@ -345,7 +358,7 @@
         Finish
       {/if}
     </button>
-  </div>
+  {/if}
 {/if}
 
 <style>

@@ -4,6 +4,7 @@ import { decode } from "@msgpack/msgpack";
 import type { Handle } from "@sveltejs/kit";
 import { WebSocketServer } from "ws";
 
+import { env } from "$env/dynamic/public";
 import { createConstants } from "$lib/server/db";
 import {
   messageFromClientSchema,
@@ -17,7 +18,6 @@ import {
   notifyDevices,
   sendMessage,
 } from "$lib/api/server/main";
-import { env } from "$env/dynamic/public";
 
 export let clients = new Set<ExtendedWebSocket>();
 
@@ -32,32 +32,33 @@ if (!building) {
   wss.on(
     "connection",
     async (client: ExtendedWebSocket, req: IncomingMessage) => {
-      const ids = await authenticate(constants.db, constants.cookieKey, req);
+      // Assign client to guests or registered users
+      const getIds = (ids: {
+        device: number | null;
+        user: number | null;
+        guest: number | null;
+      }) => {
+        if (req.url !== undefined) {
+          const url = new URL(req.url, `https://${req.headers.host}`);
+          const type = url.searchParams.get("type");
 
-      if (req.url !== undefined) {
-        const url = new URL(req.url, `https://${req.headers.host}`);
-        const type = url.searchParams.get("type");
-
-        if (type == "main") ids.guest = null;
-        else if (type == "guest") {
-          ids.device = null;
-          ids.user = null;
+          if (type == "main") ids.guest = null;
+          else if (type == "guest") {
+            ids.device = null;
+            ids.user = null;
+          }
+          return ids;
+        } else {
+          client.close(1008, "Unauthorized, no type specified");
+          return false;
         }
-      } else return client.close(1008, "Unauthorized, no type specified");
+      };
 
-      // Check authorization
-      if (ids.guest === null && (ids.device === null || ids.user === null)) {
-        return client.close(1008, "Unauthorized");
-      }
-
-      // Fill properties
+      // Initialize ping property
       client.isAlive = true;
-      client.device = ids.device;
-      client.user = ids.user;
-      client.guest = ids.guest;
 
-      // Notify devices
-      if (ids.user) notifyDevices(constants.db, "contact", ids.user);
+      // Don't await authentication to avoid missing messages
+      const ids = authenticate(constants.db, constants.cookieKey, req);
 
       // Listeners
       client.on("message", async (data) => {
@@ -67,18 +68,25 @@ if (!building) {
           id: number;
         };
         try {
+          const awaited = getIds(await ids);
+          if (!awaited) return;
+
           await handleMessage(
             constants,
             client,
-            ids,
+            awaited,
             messageFromClientSchema.parse(decodedData),
           );
         } catch (e: any) {
-          sendMessage(client, {
-            id: decodedData.id,
-            type: "error",
-            data: e instanceof Error ? e.message : e,
-          }, false);
+          sendMessage(
+            client,
+            {
+              id: decodedData.id,
+              type: "error",
+              data: e instanceof Error ? e.message : e,
+            },
+            false,
+          );
         }
       });
 
@@ -86,18 +94,37 @@ if (!building) {
         client.isAlive = true;
       });
 
-      if (ids.user !== null || ids.guest !== null) {
-        client.on("close", () => {
-          if (ids.user !== null)
-            notifyDevices(constants.db, "contact", ids.user);
-          if (ids.guest !== null && client.guestTransfer !== undefined)
-            closeGuestConnection(ids.guest * -1, client.guestTransfer);
-        });
-      }
-
       client.on("error", (err) => {
         console.warn("Error from client:", err);
       });
+
+      const awaited = getIds(await ids);
+      if (!awaited) return;
+
+      if (awaited.user !== null || awaited.guest !== null) {
+        client.on("close", () => {
+          if (awaited.user !== null)
+            notifyDevices(constants.db, "contact", awaited.user);
+          if (awaited.guest !== null && client.guestTransfer !== undefined)
+            closeGuestConnection(awaited.guest * -1, client.guestTransfer);
+        });
+      }
+
+      // Check authorization
+      if (
+        awaited.guest === null &&
+        (awaited.device === null || awaited.user === null)
+      ) {
+        return client.close(1008, "Unauthorized");
+      }
+
+      // Fill properties
+      client.device = awaited.device;
+      client.user = awaited.user;
+      client.guest = awaited.guest;
+
+      // Notify devices
+      if (awaited.user) notifyDevices(constants.db, "contact", awaited.user);
     },
   );
 

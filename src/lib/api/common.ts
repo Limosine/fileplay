@@ -3,11 +3,12 @@ import { z } from "zod";
 
 import { DeviceType } from "$lib/lib/common";
 
+// Asynchronous Authentication causes undefined properties
 export interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean;
-  device: number | null;
-  user: number | null;
-  guest: number | null;
+  device?: number | null;
+  user?: number | null;
+  guest?: number | null;
   guestTransfer?: string;
 }
 

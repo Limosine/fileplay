@@ -26,12 +26,10 @@ export const authenticate = async (
       const deviceID = getCookie(req, "did");
 
       if (signature && deviceID) {
-        const info = await getDeviceID(signature, deviceID, key, db);
-        if (info.success) {
-          return {
-            did: info.message.did,
-            uid: info.message.uid,
-          };
+        try {
+          return await getDeviceID(signature, deviceID, key, db);
+        } catch (e: any) {
+          undefined;
         }
       }
     }

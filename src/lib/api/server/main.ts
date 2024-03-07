@@ -91,8 +91,6 @@ export const handleMessage = async (
         id: data.id,
         type: "turnCredentials",
         data: await getTurnCredentials(
-          client,
-          data.id,
           typeof AuthIds != "number"
             ? AuthIds.device.toString()
             : AuthIds.toString(),
@@ -222,10 +220,14 @@ export const handleMessage = async (
 export const closeGuestConnection = (device: number, transfer: string) => {
   const client = get(filetransfers).find((t) => t.id == transfer);
   if (client !== undefined) {
-    sendMessage(client.did, {
-      type: "closeConnection",
-      data: device,
-    }, false);
+    sendMessage(
+      client.did,
+      {
+        type: "closeConnection",
+        data: device,
+      },
+      false,
+    );
   }
 };
 
@@ -252,7 +254,7 @@ const getDevices = (userIds: number[]) => {
   const connections: ExtendedWebSocket[] = [];
 
   for (const client of clients) {
-    if (client.user !== null && userIds.includes(client.user))
+    if (typeof client.user == "number" && userIds.includes(client.user))
       connections.push(client);
   }
 
@@ -270,7 +272,7 @@ export const notifyDevices = async (
     const foreignDevices = getDevices(contacts.map((c) => c.uid));
 
     for (const device of foreignDevices) {
-      if (device.user === null) break;
+      if (typeof device.user != "number") continue;
       const contacts = await getContacts(db, device.user);
       sendMessage(device, { type: "contacts", data: contacts });
     }
@@ -279,11 +281,11 @@ export const notifyDevices = async (
   const devices = getDevices([uid]);
   const user = await getUser(db, uid);
   for (const device of devices) {
-    if (device.device === null) break;
+    if (typeof device.device != "number") continue;
     if (type == "device") {
       const deviceInfos = await getDevicesDB(db, uid, device.device);
-      if (!deviceInfos.success) throw new Error("500");
-      sendMessage(device, { type: "devices", data: deviceInfos.message });
+      if (deviceInfos.success)
+        sendMessage(device, { type: "devices", data: deviceInfos.message });
     } else if (type == "contact") {
       sendMessage(device, { type: "contacts", data: contacts });
     } else {

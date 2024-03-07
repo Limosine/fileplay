@@ -50,21 +50,16 @@ export const httpAuthorized = async (cookies: Cookies, user = true) => {
       deviceID,
       cts.cookieKey,
       cts.db,
-    );
+    ).catch((e) => error(401, e));
 
-    if (signed.success) {
-      if (user && !signed.message.uid)
-        error(401, "No user associated with this device");
+    if (user && !signed.uid) error(401, "No user associated with this device");
 
-      return {
-        key: cts.cookieKey,
-        database: cts.db,
-        device: signed.message.did,
-        user: signed.message.uid,
-      };
-    } else {
-      error(401, signed.message);
-    }
+    return {
+      key: cts.cookieKey,
+      database: cts.db,
+      device: signed.did,
+      user: signed.uid,
+    };
   } else {
     error(401, "Missing cookies");
   }
@@ -163,7 +158,19 @@ export async function getContacts(
   }
 }
 
-export const getUID = async (db: Database, did: number) => {
+export const getUID = async (
+  db: Database,
+  did: number,
+): Promise<
+  | {
+      success: true;
+      message: number | null;
+    }
+  | {
+      success: false;
+      message: any;
+    }
+> => {
   try {
     const device = await db
       .selectFrom("devices")

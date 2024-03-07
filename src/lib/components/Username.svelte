@@ -25,7 +25,7 @@
   <div class="field label {$profaneUsername.profane ? 'invalid' : ''}">
     <input
       bind:value={$userParams.display_name}
-      on:focusout={() => checkProfanity()}
+      on:blur={() => checkProfanity()}
       maxlength={32}
     />
     <!-- svelte-ignore a11y-label-has-associated-control-->
