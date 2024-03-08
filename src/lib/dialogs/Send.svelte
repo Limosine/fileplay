@@ -5,7 +5,12 @@
   import { getDicebearUrl } from "$lib/lib/common";
   import type { IContact } from "$lib/lib/fetchers";
   import { SendState, sendState } from "$lib/lib/sendstate";
-  import { sendProperties, contacts, sendDialog } from "$lib/lib/UI";
+  import {
+    sendProperties,
+    contacts,
+    dialogMode,
+    closeDialog,
+  } from "$lib/lib/UI";
   import { cancelFiletransfer } from "$lib/sharing/main";
 
   let contact: IContact | undefined;
@@ -42,7 +47,7 @@
 
   const cancel = () => {
     cancelFiletransfer(contact);
-    ui("#dialog-send");
+    if ($dialogMode == "send") closeDialog();
   };
 
   const updateState = (
@@ -52,7 +57,7 @@
   ) => {
     if (cid !== undefined) {
       if (stateParam === undefined || stateParam == SendState.IDLE) {
-        if ($sendDialog.open) ui("#dialog-send");
+        if ($dialogMode == "send") closeDialog();
       } else {
         if (
           stateParam == SendState.NOTIFYING ||
@@ -92,29 +97,30 @@
   }
 </script>
 
-<dialog id="dialog-send" bind:this={$sendDialog}>
-  {#if contact !== undefined}
-    <p style="font-size: large; margin-bottom: 10px;">Sending files</p>
-    <i class="center">arrow_downward</i>
-    <article class="tertiary">
-      <div class="row">
-        <img
-          class="circle medium"
-          src={getDicebearUrl(contact.avatar_seed, 100)}
-          alt="Avatar"
-        />
-        <div class="max">
-          <p class="large-text">{contact.display_name}</p>
-        </div>
+{#if contact !== undefined}
+  <p style="font-size: large; margin-bottom: 10px;">Sending files</p>
+  <i class="center">arrow_downward</i>
+
+  <article class="tertiary">
+    <div class="row">
+      <img
+        class="circle medium"
+        src={getDicebearUrl(contact.avatar_seed, 100)}
+        alt="Avatar"
+      />
+      <div class="max">
+        <p class="large-text">{contact.display_name}</p>
       </div>
-    </article>
-    <p class="center-align large-text" style="margin-top: 34px;">
-      {state}
-    </p>
-    <nav class="center-align" style="margin-top: 18;">
-      <button class="border error" style="border: 0;" on:click={() => cancel()}>
-        Cancel
-      </button>
-    </nav>
-  {/if}
-</dialog>
+    </div>
+  </article>
+
+  <p class="center-align large-text" style="margin-top: 34px;">
+    {state}
+  </p>
+
+  <nav class="center-align" style="margin-top: 18;">
+    <button class="border error" style="border: 0;" on:click={() => cancel()}>
+      Cancel
+    </button>
+  </nav>
+{/if}

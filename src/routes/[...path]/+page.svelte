@@ -9,11 +9,11 @@
   import { handleMessage } from "$lib/lib/fetchers";
   import { addListeners } from "$lib/lib/send-target";
   import {
-    addDialog,
     addProperties,
-    editDialog,
+    closeDialog,
+    dialogMode,
     layout,
-    notificationDialog,
+    openDialog,
     path,
     rawFiles,
     user,
@@ -36,17 +36,11 @@
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === "Escape") {
       // Close dialog, cancel selection, etc.
-      if ($notificationDialog.open) {
-        ui("#dialog-notifications");
-      } else if ($editDialog.open) {
-        ui("#dialog-edit");
-      } else if ($addDialog.open) {
-        ui("#dialog-add");
-      }
+      closeDialog();
     } else if (event.key === "Enter") {
       // Submit selection (if valid value), etc.
-      if ($editDialog.open) {
-        ui("#dialog-edit");
+      if ($dialogMode == "edit") {
+        closeDialog();
       }
     }
   };
@@ -57,7 +51,8 @@
     } else {
       $addProperties.mode = "device";
     }
-    ui("#dialog-add");
+
+    openDialog("add");
   };
 
   let loaded = false;

@@ -8,17 +8,12 @@
   import "beercss";
 
   import { notifications } from "$lib/lib/notifications";
-  import { getPath, path, registration } from "$lib/lib/UI";
+  import { getPath, openDialog, path, registration } from "$lib/lib/UI";
 
   import logo from "$lib/assets/Fileplay.svg";
   import Layout from "$lib/components/Layout.svelte";
-  import Add from "$lib/dialogs/Add.svelte";
-  import Edit from "$lib/dialogs/Edit.svelte";
-  import Notifications from "$lib/dialogs/Notifications.svelte";
-  import Privacy from "$lib/dialogs/Privacy.svelte";
-  import QRCode from "$lib/dialogs/QRCode.svelte";
-  import Request from "$lib/dialogs/PushRequest.svelte";
-  import Send from "$lib/dialogs/Send.svelte";
+  import Notifications from "$lib/components/Notifications.svelte";
+  import Dialog from "$lib/components/Dialog.svelte";
 
   let loading = 0;
 
@@ -36,7 +31,7 @@
         localStorage.getItem("subscribedToPush") === null &&
         localStorage.getItem("privacyAccepted") == "true"
       )
-        ui("#dialog-request");
+        openDialog("request");
     };
 
     if (Capacitor.isNativePlatform()) {
@@ -58,7 +53,7 @@
       });
     }
 
-    if (!localStorage.getItem("privacyAccepted")) ui("#dialog-privacy");
+    if (!localStorage.getItem("privacyAccepted")) openDialog("privacy");
   });
 
   $: {
@@ -90,13 +85,7 @@
 
 {#if loading !== 0}
   <!-- Dialogs -->
-  <Privacy />
-  <Edit />
-  <Add />
-  <QRCode />
-  <Request />
-  <Send />
-
+  <Dialog />
   <Notifications />
 
   <Layout>

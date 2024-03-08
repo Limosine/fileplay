@@ -16,7 +16,7 @@
     deviceParams,
     userParams,
     profaneUsername,
-    openDialog,
+    openEditDialog,
     linkingCode,
     width,
     layout,
@@ -237,7 +237,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("deviceName", 0)}
+      on:click={() => openEditDialog("deviceName", 0)}
     >
       <div>
         <p style="font-size: large; margin-bottom: 2px;">Device name</p>
@@ -258,7 +258,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("deviceType", 0)}
+      on:click={() => openEditDialog("deviceType", 0)}
     >
       <div>
         <p style="font-size: large; margin-bottom: 2px;">Device type</p>
@@ -301,7 +301,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("linkingCode")}
+        on:click={() => openEditDialog("linkingCode")}
       >
         <div>
           <p style="font-size: large; margin-bottom: 2px;">Linking code</p>
@@ -313,7 +313,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("username")}
+        on:click={() => openEditDialog("username")}
       >
         <div>
           <p style="font-size: large; margin-bottom: 2px;">Username</p>
@@ -329,7 +329,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("avatar")}
+        on:click={() => openEditDialog("avatar")}
       >
         <div>
           <p style="font-size: large; margin-bottom: 2px;">Avatar</p>

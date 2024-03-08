@@ -58,15 +58,14 @@ export const devices = writable<IDevices>();
 export const user = writable<IUser>();
 
 // Dialogs
-export const addDialog = writable<HTMLDialogElement>();
-export const editDialog = writable<HTMLDialogElement>();
+export const generalDialog = writable<HTMLDialogElement>();
 export const notificationDialog = writable<HTMLDialogElement>();
-export const qrCodeDialog = writable<HTMLDialogElement>();
-export const requestDialog = writable<HTMLDialogElement>();
-export const sendDialog = writable<HTMLDialogElement>();
-export const privacyDialog = writable<HTMLDialogElement>();
 
 // Dialog properties
+export const dialogMode = writable<
+  "add" | "edit" | "qrcode" | "request" | "send" | "privacy"
+>("add");
+
 export const addProperties = writable<{
   mode: "contact" | "device";
   redeem: boolean;
@@ -112,7 +111,30 @@ export const deleteNotification = (tag: string) => {
   );
 };
 
-export const openDialog = (currentU: EditOptions, didU?: number) => {
+export const closeDialog = async () => {
+  if (get(generalDialog).open) {
+    await new Promise<void>((resolve) => {
+      ui("#dialog-general");
+
+      setTimeout(() => {
+        resolve();
+      }, 3000); // CSS: --speed3
+    });
+  }
+};
+
+export const openDialog = async (
+  mode: "add" | "qrcode" | "request" | "send" | "privacy",
+) => {
+  await closeDialog();
+
+  dialogMode.set(mode);
+  ui("#dialog-general");
+};
+
+export const openEditDialog = async (currentU: EditOptions, didU?: number) => {
+  await closeDialog();
+
   editProperties.update((properties) => {
     properties.mode = currentU;
 
@@ -154,7 +176,8 @@ export const openDialog = (currentU: EditOptions, didU?: number) => {
     });
   }
 
-  ui("#dialog-edit");
+  dialogMode.set("edit");
+  ui("#dialog-general");
 };
 
 export const checkProfanity = async () => {

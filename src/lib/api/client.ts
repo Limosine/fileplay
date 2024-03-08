@@ -6,11 +6,12 @@ import { get, readable, writable } from "svelte/store";
 import { env } from "$env/dynamic/public";
 import { peer } from "$lib/lib/simple-peer";
 import {
-  addDialog,
   addProperties,
+  closeDialog,
   contacts,
   deviceParams,
   devices,
+  dialogMode,
   user,
   userParams,
 } from "$lib/lib/UI";
@@ -246,7 +247,7 @@ class WebSocketClient {
       message.type == "contactCodeRedeemed" ||
       message.type == "deviceCodeRedeemed"
     ) {
-      if (get(addDialog).open) ui("#dialog-add");
+      if (get(dialogMode) == "add") closeDialog();
       if (message.type == "contactCodeRedeemed")
         addProperties.update((properties) => {
           properties.redeem = true;

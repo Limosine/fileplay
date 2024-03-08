@@ -1,20 +1,20 @@
 <script lang="ts">
   import dayjs from "dayjs";
+  import { nanoid } from "nanoid";
 
   import { apiClient } from "$lib/api/client";
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
+  import { withDeviceType, type IDevices } from "$lib/lib/fetchers";
   import {
     changePath,
     deviceParams,
     devices,
     layout,
-    openDialog,
+    openEditDialog,
     path,
     user,
     userParams,
   } from "$lib/lib/UI";
-  import { nanoid } from "nanoid";
-  import { withDeviceType, type IDevices } from "$lib/lib/fetchers";
 
   const blur = (device: IDevices["self"], mode: "type" | "name") => {
     if (
@@ -198,8 +198,7 @@
                     <td
                       ><button
                         class="transparent circle"
-                        on:click={() =>
-                          apiClient("http").deleteAccount(true)}
+                        on:click={() => apiClient("http").deleteAccount(true)}
                       >
                         <i>delete</i>
                       </button></td
@@ -272,7 +271,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("username")}
+      on:click={() => openEditDialog("username")}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Username</p>
@@ -286,7 +285,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openDialog("avatar")}
+      on:click={() => openEditDialog("avatar")}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Avatar</p>
@@ -355,7 +354,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog("deviceName", $devices.self.did)}
+        on:click={() => openEditDialog("deviceName", $devices.self.did)}
       >
         <div class="column">
           <p style="font-size: large; margin-bottom: 2px;">
@@ -369,7 +368,7 @@
         <a
           class="chip border responsive row"
           style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-          on:click={() => openDialog("deviceName", device.did)}
+          on:click={() => openEditDialog("deviceName", device.did)}
         >
           <div class="column">
             <p style="font-size: large; margin-bottom: 2px;">

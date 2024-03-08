@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { changePath, layout, notifications, path } from "$lib/lib/UI";
+  import {
+    changePath,
+    layout,
+    notifications,
+    openDialog,
+    path,
+  } from "$lib/lib/UI";
   import { capitalizeFirstLetter } from "$lib/lib/utils";
   import { authorizeGuestSender } from "$lib/sharing/main";
 </script>
@@ -48,7 +54,7 @@
           class="circle transparent"
           on:click={() => {
             authorizeGuestSender();
-            ui("#dialog-qrcode");
+            openDialog("qrcode");
           }}
         >
           <i>qr_code_2</i>

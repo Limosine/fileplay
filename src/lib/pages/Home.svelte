@@ -11,6 +11,7 @@
     sendProperties,
     input,
     files,
+    openDialog,
   } from "$lib/lib/UI";
   import {
     link,
@@ -30,7 +31,7 @@
     const devices = contact.devices;
 
     $sendProperties.cid = contact.cid;
-    ui("#dialog-send");
+    openDialog("send");
 
     if (state != SendState.REQUESTING && state != SendState.SENDING) {
       if (contact.devices.length <= 0) {

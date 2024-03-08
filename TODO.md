@@ -2,11 +2,9 @@
 
 - [ ] Frontend
 
-  - [ ] Settings page on desktop
   - [ ] More contact infos
   - [ ] Keybinding
   - [ ] Check for browser compatibility and redirect
-  - [ ] Combine dialog elements
 
 - [ ] Backend
 
