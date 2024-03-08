@@ -1,13 +1,12 @@
 <script lang="ts">
   import type { HttpResponse } from "@capacitor/core";
-  import { get } from "svelte/store";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
 
   import logo from "$lib/assets/Fileplay.svg";
+  import Dialog from "$lib/components/Dialog.svelte";
   import Username from "$lib/components/Username.svelte";
-  import Edit from "$lib/dialogs/Edit.svelte";
 
   import { apiClient } from "$lib/api/client";
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
@@ -112,7 +111,7 @@
   {@html webManifest}
 </svelte:head>
 
-<Edit />
+<Dialog />
 
 {#if progress == 0}
   <div id="logo">
