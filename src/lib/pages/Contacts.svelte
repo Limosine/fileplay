@@ -12,6 +12,7 @@
           class="circle medium"
           src={getDicebearUrl(contact.avatar_seed, 100)}
           alt="Avatar"
+          draggable="false"
         />
         <div class="max">
           <p class="large-text">{contact.display_name}</p>

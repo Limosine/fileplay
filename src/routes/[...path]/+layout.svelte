@@ -78,7 +78,7 @@
 </svelte:head>
 
 <div id="logo" class={getClass(loading)}>
-  <img id="logo-image" src={logo} alt="Fileplay" />
+  <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
 </div>
 
 <div id="overlay" class={getClass(loading)} />

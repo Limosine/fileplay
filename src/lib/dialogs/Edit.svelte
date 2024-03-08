@@ -64,6 +64,7 @@
         src={getDicebearUrl($userParams.avatar_seed, 100)}
         width="100"
         alt="Avatar"
+        draggable="false"
       />
     </div>
     <nav class="right-align" style="padding: 10px 0 0 0;">

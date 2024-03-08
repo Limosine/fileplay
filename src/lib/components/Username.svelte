@@ -37,6 +37,7 @@
       <img
         src={getDicebearUrl($userParams.avatar_seed, 150)}
         alt="Your Avatar"
+        draggable="false"
       />
       <div id="fab">
         <button

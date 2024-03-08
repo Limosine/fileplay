@@ -101,6 +101,7 @@
                             )}
                             width="50"
                             alt="Avatar"
+                            draggable="false"
                           />
                         </div>
                         <a
@@ -297,6 +298,7 @@
         style="height: 50px; width: 50px; margin-right: 5px;"
         src={getDicebearUrl($user.avatar_seed, 150)}
         alt="Avatar"
+        draggable="false"
       />
     </a>
 

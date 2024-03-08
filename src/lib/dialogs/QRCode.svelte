@@ -15,6 +15,7 @@
       style="border-radius: 0.75rem"
       src={qrCode}
       alt="QR Code"
+      draggable="false"
     />
   {:catch}
     <p>Failed to generate QR code.</p>

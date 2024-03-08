@@ -163,7 +163,12 @@
         {:else}
           <div id="link" class="center-align">
             {#if qrCode}
-              <img style="border-radius: 0.75rem" src={qrCode} alt="QR Code" />
+              <img
+                style="border-radius: 0.75rem"
+                src={qrCode}
+                alt="QR Code"
+                draggable="false"
+              />
             {/if}
             <div>
               <p class="center-align" style="font-size: 150%">Link</p>
@@ -221,6 +226,7 @@
               class="responsive"
               src={getDicebearUrl(contact.avatar_seed, 40, 0)}
               alt="{contact.display_name}'s avatar"
+              draggable="false"
             />
             <span>{contact.display_name}</span>
           </button>

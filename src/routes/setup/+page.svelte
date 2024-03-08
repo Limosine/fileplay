@@ -116,7 +116,7 @@
 
 {#if progress == 0}
   <div id="logo">
-    <img id="logo-image" src={logo} alt="Fileplay" />
+    <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
   </div>
   <div id="start">
     <button on:click={() => (progress = 1)} class="extra center">
@@ -341,6 +341,7 @@
           style="height: 50px; width: 50px; margin-right: 5px;"
           src={getDicebearUrl($userParams.avatar_seed, 150)}
           alt="Avatar"
+          draggable="false"
         />
       </a>
     {/if}

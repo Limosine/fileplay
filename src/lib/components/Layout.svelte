@@ -18,7 +18,7 @@
       style="z-index: 99; background-color: var(--surface-container);"
     >
       <a>
-        <img class="circle" src="/favicon.svg" />
+        <img class="circle" src="/favicon.svg" draggable="false" />
       </a>
       <a
         class={$path.main == "home" ? "active" : ""}
