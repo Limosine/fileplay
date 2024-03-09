@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { HttpResponse } from "@capacitor/core";
   import { onMount } from "svelte";
+  import { fade } from "svelte/transition";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
@@ -120,10 +121,10 @@
 <Dialog />
 
 {#if progress == 1}
-  <div id="logo">
+  <div id="logo" in:fade={{ duration: 200 }}>
     <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
   </div>
-  <div id="start" class="center-align middle-align">
+  <div id="start" class="center-align middle-align" in:fade={{ duration: 200 }}>
     <button
       on:click={() => (progress = 2)}
       class="extra"

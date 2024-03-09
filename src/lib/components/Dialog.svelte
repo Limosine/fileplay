@@ -113,11 +113,9 @@
   id="dialog-general"
   bind:this={$generalDialog}
   style={$dialogMode == "edit"
-    ? $editProperties.mode == "deviceType"
+    ? $editProperties.mode == "deviceType" || $editProperties.mode == "avatar"
       ? "min-height: 250px;"
-      : $editProperties.mode == "avatar"
-        ? "min-height: 240px;"
-        : ""
+      : ""
     : ""}
 >
   {#if $dialogMode == "add"}

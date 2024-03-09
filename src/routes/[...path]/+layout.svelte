@@ -85,12 +85,14 @@
 {#if !overlay}
   <div
     id="overlay"
+    in:fade={{ duration: 200 }}
     out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
   />
 
   <div
     id="logo"
     class={overlay}
+    in:fade={{ duration: 200 }}
     out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
   >
     <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
@@ -99,6 +101,7 @@
   <div
     id="offline"
     class="center-align"
+    in:fade={{ duration: 200 }}
     out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
   >
     {#if $offline}
