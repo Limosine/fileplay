@@ -3,7 +3,7 @@ import { CapacitorHttp } from "@capacitor/core";
 import { decode, encode } from "@msgpack/msgpack";
 import { get, readable, writable } from "svelte/store";
 
-import { env } from "$env/dynamic/public";
+import { PUBLIC_HOSTNAME } from "$env/static/public";
 import { peer } from "$lib/lib/simple-peer";
 import {
   addProperties,
@@ -21,10 +21,10 @@ import { onGuestPage } from "$lib/lib/utils";
 import type { MessageFromClient, MessageFromServer } from "./common";
 
 const getHost = (ws = false) => {
-  if (env.PUBLIC_HOSTNAME) {
-    if (env.PUBLIC_HOSTNAME.split(":")[0] == "localhost" && ws)
+  if (PUBLIC_HOSTNAME) {
+    if (PUBLIC_HOSTNAME.split(":")[0] == "localhost" && ws)
       return "localhost:3001";
-    else return env.PUBLIC_HOSTNAME;
+    else return PUBLIC_HOSTNAME;
   } else {
     throw new Error("Please define a public hostname.");
   }

@@ -4,7 +4,7 @@ import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { get, writable } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
-import { env } from "$env/dynamic/public";
+import { PUBLIC_VAPID_KEY } from "$env/static/public";
 import { awaitReady } from "$lib/sharing/send";
 
 const store = writable<Notifications>();
@@ -56,7 +56,7 @@ class Notifications {
     }
 
     const { token } = await FirebaseMessaging.getToken({
-      vapidKey: env.PUBLIC_VAPID_KEY,
+      vapidKey: PUBLIC_VAPID_KEY,
     });
 
     apiClient("ws").sendMessage({
@@ -89,7 +89,7 @@ class Notifications {
     try {
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: env.PUBLIC_VAPID_KEY,
+        applicationServerKey: PUBLIC_VAPID_KEY,
       });
 
       localStorage.setItem("subscribedToPush", JSON.stringify(subscription));
