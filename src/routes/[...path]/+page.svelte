@@ -9,7 +9,6 @@
   import { handleMessage } from "$lib/lib/fetchers";
   import { addListeners } from "$lib/lib/send-target";
   import {
-    addProperties,
     closeDialog,
     dialogMode,
     height,

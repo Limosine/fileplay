@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { HttpResponse } from "@capacitor/core";
+  import { onMount } from "svelte";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
@@ -23,27 +24,14 @@
   } from "$lib/lib/UI";
   import { ValueToName } from "$lib/lib/utils";
 
+  // Options
   let progress = 0;
   let setupError: string;
-
   let actionDisabled = true;
-  $: {
-    if (!$deviceParams[0].display_name || !$deviceParams[0].type)
-      actionDisabled = true;
-    else if (!existing) {
-      actionDisabled =
-        !$userParams.display_name ||
-        $profaneUsername.profane ||
-        $profaneUsername.loading;
-    } else {
-      actionDisabled = !$linkingCode;
-    }
-  }
 
-  // options
   let existing = false;
 
-  // setup (confirm)
+  // Setup (confirm)
   const handleResponseError = async (res: HttpResponse) => {
     const json_ = JSON.parse(res.data);
     if (json_) {
@@ -54,14 +42,14 @@
   };
 
   const handleConfirm = async () => {
-    // setup device if not already done so
+    // Setup device if not already done so
     let storedDeviceParams = localStorage.getItem("deviceParams");
     if (
       storedDeviceParams &&
       storedDeviceParams !== JSON.stringify($deviceParams)
     ) {
       storedDeviceParams = null;
-      // delete old user with still present cookie auth
+      // Delete old user with still present cookie auth
       await apiClient("http").deleteAccount(true, false);
     }
     if (!storedDeviceParams) {
@@ -77,7 +65,7 @@
       localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
     }
     if (existing) {
-      // link to existing user
+      // Link to existing user
       const res2 = await apiClient("http").setupDevice($linkingCode);
       if (Array.from(res2.status.toString())[0] != "2") {
         return handleResponseError(res2);
@@ -88,7 +76,7 @@
         avatar_seed: $userParams.avatar_seed,
       };
 
-      // create new user
+      // Create new user
       const res = await apiClient("http").setupUser(object);
       if (Array.from(res.status.toString())[0] != "2") {
         return handleResponseError(res);
@@ -100,6 +88,23 @@
 
     window.location.href = "/";
   };
+
+  onMount(() => {
+    progress = 1;
+  });
+
+  $: {
+    if (!$deviceParams[0].display_name || !$deviceParams[0].type)
+      actionDisabled = true;
+    else if (!existing) {
+      actionDisabled =
+        !$userParams.display_name ||
+        $profaneUsername.profane ||
+        $profaneUsername.loading;
+    } else {
+      actionDisabled = !$linkingCode;
+    }
+  }
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
   $: $layout = $width < 840 ? "mobile" : "desktop";
@@ -114,7 +119,7 @@
 
 <Dialog />
 
-{#if progress == 0}
+{#if progress == 1}
   <div id="logo">
     <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
   </div>
@@ -128,7 +133,7 @@
       <span>Start</span>
     </button>
   </div>
-{:else if progress == 1}
+{:else if progress == 2}
   {#if $layout == "desktop"}
     <article
       class="border center {$height >= 630 ? 'middle' : ''}"
@@ -222,7 +227,7 @@
     </article>
   {:else}
     <button
-      on:click={() => (progress -= 1)}
+      on:click={() => --progress}
       class="transparent circle"
       style="margin: 8px;"
     >

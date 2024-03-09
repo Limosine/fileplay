@@ -1,5 +1,5 @@
 import type { CookieSerializeOptions } from "cookie";
-import { error, type Cookies } from "@sveltejs/kit";
+import { type Cookies } from "@sveltejs/kit";
 
 import type { Database } from "$lib/lib/db";
 import { arrayBufferToHex, hexToArrayBuffer } from "$lib/lib/utils";

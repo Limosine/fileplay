@@ -2,8 +2,9 @@ import { App } from "@capacitor/app";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Filesystem } from "@capacitor/filesystem";
 import { SendIntent } from "send-intent";
-import { rawFiles } from "./UI";
+
 import { arrayToFileList } from "./fetchers";
+import { rawFiles } from "./UI";
 
 const checkShare = async () => {
   try {

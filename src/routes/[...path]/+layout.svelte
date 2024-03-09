@@ -3,6 +3,8 @@
   import { page } from "$app/stores";
   import { Capacitor } from "@capacitor/core";
   import { onMount } from "svelte";
+  import { quadOut } from "svelte/easing";
+  import { fade } from "svelte/transition";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
@@ -21,7 +23,7 @@
   import Notifications from "$lib/components/Notifications.svelte";
   import Dialog from "$lib/components/Dialog.svelte";
 
-  let overlay: "" | "disappear" | "hidden" = "";
+  let overlay: "" | "hidden" = "";
 
   onMount(async () => {
     const open = () => {
@@ -32,23 +34,14 @@
         openDialog({ mode: "request" });
     };
 
-    const hide = (setOnline = false) => {
-      overlay = "disappear";
-
-      setTimeout(() => {
-        overlay = "hidden";
-        if (setOnline) $offline = false;
-      }, 1100);
-    };
-
     if (browser) {
       $offline = !navigator.onLine;
 
-      if (localStorage.getItem("loggedIn") == "true") hide();
+      if (localStorage.getItem("loggedIn") == "true") overlay = "hidden";
 
       window.addEventListener("online", () => {
         $offline = false;
-        hide(true);
+        overlay = "hidden";
       });
       window.addEventListener("offline", () => {
         $offline = true;
@@ -89,13 +82,29 @@
   {@html webManifest}
 </svelte:head>
 
-<div id="logo" class={overlay}>
-  <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
-</div>
-{#if $offline}
-  <div id="offline" class="center-align {overlay}">
-    <i class="extra">cloud_off</i>
-    <p class="large-text">Offline, please connect to the internet.</p>
+{#if !overlay}
+  <div
+    id="overlay"
+    out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
+  />
+
+  <div
+    id="logo"
+    class={overlay}
+    out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
+  >
+    <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
+  </div>
+
+  <div
+    id="offline"
+    class="center-align"
+    out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
+  >
+    {#if $offline}
+      <i class="extra">cloud_off</i>
+      <p class="large-text">Offline, please connect to the internet.</p>
+    {/if}
   </div>
 {/if}
 
@@ -112,11 +121,6 @@
 {/if}
 
 <style>
-  .disappear {
-    opacity: 0;
-    transition: opacity 1s;
-  }
-
   .hidden {
     display: none !important;
     opacity: 0;
@@ -125,7 +129,7 @@
 
   #overlay {
     position: absolute;
-    z-index: 10000 !important;
+    z-index: 10000;
     width: 100%;
     height: 100%;
     background: var(--background);
@@ -133,7 +137,7 @@
 
   #logo {
     position: absolute;
-    z-index: 10001 !important;
+    z-index: 10001;
     width: 100%;
     height: 50%;
     top: 0;
@@ -145,7 +149,7 @@
 
   #offline {
     position: absolute;
-    z-index: 10001 !important;
+    z-index: 10001;
     width: 100%;
     height: 50%;
     bottom: 0;
