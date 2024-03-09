@@ -176,7 +176,7 @@ class WebSocketClient {
             }
           });
         } else setTimeout(() => this.connect(), 5000);
-      }
+      } else location.href = "/setup";
     });
 
     return this.socket;

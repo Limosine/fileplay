@@ -86,7 +86,7 @@
     localStorage.removeItem("deviceParams");
     localStorage.setItem("loggedIn", "true");
 
-    window.location.href = "/";
+    location.href = "/";
   };
 
   onMount(() => {
@@ -125,7 +125,7 @@
   </div>
   <div id="start" class="center-align middle-align">
     <button
-      on:click={() => (progress = 1)}
+      on:click={() => (progress = 2)}
       class="extra"
       style="margin-bottom: 100px;"
     >
