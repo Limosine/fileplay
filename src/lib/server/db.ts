@@ -3,6 +3,7 @@ import pkg from "pg";
 import { error, type Cookies } from "@sveltejs/kit";
 
 import { env } from "$env/dynamic/private";
+import { env as envPublic } from "$env/dynamic/public";
 import { DeviceType } from "$lib/lib/common";
 import type { DB, Database } from "$lib/lib/db";
 
@@ -15,7 +16,11 @@ export const createConstants = async () => {
     dialect: new PostgresDialect({
       pool: async () =>
         new Pool({
-          database: "fileplay",
+          database:
+            envPublic.PUBLIC_HOSTNAME &&
+            envPublic.PUBLIC_HOSTNAME.startsWith("dev")
+              ? "fileplay-dev"
+              : "fileplay",
           user: "fileplay",
           password: "fileplay",
           host: "127.0.0.1",
