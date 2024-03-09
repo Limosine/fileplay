@@ -54,7 +54,7 @@
           class="circle transparent"
           on:click={() => {
             authorizeGuestSender();
-            openDialog("qrcode");
+            openDialog({ mode: "qrcode" });
           }}
         >
           <i>qr_code_2</i>

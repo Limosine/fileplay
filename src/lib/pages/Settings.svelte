@@ -10,7 +10,7 @@
     deviceParams,
     devices,
     layout,
-    openEditDialog,
+    openDialog,
     path,
     user,
     userParams,
@@ -43,7 +43,18 @@
   {#if $layout == "desktop"}
     <div style="padding: 20px;">
       <article style="padding: 15px 12px;" class="secondary-container">
-        <h6>Settings</h6>
+        <div class="row">
+          <h6>Settings</h6>
+          <div class="max" />
+          {#if "sub" in $path}
+            <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+            <a
+              class="chip primary round"
+              on:click={() => openDialog({ mode: "add", currentU: "device" })}
+              >Link device</a
+            >
+          {/if}
+        </div>
         <div>
           <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
           <div class="tabs">
@@ -272,7 +283,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openEditDialog("username")}
+      on:click={() => openDialog({ mode: "edit", currentU: "username" })}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Username</p>
@@ -286,7 +297,7 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openEditDialog("avatar")}
+      on:click={() => openDialog({ mode: "edit", currentU: "avatar" })}
     >
       <div class="column">
         <p style="font-size: large; margin-bottom: 2px;">Avatar</p>
@@ -356,7 +367,12 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openEditDialog("deviceName", $devices.self.did)}
+        on:click={() =>
+          openDialog({
+            mode: "edit",
+            currentU: "deviceName",
+            didU: $devices.self.did,
+          })}
       >
         <div class="column">
           <p style="font-size: large; margin-bottom: 2px;">
@@ -370,7 +386,12 @@
         <a
           class="chip border responsive row"
           style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-          on:click={() => openEditDialog("deviceName", device.did)}
+          on:click={() =>
+            openDialog({
+              mode: "edit",
+              currentU: "deviceName",
+              didU: device.did,
+            })}
         >
           <div class="column">
             <p style="font-size: large; margin-bottom: 2px;">

@@ -8,7 +8,13 @@
   import "beercss";
 
   import { notifications } from "$lib/lib/notifications";
-  import { getPath, openDialog, path, registration } from "$lib/lib/UI";
+  import {
+    getPath,
+    offline,
+    openDialog,
+    path,
+    registration,
+  } from "$lib/lib/UI";
 
   import logo from "$lib/assets/Fileplay.svg";
   import Layout from "$lib/components/Layout.svelte";
@@ -16,13 +22,15 @@
   import Dialog from "$lib/components/Dialog.svelte";
 
   let loading = 0;
+  let offlineVisible = false;
 
-  const getClass = (loading: number) => {
-    if (loading === 1) {
+  const getClass = (loading: number, offline: boolean) => {
+    if (loading === 0 || offline) return "";
+    else if (loading === 1) {
       return "disappear";
     } else if (loading === 2) {
       return "hidden";
-    } else return "";
+    }
   };
 
   onMount(async () => {
@@ -31,8 +39,19 @@
         localStorage.getItem("subscribedToPush") === null &&
         localStorage.getItem("privacyAccepted") == "true"
       )
-        openDialog("request");
+        openDialog({ mode: "request" });
     };
+
+    if (browser) {
+      $offline = !navigator.onLine;
+
+      window.addEventListener("online", () => {
+        loading = 0;
+        offlineVisible = true;
+        $offline = false;
+      });
+      window.addEventListener("offline", () => ($offline = true));
+    }
 
     if (Capacitor.isNativePlatform()) {
       notifications().initNativeListeners();
@@ -53,7 +72,8 @@
       });
     }
 
-    if (!localStorage.getItem("privacyAccepted")) openDialog("privacy");
+    if (!localStorage.getItem("privacyAccepted"))
+      openDialog({ mode: "privacy" });
   });
 
   $: {
@@ -62,6 +82,7 @@
         loading = 1;
         setTimeout(() => {
           loading = 2;
+          offlineVisible = false;
         }, 1100);
       }
     }
@@ -77,13 +98,19 @@
   {@html webManifest}
 </svelte:head>
 
-<div id="logo" class={getClass(loading)}>
+<div id="logo" class={getClass(loading, $offline)}>
   <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
 </div>
+{#if $offline || offlineVisible}
+  <div id="offline" class="center-align {getClass(loading, $offline)}">
+    <i class="extra">cloud_off</i>
+    <p class="large-text">Offline, please connect to the internet.</p>
+  </div>
+{/if}
 
-<div id="overlay" class={getClass(loading)} />
+<div id="overlay" class={getClass(loading, $offline)} />
 
-{#if loading !== 0}
+{#if loading !== 0 && !$offline}
   <!-- Dialogs -->
   <Dialog />
   <Notifications />
@@ -123,6 +150,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+
+  #offline {
+    position: absolute;
+    z-index: 10001;
+    width: 100%;
+    height: 50%;
+    bottom: 0;
   }
 
   img#logo-image {

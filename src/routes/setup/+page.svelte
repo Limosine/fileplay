@@ -15,10 +15,11 @@
     deviceParams,
     userParams,
     profaneUsername,
-    openEditDialog,
+    openDialog,
     linkingCode,
     width,
     layout,
+    height,
   } from "$lib/lib/UI";
   import { ValueToName } from "$lib/lib/utils";
 
@@ -104,7 +105,7 @@
   $: $layout = $width < 840 ? "mobile" : "desktop";
 </script>
 
-<svelte:window bind:innerWidth={$width} />
+<svelte:window bind:innerHeight={$height} bind:innerWidth={$width} />
 
 <svelte:head>
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -117,15 +118,22 @@
   <div id="logo">
     <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
   </div>
-  <div id="start">
-    <button on:click={() => (progress = 1)} class="extra center">
+  <div id="start" class="center-align middle-align">
+    <button
+      on:click={() => (progress = 1)}
+      class="extra"
+      style="margin-bottom: 100px;"
+    >
       <i>login</i>
       <span>Start</span>
     </button>
   </div>
 {:else if progress == 1}
   {#if $layout == "desktop"}
-    <article class="border center middle" style="width: 600px">
+    <article
+      class="border center {$height >= 630 ? 'middle' : ''}"
+      style="margin: 0; width: 600px;"
+    >
       <h6 id="title" style="padding: 16px 16px 0px 16px;">Setup</h6>
       <div class="medium-divider" />
       <div style="padding: 0px 16px 16px 16px;">
@@ -236,7 +244,8 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openEditDialog("deviceName", 0)}
+      on:click={() =>
+        openDialog({ mode: "edit", currentU: "deviceName", didU: 0 })}
     >
       <div>
         <p style="font-size: large; margin-bottom: 2px;">Device name</p>
@@ -257,10 +266,17 @@
     <a
       class="chip border responsive row"
       style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => openEditDialog("deviceType", 0)}
+      on:click={() =>
+        openDialog({ mode: "edit", currentU: "deviceType", didU: 0 })}
     >
       <div>
-        <p style="font-size: large; margin-bottom: 2px;">Device type</p>
+        <p
+          style="font-size: large; {$deviceParams[0].type
+            ? 'margin-bottom: 2px;'
+            : ''}"
+        >
+          Device type
+        </p>
         {#if $deviceParams[0].type}
           <p style="font-size: small; margin-top: 0;">
             {ValueToName($deviceParams[0].type)}
@@ -300,7 +316,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openEditDialog("linkingCode")}
+        on:click={() => openDialog({ mode: "edit", currentU: "linkingCode" })}
       >
         <div>
           <p style="font-size: large; margin-bottom: 2px;">Linking code</p>
@@ -312,15 +328,13 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openEditDialog("username")}
+        on:click={() => openDialog({ mode: "edit", currentU: "username" })}
       >
         <div>
           <p style="font-size: large; margin-bottom: 2px;">Username</p>
-          {#if $userParams.display_name}
-            <p style="font-size: small; margin-top: 0;">
-              {$userParams.display_name}
-            </p>
-          {/if}
+          <p style="font-size: small; margin-top: 0;">
+            {$userParams.display_name}
+          </p>
         </div>
       </a>
 
@@ -328,7 +342,7 @@
       <a
         class="chip border responsive row"
         style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openEditDialog("avatar")}
+        on:click={() => openDialog({ mode: "edit", currentU: "avatar" })}
       >
         <div>
           <p style="font-size: large; margin-bottom: 2px;">Avatar</p>
@@ -343,6 +357,8 @@
           draggable="false"
         />
       </a>
+
+      <div style="height: 35px" />
     {/if}
 
     <button
@@ -382,6 +398,7 @@
 
   #finish {
     position: fixed;
+    z-index: 1;
     bottom: 20px;
     right: 20px;
     margin: 0;

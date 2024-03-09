@@ -12,6 +12,7 @@ import {
   deviceParams,
   devices,
   dialogMode,
+  offline,
   user,
   userParams,
 } from "$lib/lib/UI";
@@ -160,11 +161,22 @@ class WebSocketClient {
     });
 
     this.socket.addEventListener("close", (event) => {
-      setTimeout(() => {
-        console.log("WebSocket closed, reason: ", event.reason);
-        peer().closeConnections("websocket");
-        if (event.code !== 1008) this.connect();
-      }, 5000);
+      console.log(
+        "WebSocket closed" + (event.reason ? ", reason: " + event.reason : "."),
+      );
+
+      peer().closeConnections("websocket");
+
+      if (event.code !== 1008) {
+        if (get(offline) === true) {
+          const unsubscribe = offline.subscribe(async (offline) => {
+            if (!offline) {
+              unsubscribe();
+              this.connect();
+            }
+          });
+        } else setTimeout(() => this.connect(), 5000);
+      }
     });
 
     return this.socket;

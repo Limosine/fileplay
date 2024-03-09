@@ -10,7 +10,6 @@
   import type { DeviceType } from "$lib/lib/common";
   import type { IDevices } from "$lib/lib/fetchers";
   import {
-    addProperties,
     checkProfanity,
     deviceParams,
     devices,
@@ -29,15 +28,12 @@
     // TODO: Set interval on open, clear on close; refresh code if expired
 
     $generalDialog.addEventListener("close", async () => {
-      // Add dialog
-      if ($dialogMode == "add") {
-        setTimeout(() => {
-          $addProperties.redeem = true;
-          $addProperties.code = "";
-        }, 3000); // CSS: --speed3
+      setTimeout(() => {
+        if (!$generalDialog.open) $dialogMode = undefined;
+      }, 3100);
 
-        // Edit dialog
-      } else if ($dialogMode == "edit") {
+      // Edit dialog
+      if ($dialogMode == "edit") {
         if ($editProperties.mode == "username") {
           await checkProfanity();
         }

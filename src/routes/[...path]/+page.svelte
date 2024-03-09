@@ -12,6 +12,7 @@
     addProperties,
     closeDialog,
     dialogMode,
+    height,
     layout,
     openDialog,
     path,
@@ -45,15 +46,11 @@
     }
   };
 
-  const openAddDialog = () => {
-    if ($path.main == "contacts") {
-      $addProperties.mode = "contact";
-    } else {
-      $addProperties.mode = "device";
-    }
-
-    openDialog("add");
-  };
+  const openAddDialog = () =>
+    openDialog({
+      mode: "add",
+      currentU: $path.main == "contacts" ? "contact" : "device",
+    });
 
   let loaded = false;
   const onLoading = async () => {
@@ -90,6 +87,7 @@
 </script>
 
 <svelte:window
+  bind:innerHeight={$height}
   bind:innerWidth={$width}
   on:drop|preventDefault={handleDrop}
   on:dragover|preventDefault
@@ -106,7 +104,7 @@
   <Settings />
 {/if}
 
-{#if $path.main == "contacts" || ($path.main == "settings" && "sub" in $path)}
+{#if $path.main == "contacts" || ($layout == "mobile" && $path.main == "settings" && "sub" in $path)}
   {#if $layout == "mobile"}
     <button
       id="add-mobile"

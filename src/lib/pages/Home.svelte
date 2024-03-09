@@ -31,7 +31,7 @@
     const devices = contact.devices;
 
     $sendProperties.cid = contact.cid;
-    openDialog("send");
+    openDialog({ mode: "send" });
 
     if (state != SendState.REQUESTING && state != SendState.SENDING) {
       if (contact.devices.length <= 0) {

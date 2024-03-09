@@ -5,35 +5,52 @@
   import { apiClient } from "$lib/api/client";
   import { addProperties, closeDialog } from "$lib/lib/UI";
 
+  let infos: {
+    code: string;
+    expires: number;
+    refresh: number;
+  };
+
+  let requested = false;
   let expires_in: number;
-  let expires_at: number;
   let updateInterval: NodeJS.Timeout;
 
   const generateContactCode = async () => {
-    const result = await apiClient("ws").sendMessage({
+    requested = true;
+
+    infos = await apiClient("ws").sendMessage({
       type: "createContactCode",
     });
-    expires_at = result.expires;
-    return result;
+
+    requested = false;
   };
 
   const generateDeviceCode = async () => {
-    const result = await apiClient("ws").sendMessage({
+    requested = true;
+
+    infos = await apiClient("ws").sendMessage({
       type: "createDeviceCode",
     });
-    expires_at = result.expires;
-    return result;
+
+    requested = false;
+  };
+
+  // TODO: Manual refresh button
+  const refreshCode = () => {
+    if ($addProperties.mode == "contact") generateContactCode();
+    else generateDeviceCode();
   };
 
   const updateExpiresIn = () => {
-    if (expires_at) expires_in = Math.round((expires_at - dayjs().unix()) / 60);
+    if (infos !== undefined) {
+      expires_in = Math.round((infos.expires - dayjs().unix()) / 60);
+      if (!requested && expires_in <= 0) {
+        refreshCode();
+      }
+    }
   };
 
-  onMount(() => {
-    updateInterval = setInterval(updateExpiresIn, 1000);
-
-    // TODO: Set interval on open, clear on close; refresh code if expired
-  });
+  onMount(() => (updateInterval = setInterval(updateExpiresIn, 1000)));
   onDestroy(() => clearInterval(updateInterval));
 </script>
 
@@ -71,11 +88,13 @@
       <br />
       {#await generateContactCode()}
         <p>Generating code...</p>
-      {:then codeproperties}
-        <p>
-          Code: {codeproperties.code}<br />
-          Expires in {expires_in === undefined ? 15 : expires_in} m
-        </p>
+      {:then}
+        {#if infos !== undefined}
+          <p>
+            Code: {infos.code}<br />
+            Expires in {expires_in === undefined ? 15 : expires_in} m
+          </p>
+        {/if}
       {:catch}
         <p>Failed to generate code.</p>
       {/await}
@@ -106,11 +125,13 @@
   <p style="font-size: large; margin-bottom: 10px;">Link a new device</p>
   {#await generateDeviceCode()}
     <p>Generating code...</p>
-  {:then codeproperties}
-    <p>
-      Code: {codeproperties.code}<br />
-      Expires in {expires_in === undefined ? 15 : expires_in} m
-    </p>
+  {:then}
+    {#if infos !== undefined}
+      <p>
+        Code: {infos.code}<br />
+        Expires in {expires_in === undefined ? 15 : expires_in} m
+      </p>
+    {/if}
   {:catch}
     <p>Failed to generate code.</p>
   {/await}

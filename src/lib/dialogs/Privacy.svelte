@@ -9,7 +9,7 @@
       $registration !== undefined &&
       localStorage.getItem("subscribedToPush") === null
     )
-      openDialog("request");
+      openDialog({ mode: "request" });
   };
 </script>
 

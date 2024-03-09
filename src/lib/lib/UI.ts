@@ -10,8 +10,10 @@ import { type IContact, type IDevices, type IUser } from "./fetchers";
 import type { PartialBy } from "./utils";
 
 // Window
+export const height = writable(0);
 export const width = writable(0);
 export const layout = writable<"mobile" | "desktop">("mobile");
+export const offline = writable(false);
 
 // Navigation
 export const path = writable<Routes>({
@@ -63,8 +65,8 @@ export const notificationDialog = writable<HTMLDialogElement>();
 
 // Dialog properties
 export const dialogMode = writable<
-  "add" | "edit" | "qrcode" | "request" | "send" | "privacy"
->("add");
+  "add" | "edit" | "qrcode" | "request" | "send" | "privacy" | undefined
+>(undefined);
 
 export const addProperties = writable<{
   mode: "contact" | "device";
@@ -124,17 +126,39 @@ export const closeDialog = async () => {
 };
 
 export const openDialog = async (
-  mode: "add" | "qrcode" | "request" | "send" | "privacy",
+  properties:
+    | {
+        mode: "qrcode" | "request" | "send" | "privacy";
+      }
+    | {
+        mode: "add";
+        currentU: "contact" | "device";
+      }
+    | {
+        mode: "edit";
+        currentU: EditOptions;
+        didU?: number;
+      },
 ) => {
   await closeDialog();
 
-  dialogMode.set(mode);
+  if (properties.mode == "add") openAddDialog(properties.currentU);
+  else if (properties.mode == "edit")
+    openEditDialog(properties.currentU, properties.didU);
+
+  dialogMode.set(properties.mode);
   ui("#dialog-general");
 };
 
-export const openEditDialog = async (currentU: EditOptions, didU?: number) => {
-  await closeDialog();
+const openAddDialog = (currentU: "contact" | "device") => {
+  addProperties.set({
+    mode: currentU,
+    redeem: true,
+    code: "",
+  });
+};
 
+const openEditDialog = async (currentU: EditOptions, didU?: number) => {
   editProperties.update((properties) => {
     properties.mode = currentU;
 
@@ -175,9 +199,6 @@ export const openEditDialog = async (currentU: EditOptions, didU?: number) => {
       return d;
     });
   }
-
-  dialogMode.set("edit");
-  ui("#dialog-general");
 };
 
 export const checkProfanity = async () => {
