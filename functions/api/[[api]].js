@@ -1,4 +1,4 @@
-export const onRequest = async function onRequest({request}) => {
+export const onRequest = async function onRequest({ request }) {
   try {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api")) {
@@ -15,4 +15,4 @@ export const onRequest = async function onRequest({request}) => {
   } catch (e) {
     return await context.next();
   }
-}
+};

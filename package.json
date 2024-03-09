@@ -6,7 +6,7 @@
     "dev": "vite dev",
     "build:node": "ADAPTER=node vite build",
     "build:static": "ADAPTER=static vite build && cap sync",
-    "build:cloudflare": "ADAPTER=static vite build && cp -rf ./cloudflare/* build-static/",
+    "build:cloudflare": "ADAPTER=static vite build",
     "preview": "PUBLIC_HOSTNAME=localhost:3000 COTURN_AUTH_SECRET=123456 COOKIE_SIGNING_SECRET=123456 PUBLIC_VAPID_KEY=BD9ICz59eIxdEHmPcFPaCa0h6GUvLq8j1VuuhNs7-EyksjMLX5QT4PZHQfbvhHnVPG-FPhWMZao9JkBQOOmOCjw PRIVATE_VAPID_KEY=BQoF6eykSYMBBeo5jpvSbY5ljGcph6T-6Jzq0xjQVzY node build-node/index.js",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
