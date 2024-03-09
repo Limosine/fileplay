@@ -9,6 +9,7 @@ declare global {
         PRIVATE_VAPID_KEY: string;
         PUBLIC_VAPID_KEY: string;
         GCM_KEY: string;
+        WS_PORT: string;
       };
     }
   }

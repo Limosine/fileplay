@@ -21,17 +21,7 @@
   import Notifications from "$lib/components/Notifications.svelte";
   import Dialog from "$lib/components/Dialog.svelte";
 
-  let loading = 0;
-  let offlineVisible = false;
-
-  const getClass = (loading: number, offline: boolean) => {
-    if (loading === 0 || offline) return "";
-    else if (loading === 1) {
-      return "disappear";
-    } else if (loading === 2) {
-      return "hidden";
-    }
-  };
+  let overlay: "" | "disappear" | "hidden" = "";
 
   onMount(async () => {
     const open = () => {
@@ -42,15 +32,28 @@
         openDialog({ mode: "request" });
     };
 
+    const hide = (setOnline = false) => {
+      overlay = "disappear";
+
+      setTimeout(() => {
+        overlay = "hidden";
+        if (setOnline) $offline = false;
+      }, 1100);
+    };
+
     if (browser) {
       $offline = !navigator.onLine;
 
+      if (localStorage.getItem("loggedIn") == "true") hide();
+
       window.addEventListener("online", () => {
-        loading = 0;
-        offlineVisible = true;
         $offline = false;
+        hide(true);
       });
-      window.addEventListener("offline", () => ($offline = true));
+      window.addEventListener("offline", () => {
+        $offline = true;
+        overlay = "";
+      });
     }
 
     if (Capacitor.isNativePlatform()) {
@@ -76,18 +79,6 @@
       openDialog({ mode: "privacy" });
   });
 
-  $: {
-    if (browser) {
-      if (loading === 0 && localStorage.getItem("loggedIn")) {
-        loading = 1;
-        setTimeout(() => {
-          loading = 2;
-          offlineVisible = false;
-        }, 1100);
-      }
-    }
-  }
-
   $: if (browser) $path = getPath(location.pathname, $page.url.pathname);
 
   $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
@@ -98,19 +89,19 @@
   {@html webManifest}
 </svelte:head>
 
-<div id="logo" class={getClass(loading, $offline)}>
+<div id="logo" class={overlay}>
   <img id="logo-image" src={logo} alt="Fileplay" draggable="false" />
 </div>
-{#if $offline || offlineVisible}
-  <div id="offline" class="center-align {getClass(loading, $offline)}">
+{#if $offline}
+  <div id="offline" class="center-align {overlay}">
     <i class="extra">cloud_off</i>
     <p class="large-text">Offline, please connect to the internet.</p>
   </div>
 {/if}
 
-<div id="overlay" class={getClass(loading, $offline)} />
+<div id="overlay" class={overlay} />
 
-{#if loading !== 0 && !$offline}
+{#if overlay}
   <!-- Dialogs -->
   <Dialog />
   <Notifications />
@@ -134,7 +125,7 @@
 
   #overlay {
     position: absolute;
-    z-index: 10000;
+    z-index: 10000 !important;
     width: 100%;
     height: 100%;
     background: var(--background);
@@ -142,7 +133,7 @@
 
   #logo {
     position: absolute;
-    z-index: 10001;
+    z-index: 10001 !important;
     width: 100%;
     height: 50%;
     top: 0;
@@ -154,7 +145,7 @@
 
   #offline {
     position: absolute;
-    z-index: 10001;
+    z-index: 10001 !important;
     width: 100%;
     height: 50%;
     bottom: 0;

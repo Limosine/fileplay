@@ -4,7 +4,8 @@ import { decode } from "@msgpack/msgpack";
 import type { Handle } from "@sveltejs/kit";
 import { WebSocketServer } from "ws";
 
-import { env } from "$env/dynamic/public";
+import { env } from "$env/dynamic/private";
+import { env as envPublic } from "$env/dynamic/public";
 import { createConstants } from "$lib/server/db";
 import {
   messageFromClientSchema,
@@ -22,9 +23,9 @@ import {
 export let clients = new Set<ExtendedWebSocket>();
 
 if (!building) {
-  const wss = new WebSocketServer({
-    port: 3001,
-  });
+  const port = env.WS_PORT === undefined ? 3001 : Number(env.WS_PORT);
+
+  const wss = new WebSocketServer({ port });
 
   clients = wss.clients as Set<ExtendedWebSocket>;
   const constants = await createConstants();
@@ -154,17 +155,20 @@ if (!building) {
 }
 
 export const handle: Handle = async ({ resolve, event }) => {
-  if (env.PUBLIC_HOSTNAME === undefined)
+  if (envPublic.PUBLIC_HOSTNAME === undefined)
     throw new Error("Please define a public hostname.");
 
-  const allowedOrigins: string[] = ["cap.fileplay.me", env.PUBLIC_HOSTNAME];
+  const allowedOrigins: string[] = [
+    "cap.fileplay.me",
+    envPublic.PUBLIC_HOSTNAME,
+  ];
 
   const getOriginHeader = () =>
     allowedOrigins.includes(event.url.hostname)
       ? `${event.url.protocol}//${event.url.hostname}`
-      : env.PUBLIC_HOSTNAME === undefined
+      : envPublic.PUBLIC_HOSTNAME === undefined
         ? ""
-        : `https://${env.PUBLIC_HOSTNAME}`;
+        : `https://${envPublic.PUBLIC_HOSTNAME}`;
 
   if (event.url.pathname.startsWith("/api")) {
     if (event.request.method === "OPTIONS") {
