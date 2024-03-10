@@ -17,8 +17,7 @@ export const createConstants = async () => {
       pool: async () =>
         new Pool({
           database:
-            envPublic.PUBLIC_HOSTNAME &&
-            envPublic.PUBLIC_HOSTNAME.startsWith("dev")
+            envPublic.PUBLIC_HOSTNAME == "dev.fileplay.me"
               ? "fileplay-dev"
               : "fileplay",
           user: "fileplay",
