@@ -7,7 +7,7 @@ let privateKey: CryptoKey;
 export let publicKeyJwk: JsonWebKey;
 
 export const setup = async () => {
-  if (!privateKey || !publicKeyJwk) {
+  if ("subtle" in crypto && (!privateKey || !publicKeyJwk)) {
     await generateKey();
   }
 };

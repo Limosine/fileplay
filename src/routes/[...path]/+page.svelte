@@ -56,14 +56,14 @@
   const onLoading = async () => {
     if (localStorage.getItem("loggedIn")) {
       if (Capacitor.isNativePlatform()) await addListeners();
-      else navigator.serviceWorker.addEventListener("message", handleMessage);
+      else navigator.serviceWorker?.addEventListener("message", handleMessage);
 
       await setup();
       apiClient("ws");
 
       if (!Capacitor.isNativePlatform()) {
         if ($page.url.searchParams.has("share-target")) {
-          navigator.serviceWorker.controller?.postMessage("share-ready");
+          navigator.serviceWorker?.controller?.postMessage("share-ready");
         }
 
         if ($page.url.searchParams.has("accept-target")) {

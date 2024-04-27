@@ -82,6 +82,12 @@
         selected={isSelected(member.uid)}
         on:click={() => select(member)}
       />
+    {:else}
+      {#if !$contacts.length}
+        <div class="centered">
+          <p class="large-text">No contacts or group members available</p>
+        </div>
+      {/if}
     {/each}
 
     {#snippet footerSnippet()}
@@ -159,6 +165,14 @@
 {/if}
 
 <style>
+  .centered {
+    height: calc(100% - 152px); /* Header + Title */
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+  }
+
   #header {
     margin: 0 0 5px;
     padding: 8px 20px 0;

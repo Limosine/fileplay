@@ -39,7 +39,7 @@
       filetransfer_id = String($page.url.searchParams.get("id"));
       sender = $page.url.searchParams.has("sender");
 
-      navigator.serviceWorker.addEventListener("message", handleMessage);
+      navigator.serviceWorker?.addEventListener("message", handleMessage);
 
       await setup();
       await apiClient("http").setupGuest();

@@ -106,7 +106,7 @@
   #fullscreen-box {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100%;
   }
 
   #content {

@@ -258,6 +258,18 @@
     {/await}
   {/await}
 
+  {#if !$contacts.length && !$groups.length}
+    {#if !$devices?.others.length}
+      <div class="centered">
+        <p class="large-text">No contacts, groups or devices available</p>
+      </div>
+    {:else if !frequently.length && !recently.length}
+      <div class="centered">
+        <p class="large-text">Own devices available, toggle the switch!</p>
+      </div>
+    {/if}
+  {/if}
+
   {#snippet footerSnippet()}
     {#if selected.length > 0}
       <div id="footer" class="row" transition:fade={{ duration: 150 }}>
@@ -275,6 +287,14 @@
 </Fullscreen>
 
 <style>
+  .centered {
+    height: calc(100% - 152px); /* Header + Title */
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+  }
+
   #footer {
     height: 80px;
     margin-top: auto;
