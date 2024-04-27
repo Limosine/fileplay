@@ -22,6 +22,7 @@
     "frey",
     "GCMAPI",
     "Graphene",
+    "IDBP",
     "keystorealias",
     "keystorealiaspass",
     "keystorepass",
@@ -33,12 +34,13 @@
     "msgpack",
     "nixos",
     "peerconnection",
+    "phonelink",
+    "postgres",
     "precache",
     "precaching",
     "psql",
     "pwassets",
     "qrcode",
-    "sendstate",
     "simplepeer",
     "trpc",
     "Ungoogled",
@@ -46,5 +48,37 @@
     "vflex",
     "webpush",
     "webrtc"
+  ],
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "127.0.0.1",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "FIleplay (Local)",
+      "database": "fileplay",
+      "username": "fileplay",
+      "password": "fileplay"
+    },
+    {
+      "previewLimit": 50,
+      "server": "192.168.178.29",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "Fileplay (Dev)",
+      "database": "fileplay-dev",
+      "username": "fileplay",
+      "password": "fileplay"
+    },
+    {
+      "previewLimit": 50,
+      "server": "192.168.178.29",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "Fileplay (Prod)",
+      "database": "fileplay",
+      "username": "fileplay",
+      "password": "fileplay"
+    }
   ]
 }

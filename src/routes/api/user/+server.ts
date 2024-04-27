@@ -7,18 +7,35 @@ export const DELETE: RequestHandler = async ({ cookies }) => {
   const ctx = await httpAuthorized(cookies);
 
   try {
-    await ctx.database
-      .deleteFrom("devices")
-      .where("devices.uid", "=", ctx.user)
-      .execute();
+    await ctx.database.transaction().execute(async (trx) => {
+      await ctx.database
+        .deleteFrom("contacts")
+        .where((eb) => eb.or([eb("a", "=", ctx.user), eb("b", "=", ctx.user)]))
+        .execute();
 
-    await ctx.database
-      .deleteFrom("users")
-      .where("uid", "=", ctx.user)
-      .execute();
+      await ctx.database
+        .deleteFrom("group_members")
+        .where("uid", "=", ctx.user)
+        .execute();
 
-    if (typeof ctx.user === "number")
-      notifyDevices(ctx.database, "user", ctx.user);
+      await ctx.database
+        .deleteFrom("group_requests")
+        .where("uid", "=", ctx.user)
+        .execute();
+
+      await notifyDevices(
+        ctx.database,
+        ctx.user,
+        {},
+        { contacts: true, groups: true, group_devices: true },
+      );
+
+      await ctx.database
+        .deleteFrom("users")
+        .where("users.uid", "=", ctx.user)
+        .execute();
+    });
+
     cookies.delete("did_sig", { path: "/" });
     cookies.delete("did", { path: "/" });
     return new Response(null, { status: 200 });

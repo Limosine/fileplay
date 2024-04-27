@@ -1,13 +1,15 @@
 <script lang="ts">
+  import { Capacitor } from "@capacitor/core";
+
   import { closeDialog, openDialog, registration } from "$lib/lib/UI";
 
   const click = async () => {
     localStorage.setItem("privacyAccepted", "true");
-    await closeDialog();
+    await closeDialog(true);
 
     if (
-      $registration !== undefined &&
-      localStorage.getItem("subscribedToPush") === null
+      localStorage.getItem("subscribedToPush") === null &&
+      (Capacitor.isNativePlatform() || $registration !== undefined)
     )
       openDialog({ mode: "request" });
   };

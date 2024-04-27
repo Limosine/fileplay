@@ -14,9 +14,6 @@
       // Load infos
       $userParams.display_name = $user.display_name;
       $userParams.avatar_seed = $user.avatar_seed;
-    } else {
-      // Generate avatar seed
-      $userParams.avatar_seed = nanoid(8);
     }
   }
 </script>
@@ -28,14 +25,14 @@
       on:blur={() => checkProfanity()}
       maxlength={32}
     />
-    <!-- svelte-ignore a11y-label-has-associated-control-->
+    <!-- svelte-ignore a11y_label_has_associated_control -->
     <label>Username</label>
   </div>
   <div id="vflex">
     <p class="bold" style="font-size: large">Avatar</p>
     <div id="avatar">
       <img
-        src={getDicebearUrl($userParams.avatar_seed, 150)}
+        src={getDicebearUrl($userParams.avatar_seed)}
         alt="Your Avatar"
         draggable="false"
       />

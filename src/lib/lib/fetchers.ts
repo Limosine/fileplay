@@ -1,55 +1,31 @@
 import { page } from "$app/stores";
 import { get } from "svelte/store";
 
-import { DeviceType } from "./common";
+import type {
+  Contacts,
+  Devices,
+  GroupDevices,
+  Groups,
+  User,
+} from "$lib/api/common";
+
 import { rawFiles } from "./UI";
 
-// Contacts
-export interface IContact {
-  cid: number;
-  uid: number;
-  display_name: string;
-  avatar_seed: string;
-  linked_at: number;
-  devices: IDeviceInfo[];
-}
+// User
+export type IUser = User["data"];
 
 // Devices
-export interface IDevices {
-  self: {
-    did: number;
-    type: DeviceType;
-    display_name: string;
-    created_at: number;
-  };
-  others: {
-    did: number;
-    type: DeviceType;
-    display_name: string;
-    created_at: number;
-  }[];
-}
+export type IDevices = Devices["data"];
+export type IDeviceInfo = Contacts["data"][0]["devices"][0];
 
-// Device infos
-export interface IDeviceInfo {
-  did: number;
-  type: string;
-  display_name: string;
-}
+// Contacts
+export type IContact = Contacts["data"][0];
 
-// User
-export interface IUser {
-  uid: number;
-  display_name: string;
-  avatar_seed: string;
-  created_at: number;
-}
+// Groups
+export type IGroup = Groups["data"][0];
+export type IGroupDevice = GroupDevices["data"][0];
 
-export const withDeviceType = (name: string) => {
-  // @ts-ignore
-  return { name, type: DeviceType[name] as string };
-};
-
+// Conversion
 export const arrayToFileList = (files: File[]) => {
   const dataTransfer = new DataTransfer();
 

@@ -1,43 +1,62 @@
 <script lang="ts">
   import { apiClient } from "$lib/api/client";
   import { getDicebearUrl } from "$lib/lib/common";
-  import { contacts } from "$lib/lib/UI";
+  import { contacts, layout, openDialog } from "$lib/lib/UI";
+
+  import Button from "$lib/components/Button.svelte";
 </script>
 
-<div id="contacts">
-  {#each $contacts as contact}
-    <article class="secondary-container" style="margin: 0;">
-      <div class="row">
-        <img
-          class="circle medium"
-          src={getDicebearUrl(contact.avatar_seed, 100)}
-          alt="Avatar"
-          draggable="false"
-        />
-        <div class="max">
-          <p class="large-text">{contact.display_name}</p>
-        </div>
-        <button
-          class="right transparent circle"
-          on:click={() =>
-            apiClient("ws").sendMessage({
-              type: "deleteContact",
-              data: contact.cid,
-            })}
-        >
-          <i>delete</i>
-          <div class="tooltip left">Delete contact</div>
-        </button>
-      </div>
-    </article>
-  {/each}
-</div>
+{#each $contacts as contact, index}
+  {#if index === 0 && $layout == "desktop"}
+    <p id="header" class="bold">Contacts</p>
+  {/if}
+
+  {#if index !== 0}
+    <div class="divider"></div>
+  {/if}
+
+  <Button
+    on:click={async () =>
+      (await openDialog({ mode: "delete" })) &&
+      apiClient("ws").sendMessage({
+        type: "deleteContact",
+        data: contact.uid,
+      })}
+  >
+    <img
+      class="circle medium"
+      src={getDicebearUrl(contact.avatar_seed)}
+      style="height: 45px; width: 45px; margin: 0;"
+      alt="Avatar"
+      draggable="false"
+    />
+
+    <div>
+      <p id="title">{contact.display_name}</p>
+      <p id="subtitle">
+        {contact.devices.length} device{contact.devices.length === 1 ? "" : "s"}
+        online.
+      </p>
+    </div>
+  </Button>
+{:else}
+  <div class="centered">
+    <p class="large-text">No contacts available</p>
+  </div>
+{/each}
 
 <style>
-  #contacts {
+  .centered {
+    height: 100%;
     display: flex;
     flex-flow: column;
-    gap: 10px;
-    padding: 20px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #header {
+    margin: 0 0 5px 0;
+    padding: 0 20px;
+    color: var(--secondary);
   }
 </style>

@@ -8,12 +8,20 @@ import {
   LINKING_REFRESH_TIME,
 } from "$lib/lib/common";
 import type { Database } from "$lib/lib/db";
-import { getContacts as getContactsDB } from "$lib/server/db";
+import {
+  getContacts as getContactsDB,
+  getDevices as getDevicesDB,
+  getGroupMemberDevices as getGroupMemberDevicesDB,
+} from "$lib/server/db";
 import { sign } from "$lib/server/signing";
-import type { ExtendedWebSocket } from "$lib/api/common";
 
 import { filetransfers } from "./stores";
-import { filterOnlineDevices, notifyDevices, sendMessage } from "./main";
+import {
+  filterOnlineDevices,
+  markOnlineDevices,
+  notifyDevices,
+  sendMessage,
+} from "./main";
 
 // Contacts
 export const getContacts = async (db: Database, uid: number) => {
@@ -27,21 +35,250 @@ export const getContacts = async (db: Database, uid: number) => {
   return result.message;
 };
 
-export const deleteContact = async (db: Database, uid: number, cid: number) => {
+export const deleteContact = async (
+  db: Database,
+  ownUid: number,
+  uid: number,
+) => {
   try {
     const result = await db
       .deleteFrom("contacts")
       .where((eb) =>
-        eb.and([
-          eb("cid", "=", cid),
-          eb.or([eb("a", "=", uid), eb("b", "=", uid)]),
+        eb.or([
+          eb.and([eb("a", "=", ownUid), eb("b", "=", uid)]),
+          eb.and([eb("a", "=", uid), eb("b", "=", ownUid)]),
         ]),
       )
       .returning(["a", "b"])
       .executeTakeFirstOrThrow();
 
-    notifyDevices(db, "contact", result.a, true);
-    notifyDevices(db, "contact", result.b, true);
+    notifyDevices(db, result.a, { contacts: true }, {});
+    notifyDevices(db, result.b, { contacts: true }, {});
+  } catch (e: any) {
+    console.log("Error 500: ", e);
+    throw new Error("500");
+  }
+};
+
+// Groups
+export const getGroupMemberDevices = async (db: Database, uid: number) => {
+  const result = await getGroupMemberDevicesDB(db, uid);
+  if (!result.success) throw new Error("500");
+
+  const devices = filterOnlineDevices(result.message);
+
+  return devices;
+};
+
+export const createGroup = async (
+  db: Database,
+  uid: number,
+  name: string,
+  members: number[],
+) => {
+  try {
+    const gid = await db.transaction().execute(async (trx) => {
+      const gid = (
+        await trx
+          .insertInto("groups")
+          .values({ oid: uid, name })
+          .returning("gid")
+          .executeTakeFirstOrThrow()
+      ).gid;
+
+      await trx
+        .insertInto("group_members")
+        .values({ gid, uid })
+        .returning("gid")
+        .executeTakeFirst();
+
+      for (const member of [...new Set(members)]) {
+        if (member === uid) continue;
+
+        await trx
+          .insertInto("group_requests")
+          .values({ gid, uid: member })
+          .returning("gid")
+          .executeTakeFirst();
+      }
+
+      return gid;
+    });
+
+    notifyDevices(
+      db,
+      uid,
+      { groups: gid, group_devices: gid },
+      { groups: gid, group_devices: gid },
+    );
+  } catch (e: any) {
+    console.log("Error 500: ", e);
+    throw new Error("500");
+  }
+};
+
+export const createGroupRequest = async (
+  db: Database,
+  gid: number,
+  oid: number,
+  uIds: number[],
+) => {
+  try {
+    await db.transaction().execute(async (trx) => {
+      await trx
+        .selectFrom("groups")
+        .where((eb) => eb.and([eb("gid", "=", gid), eb("oid", "=", oid)]))
+        .executeTakeFirstOrThrow();
+
+      const members = (
+        await trx
+          .selectFrom("group_members")
+          .select("uid")
+          .where("gid", "=", gid)
+          .execute()
+      ).concat(
+        await trx
+          .selectFrom("group_requests")
+          .select("uid")
+          .where("gid", "=", gid)
+          .execute(),
+      );
+
+      for (const user of uIds) {
+        if (oid === user) throw new Error("Unable to join own group");
+
+        if (members.some((m) => m.uid === user))
+          throw new Error("Already member of group");
+      }
+
+      for (const user of uIds) {
+        await trx
+          .insertInto("group_requests")
+          .values({ gid, uid: user })
+          .executeTakeFirst();
+      }
+    });
+
+    notifyDevices(db, oid, { groups: gid }, { groups: gid });
+  } catch (e: any) {
+    console.log("Error 500: ", e);
+    throw new Error("500");
+  }
+};
+
+export const deleteGroupMember = async (
+  db: Database,
+  gid: number,
+  uid: number,
+  deletion?: number,
+) => {
+  try {
+    await db.transaction().execute(async (trx) => {
+      const owner = (
+        await trx
+          .selectFrom("groups")
+          .select("oid")
+          .where("gid", "=", gid)
+          .executeTakeFirstOrThrow()
+      ).oid;
+
+      if (deletion !== undefined && owner !== uid)
+        throw new Error("401 Unauthorized");
+
+      if (owner === uid && deletion === undefined) {
+        const members = await trx
+          .selectFrom("group_members")
+          .select("uid")
+          .execute();
+
+        await trx.deleteFrom("groups").where("gid", "=", gid).execute();
+
+        for (const member of members) {
+          notifyDevices(
+            db,
+            member.uid,
+            { groups: gid, group_devices: gid },
+            {},
+          );
+        }
+      } else {
+        await trx
+          .deleteFrom("group_requests")
+          .where((eb) =>
+            eb.and([
+              eb("gid", "=", gid),
+              eb("uid", "=", deletion === undefined ? uid : deletion),
+            ]),
+          )
+          .returning("uid")
+          .executeTakeFirst();
+
+        await trx
+          .deleteFrom("group_members")
+          .where((eb) =>
+            eb.and([
+              eb("gid", "=", gid),
+              eb("uid", "=", deletion === undefined ? uid : deletion),
+            ]),
+          )
+          .executeTakeFirst();
+
+        if (deletion === undefined) {
+          const members = await trx
+            .selectFrom("group_members")
+            .select("uid")
+            .execute();
+
+          members.push({ uid });
+
+          for (const member of members) {
+            notifyDevices(
+              db,
+              member.uid,
+              { groups: gid, group_devices: gid },
+              {},
+            );
+          }
+        } else {
+          notifyDevices(
+            db,
+            uid,
+            { groups: gid, group_devices: gid },
+            { groups: gid, group_devices: gid },
+          );
+        }
+      }
+    });
+  } catch (e: any) {
+    console.log("Error 500: ", e);
+    throw new Error("500");
+  }
+};
+
+export const redeemGroupRequest = async (
+  db: Database,
+  gid: number,
+  uid: number,
+) => {
+  try {
+    await db.transaction().execute(async (trx) => {
+      await trx
+        .deleteFrom("group_requests")
+        .where((eb) => eb.and([eb("gid", "=", gid), eb("uid", "=", uid)]))
+        .executeTakeFirstOrThrow();
+
+      await trx
+        .insertInto("group_members")
+        .values({ gid, uid })
+        .executeTakeFirst();
+    });
+
+    notifyDevices(
+      db,
+      uid,
+      { groups: gid, group_devices: gid },
+      { groups: gid, group_devices: gid },
+    );
   } catch (e: any) {
     console.log("Error 500: ", e);
     throw new Error("500");
@@ -64,7 +301,12 @@ export const updateUser = async (
       .where((eb) => eb("uid", "=", uid))
       .executeTakeFirst();
 
-    notifyDevices(db, "user", uid);
+    notifyDevices(
+      db,
+      uid,
+      { user: true, groups: true },
+      { contacts: true, groups: true },
+    );
   } catch (e: any) {
     console.log("Error 500: ", e);
     throw new Error("500");
@@ -72,6 +314,16 @@ export const updateUser = async (
 };
 
 // Device
+export const getDevices = async (db: Database, uid: number, did: number) => {
+  const result = await getDevicesDB(db, uid, did);
+  if (!result.success) throw new Error("500");
+
+  return {
+    ...result.message,
+    others: markOnlineDevices(result.message.others),
+  };
+};
+
 export const updateDevice = async (
   db: Database,
   device: number,
@@ -92,7 +344,12 @@ export const updateDevice = async (
       .where((eb) => eb("did", "=", did).and("uid", "=", user))
       .executeTakeFirst();
 
-    notifyDevices(db, "device", user);
+    notifyDevices(
+      db,
+      user,
+      { devices: true },
+      { contacts: true, group_devices: true },
+    );
   } catch (e: any) {
     console.log("Error 500: ", e);
     throw new Error("500");
@@ -204,11 +461,10 @@ export const redeemContactLinkingCode = async (
 
     const res2 = await db
       .selectFrom("contacts")
-      .select("cid")
       .where((eb) => eb.and([eb("a", "=", user), eb("b", "=", uid_b)]))
       .executeTakeFirst();
 
-    if (res2) throw new Error("400 Contacts already linked");
+    if (res2 !== undefined) throw new Error("400 Contacts already linked");
 
     await db
       .deleteFrom("contacts_link_codes")
@@ -220,13 +476,14 @@ export const redeemContactLinkingCode = async (
     await db
       .insertInto("contacts")
       .values({ a: user, b: uid_b })
-      .returning("cid")
       .executeTakeFirst();
 
     sendMessage(res1.created_did, {
       type: "contactCodeRedeemed",
     });
-    notifyDevices(db, "contact", user);
+
+    notifyDevices(db, user, { contacts: true }, {});
+    notifyDevices(db, uid_b, { contacts: true }, {});
   } catch (e: any) {
     console.log("Error:", e);
     throw new Error("500");

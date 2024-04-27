@@ -11,7 +11,9 @@ import type {
 import type { Database } from "$lib/lib/db";
 import {
   deleteDevice,
-  getDevices as getDevicesDB,
+  getContacts as getContactsDB,
+  getGroupMembers,
+  getGroups,
   getUser,
 } from "$lib/server/db";
 import { webPush } from "$lib/server/web-push";
@@ -19,20 +21,27 @@ import { webPush } from "$lib/server/web-push";
 import {
   createContactLinkingCode,
   createDeviceLinkingCode,
+  createGroup,
+  createGroupRequest,
   createTransfer,
   deleteContact,
   deleteContactLinkingCode,
   deleteDeviceLinkingCode,
+  deleteGroupMember,
   deleteTransfer,
   getContacts,
+  getDevices,
+  getGroupMemberDevices,
   getTurnCredentials,
   redeemContactLinkingCode,
+  redeemGroupRequest,
   updateDevice,
   updateUser,
 } from "./authorized";
 import { authorize, authorizeGuest, authorizeMain } from "./context";
 import { clients } from "../../../hooks.server";
 import { filetransfers } from "./stores";
+import { isEmpty } from "$lib/lib/utils";
 
 // Message handler
 export const sendMessage = (
@@ -73,15 +82,24 @@ export const handleMessage = async (
     await authorizeMain(ids, async (device, user) => {
       // User
       const userInfos = await getUser(cts.db, user);
-      if (!userInfos.success) throw new Error("500");
-      sendMessage(client, { type: "user", data: userInfos.message });
-      // Devices
-      const deviceInfos = await getDevicesDB(cts.db, user, device);
-      if (!deviceInfos.success) throw new Error("500");
-      sendMessage(client, { type: "devices", data: deviceInfos.message });
+      if (userInfos.success)
+        sendMessage(client, { type: "user", data: userInfos.message });
+
       // Contacts
-      const contacts = await getContacts(cts.db, user);
-      sendMessage(client, { type: "contacts", data: contacts });
+      sendMessage(client, {
+        type: "contacts",
+        data: await getContacts(cts.db, user),
+      });
+
+      // Groups
+      const groups = await getGroups(cts.db, user);
+      if (groups.success)
+        sendMessage(client, { type: "groups", data: groups.message });
+
+      /* Sent via notifyDevices:
+       * devices
+       * group devices
+       */
     });
 
     // WebRTC sharing
@@ -127,18 +145,51 @@ export const handleMessage = async (
         },
       });
     });
-  } else if (data.type == "sendNotification") {
+  } else if (data.type == "sendNotifications") {
     await authorizeMain(ids, async (device, user) => {
+      let ids: number[];
+
+      if (data.data.type == "contact") {
+        const contacts = await getContactsDB(cts.db, user);
+        if (!contacts.success) throw new Error("500");
+
+        for (const contact of data.data.ids) {
+          if (!contacts.message.some((c) => c.uid === contact))
+            throw new Error("401");
+        }
+
+        ids = data.data.ids;
+      } else if (data.data.type == "group") {
+        const members = await getGroupMembers(cts.db, user, data.data.ids);
+        if (!members.success) throw new Error("500");
+
+        ids = members.message.map((m) => m.uid);
+      } else {
+        const devices = await getDevices(cts.db, user, device);
+
+        for (const device of data.data.ids) {
+          if (!devices.others.some((d) => d.did === device))
+            throw new Error("401");
+        }
+
+        ids = data.data.ids;
+      }
+
       const userInfos = await getUser(cts.db, user);
       if (!userInfos.success) throw new Error("500");
 
-      await webPush().sendMessage(cts.db, data.data.uid, {
-        username: userInfos.message.display_name,
-        avatarSeed: userInfos.message.avatar_seed,
-        did: device,
-        nid: data.data.id,
-        files: data.data.files,
-      });
+      await webPush().sendMessage(
+        cts.db,
+        data.data.type == "devices" ? "devices" : "users",
+        ids,
+        {
+          username: userInfos.message.display_name,
+          avatarSeed: userInfos.message.avatar_seed,
+          did: device,
+          nid: data.data.nid,
+          files: data.data.files,
+        },
+      );
     });
 
     // Guest
@@ -169,7 +220,7 @@ export const handleMessage = async (
         user,
       );
       if (!result.success) throw new Error("500");
-      notifyDevices(cts.db, "device", user);
+      deviceStateChanged(cts.db, user);
     });
 
     // User
@@ -198,6 +249,24 @@ export const handleMessage = async (
   } else if (data.type == "deleteContactCode") {
     await authorizeMain(ids, async (device, user) => {
       await deleteContactLinkingCode(cts.db, device, user);
+    });
+
+    // Groups
+  } else if (data.type == "createGroup") {
+    await authorizeMain(ids, async (device, user) => {
+      await createGroup(cts.db, user, data.data.name, data.data.members);
+    });
+  } else if (data.type == "createGroupRequest") {
+    await authorizeMain(ids, async (device, user) => {
+      await createGroupRequest(cts.db, data.data.gid, user, data.data.uIds);
+    });
+  } else if (data.type == "deleteGroupMember") {
+    await authorizeMain(ids, async (device, user) => {
+      await deleteGroupMember(cts.db, data.data.gid, user, data.data.deletion);
+    });
+  } else if (data.type == "acceptGroupRequest") {
+    await authorizeMain(ids, async (device, user) => {
+      await redeemGroupRequest(cts.db, data.data, user);
     });
 
     // Device linking code
@@ -232,13 +301,9 @@ export const closeGuestConnection = (device: number, transfer: string) => {
 };
 
 // Utilities
-export const filterOnlineDevices = (
-  devices: {
-    did: number;
-    type: string;
-    display_name: string;
-  }[],
-) => {
+export function filterOnlineDevices<T extends { did: number }>(
+  devices: T[],
+): T[] {
   const onlineDevices = [];
 
   for (const client of clients) {
@@ -247,10 +312,35 @@ export const filterOnlineDevices = (
   }
 
   return onlineDevices;
-};
+}
+
+export function markOnlineDevices<T extends { did: number }>(
+  devices: T[],
+): (T & { online: boolean })[] {
+  const onlineDevices = [];
+
+  for (const client of clients) {
+    const index = devices.findIndex((d) => d.did === client.device);
+    if (index !== -1)
+      onlineDevices.push({
+        ...devices[index],
+        online: true,
+      });
+  }
+
+  for (const device of devices) {
+    if (!onlineDevices.some((d) => d.did === device.did))
+      onlineDevices.push({
+        ...device,
+        online: false,
+      });
+  }
+
+  return onlineDevices;
+}
 
 // Notify devices
-const getDevices = (userIds: number[]) => {
+const getDevicesByUIds = (userIds: number[]) => {
   const connections: ExtendedWebSocket[] = [];
 
   for (const client of clients) {
@@ -261,37 +351,148 @@ const getDevices = (userIds: number[]) => {
   return connections;
 };
 
+export const deviceStateChanged = (db: Database, uid: number) =>
+  notifyDevices(
+    db,
+    uid,
+    { devices: true, group_devices: true },
+    { contacts: true, group_devices: true },
+  );
+
+interface UpdateSelection {
+  user?: true;
+  devices?: true;
+  contacts?: true;
+  groups?: number | true;
+  group_devices?: number | true;
+}
+
 export const notifyDevices = async (
   db: Database,
-  type: "device" | "user" | "contact",
   uid: number,
-  onlyOwnDevices = false,
+  own: UpdateSelection,
+  foreign: UpdateSelection,
 ) => {
   const contacts = await getContacts(db, uid);
-  if (!onlyOwnDevices) {
-    const foreignDevices = getDevices(contacts.map((c) => c.uid));
+  const groups = await getGroups(db, uid);
 
-    for (const device of foreignDevices) {
-      if (typeof device.user != "number") continue;
-      const contacts = await getContacts(db, device.user);
-      sendMessage(device, { type: "contacts", data: contacts });
+  if (!isEmpty(foreign)) {
+    // Notify devices of groups
+    const uIds: number[] = [];
+    if (groups.success)
+      if (
+        Object.hasOwn(foreign, "user") ||
+        Object.hasOwn(foreign, "devices") ||
+        foreign.groups === true ||
+        foreign.group_devices === true
+      )
+        groups.message
+          .map((g) => g.members)
+          .forEach((m) =>
+            uIds.push(...m.filter((u) => u.uid !== uid).map((u) => u.uid)),
+          );
+      else if (foreign.groups !== undefined) {
+        const group = groups.message.find((g) => g.gid === foreign.groups);
+        if (group !== undefined)
+          uIds.push(
+            ...group.members.filter((u) => u.uid !== uid).map((u) => u.uid),
+          );
+      }
+
+    for (const uId of uIds) {
+      const deviceSockets = getDevicesByUIds([uId]);
+      const user = foreign.user ? await getUser(db, uId) : undefined;
+      const groups = foreign.groups ? await getGroups(db, uId) : undefined;
+      const groupDevices = foreign.group_devices
+        ? await getGroupMemberDevices(db, uId)
+        : undefined;
+
+      for (const device of deviceSockets) {
+        if (typeof device.device != "number") continue;
+
+        if (user?.success)
+          sendMessage(device, { type: "user", data: user.message });
+
+        if (foreign.devices) {
+          sendMessage(device, {
+            type: "devices",
+            data: await getDevices(db, uId, device.device),
+          });
+        }
+
+        if (groups?.success)
+          sendMessage(device, { type: "groups", data: groups.message });
+
+        if (groupDevices !== undefined)
+          sendMessage(device, {
+            type: "group_devices",
+            data: groupDevices.filter((d) => d.did !== device.device),
+          });
+      }
+    }
+
+    // Notify devices of contacts
+    for (const uId of contacts.map((c) => c.uid)) {
+      const deviceSockets = getDevicesByUIds([uId]);
+      const user =
+        foreign.user && !uIds.some((id) => id === uId)
+          ? await getUser(db, uId)
+          : undefined;
+      const contacts = foreign.contacts
+        ? await getContacts(db, uId)
+        : undefined;
+
+      for (const device of deviceSockets) {
+        if (typeof device.device != "number") continue;
+
+        if (user?.success)
+          sendMessage(device, { type: "user", data: user.message });
+
+        if (foreign.devices && !uIds.some((id) => id === uId)) {
+          sendMessage(device, {
+            type: "devices",
+            data: await getDevices(db, uId, device.device),
+          });
+        }
+
+        if (contacts) sendMessage(device, { type: "contacts", data: contacts });
+      }
     }
   }
 
-  const devices = getDevices([uid]);
-  const user = await getUser(db, uid);
-  for (const device of devices) {
-    if (typeof device.device != "number") continue;
-    if (type == "device") {
-      const deviceInfos = await getDevicesDB(db, uid, device.device);
-      if (deviceInfos.success)
-        sendMessage(device, { type: "devices", data: deviceInfos.message });
-    } else if (type == "contact") {
-      sendMessage(device, { type: "contacts", data: contacts });
-    } else {
-      if (user.success) {
+  // Notify own devices
+  if (!isEmpty(own)) {
+    const deviceSockets = getDevicesByUIds([uid]);
+    const user = own.user ? await getUser(db, uid) : undefined;
+    const contacts = own.contacts ? await getContacts(db, uid) : undefined;
+    const groups = own.groups ? await getGroups(db, uid) : undefined;
+    const groupDevices = own.group_devices
+      ? await getGroupMemberDevices(db, uid)
+      : undefined;
+
+    for (const device of deviceSockets) {
+      if (typeof device.device != "number") continue;
+
+      if (user?.success)
         sendMessage(device, { type: "user", data: user.message });
+
+      if (own.devices) {
+        sendMessage(device, {
+          type: "devices",
+          data: await getDevices(db, uid, device.device),
+        });
       }
+
+      if (contacts) sendMessage(device, { type: "contacts", data: contacts });
+
+      if (groups?.success)
+        sendMessage(device, { type: "groups", data: groups.message });
+
+      if (groupDevices !== undefined)
+        sendMessage(device, {
+          type: "group_devices",
+          data: groupDevices.filter((d) => d.did !== device.device),
+        });
     }
   }
 };

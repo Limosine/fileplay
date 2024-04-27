@@ -1,4 +1,5 @@
-import { Kysely, sql, PostgresDialect } from "kysely";
+import { Kysely, PostgresDialect } from "kysely";
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 import pkg from "pg";
 import { error, type Cookies } from "@sveltejs/kit";
 
@@ -14,16 +15,15 @@ const { Pool } = pkg;
 export const createConstants = async () => {
   const kys = new Kysely<DB>({
     dialect: new PostgresDialect({
-      pool: async () =>
-        new Pool({
-          database:
-            envPublic.PUBLIC_HOSTNAME == "dev.fileplay.me"
-              ? "fileplay-dev"
-              : "fileplay",
-          user: "fileplay",
-          password: "fileplay",
-          host: "127.0.0.1",
-        }),
+      pool: new Pool({
+        database:
+          envPublic.PUBLIC_HOSTNAME == "dev.fileplay.me"
+            ? "fileplay-dev"
+            : "fileplay",
+        user: "fileplay",
+        password: "fileplay",
+        host: "127.0.0.1",
+      }),
     }),
   });
   if (!kys) throw new Error("Failed to access database");
@@ -42,7 +42,25 @@ export const createConstants = async () => {
 
 /* If the user parameter is true, an error is thrown if the uid doesn't exist
  */
-export const httpAuthorized = async (cookies: Cookies, user = true) => {
+export async function httpAuthorized(
+  cookies: Cookies,
+  user?: true,
+): Promise<{
+  key: CryptoKey;
+  database: Database;
+  device: number;
+  user: number;
+}>;
+export async function httpAuthorized(
+  cookies: Cookies,
+  user: false,
+): Promise<{
+  key: CryptoKey;
+  database: Database;
+  device: number;
+  user: number | null;
+}>;
+export async function httpAuthorized(cookies: Cookies, user = true) {
   const cts = await createConstants();
 
   const signature = cookies.get("did_sig");
@@ -67,7 +85,7 @@ export const httpAuthorized = async (cookies: Cookies, user = true) => {
   } else {
     error(401, "Missing cookies");
   }
-};
+}
 
 export const httpContext = async () => {
   const cts = await createConstants();
@@ -81,7 +99,6 @@ export async function getContacts(
   | {
       success: true;
       message: {
-        cid: number;
         uid: number;
         display_name: string;
         avatar_seed: string;
@@ -99,70 +116,229 @@ export async function getContacts(
     }
 > {
   try {
-    const contacts: {
-      cid: number;
-      uid: number;
-      display_name: string;
-      avatar_seed: string;
-      linked_at: number;
-      devices?: {
-        did: number;
-        type: string;
-        display_name: string;
-      }[];
-    }[] = await db
+    const contacts_a = await db
       .selectFrom("contacts")
       .innerJoin("users", "contacts.a", "users.uid")
-      .select([
-        "contacts.cid",
+      .select((eb) => [
         "contacts.a as uid",
         "users.display_name",
         "users.avatar_seed",
         "contacts.created_at as linked_at",
+        jsonArrayFrom(
+          eb
+            .selectFrom("devices")
+            .select(["did", "type", "display_name"])
+            .whereRef("uid", "=", "contacts.a"),
+        ).as("devices"),
       ])
       .where("contacts.b", "=", uid)
-      .union(
-        db
-          .selectFrom("contacts")
-          .innerJoin("users", "contacts.b", "users.uid")
-          .select([
-            "contacts.cid",
-            "contacts.b as uid",
-            "users.display_name",
-            "users.avatar_seed",
-            "contacts.created_at as linked_at",
-          ])
-          .where("contacts.a", "=", uid),
-      )
       .orderBy("display_name")
       .execute();
 
-    contacts.forEach((con) => (con.devices = []));
+    const contacts_b = await db
+      .selectFrom("contacts")
+      .innerJoin("users", "contacts.b", "users.uid")
+      .select((eb) => [
+        "contacts.b as uid",
+        "users.display_name",
+        "users.avatar_seed",
+        "contacts.created_at as linked_at",
+        jsonArrayFrom(
+          eb
+            .selectFrom("devices")
+            .select(["did", "type", "display_name"])
+            .whereRef("uid", "=", "contacts.b"),
+        ).as("devices"),
+      ])
+      .where("contacts.a", "=", uid)
+      .orderBy("display_name")
+      .execute();
 
-    const devices = await sql<{
-      cid?: number;
-      did: number;
-      type: string;
-      display_name: string;
-    }>`SELECT cid, devices.did, devices.type, devices.display_name FROM (SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.a WHERE contacts.b = ${uid} UNION SELECT contacts.cid, users.uid FROM contacts JOIN users ON users.uid = contacts.b WHERE contacts.a = ${uid}) AS U JOIN devices ON U.uid = devices.uid ORDER BY devices.display_name`.execute(
-      db,
-    );
-
-    devices.rows.forEach((device) => {
-      const contact = contacts.find((con) => con.cid == device.cid);
-      delete device.cid;
-      if (contact === undefined) return;
-      contact.devices?.push(device);
-    });
-
-    // @ts-ignore
-    return { success: true, message: contacts };
+    return { success: true, message: contacts_a.concat(contacts_b) };
   } catch (e: any) {
     return { success: false, message: e };
   }
 }
 
-export const getUID = async (
+export async function getGroupMembers(
+  db: Database,
+  uid: number,
+  gIds: number[],
+): Promise<
+  | {
+      success: true;
+      message: {
+        mid: number;
+        uid: number;
+      }[];
+    }
+  | {
+      success: false;
+      message: any;
+    }
+> {
+  try {
+    if (gIds.length < 1) throw new Error("500");
+
+    for (const gid of gIds) {
+      await db
+        .selectFrom("group_members")
+        .where((eb) => eb.and([eb("gid", "=", gid), eb("uid", "=", uid)]))
+        .executeTakeFirstOrThrow();
+    }
+
+    return {
+      success: true,
+      message: await db
+        .selectFrom("group_members")
+        .select(["mid", "uid"])
+        .where("gid", "in", gIds)
+        .execute(),
+    };
+  } catch (e: any) {
+    return { success: false, message: e };
+  }
+}
+
+export async function getGroups(
+  db: Database,
+  uid: number,
+): Promise<
+  | {
+      success: true;
+      message: {
+        gid: number;
+        oid: number;
+        name: string;
+        created_at: number;
+        members: {
+          uid: number;
+          joined_at: number;
+          display_name: string;
+          avatar_seed: string;
+        }[];
+        requests: {
+          uid: number;
+          created_at: number;
+          display_name: string;
+          avatar_seed: string;
+        }[];
+      }[];
+    }
+  | {
+      success: false;
+      message: any;
+    }
+> {
+  try {
+    const memberships = (
+      await db
+        .selectFrom("group_members")
+        .select("gid")
+        .where("uid", "=", uid)
+        .execute()
+    ).map((m) => m.gid);
+
+    memberships.push(
+      ...(
+        await db
+          .selectFrom("group_requests")
+          .select("gid")
+          .where("uid", "=", uid)
+          .execute()
+      ).map((m) => m.gid),
+    );
+
+    return {
+      success: true,
+      message:
+        memberships.length < 1
+          ? []
+          : await db
+              .selectFrom("groups")
+              .select((eb) => [
+                "gid",
+                "oid",
+                "name",
+                "created_at",
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("group_members")
+                    .innerJoin("users", "group_members.uid", "users.uid")
+                    .select([
+                      "group_members.uid",
+                      "joined_at",
+                      "users.display_name",
+                      "users.avatar_seed",
+                    ])
+                    .whereRef("gid", "=", "groups.gid"),
+                ).as("members"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("group_requests")
+                    .innerJoin("users", "group_requests.uid", "users.uid")
+                    .select([
+                      "group_requests.uid",
+                      "group_requests.created_at",
+                      "users.display_name",
+                      "users.avatar_seed",
+                    ])
+                    .whereRef("gid", "=", "groups.gid"),
+                ).as("requests"),
+              ])
+              .where("gid", "in", memberships)
+              .execute(),
+    };
+  } catch (e: any) {
+    return { success: false, message: e };
+  }
+}
+
+export async function getGroupMemberDevices(
+  db: Database,
+  uid: number,
+): Promise<
+  | {
+      success: true;
+      message: {
+        gid: number;
+        display_name: string;
+        did: number;
+        type: DeviceType;
+      }[];
+    }
+  | {
+      success: false;
+      message: any;
+    }
+> {
+  try {
+    const memberships = (
+      await db
+        .selectFrom("group_members")
+        .select("gid")
+        .where("uid", "=", uid)
+        .execute()
+    ).map((m) => m.gid);
+
+    return {
+      success: true,
+      message:
+        memberships.length < 1
+          ? []
+          : await db
+              .selectFrom("devices")
+              .innerJoin("group_members", "devices.uid", "group_members.uid")
+              .select(["group_members.gid", "did", "type", "display_name"])
+              .where("group_members.gid", "in", memberships)
+              .execute(),
+    };
+  } catch (e: any) {
+    return { success: false, message: e };
+  }
+}
+
+export const getUid = async (
   db: Database,
   did: number,
 ): Promise<

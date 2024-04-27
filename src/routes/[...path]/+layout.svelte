@@ -2,16 +2,19 @@
   import { browser } from "$app/environment";
   import { page } from "$app/stores";
   import { Capacitor } from "@capacitor/core";
-  import { onMount } from "svelte";
+  import { onMount, type Snippet } from "svelte";
   import { quadOut } from "svelte/easing";
   import { fade } from "svelte/transition";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
+  import * as materialSymbols from "beercss/dist/cdn/material-symbols-outlined.woff2";
 
   import { notifications } from "$lib/lib/notifications";
   import {
+    closeDialog,
     getPath,
+    largeDialog,
     offline,
     openDialog,
     path,
@@ -20,12 +23,21 @@
 
   import logo from "$lib/assets/Fileplay.svg";
   import Layout from "$lib/components/Layout.svelte";
-  import Notifications from "$lib/components/Notifications.svelte";
   import Dialog from "$lib/components/Dialog.svelte";
+  import LargeDialog from "$lib/components/LargeDialog.svelte";
 
-  let overlay: "" | "hidden" = "";
+  let {
+    children,
+  }: {
+    children?: Snippet;
+  } = $props();
+
+  let webManifest = $state("");
+  let overlay: "" | "hidden" = $state("");
 
   onMount(async () => {
+    if (pwaInfo) webManifest = pwaInfo.webManifest.linkTag;
+
     const open = () => {
       if (
         localStorage.getItem("subscribedToPush") === null &&
@@ -44,42 +56,51 @@
         overlay = "hidden";
       });
       window.addEventListener("offline", () => {
+        closeDialog();
+        if ($largeDialog?.open) ui("#dialog-large");
+
         $offline = true;
         overlay = "";
       });
     }
 
     if (Capacitor.isNativePlatform()) {
-      notifications().initNativeListeners();
+      await notifications().initNativeListeners();
       open();
-    } else if (pwaInfo) {
-      const { useRegisterSW } = await import("virtual:pwa-register/svelte");
-      useRegisterSW({
-        immediate: true,
-        onRegistered(r) {
-          if (r !== undefined) {
-            $registration = r;
-            open();
-          }
-        },
-        onRegisterError(error: any) {
-          console.log("SW registration error", error);
-        },
-      });
+    } else if (pwaInfo && "serviceWorker" in navigator) {
+      try {
+        const r = await navigator.serviceWorker.register("/service-worker.js", {
+          scope: "/",
+        });
+
+        $registration = r;
+        open();
+      } catch (e: any) {
+        console.log("SW registration error", e);
+      }
     }
 
-    if (!localStorage.getItem("privacyAccepted"))
+    if (localStorage.getItem("privacyAccepted") === null)
       openDialog({ mode: "privacy" });
   });
 
-  $: if (browser) $path = getPath(location.pathname, $page.url.pathname);
+  $effect(() => {
+    if (browser) $path = getPath(location.pathname, $page.url.pathname);
+  });
 
-  $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
+  // $inspect($page.url.pathname);
 </script>
 
 <svelte:head>
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html webManifest}
+  <link
+    rel="preload"
+    as="font"
+    href={materialSymbols.default}
+    type="font/woff2"
+    crossorigin="anonymous"
+  />
 </svelte:head>
 
 {#if !overlay}
@@ -87,7 +108,7 @@
     id="overlay"
     in:fade={{ duration: 200 }}
     out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
-  />
+  ></div>
 
   <div
     id="logo"
@@ -111,15 +132,19 @@
   </div>
 {/if}
 
-<div id="overlay" class={overlay} />
+<div id="overlay" class={overlay}></div>
 
 {#if overlay}
   <!-- Dialogs -->
+  {#if $path.main == "send" || $path.main == "groups" || $path.main == "settings"}
+    <LargeDialog />
+  {/if}
   <Dialog />
-  <Notifications />
 
   <Layout>
-    <slot />
+    {#if children}
+      {@render children()}
+    {/if}
   </Layout>
 {/if}
 

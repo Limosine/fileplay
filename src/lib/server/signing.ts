@@ -4,7 +4,7 @@ import { type Cookies } from "@sveltejs/kit";
 import type { Database } from "$lib/lib/db";
 import { arrayBufferToHex, hexToArrayBuffer } from "$lib/lib/utils";
 
-import { getUID } from "./db";
+import { getUid } from "./db";
 
 export const setDeviceID = async (
   did: number,
@@ -13,13 +13,14 @@ export const setDeviceID = async (
 ) => {
   const id = did.toString();
   const signature = await sign(id, key);
-  const cookie_opts: CookieSerializeOptions = {
+  const cookie_opts: CookieSerializeOptions & {
+    path: string;
+  } = {
     path: "/",
     maxAge: 60 * 60 * 24 * 60 * 12 * 10,
   };
-  // @ts-ignore
+
   cookies.set("did", id, cookie_opts);
-  // @ts-ignore
   cookies.set("did_sig", signature, cookie_opts);
 };
 
@@ -34,7 +35,7 @@ export async function getDeviceID(
     throw new Error("Wrong authentication signature");
 
   const did = parseInt(did_s);
-  const uid = await getUID(db, did);
+  const uid = await getUid(db, did);
 
   if (!uid.success) throw new Error(uid.message);
   else return { did, uid: uid.message };

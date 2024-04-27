@@ -2,7 +2,7 @@ import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit";
 
 import { deleteDevice, httpAuthorized } from "$lib/server/db";
-import { notifyDevices } from "$lib/api/server/main";
+import { deviceStateChanged } from "$lib/api/server/main";
 
 export const DELETE: RequestHandler = async ({ cookies, url }) => {
   const ctx = await httpAuthorized(cookies, false);
@@ -20,7 +20,6 @@ export const DELETE: RequestHandler = async ({ cookies, url }) => {
     error(500, e);
   }
 
-  if (typeof ctx.user === "number")
-    notifyDevices(ctx.database, "device", ctx.user);
+  if (typeof ctx.user === "number") deviceStateChanged(ctx.database, ctx.user);
   return new Response(null, { status: 200 });
 };

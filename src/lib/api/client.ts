@@ -6,12 +6,13 @@ import { get, readable, writable } from "svelte/store";
 import { PUBLIC_HOSTNAME } from "$env/static/public";
 import { peer } from "$lib/lib/simple-peer";
 import {
-  addProperties,
   closeDialog,
   contacts,
   deviceParams,
   devices,
-  dialogMode,
+  dialogProperties,
+  groupDevices,
+  groups,
   offline,
   user,
   userParams,
@@ -105,9 +106,8 @@ class HTTPClient {
   async deleteAccount(onlyOwn: boolean, forward = true) {
     const res = await CapacitorHttp.delete({
       url:
-        `${getProtocol()}//${this.host}` + onlyOwn
-          ? "/api/devices"
-          : "/api/user",
+        `${getProtocol()}//${this.host}` +
+        (onlyOwn ? "/api/devices" : "/api/user"),
     });
 
     if (browser && res && forward) {
@@ -206,6 +206,7 @@ class WebSocketClient {
 
     if (
       msg.type == "createTransfer" ||
+      msg.type == "createGroup" ||
       msg.type == "createContactCode" ||
       msg.type == "createDeviceCode" ||
       msg.type == "getTurnCredentials"
@@ -247,6 +248,10 @@ class WebSocketClient {
     } else if (message.type == "contacts") {
       contacts.set(message.data);
       peer().closeConnections(message.data.map((c) => c.devices));
+    } else if (message.type == "groups") {
+      groups.set(message.data);
+    } else if (message.type == "group_devices") {
+      groupDevices.set(message.data);
     } else if (message.type == "webRTCData") {
       if (message.data.data.type == "signal")
         peer().signal(message.data.from, JSON.parse(message.data.data.data));
@@ -259,12 +264,7 @@ class WebSocketClient {
       message.type == "contactCodeRedeemed" ||
       message.type == "deviceCodeRedeemed"
     ) {
-      if (get(dialogMode) == "add") closeDialog();
-      if (message.type == "contactCodeRedeemed")
-        addProperties.update((properties) => {
-          properties.redeem = true;
-          return properties;
-        });
+      if (get(dialogProperties).mode == "add") closeDialog(true);
     } else if (
       message.type == "filetransfer" ||
       message.type == "contactLinkingCode" ||

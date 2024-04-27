@@ -19,18 +19,18 @@ interface DevicesTable {
   push_subscription: string | null;
 }
 
-interface ContactsTable {
-  cid: Generated<number>;
-  a: number; // indexed, foreign key users.uid
-  b: number; // indexed, foreign key users.uid
-  created_at: ColumnType<number, undefined, undefined>;
-}
-
 interface DevicesLinkCodesTable {
   code: Generated<string>; // indexed, primary
   expires: ColumnType<number, number, undefined>;
   created_did: number;
   uid: number; // indexed, foreign key users.uid
+}
+
+interface ContactsTable {
+  cid: Generated<number>;
+  a: number; // indexed, foreign key users.uid
+  b: number; // indexed, foreign key users.uid
+  created_at: ColumnType<number, undefined, undefined>;
 }
 
 interface ContactsLinkCodesTable {
@@ -40,12 +40,36 @@ interface ContactsLinkCodesTable {
   uid: number; // indexed, foreign key users.uid
 }
 
+interface GroupsTable {
+  gid: Generated<number>;
+  oid: number;
+  name: string;
+  created_at: ColumnType<number, undefined, undefined>;
+}
+
+interface GroupMembersTable {
+  mid: Generated<number>;
+  gid: number;
+  uid: number;
+  joined_at: ColumnType<number, undefined, undefined>;
+}
+
+interface GroupRequestsTable {
+  rid: Generated<number>;
+  gid: number;
+  uid: number;
+  created_at: ColumnType<number, undefined, undefined>;
+}
+
 export interface DB {
   users: UsersTable;
   devices: DevicesTable;
   contacts: ContactsTable;
   devices_link_codes: DevicesLinkCodesTable;
   contacts_link_codes: ContactsLinkCodesTable;
+  groups: GroupsTable;
+  group_members: GroupMembersTable;
+  group_requests: GroupRequestsTable;
 }
 
 export type Database = Kysely<DB>;

@@ -1,13 +1,19 @@
 import { browser } from "$app/environment";
-import { page } from "$app/stores";
 import { pushState } from "$app/navigation";
+import dayjs from "dayjs";
 import { get, writable } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
-import type { IncomingFiletransfer, Request } from "$lib/sharing/common";
+import type { Request } from "$lib/sharing/common";
 
-import { type IContact, type IDevices, type IUser } from "./fetchers";
-import type { PartialBy } from "./utils";
+import type {
+  IContact,
+  IDevices,
+  IGroupDevice,
+  IGroup,
+  IUser,
+} from "./fetchers";
+import { getTimestamp } from "./history";
 
 // Window
 export const height = writable(0);
@@ -17,7 +23,7 @@ export const offline = writable(false);
 
 // Navigation
 export const path = writable<Routes>({
-  main: "home",
+  main: "send",
 });
 
 // Service worker
@@ -58,149 +64,152 @@ export const userParams = writable({
 export const contacts = writable<IContact[]>([]);
 export const devices = writable<IDevices>();
 export const user = writable<IUser>();
+export const groups = writable<IGroup[]>([]);
+export const groupDevices = writable<IGroupDevice[]>([]);
 
 // Dialogs
+export const menuDialog = writable<HTMLDialogElement>();
 export const generalDialog = writable<HTMLDialogElement>();
+export const largeDialog = writable<HTMLDialogElement>();
 export const notificationDialog = writable<HTMLDialogElement>();
 
 // Dialog properties
-export const dialogMode = writable<
-  "add" | "edit" | "qrcode" | "request" | "send" | "privacy" | undefined
->(undefined);
+export interface DialogAdd {
+  mode: "add";
 
-export const addProperties = writable<{
-  mode: "contact" | "device";
-  redeem: boolean;
-  code: string;
-}>({
-  mode: "contact",
-  redeem: true,
-  code: "",
+  addMode: "contact" | "device";
+}
+
+export interface DialogEdit {
+  mode: "edit";
+
+  title: string;
+  value: string;
+
+  length?: number;
+  placeholder?: string;
+  type: "avatar" | "deviceType" | "string";
+}
+
+export type DialogProperties = (
+  | DialogAdd
+  | DialogEdit
+  | {
+      mode: "delete" | "qrcode" | "request" | "privacy" | "unselected";
+    }
+) & { success?: boolean };
+
+export const dialogProperties = writable<DialogProperties>({
+  mode: "unselected",
 });
 
-export const sendProperties = writable<{
-  cid?: number;
-}>({});
+export const groupProperties = writable<
+  | {
+      mode: "properties";
+      gid: number;
+    }
+  | {
+      mode: "create";
+    }
+>({ mode: "create" });
 
-export const editProperties = writable<{
-  mode?: EditOptions;
-  did?: number;
-}>({});
+// String utils
+export const returnSubstring = (name: string, length: number) => {
+  const position = name.lastIndexOf(".");
 
-// Notifications
-export const notifications = writable<Notification[]>([]);
+  if (name.length <= length) return name;
 
-// Functions
+  if (position !== -1) {
+    const end = name.slice(position);
 
-export const addNotification = (
-  notification: PartialBy<Notification, "tag">,
-) => {
-  if (notification.tag !== undefined) deleteNotification(notification.tag);
-
-  notifications.update((notifications) => {
-    if (!("tag" in notification))
-      notification.tag = Math.random().toString(36).substring(7);
-    notifications.push(notification as Notification);
-    return notifications;
-  });
-
-  if (!get(notificationDialog).open) ui("#dialog-notifications");
+    return name.slice(0, length - 1 - end.length) + end;
+  } else {
+    return name.slice(0, length - 1);
+  }
 };
 
-export const deleteNotification = (tag: string) => {
-  notifications.update((notifications) =>
-    notifications.filter((n) => n.tag != tag),
-  );
+// Dialogs
+export const openLargeDialog = async () => {
+  ui("#dialog-large");
 };
 
-export const closeDialog = async () => {
-  if (get(generalDialog).open) {
+export const closeDialog = async (success?: boolean) => {
+  if (get(generalDialog)?.open) {
+    dialogProperties.update((props) => {
+      props.success = success;
+      return props;
+    });
+
     await new Promise<void>((resolve) => {
       ui("#dialog-general");
 
       setTimeout(() => {
+        dialogProperties.set({ mode: "unselected" });
         resolve();
-      }, 3000); // CSS: --speed3
+      }, 400); // BeerCSS: --speed3 + 0.1s
     });
   }
 };
 
 export const openDialog = async (
-  properties:
-    | {
-        mode: "qrcode" | "request" | "send" | "privacy";
-      }
-    | {
-        mode: "add";
-        currentU: "contact" | "device";
-      }
-    | {
-        mode: "edit";
-        currentU: EditOptions;
-        didU?: number;
-      },
+  properties: Exclude<DialogProperties, DialogEdit>,
 ) => {
   await closeDialog();
 
-  if (properties.mode == "add") openAddDialog(properties.currentU);
-  else if (properties.mode == "edit")
-    openEditDialog(properties.currentU, properties.didU);
+  dialogProperties.set(properties);
 
-  dialogMode.set(properties.mode);
-  ui("#dialog-general");
-};
+  return new Promise<boolean>((resolve, reject) => {
+    const onClose = () => {
+      get(generalDialog).removeEventListener("close", onClose);
 
-const openAddDialog = (currentU: "contact" | "device") => {
-  addProperties.set({
-    mode: currentU,
-    redeem: true,
-    code: "",
+      const dialogProps = get(dialogProperties);
+      dialogProps.success ? resolve(dialogProps.success) : resolve(false);
+    };
+
+    get(generalDialog).addEventListener("close", onClose);
+    ui("#dialog-general");
   });
 };
 
-const openEditDialog = async (currentU: EditOptions, didU?: number) => {
-  editProperties.update((properties) => {
-    properties.mode = currentU;
-
-    if (didU !== undefined) properties.did = didU;
-
-    return properties;
-  });
-
-  if (
-    get(user) !== undefined &&
-    (currentU == "username" || currentU == "avatar")
-  ) {
-    userParams.update((u) => {
-      u.display_name = get(user).display_name;
-      u.avatar_seed = get(user).avatar_seed;
-      return u;
+export const openAddDialog = () => {
+  if (get(path).main != "groups")
+    openDialog({
+      mode: "add",
+      addMode: get(path).main == "contacts" ? "contact" : "device",
     });
-  } else if (
-    get(devices) !== undefined &&
-    (currentU == "deviceName" || currentU == "deviceType")
-  ) {
-    if (didU === undefined) return;
-
-    let device: IDevices["self"];
-    if (get(devices).self.did === didU) device = get(devices).self;
-    else {
-      const d = get(devices).others.find((d) => d.did === didU);
-      if (d !== undefined) device = d;
-      else return;
-    }
-
-    deviceParams.update((d) => {
-      d[didU] = {
-        display_name: device.display_name,
-        type: device.type,
-      };
-
-      return d;
-    });
+  else {
+    groupProperties.set({ mode: "create" });
+    ui("#dialog-large");
   }
 };
 
+export const openEditDialog = async (
+  properties: Omit<Omit<DialogEdit, "mode">, "value">,
+  value = "",
+) => {
+  await closeDialog();
+
+  dialogProperties.set({
+    mode: "edit",
+    value,
+    ...properties,
+  });
+
+  return new Promise<string>((resolve, reject) => {
+    const onClose = () => {
+      get(generalDialog).removeEventListener("close", onClose);
+
+      const dialogProps = get(dialogProperties);
+      if (dialogProps.mode == "edit") resolve(dialogProps.value);
+      else reject("UI: Wrong dialog mode");
+    };
+
+    get(generalDialog).addEventListener("close", onClose);
+    ui("#dialog-general");
+  });
+};
+
+// Profanity
 export const checkProfanity = async () => {
   if (!browser || !get(userParams).display_name) return;
 
@@ -217,77 +226,78 @@ export const checkProfanity = async () => {
   });
 };
 
-export const getProgress = (
-  filetransfer_id: string,
-  filetransfers: IncomingFiletransfer[],
-) => {
-  const filetransfer = filetransfers.find(
-    (filetransfer) => filetransfer.id === filetransfer_id,
-  );
-
-  if (filetransfer !== undefined) {
-    let received_chunks = 0;
-    let total_chunks = 0;
-
-    filetransfer.files.forEach((file) => {
-      received_chunks = received_chunks + file.chunks.length;
-      total_chunks = total_chunks + file.chunks_length;
-    });
-
-    const progress = received_chunks / total_chunks;
-
-    return progress;
-  } else {
-    return 0;
-  }
-};
-
+// Path
 export const getPath = (pathU: string, pathStore?: string): Routes => {
   if (pathU.charAt(0) == "/") pathU = pathU.slice(1);
 
   const params = pathU.split("/");
 
-  if (params.length <= 0 || params[0] == "") return { main: "home" };
+  if (params.length <= 0 || params[0] == "") return { main: "send" };
 
-  let object:
-    | undefined
-    | {
-        main: "home" | "contacts" | "settings";
-        sub?: "devices";
-      } = undefined;
+  let object: Routes | undefined = undefined;
 
-  if (params[0] == "contacts" || params[0] == "home")
+  if (
+    params[0] == "send" ||
+    params[0] == "receive" ||
+    params[0] == "contacts" ||
+    params[0] == "groups"
+  )
     object = { main: params[0] };
-
-  if (params[0] == "settings") {
-    object = { main: "settings" };
-
-    if (params.length > 1) {
-      object.sub = "devices";
-    }
+  else if (params[0] == "settings") {
+    object = {
+      main: "settings",
+      sub: params[1] == "devices" ? params[1] : undefined,
+    };
   }
 
   if (object === undefined) {
-    path.set({ main: "home" });
-    return { main: "home" };
+    path.set({ main: "send" });
+    return { main: "send" };
   } else {
     path.set(object);
     return object;
   }
 };
 
-export const changePath = async (route: Routes) => {
+export const changePath = (route: Routes) => {
   let url: string;
-  if (route.main == "home") {
+  if (route.main == "send") {
     url = "/";
-  } else if (route.main === "settings") {
-    url = "/" + route.main + (route.sub !== undefined ? "/" + route.sub : "");
   } else {
-    url = "/" + route.main;
+    url =
+      "/" +
+      route.main +
+      ("sub" in route && route.sub !== undefined ? "/" + route.sub : "");
   }
 
-  pushState(url, get(page).state);
+  pushState(url, {});
   path.set(route);
+};
+
+export const pathBackwards = () => {
+  path.update((path) => {
+    pushState("/" + path.main, {});
+    if ("sub" in path) path.sub = undefined;
+
+    return path;
+  });
+};
+
+// History
+export const getLastSend = async (
+  mode: "group" | "device" | "contact",
+  id: number,
+) => {
+  const timestamp = await getTimestamp(mode, id);
+  if (timestamp === undefined) return "";
+
+  const current = dayjs();
+  const date = dayjs.unix(timestamp);
+
+  if (current.isSame(date, "day")) return date.format("HH:mm");
+  else if (current.isSame(date, "week")) return date.format("dddd");
+  else if (current.isSame(date, "year")) return date.format("DD.MM.");
+  else return date.format("DD.MM.YY");
 };
 
 // Types & Interfaces
@@ -295,7 +305,7 @@ export const changePath = async (route: Routes) => {
 export type Routes = RoutesTop | RouteSettings;
 
 export interface RoutesTop {
-  main: "home" | "contacts";
+  main: "send" | "receive" | "contacts" | "groups";
 }
 
 export interface RouteSettings {
@@ -335,10 +345,3 @@ export interface NotificationReceived {
     url: string;
   };
 }
-
-export type EditOptions =
-  | "deviceName"
-  | "deviceType"
-  | "username"
-  | "linkingCode"
-  | "avatar";

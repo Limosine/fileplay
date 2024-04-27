@@ -41,7 +41,7 @@ self.addEventListener("push", async (event) => {
   self.registration.showNotification("Sharing request", {
     data,
     body: `${data.username} wants to share the file${data.files.length > 1 ? "s" : ""} '${data.files.toString()}' with you. Click to accept.`,
-    icon: getDicebearUrl(data.avatarSeed, 192),
+    icon: getDicebearUrl(data.avatarSeed),
   });
 });
 

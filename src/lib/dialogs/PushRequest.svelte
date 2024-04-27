@@ -11,8 +11,7 @@
   <!-- eslint-disable no-undef -->
   <!-- svelte-ignore missing-declaration -->
   <button
-    class="border"
-    style="border: 0;"
+    class="transparent link"
     on:click={() => {
       localStorage.setItem("subscribedToPush", "false");
       closeDialog();
@@ -20,11 +19,10 @@
   >
   <!-- svelte-ignore missing-declaration -->
   <button
-    class="border"
-    style="border: 0;"
+    class="transparent link"
     on:click={async () => {
       localStorage.setItem("subscribedToPush", "false");
-      closeDialog();
+      closeDialog(true);
       notifications().create($registration);
     }}>Allow</button
   >

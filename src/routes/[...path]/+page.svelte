@@ -10,19 +10,23 @@
   import { addListeners } from "$lib/lib/send-target";
   import {
     closeDialog,
-    dialogMode,
+    contacts,
+    dialogProperties,
+    groupDevices,
+    groups,
     height,
     layout,
-    openDialog,
     path,
     rawFiles,
     user,
     width,
   } from "$lib/lib/UI";
-  import { awaitReady } from "$lib/sharing/send";
+  import { manager } from "$lib/sharing/manager.svelte";
 
   import Contacts from "$lib/pages/Contacts.svelte";
-  import Home from "$lib/pages/Home.svelte";
+  import Groups from "$lib/pages/Groups.svelte";
+  import Receive from "$lib/pages/Receive.svelte";
+  import Send from "$lib/pages/Send.svelte";
   import Settings from "$lib/pages/Settings.svelte";
 
   const handleDrop = (e: DragEvent) => {
@@ -39,17 +43,14 @@
       closeDialog();
     } else if (event.key === "Enter") {
       // Submit selection (if valid value), etc.
-      if ($dialogMode == "edit") {
-        closeDialog();
+      if (
+        $dialogProperties.mode == "edit" ||
+        $dialogProperties.mode == "delete"
+      ) {
+        closeDialog(true);
       }
     }
   };
-
-  const openAddDialog = () =>
-    openDialog({
-      mode: "add",
-      currentU: $path.main == "contacts" ? "contact" : "device",
-    });
 
   let loaded = false;
   const onLoading = async () => {
@@ -69,7 +70,7 @@
           const didString = $page.url.searchParams.get("did");
           const nid = $page.url.searchParams.get("nid");
           if (didString !== null && nid !== null)
-            awaitReady(Number(didString), nid);
+            manager.awaitReady(Number(didString), nid);
         }
       }
     }
@@ -95,46 +96,14 @@
 
 <Input />
 
-{#if $path.main == "home"}
-  <Home />
-{:else if $path.main == "contacts"}
+{#if $path.main == "send"}
+  <Send />
+{:else if $path.main == "receive"}
+  <Receive />
+{:else if $path.main == "contacts" && $contacts !== undefined}
   <Contacts />
+{:else if $path.main == "groups" && $groups !== undefined && $groupDevices !== undefined}
+  <Groups />
 {:else if $path.main == "settings" && $user !== undefined}
   <Settings />
 {/if}
-
-{#if $path.main == "contacts" || ($layout == "mobile" && $path.main == "settings" && "sub" in $path)}
-  {#if $layout == "mobile"}
-    <button
-      id="add-mobile"
-      class="square round extra"
-      on:click={() => openAddDialog()}
-    >
-      <i>add</i>
-    </button>
-  {:else}
-    <button
-      id="add-desktop"
-      class="square round extra"
-      on:click={() => openAddDialog()}
-    >
-      <i>add</i>
-    </button>
-  {/if}
-{/if}
-
-<style>
-  #add-mobile {
-    position: fixed;
-    bottom: 95px;
-    right: 15px;
-    margin: 0;
-  }
-
-  #add-desktop {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    margin: 0;
-  }
-</style>

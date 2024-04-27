@@ -66,7 +66,8 @@ class WebPush {
 
   async sendMessage(
     db: Database,
-    uid: number,
+    to: "devices" | "users",
+    ids: number[],
     message: {
       username: string;
       avatarSeed: string;
@@ -75,10 +76,12 @@ class WebPush {
       files: string[];
     },
   ) {
+    if (ids.length < 1) return;
+
     const devices = await db
       .selectFrom("devices")
       .select(["push_subscription"])
-      .where("uid", "=", uid)
+      .where(to == "devices" ? "did" : "uid", "in", ids)
       .execute();
 
     for (const device of devices) {

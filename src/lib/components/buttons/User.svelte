@@ -1,0 +1,56 @@
+<script lang="ts">
+  import { getDicebearUrl } from "$lib/lib/common";
+  import { getLastSend } from "$lib/lib/UI";
+
+  import Badge from "../Badge.svelte";
+  import Button from "../Button.svelte";
+
+  let {
+    user,
+    subtitle = "",
+    lastSeen = false,
+    selected = false,
+  }: {
+    user: { uid: number; avatar_seed: string; display_name: string };
+    subtitle?: string;
+    lastSeen?: boolean;
+    selected?: boolean
+  } = $props();
+</script>
+
+<Button on:click>
+  <div>
+    <img
+      class="circle medium"
+      src={getDicebearUrl(user.avatar_seed)}
+      style="height: 45px; width: 45px;"
+      alt="Avatar"
+      draggable="false"
+    />
+
+    {#if selected}
+      <Badge user />
+    {/if}
+  </div>
+
+  <div>
+    <p id="title">{user.display_name}</p>
+    <p id="subtitle">{subtitle}</p>
+  </div>
+
+  {#if lastSeen}
+    <div class="max"></div>
+    <div id="last-seen" class="bold">
+      {#await getLastSend("contact", user.uid) then lastSend}
+        {lastSend}
+      {/await}
+    </div>
+  {/if}
+</Button>
+
+<style>
+  #last-seen {
+    font-size: small;
+    padding-bottom: 18px;
+  }
+</style>

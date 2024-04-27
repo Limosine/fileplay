@@ -5,12 +5,8 @@ import { get, writable } from "svelte/store";
 import type { MaybePromise } from "@sveltejs/kit";
 
 import { apiClient } from "$lib/api/client";
-import {
-  concatArrays,
-  outgoing_filetransfers,
-  type webRTCData,
-} from "$lib/sharing/common";
-import { handleData } from "$lib/sharing/main";
+import { concatUint8Arrays, type webRTCData } from "$lib/sharing/common";
+import { manager } from "$lib/sharing/manager.svelte";
 
 import {
   decryptData,
@@ -19,7 +15,6 @@ import {
   updateKey,
 } from "./encryption";
 import type { IDeviceInfo } from "./fetchers";
-import { SendState, sendState } from "./sendstate";
 import { numberToUint8Array, onGuestPage, uint8ArrayToNumber } from "./utils";
 
 const store = writable<Peer>();
@@ -135,15 +130,11 @@ class Peer {
         ) {
           delete this.connections[did];
           if (this.buffer[did] !== undefined) delete this.buffer[did];
-          outgoing_filetransfers.update((filetransfers) => {
-            const transfers = filetransfers.filter((t) => t.did === did);
-            for (const transfer of transfers) {
-              transfer.completed = true;
-            }
-            if (transfers[0] !== undefined && transfers[0].cid !== undefined)
-              sendState.set(transfers[0].cid, SendState.FAILED);
-            return filetransfers;
-          });
+
+          for (const transfer of manager.outgoing) {
+            const index = transfer.recipients.findIndex((r) => r.did === did);
+            if (index !== -1) transfer.recipients.splice(index, 1);
+          }
         }
       };
 
@@ -160,7 +151,7 @@ class Peer {
     const timer = setTimeout(() => {
       console.log("Failed to establish WebRTC connection");
       this.establishWebSocket(did, initiator, events);
-    }, 3000);
+    }, 1500);
 
     this.connections[did] = {
       data: { data: peer, timer },
@@ -361,7 +352,7 @@ class Peer {
           const peer = this.connections[did];
           peer.events.removeEventListener("encrypted", send);
 
-          const chunk = concatArrays([
+          const chunk = concatUint8Arrays([
             numberToUint8Array(1, 1),
             await encryptData(encode(data), did),
           ]);
@@ -379,7 +370,10 @@ class Peer {
         events.addEventListener("encrypted", send);
         if (peer === undefined) this.connect(did, true, events);
       } else {
-        const chunk = concatArrays([numberToUint8Array(0, 1), encode(data)]);
+        const chunk = concatUint8Arrays([
+          numberToUint8Array(0, 1),
+          encode(data),
+        ]);
         if (this.fallback || (peer !== undefined && peer.data == "websocket")) {
           if (peer === undefined) this.connect(did, true, events);
           this.sendOverTrpc(did, [chunk]);
@@ -391,12 +385,12 @@ class Peer {
     } else {
       let chunk: Uint8Array;
       if (encrypt) {
-        chunk = concatArrays([
+        chunk = concatUint8Arrays([
           numberToUint8Array(1, 1),
           await encryptData(encode(data), did),
         ]);
       } else {
-        chunk = concatArrays([numberToUint8Array(0, 1), encode(data)]);
+        chunk = concatUint8Arrays([numberToUint8Array(0, 1), encode(data)]);
       }
 
       if (this.fallback || (peer !== undefined && peer.data == "websocket")) {
@@ -464,7 +458,7 @@ class Peer {
           this.sendKey(did, id);
         }
       } else {
-        handleData(data, did);
+        manager.handle(data, did);
       }
     };
 

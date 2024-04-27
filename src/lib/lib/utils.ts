@@ -14,8 +14,7 @@ export const isProfane = async (s: string) => {
 
 export const ValueToName = (value: string) => {
   for (const key in DeviceType) {
-    // eslint-disable-next-line no-prototype-builtins
-    if (DeviceType.hasOwnProperty(key)) {
+    if (Object.hasOwn(DeviceType, key)) {
       // @ts-ignore
       if (DeviceType[key] == value) {
         return key;
@@ -26,6 +25,16 @@ export const ValueToName = (value: string) => {
 
 export const capitalizeFirstLetter = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1);
+
+export const isEmpty = (obj: Object) => {
+  for (const prop in obj) {
+    if (Object.hasOwn(obj, prop)) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 export const stringToArrayBuffer = (str: string) => {
   return new TextEncoder().encode(str).buffer;

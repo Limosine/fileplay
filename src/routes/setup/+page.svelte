@@ -1,29 +1,34 @@
 <script lang="ts">
   import type { HttpResponse } from "@capacitor/core";
+  import { nanoid } from "nanoid";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { pwaInfo } from "virtual:pwa-info";
 
   import "beercss";
-
-  import logo from "$lib/assets/Fileplay.svg";
-  import Dialog from "$lib/components/Dialog.svelte";
-  import Username from "$lib/components/Username.svelte";
+  import * as materialSymbols from "beercss/dist/cdn/material-symbols-outlined.woff2";
 
   import { apiClient } from "$lib/api/client";
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
-  import { withDeviceType } from "$lib/lib/fetchers";
+  import { clearObjectStores } from "$lib/lib/history";
   import {
     deviceParams,
     userParams,
     profaneUsername,
-    openDialog,
     linkingCode,
     width,
     layout,
     height,
+    openEditDialog,
   } from "$lib/lib/UI";
   import { ValueToName } from "$lib/lib/utils";
+
+  import logo from "$lib/assets/Fileplay.svg";
+  import Button from "$lib/components/Button.svelte";
+  import Dialog from "$lib/components/Dialog.svelte";
+  import Username from "$lib/components/Username.svelte";
+
+  let webManifest = "";
 
   // Options
   let progress = 0;
@@ -43,42 +48,30 @@
   };
 
   const handleConfirm = async () => {
-    // Setup device if not already done so
-    let storedDeviceParams = localStorage.getItem("deviceParams");
-    if (
-      storedDeviceParams &&
-      storedDeviceParams !== JSON.stringify($deviceParams)
-    ) {
-      storedDeviceParams = null;
-      // Delete old user with still present cookie auth
-      await apiClient("http").deleteAccount(true, false);
-    }
-    if (!storedDeviceParams) {
-      const object = {
-        display_name: $deviceParams[0].display_name,
-        type: $deviceParams[0].type,
-      };
+    // Setup device
+    const res = await apiClient("http").setupDevice({
+      display_name: $deviceParams[0].display_name,
+      type: $deviceParams[0].type,
+    });
 
-      const res = await apiClient("http").setupDevice(object);
+    if (Array.from(res.status.toString())[0] != "2") {
+      return handleResponseError(res);
+    }
+
+    if (existing) {
+      // Link to existing user
+      const res = await apiClient("http").setupDevice($linkingCode);
+
       if (Array.from(res.status.toString())[0] != "2") {
         return handleResponseError(res);
       }
-      localStorage.setItem("deviceParams", JSON.stringify($deviceParams));
-    }
-    if (existing) {
-      // Link to existing user
-      const res2 = await apiClient("http").setupDevice($linkingCode);
-      if (Array.from(res2.status.toString())[0] != "2") {
-        return handleResponseError(res2);
-      }
     } else {
-      const object = {
+      // Setup user
+      const res = await apiClient("http").setupUser({
         display_name: $userParams.display_name,
         avatar_seed: $userParams.avatar_seed,
-      };
+      });
 
-      // Create new user
-      const res = await apiClient("http").setupUser(object);
       if (Array.from(res.status.toString())[0] != "2") {
         return handleResponseError(res);
       }
@@ -87,11 +80,17 @@
     localStorage.removeItem("deviceParams");
     localStorage.setItem("loggedIn", "true");
 
+    await clearObjectStores();
     location.href = "/";
   };
 
   onMount(() => {
+    if (pwaInfo) webManifest = pwaInfo.webManifest.linkTag;
+
     progress = 1;
+
+    // Generate avatar seed
+    $userParams.avatar_seed = nanoid(8);
   });
 
   $: {
@@ -101,13 +100,11 @@
       actionDisabled =
         !$userParams.display_name ||
         $profaneUsername.profane ||
-        $profaneUsername.loading;
-    } else {
-      actionDisabled = !$linkingCode;
-    }
+        $profaneUsername.loading ||
+        !$userParams.avatar_seed;
+    } else actionDisabled = !$linkingCode;
   }
 
-  $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : "";
   $: $layout = $width < 840 ? "mobile" : "desktop";
 </script>
 
@@ -116,6 +113,13 @@
 <svelte:head>
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html webManifest}
+  <link
+    rel="preload"
+    as="font"
+    href={materialSymbols.default}
+    type="font/woff2"
+    crossorigin="anonymous"
+  />
 </svelte:head>
 
 <Dialog />
@@ -140,9 +144,9 @@
       class="border center {$height >= 630 ? 'middle' : ''}"
       style="margin: 0; width: 600px;"
     >
-      <h6 id="title" style="padding: 16px 16px 0px 16px;">Setup</h6>
-      <div class="medium-divider" />
-      <div style="padding: 0px 16px 16px 16px;">
+      <h6 style="padding: 16px 16px 0 16px;">Setup</h6>
+      <div class="medium-divider"></div>
+      <div style="padding: 0 16px 16px 16px;">
         <p class="bold" style="font-size: large">Device</p>
         <div
           id="content"
@@ -151,7 +155,7 @@
         >
           <div class="field label">
             <input bind:value={$deviceParams[0].display_name} maxlength={32} />
-            <!-- svelte-ignore a11y-label-has-associated-control-->
+            <!-- svelte-ignore a11y_label_has_associated_control -->
             <label>Device Name</label>
           </div>
 
@@ -160,11 +164,11 @@
               bind:value={$deviceParams[0].type}
               style="min-width: 200px;"
             >
-              {#each Object.keys(DeviceType).map(withDeviceType) as { type, name }}
-                <option value={type}>{name}</option>
+              {#each Object.entries(DeviceType) as [label, value]}
+                <option {value}>{label}</option>
               {/each}
             </select>
-            <!-- svelte-ignore a11y-label-has-associated-control -->
+            <!-- svelte-ignore a11y_label_has_associated_control -->
             <label>Device Type</label>
             <i>arrow_drop_down</i>
           </div>
@@ -208,7 +212,7 @@
             </p>
             <div class="field label">
               <input bind:value={$linkingCode} maxlength={6} />
-              <!-- svelte-ignore a11y-label-has-associated-control-->
+              <!-- svelte-ignore a11y_label_has_associated_control -->
               <label>Linking Code</label>
             </div>
           </div>
@@ -234,137 +238,127 @@
     >
       <i>arrow_back</i>
     </button>
-    <h3
-      style="margin-top: 55px; margin-bottom: 30px; padding: 0px 20px 0px 20px;"
-    >
+    <h3 style="margin-top: 55px; margin-bottom: 30px; padding: 0 20px;">
       Setup
     </h3>
-    <p
-      class="bold"
-      style="color: var(--secondary); margin: 20px 0px 5px 0px; padding: 0px 20px 0px 20px;"
-    >
-      Device
-    </p>
+    <p id="header" class="bold">Device</p>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-    <a
-      class="chip border responsive row"
-      style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() =>
-        openDialog({ mode: "edit", currentU: "deviceName", didU: 0 })}
+    <Button
+      on:click={async () =>
+        ($deviceParams[0].display_name = await openEditDialog(
+          {
+            title: "Device name",
+            type: "string",
+            placeholder: "Google Pixel 5",
+          },
+          $deviceParams[0].display_name,
+        ))}
     >
       <div>
-        <p style="font-size: large; margin-bottom: 2px;">Device name</p>
+        <p id="title">Device name</p>
         <p
-          style="font-size: small; margin-top: 0; {!$deviceParams[0]
-            .display_name
-            ? 'font-style: italic;'
-            : ''}"
+          id="subtitle"
+          style={!$deviceParams[0].display_name ? "font-style: italic;" : ""}
         >
           {$deviceParams[0].display_name
             ? $deviceParams[0].display_name
             : "Google Pixel 5"}
         </p>
       </div>
-    </a>
+    </Button>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-    <a
-      class="chip border responsive row"
-      style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() =>
-        openDialog({ mode: "edit", currentU: "deviceType", didU: 0 })}
+    <Button
+      on:click={async () =>
+        ($deviceParams[0].type = await openEditDialog(
+          { title: "Device type", type: "deviceType" },
+          $deviceParams[0].type,
+        ))}
     >
       <div>
-        <p
-          style="font-size: large; {$deviceParams[0].type
-            ? 'margin-bottom: 2px;'
-            : ''}"
-        >
-          Device type
+        <p id="title">Device type</p>
+        <p id="subtitle">
+          {$deviceParams[0].type ? ValueToName($deviceParams[0].type) : ""}
         </p>
-        {#if $deviceParams[0].type}
-          <p style="font-size: small; margin-top: 0;">
-            {ValueToName($deviceParams[0].type)}
-          </p>
-        {/if}
       </div>
-    </a>
+    </Button>
 
-    <p
-      class="bold"
-      style="color: var(--secondary); margin: 20px 0px 5px 0px; padding: 0px 20px 0px 20px;"
-    >
-      User
-    </p>
+    <p id="header" class="bold">User</p>
 
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-    <a
-      class="chip border responsive row"
-      style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-      on:click={() => (existing = !existing)}
-    >
+    <Button on:click={() => (existing = !existing)}>
       <div>
-        <p style="font-size: large; margin-bottom: 2px;">Connect to existing</p>
-        <p style="font-size: small; margin-top: 0;">
-          Link your device to an existing user
-        </p>
+        <p id="title">Connect to existing</p>
+        <p id="subtitle">Link your device to an existing user</p>
       </div>
-      <span class="max" />
+      <span class="max"></span>
       <label class="switch icon">
         <input type="checkbox" checked={existing} />
-        <span />
+        <span></span>
       </label>
-    </a>
+    </Button>
 
     {#if existing}
-      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-      <a
-        class="chip border responsive row"
-        style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog({ mode: "edit", currentU: "linkingCode" })}
+      <Button
+        on:click={async () =>
+          ($linkingCode = await openEditDialog(
+            {
+              title: "Linking code",
+              type: "string",
+              placeholder: "6-digit code",
+              length: 6,
+            },
+            $linkingCode,
+          ))}
       >
         <div>
-          <p style="font-size: large; margin-bottom: 2px;">Linking code</p>
-          <p style="font-size: small; margin-top: 0;">6-digit code</p>
+          <p id="title">Linking code</p>
+          <p id="subtitle">6-digit code</p>
         </div>
-      </a>
+      </Button>
     {:else}
-      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-      <a
-        class="chip border responsive row"
-        style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog({ mode: "edit", currentU: "username" })}
+      <Button
+        on:click={async () =>
+          ($userParams.display_name = await openEditDialog(
+            {
+              title: "Username",
+              placeholder: "Username",
+              type: "string",
+            },
+            $userParams.display_name,
+          ))}
       >
         <div>
-          <p style="font-size: large; margin-bottom: 2px;">Username</p>
-          <p style="font-size: small; margin-top: 0;">
+          <p id="title">Username</p>
+          <p id="subtitle">
             {$userParams.display_name}
           </p>
         </div>
-      </a>
+      </Button>
 
-      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-      <a
-        class="chip border responsive row"
-        style="margin: 0; padding: 35px 20px 35px 20px; border: 0; color: var(--on-background);"
-        on:click={() => openDialog({ mode: "edit", currentU: "avatar" })}
+      <Button
+        on:click={async () =>
+          ($userParams.avatar_seed = await openEditDialog(
+            {
+              title: "Avatar",
+              type: "avatar",
+            },
+            $userParams.avatar_seed,
+          ))}
       >
         <div>
-          <p style="font-size: large; margin-bottom: 2px;">Avatar</p>
-          <p style="font-size: small; margin-top: 0;">Choose your Avatar</p>
+          <p id="title">Avatar</p>
+          <p id="subtitle">Choose your Avatar</p>
         </div>
-        <span class="max" />
+        <span class="max"></span>
         <img
           class="responsive"
           style="height: 50px; width: 50px; margin-right: 5px;"
-          src={getDicebearUrl($userParams.avatar_seed, 150)}
+          src={getDicebearUrl($userParams.avatar_seed)}
           alt="Avatar"
           draggable="false"
         />
-      </a>
+      </Button>
 
-      <div style="height: 35px" />
+      <div style="height: 35px"></div>
     {/if}
 
     <button
@@ -413,5 +407,11 @@
   img#logo-image {
     width: 300px;
     height: auto;
+  }
+
+  #header {
+    margin: 20px 0 5px 0;
+    padding: 0 20px;
+    color: var(--secondary);
   }
 </style>

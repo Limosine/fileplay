@@ -15,17 +15,18 @@ import {
 import { authenticate } from "$lib/api/server/context";
 import {
   closeGuestConnection,
+  deviceStateChanged,
   handleMessage,
-  notifyDevices,
   sendMessage,
 } from "$lib/api/server/main";
 
 export let clients = new Set<ExtendedWebSocket>();
 
 if (!building) {
+  const host = env.HOST === undefined ? "127.0.0.1" : env.HOST;
   const port = env.WS_PORT === undefined ? 3001 : Number(env.WS_PORT);
 
-  const wss = new WebSocketServer({ port });
+  const wss = new WebSocketServer({ host, port });
 
   clients = wss.clients as Set<ExtendedWebSocket>;
   const constants = await createConstants();
@@ -102,10 +103,14 @@ if (!building) {
       const awaited = getIds(await ids);
       if (!awaited) return;
 
-      if (awaited.user !== null || awaited.guest !== null) {
+      if (
+        (awaited.device !== null && awaited.user !== null) ||
+        awaited.guest !== null
+      ) {
         client.on("close", () => {
-          if (awaited.user !== null)
-            notifyDevices(constants.db, "contact", awaited.user);
+          if (awaited.user !== null && awaited.device !== null)
+            deviceStateChanged(constants.db, awaited.user);
+
           if (awaited.guest !== null && client.guestTransfer !== undefined)
             closeGuestConnection(awaited.guest * -1, client.guestTransfer);
         });
@@ -125,7 +130,8 @@ if (!building) {
       client.guest = awaited.guest;
 
       // Notify devices
-      if (awaited.user) notifyDevices(constants.db, "contact", awaited.user);
+      if (awaited.user !== null && awaited.device !== null)
+        deviceStateChanged(constants.db, awaited.user);
     },
   );
 
@@ -145,13 +151,10 @@ if (!building) {
   });
 
   wss.on("listening", () => {
-    console.log("Listening on ws://127.0.0.1:3001");
+    console.log(`Listening on ws://${host}:${port}`);
   });
 
-  process.on("SIGTERM", () => {
-    wss.close();
-    process.exit(143);
-  });
+  process.on("SIGTERM", () => wss.close(() => process.exit(143)));
 }
 
 export const handle: Handle = async ({ resolve, event }) => {

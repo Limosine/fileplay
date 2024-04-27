@@ -22,6 +22,8 @@ export type MessageFromServer =
   | User
   | Devices
   | Contacts
+  | Groups
+  | GroupDevices
   | WebRTCData
   | CloseConnection
   | Filetransfer
@@ -56,6 +58,7 @@ export interface Devices {
       display_name: string;
       type: DeviceType;
       created_at: number;
+      online: boolean;
     }[];
   };
 }
@@ -64,7 +67,6 @@ export interface Contacts {
   id?: number;
   type: "contacts";
   data: {
-    cid: number;
     uid: number;
     display_name: string;
     avatar_seed: string;
@@ -74,6 +76,40 @@ export interface Contacts {
       type: string;
       display_name: string;
     }[];
+  }[];
+}
+
+export interface Groups {
+  id?: number;
+  type: "groups";
+  data: {
+    gid: number;
+    oid: number;
+    name: string;
+    created_at: number;
+    members: {
+      uid: number;
+      joined_at: number;
+      display_name: string;
+      avatar_seed: string;
+    }[];
+    requests: {
+      uid: number;
+      created_at: number;
+      display_name: string;
+      avatar_seed: string;
+    }[];
+  }[];
+}
+
+export interface GroupDevices {
+  id?: number;
+  type: "group_devices";
+  data: {
+    gid: number;
+    did: number;
+    type: string;
+    display_name: string;
   }[];
 }
 
@@ -174,10 +210,11 @@ const messageFromClientSchemaWithoutId = z.union([
     }),
   }),
   z.object({
-    type: z.enum(["sendNotification"]),
+    type: z.enum(["sendNotifications"]),
     data: z.object({
-      uid: z.number(),
-      id: z.string(),
+      type: z.enum(["group", "contact", "devices"]),
+      ids: z.array(z.number()),
+      nid: z.string(),
       files: z.array(z.string()),
     }),
   }),
@@ -211,6 +248,31 @@ const messageFromClientSchemaWithoutId = z.union([
   z.object({
     type: z.enum(["redeemContactCode"]),
     data: z.string(),
+  }),
+  z.object({
+    type: z.enum(["createGroup"]),
+    data: z.object({
+      name: z.string(),
+      members: z.array(z.number()),
+    }),
+  }),
+  z.object({
+    type: z.enum(["createGroupRequest"]),
+    data: z.object({
+      gid: z.number(),
+      uIds: z.array(z.number()),
+    }),
+  }),
+  z.object({
+    type: z.enum(["acceptGroupRequest"]),
+    data: z.number(), // Group id
+  }),
+  z.object({
+    type: z.enum(["deleteGroupMember"]),
+    data: z.object({
+      gid: z.number(),
+      deletion: z.number().optional(),
+    }),
   }),
 ]);
 

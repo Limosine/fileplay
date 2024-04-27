@@ -1,5 +1,6 @@
-import { writable } from "svelte/store";
+import { get } from "svelte/store";
 
+import { files } from "$lib/lib/UI";
 import { blobToArrayBuffer } from "$lib/lib/utils";
 
 // Types:
@@ -52,6 +53,7 @@ export interface Reject {
 export interface Request {
   type: "request";
   id: string;
+  ids: IncomingFiletransfer["ids"];
   files: Omit<Omit<IncomingFileInfos, "url">, "chunks">[];
   previous?: string;
   nid?: string;
@@ -83,38 +85,85 @@ export interface OutgoingFileInfos {
 }
 export interface OutgoingFileTransfer {
   id: string;
-  completed: boolean;
+  nid: string;
   files: OutgoingFileInfos[];
-  did?: number;
-  cid?: number; // not always defined (--> via link)
+  ids:
+    | {
+        type: "group" | "contact";
+        id: number;
+      }
+    | {
+        type: "devices";
+        ids: number[];
+      }
+    | {
+        type: "fromGuest";
+        id: number;
+        previous: string;
+      }
+    | {
+        type: "toGuest";
+        transferId: string;
+      };
+  recipients: {
+    state:
+      | "requesting"
+      | "rejected"
+      | "sending"
+      | "sent"
+      | "canceled"
+      | "failed";
+    did: number;
+    filesSent: number;
+  }[];
 }
 export interface IncomingFiletransfer {
   id: string;
-  completed: boolean;
-  files: IncomingFileInfos[];
   did: number;
-  cid?: number; // no access to cid on guest page
+  files: IncomingFileInfos[];
+  ids:
+    | {
+        type: "group" | "contact";
+        id: number;
+      }
+    | {
+        type: "device" | "guest";
+      };
+  state: "infos" | "receiving" | "received" | "failed";
 }
-
-// Sender Side:
-export const outgoing_filetransfers = writable<OutgoingFileTransfer[]>([]);
-export const outgoing_notifications = writable<
-  { uid: number; id: string; files: OutgoingFileInfos[] }[]
->([]);
-export const link = writable("");
-
-// Receiver Side:
-export const incoming_filetransfers = writable<IncomingFiletransfer[]>([]);
-export const incoming_notifications = writable<{ did: number; id: string }[]>(
-  [],
-);
-export const senderLink = writable("");
 
 // Functions:
 export const createFileURL = (file: any) => {
   const blob = new Blob([file]);
   const url = URL.createObjectURL(blob);
   return url;
+};
+
+export const generateInfos = () => {
+  // Split the files into large chunks (16000 KB)
+  const fileInfos: OutgoingFileInfos[] = [];
+  for (let i = 0; i < get(files).length; i++) {
+    let bigChunks = get(files)[i].bigChunks;
+
+    if (bigChunks === undefined) {
+      bigChunks = chunkFileBig(get(files)[i].file);
+      files.update((files) => {
+        files[i].bigChunks = bigChunks;
+        return files;
+      });
+    }
+
+    fileInfos.push({
+      id: get(files)[i].id,
+      name: get(files)[i].file.name,
+      bigChunks,
+      small: {
+        chunks_length: Math.ceil(get(files)[i].file.size / (16 * 1024)),
+      },
+      completed: 0,
+    });
+  }
+  return fileInfos;
 };
 
 // Chunking:
@@ -159,7 +208,11 @@ export const chunkBlobSmall = async (blob: Blob) => {
   return chunkUint8Array(uint8, 16 * 1024);
 };
 
-export const concatArrays = (arrays: Uint8Array[]) => {
+export function concatArrays<T>(arrays: T[][]): T[] {
+  return new Array().concat(...arrays);
+}
+
+export const concatUint8Arrays = (arrays: Uint8Array[]) => {
   let length = 0;
   arrays.forEach((item) => {
     length += item.length;

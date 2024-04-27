@@ -1,134 +1,46 @@
 <script lang="ts">
-  import { page } from "$app/stores";
   import { onMount } from "svelte";
 
+  import { dialogProperties, generalDialog } from "$lib/lib/UI";
+
   import Add from "$lib/dialogs/Add.svelte";
+  import Delete from "$lib/dialogs/Delete.svelte";
   import Edit from "$lib/dialogs/Edit.svelte";
-
-  import { apiClient } from "$lib/api/client";
-
-  import type { DeviceType } from "$lib/lib/common";
-  import type { IDevices } from "$lib/lib/fetchers";
-  import {
-    checkProfanity,
-    deviceParams,
-    devices,
-    dialogMode,
-    editProperties,
-    generalDialog,
-    user,
-    userParams,
-  } from "$lib/lib/UI";
   import Privacy from "$lib/dialogs/Privacy.svelte";
   import PushRequest from "$lib/dialogs/PushRequest.svelte";
   import QrCode from "$lib/dialogs/QRCode.svelte";
-  import Send from "$lib/dialogs/Send.svelte";
 
-  onMount(() => {
-    // TODO: Set interval on open, clear on close; refresh code if expired
-
-    $generalDialog.addEventListener("close", async () => {
-      setTimeout(() => {
-        if (!$generalDialog.open) $dialogMode = undefined;
-      }, 3100);
-
-      // Edit dialog
-      if ($dialogMode == "edit") {
-        if ($editProperties.mode == "username") {
-          await checkProfanity();
-        }
-
-        if ($page.url.pathname == "/setup") return;
-
-        if ($editProperties.mode == "username") {
-          if ($user.display_name != $userParams.display_name)
-            apiClient("ws").sendMessage({
-              type: "updateUser",
-              data: {
-                display_name: $userParams.display_name,
-              },
-            });
-        } else if ($editProperties.mode == "avatar") {
-          if ($user.avatar_seed != $userParams.avatar_seed)
-            apiClient("ws").sendMessage({
-              type: "updateUser",
-              data: {
-                avatar_seed: $userParams.avatar_seed,
-              },
-            });
-        } else if (
-          $editProperties.mode == "deviceName" ||
-          $editProperties.mode == "deviceType"
-        ) {
-          if ($editProperties.did === undefined) return;
-
-          let device: IDevices["self"];
-          if ($devices.self.did === $editProperties.did) device = $devices.self;
-          else {
-            const d = $devices.others.find(
-              (d) => d.did === $editProperties.did,
-            );
-            if (d !== undefined) device = d;
-            else return;
-          }
-
-          if (
-            $editProperties.mode == "deviceName" &&
-            $editProperties.did !== undefined &&
-            $deviceParams[$editProperties.did] !== undefined &&
-            device.display_name !=
-              $deviceParams[$editProperties.did].display_name
-          )
-            apiClient("ws").sendMessage({
-              type: "updateDevice",
-              data: {
-                update: {
-                  display_name: $deviceParams[$editProperties.did].display_name,
-                },
-                did: $editProperties.did,
-              },
-            });
-          else if (
-            $editProperties.mode == "deviceType" &&
-            $editProperties.did !== undefined &&
-            $deviceParams[$editProperties.did] !== undefined &&
-            device.type != $deviceParams[$editProperties.did].type
-          )
-            apiClient("ws").sendMessage({
-              type: "updateDevice",
-              data: {
-                update: {
-                  type: $deviceParams[$editProperties.did].type as DeviceType,
-                },
-                did: $editProperties.did,
-              },
-            });
-        }
-      }
-    });
-  });
+  onMount(() =>
+    $generalDialog.addEventListener("close", () => {
+      if ($dialogProperties.mode !== "unselected")
+        setTimeout(() => {
+          if (!$generalDialog.open) $dialogProperties.mode = "unselected";
+        }, 400); // BeerCSS: --speed3 + 0.1s
+    }),
+  );
 </script>
 
 <dialog
   id="dialog-general"
   bind:this={$generalDialog}
-  style={$dialogMode == "edit"
-    ? $editProperties.mode == "deviceType" || $editProperties.mode == "avatar"
-      ? "min-height: 250px;"
-      : ""
-    : ""}
+  style={$dialogProperties.mode == "edit" &&
+  ($dialogProperties.type == "deviceType" || $dialogProperties.type == "avatar")
+    ? "min-height: 250px;"
+    : $dialogProperties.mode == "qrcode"
+      ? "width: 357px;"
+      : undefined}
 >
-  {#if $dialogMode == "add"}
-    <Add />
-  {:else if $dialogMode == "edit"}
-    <Edit />
-  {:else if $dialogMode == "privacy"}
+  {#if $dialogProperties.mode == "add"}
+    <Add properties={$dialogProperties} />
+  {:else if $dialogProperties.mode == "delete"}
+    <Delete />
+  {:else if $dialogProperties.mode == "edit"}
+    <Edit properties={$dialogProperties} />
+  {:else if $dialogProperties.mode == "privacy"}
     <Privacy />
-  {:else if $dialogMode == "request"}
+  {:else if $dialogProperties.mode == "request"}
     <PushRequest />
-  {:else if $dialogMode == "qrcode"}
+  {:else if $dialogProperties.mode == "qrcode"}
     <QrCode />
-  {:else if $dialogMode == "send"}
-    <Send />
   {/if}
 </dialog>

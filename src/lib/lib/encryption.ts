@@ -1,5 +1,5 @@
 import { numberToUint8Array, typedArrayToBuffer } from "$lib/lib/utils";
-import { concatArrays } from "$lib/sharing/common";
+import { concatUint8Arrays } from "$lib/sharing/common";
 
 import { peer } from "./simple-peer";
 
@@ -109,7 +109,7 @@ export const encryptData = async (array: Uint8Array, did: number) => {
     key.id,
   );
 
-  return concatArrays([encrypted.iv, encrypted.data]);
+  return concatUint8Arrays([encrypted.iv, encrypted.data]);
 };
 
 export const decryptData = async (array: Uint8Array, did: number) => {

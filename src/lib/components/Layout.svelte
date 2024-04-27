@@ -1,173 +1,103 @@
 <script lang="ts">
   import {
-    changePath,
     layout,
-    notifications,
-    openDialog,
+    openAddDialog,
     path,
   } from "$lib/lib/UI";
-  import { capitalizeFirstLetter } from "$lib/lib/utils";
-  import { authorizeGuestSender } from "$lib/sharing/main";
+
+  import Footer from "./Footer.svelte";
+  import Header from "./Header.svelte";
+  import Menu from "./Menu.svelte";
+  import Rail from "./Rail.svelte";
+
+  let header = true;
+  let rail = false;
+  let bar = false;
+  let add = false;
+
+  let contentClasses: string[] = ["content"];
+
+  const updateClasses = (header: boolean, rail: boolean, bar: boolean) => {
+    const tempClasses = ["content"];
+
+    if (header) tempClasses.push("header");
+    if (rail) tempClasses.push("rail");
+    if (bar) tempClasses.push("bar");
+
+    contentClasses = tempClasses;
+  };
+
+  $: updateClasses(header, rail, bar);
+
+  $: {
+    if ($layout == "desktop") rail = true;
+    else rail = false;
+
+    if (
+      $layout == "mobile" &&
+      ($path.main == "send" || $path.main == "receive")
+    )
+      bar = true;
+    else bar = false;
+
+    if ($path.main == "contacts" || $path.main == "groups") add = true;
+    else add = false;
+  }
 </script>
 
-{#if $layout == "desktop"}
-  <div id="rail">
-    <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-    <nav
-      class="left"
-      style="z-index: 99; background-color: var(--surface-container);"
-    >
-      <a>
-        <img class="circle" src="/favicon.svg" draggable="false" />
-      </a>
-      <a
-        class={$path.main == "home" ? "active" : ""}
-        on:click={() => changePath({ main: "home" })}
-      >
-        <i>home</i>
-        <span>Home</span>
-      </a>
-      <a
-        class={$path.main == "contacts" ? "active" : ""}
-        on:click={() => changePath({ main: "contacts" })}
-      >
-        <i>Contacts</i>
-        <span>Contacts</span>
-      </a>
-    </nav>
-  </div>
+{#if rail}
+  <Rail />
 {/if}
 
-{#if $layout == "desktop" || $path.main != "settings" || !("sub" in $path)}
-  <div id="header">
-    <header class="fixed">
-      <nav>
-        {#if $layout == "mobile"}
-          <p style="font-size: large; font-weight: 600;">
-            {capitalizeFirstLetter($path.main)}
-          </p>
-        {/if}
-        <div class="max" />
-        <!-- eslint-disable no-undef -->
-        <!-- svelte-ignore missing-declaration -->
-        <button
-          class="circle transparent"
-          on:click={() => {
-            authorizeGuestSender();
-            openDialog({ mode: "qrcode" });
-          }}
-        >
-          <i>qr_code_2</i>
-          <div class="tooltip bottom">Guest QR code</div>
-        </button>
-        <!-- svelte-ignore missing-declaration -->
-        <button
-          class="circle transparent"
-          on:click={() => ui("#dialog-notifications")}
-        >
-          {#if $notifications.length != 0}
-            <div class="badge">{$notifications.length}</div>
-          {/if}
-          <i>notifications</i>
-          <div class="tooltip bottom">Notifications</div>
-        </button>
-        {#if $layout == "desktop"}
-          <!-- eslint-enable no-undef -->
-          <button
-            class="circle transparent"
-            on:click={() =>
-              changePath({
-                main: "settings",
-              })}
-          >
-            <i>settings</i>
-            <div class="tooltip bottom">Settings</div>
-          </button>
-        {/if}
-      </nav>
-    </header>
-  </div>
-  {#if $layout == "mobile"}
-    <div id="content-small-header">
-      <slot />
-    </div>
-  {/if}
-{:else if $layout == "mobile"}
-  <div id="content-small">
-    <slot />
-  </div>
+{#if $layout == "mobile"}
+  <Menu />
 {/if}
-{#if $layout == "desktop"}
-  <div id="content-large">
-    <slot />
-  </div>
-{:else}
-  <div id="footer">
-    <!-- svelte-ignore a11y-click-events-have-key-events a11y-missing-attribute a11y-no-static-element-interactions -->
-    <nav class="bottom" style="justify-content: space-around; z-index: 99;">
-      <a
-        class={$path.main == "home" ? "active" : ""}
-        on:click={() =>
-          changePath({
-            main: "home",
-          })}
-      >
-        <i>home</i>
-        <span>Home</span>
-      </a>
-      <a
-        class={$path.main == "contacts" ? "active" : ""}
-        on:click={() =>
-          changePath({
-            main: "contacts",
-          })}
-      >
-        <i>Contacts</i>
-        <span>Contacts</span>
-      </a>
-      <a
-        class={$path.main == "settings" ? "active" : ""}
-        on:click={() =>
-          changePath({
-            main: "settings",
-          })}
-      >
-        <i>settings</i>
-        <span>Settings</span>
-      </a>
-    </nav>
-  </div>
+
+{#if header}
+  <Header />
+{/if}
+
+<div class={contentClasses.join(" ")}>
+  <slot />
+</div>
+
+{#if add}
+  <button class="square round extra add" on:click={() => openAddDialog()}>
+    <i>add</i>
+  </button>
+{/if}
+
+{#if bar}
+  <Footer />
 {/if}
 
 <style>
-  #header,
-  #rail,
-  #footer,
-  #content-small,
-  #content-small-header,
-  #content-large {
+  .content {
     position: absolute;
-    left: 0;
-    width: 100%;
-  }
-
-  #content-small {
     top: 0;
-    bottom: 80px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     overflow: auto;
   }
 
-  #content-small-header {
+  .content.header {
     top: 64px;
-    bottom: 80px;
-    overflow: auto;
   }
 
-  #content-large {
-    height: calc(100% - 64px);
-    width: calc(100% - 80px);
-    top: 64px;
+  .content.rail {
     left: 80px;
-    overflow: auto;
+  }
+
+  .content.bar {
+    bottom: 80px;
+  }
+
+  .add {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+
+    margin: 0;
   }
 </style>

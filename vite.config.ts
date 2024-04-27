@@ -2,6 +2,7 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import { SvelteKitPWA } from "@vite-pwa/sveltekit";
 import type { ConfigEnv, UserConfig } from "vite";
 import EnvironmentPlugin from "vite-plugin-environment";
+import type { ManifestOptions } from "vite-plugin-pwa";
 
 export default async function (config: ConfigEnv): Promise<UserConfig> {
   return {
@@ -21,8 +22,10 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         useCredentials: true,
         devOptions: {
           enabled: false,
-        }, // @ts-ignore
-        manifest: await import("./static/manifest.json"),
+        },
+        manifest: (await import(
+          "./static/manifest.json"
+        )) as Partial<ManifestOptions>,
       }),
     ],
     build: {

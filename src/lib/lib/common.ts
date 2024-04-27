@@ -14,8 +14,7 @@ export const ONLINE_STATUS_REFRESH_TIME = 5; // 5 seconds
 // Dicebear avatars
 export const getDicebearUrl = (
   seed: string,
-  size: number,
   radius: number = 50,
 ) => {
-  return `https://api.dicebear.com/6.x/adventurer/svg?seed=${seed}&radius=${radius}&backgroundColor=b6e3f4&width=${size}&height=${size}`;
+  return `https://api.dicebear.com/6.x/adventurer/svg?seed=${seed}&radius=${radius}&backgroundColor=b6e3f4`;
 };

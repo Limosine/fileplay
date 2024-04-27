@@ -3,7 +3,12 @@
   import { onDestroy, onMount } from "svelte";
 
   import { apiClient } from "$lib/api/client";
-  import { addProperties, closeDialog } from "$lib/lib/UI";
+  import { closeDialog, type DialogAdd } from "$lib/lib/UI";
+
+  export let properties: DialogAdd;
+
+  let code = "";
+  let redeem = true;
 
   let infos: {
     code: string;
@@ -35,9 +40,9 @@
     requested = false;
   };
 
-  // TODO: Manual refresh button
+  // TODO: Manual refresh, copy button
   const refreshCode = () => {
-    if ($addProperties.mode == "contact") generateContactCode();
+    if (properties.addMode == "contact") generateContactCode();
     else generateDeviceCode();
   };
 
@@ -54,16 +59,16 @@
   onDestroy(() => clearInterval(updateInterval));
 </script>
 
-{#if $addProperties.mode == "contact"}
+{#if properties.addMode == "contact"}
   <p style="font-size: large; margin-bottom: 10px;">Add contact</p>
   <div id="content">
     <nav class="no-space center-align">
-      {#if $addProperties.redeem}
+      {#if redeem}
         <button class="left-round">Redeem code</button>
         <button
           class="right-round border"
           on:click={() => {
-            $addProperties.redeem = false;
+            redeem = false;
           }}
         >
           Generate code
@@ -72,16 +77,16 @@
         <button
           class="left-round border"
           on:click={() => {
-            $addProperties.redeem = true;
+            redeem = true;
           }}>Redeem code</button
         >
         <button class="right-round"> Generate code </button>
       {/if}
     </nav>
-    {#if $addProperties.redeem}
+    {#if redeem}
       <div class="field label border">
-        <input type="text" maxlength={6} bind:value={$addProperties.code} />
-        <!-- svelte-ignore a11y-label-has-associated-control -->
+        <input type="text" maxlength={6} bind:value={code} />
+        <!-- svelte-ignore a11y_label_has_associated_control -->
         <label>Linking code</label>
       </div>
     {:else}
@@ -101,25 +106,20 @@
     {/if}
   </div>
   <nav class="right-align" style="padding: 10px 0 0 0;">
-    <!-- eslint-disable no-undef -->
-    <!-- svelte-ignore missing-declaration -->
-    <button class="border" style="border: 0;" on:click={() => closeDialog()}
+    <button class="transparent link" on:click={() => closeDialog()}
       >Cancel</button
     >
-    <!-- svelte-ignore missing-declaration -->
     <button
-      disabled={$addProperties.code == ""}
-      class="border"
-      style="border: 0;"
+      disabled={code == ""}
+      class="transparent link"
       on:click={async () => {
         await apiClient("ws").sendMessage({
           type: "redeemContactCode",
-          data: $addProperties.code,
+          data: code,
         });
-        closeDialog();
+        closeDialog(true);
       }}>Add</button
     >
-    <!-- eslint-enable no-undef -->
   </nav>
 {:else}
   <p style="font-size: large; margin-bottom: 10px;">Link a new device</p>

@@ -47,7 +47,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       type: "deviceCodeRedeemed",
     });
     if (typeof ctx.user === "number")
-      notifyDevices(ctx.database, "device", ctx.user);
+      notifyDevices(ctx.database, ctx.user, { devices: true }, {});
     return new Response(null, { status: 200 });
   } catch (e: any) {
     error(500, e);
