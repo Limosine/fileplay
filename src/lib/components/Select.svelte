@@ -263,7 +263,7 @@
       <div class="centered">
         <p class="large-text">No contacts, groups or devices available</p>
       </div>
-    {:else if !frequently.length && !recently.length}
+    {:else if !frequently.length && !recently.length && !ownDevicesSelected}
       <div class="centered">
         <p class="large-text">Own devices available, toggle the switch!</p>
       </div>
