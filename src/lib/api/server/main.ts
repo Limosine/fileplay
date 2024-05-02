@@ -104,16 +104,11 @@ export const handleMessage = async (
 
     // WebRTC sharing
   } else if (data.type == "getTurnCredentials") {
-    await authorize(ids, async (AuthIds) => {
+    await authorize(ids, async () => {
       sendMessage(client, {
         id: data.id,
         type: "turnCredentials",
-        data: await getTurnCredentials(
-          typeof AuthIds != "number"
-            ? AuthIds.device.toString()
-            : AuthIds.toString(),
-          cts.turnKey,
-        ),
+        data: await getTurnCredentials(cts.turnKey),
       });
     });
   } else if (data.type == "share") {

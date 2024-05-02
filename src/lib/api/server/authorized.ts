@@ -387,10 +387,8 @@ export const deleteTransfer = (device: number) => {
 };
 
 // Turn credentials
-export const getTurnCredentials = async (user: string, key: CryptoKey) => {
-  const unixTimeStamp = Math.ceil(Date.now() / 1000) + 12 * 3600; // 12 hours
-
-  const username = [unixTimeStamp, user].join(":");
+export const getTurnCredentials = async (key: CryptoKey) => {
+  const username = (Math.ceil(Date.now() / 1000) + 12 * 3600).toString(); // 12 hours
   const password = await sign(username, key, "base64");
 
   return { username, password };
