@@ -76,17 +76,22 @@ class Peer {
         trickle: true,
         config: {
           iceServers: [
-            { urls: "stun:stun.l.google.com:19305" },
+            { urls: "stun:stun.l.google.com:19302" }, // Google STUN
             {
-              urls: "turns:turn.wir-sind-frey.de:443",
+              urls: "turns:turn.wir-sind-frey.de:443", // Only TURN over TLS
               username: (await this.turn).username,
               credential: (await this.turn).password,
             },
             {
-              urls: "turn:turn.wir-sind-frey.de:5349?transport=tcp",
+              urls: "turn:turn.wir-sind-frey.de:3478", // STUN and TURN over UDP
               username: (await this.turn).username,
               credential: (await this.turn).password,
             },
+            // {
+            //   urls: "turn:turn.wir-sind-frey.de:3478?transport=tcp", // Only TURN over TCP
+            //   username: (await this.turn).username,
+            //   credential: (await this.turn).password,
+            // },
           ],
         },
       });
