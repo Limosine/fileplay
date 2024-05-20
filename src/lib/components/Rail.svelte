@@ -3,7 +3,7 @@
 </script>
 
 <div id="rail">
-  <!-- svelte-ignore a11y_missing_attribute a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+  <!-- svelte-ignore a11y_missing_attribute, a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <nav
     class="left"
     style="z-index: 99; background-color: var(--surface-container);"
@@ -14,7 +14,7 @@
 
     <a
       class={$path.main == "send" || $path.main == "receive" ? "active" : ""}
-      on:click={() =>
+      onclick={() =>
         changePath({
           main: "send",
         })}
@@ -24,7 +24,7 @@
     </a>
     <a
       class={$path.main == "contacts" ? "active" : ""}
-      on:click={() =>
+      onclick={() =>
         changePath({
           main: "contacts",
         })}
@@ -34,7 +34,7 @@
     </a>
     <a
       class={$path.main == "groups" ? "active" : ""}
-      on:click={() =>
+      onclick={() =>
         changePath({
           main: "groups",
         })}

@@ -1,9 +1,7 @@
 import { browser } from "$app/environment";
-import { CapacitorHttp } from "@capacitor/core";
 import { decode, encode } from "@msgpack/msgpack";
 import { get, readable, writable } from "svelte/store";
 
-import { PUBLIC_HOSTNAME } from "$env/static/public";
 import { peer } from "$lib/lib/simple-peer";
 import {
   closeDialog,
@@ -21,82 +19,44 @@ import { onGuestPage } from "$lib/lib/utils";
 
 import type { MessageFromClient, MessageFromServer } from "./common";
 
-const getHost = (ws = false) => {
-  if (PUBLIC_HOSTNAME) {
-    if (PUBLIC_HOSTNAME.split(":")[0] == "localhost" && ws)
-      return "localhost:3001";
-    else return PUBLIC_HOSTNAME;
-  } else {
-    throw new Error("Please define a public hostname.");
-  }
-};
-
-const getProtocol = (ws = false) => {
-  if (browser && location.protocol == "https:") {
-    if (!ws) return location.protocol;
-    else return "wss:";
-  } else {
-    if (!ws) return "http:";
-    else return "ws:";
-  }
-};
-
 class HTTPClient {
-  private host: string;
-
-  constructor() {
-    this.host = getHost();
-  }
-
   async checkProfanity(username: string) {
-    const res = await CapacitorHttp.post({
-      url: `${getProtocol()}//${this.host}/api/checkProfanity`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
+    const res = await fetch("/api/checkProfanity", {
+      method: "POST",
+      body: JSON.stringify({
         username,
-      },
+      }),
     });
 
-    return JSON.parse(res.data) as boolean;
+    return (await res.json()) as boolean;
   }
 
   async setupDevice(device: { display_name: string; type: string } | string) {
     if (typeof device == "string") {
-      return await CapacitorHttp.post({
-        url: `${getProtocol()}//${this.host}/api/devices/link`,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: {
+      return await fetch("/api/devices/link", {
+        method: "POST",
+        body: JSON.stringify({
           code: device,
-        },
+        }),
       });
     } else {
-      return await CapacitorHttp.post({
-        url: `${getProtocol()}//${this.host}/api/setup/device`,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: device,
+      return await fetch("/api/setup/device", {
+        method: "POST",
+        body: JSON.stringify(device),
       });
     }
   }
 
   async setupUser(user: { display_name: string; avatar_seed: string }) {
-    return await CapacitorHttp.post({
-      url: `${getProtocol()}//${this.host}/api/setup/user`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: user,
+    return await fetch("/api/setup/user", {
+      method: "POST",
+      body: JSON.stringify(user),
     });
   }
 
   async setupGuest() {
-    const res = await CapacitorHttp.post({
-      url: `${getProtocol()}//${this.host}/api/setup/guest`,
+    const res = await fetch("/api/setup/guest", {
+      method: "POST",
     });
 
     if (Array.from(res.status.toString())[0] != "2")
@@ -104,10 +64,8 @@ class HTTPClient {
   }
 
   async deleteAccount(onlyOwn: boolean, forward = true) {
-    const res = await CapacitorHttp.delete({
-      url:
-        `${getProtocol()}//${this.host}` +
-        (onlyOwn ? "/api/devices" : "/api/user"),
+    const res = await fetch(onlyOwn ? "/api/devices" : "/api/user", {
+      method: "DELETE",
     });
 
     if (browser && res && forward) {
@@ -133,7 +91,7 @@ class WebSocketClient {
 
   private connect() {
     this.socket = new WebSocket(
-      `${getProtocol(true)}//${getHost(true)}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
+      `${browser && location.protocol == "https:" ? "wss:" : "ws:"}//${location.pathname}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
 
     this.socket.binaryType = "arraybuffer";

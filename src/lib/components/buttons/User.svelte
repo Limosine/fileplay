@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { MouseEventHandler } from "svelte/elements";
+
   import { getDicebearUrl } from "$lib/lib/common";
   import { getLastSend } from "$lib/lib/UI";
 
@@ -14,7 +16,8 @@
     user: { uid: number; avatar_seed: string; display_name: string };
     subtitle?: string;
     lastSeen?: boolean;
-    selected?: boolean
+    selected?: boolean;
+    onclick?: MouseEventHandler<HTMLAnchorElement>;
   } = $props();
 </script>
 

@@ -4,7 +4,7 @@
 
 <!-- Corner radius? -->
 <dialog class="left no-padding" id="dialog-menu" bind:this={$menuDialog}>
-  <!-- svelte-ignore a11y_missing_attribute a11y_click_events_have_key_events a11y_no_static_element_interactions missing-declaration -->
+  <!-- svelte-ignore a11y_missing_attribute, a11y_click_events_have_key_events, a11y_no_static_element_interactions missing-declaration -->
   <nav class="drawer">
     <header>
       <nav>
@@ -14,7 +14,7 @@
     </header>
     <a
       class={$path.main == "send" || $path.main == "receive" ? "active" : ""}
-      on:click={() => {
+      onclick={() => {
         changePath({
           main: "send",
         });
@@ -26,7 +26,7 @@
     </a>
     <a
       class={$path.main == "contacts" ? "active" : ""}
-      on:click={() => {
+      onclick={() => {
         changePath({
           main: "contacts",
         });
@@ -38,7 +38,7 @@
     </a>
     <a
       class={$path.main == "groups" ? "active" : ""}
-      on:click={() => {
+      onclick={() => {
         changePath({
           main: "groups",
         });
@@ -56,7 +56,7 @@
 
     <a
       class={$path.main == "settings" ? "active" : ""}
-      on:click={() => {
+      onclick={() => {
         changePath({
           main: "settings",
         });

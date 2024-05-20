@@ -4,7 +4,11 @@
   import { DeviceType, getDicebearUrl } from "$lib/lib/common";
   import type { DialogEdit } from "$lib/lib/UI";
 
-  export let properties: DialogEdit;
+  let {
+    properties,
+  }: {
+    properties: DialogEdit;
+  } = $props();
 </script>
 
 <p style="font-size: large; margin-bottom: 2px;">
@@ -12,7 +16,6 @@
 </p>
 
 <div class="field">
-  <!-- svelte-ignore a11y-autofocus -->
   {#if properties.type == "string"}
     <input
       bind:value={properties.value}
@@ -32,7 +35,7 @@
     <nav class="right-align" style="padding: 10px 0 0 0;">
       <button
         class="transparent link"
-        on:click={() => (properties.value = nanoid(8))}>Change Avatar</button
+        onclick={() => (properties.value = nanoid(8))}>Change Avatar</button
       >
     </nav>
   {:else}
@@ -41,8 +44,7 @@
         <label class="radio">
           <input
             checked={properties.value == value}
-            on:change={(event) =>
-              (properties.value = event.currentTarget.value)}
+            onchange={(event) => (properties.value = event.currentTarget.value)}
             type="radio"
             name="deviceType"
             {value}

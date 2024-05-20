@@ -9,20 +9,20 @@
     checkProfanity,
   } from "$lib/lib/UI";
 
-  $: {
+  $effect(() => {
     if ($user !== undefined) {
       // Load infos
       $userParams.display_name = $user.display_name;
       $userParams.avatar_seed = $user.avatar_seed;
     }
-  }
+  });
 </script>
 
 <div id="user">
   <div class="field label {$profaneUsername.profane ? 'invalid' : ''}">
     <input
       bind:value={$userParams.display_name}
-      on:blur={() => checkProfanity()}
+      onblur={() => checkProfanity()}
       maxlength={32}
     />
     <!-- svelte-ignore a11y_label_has_associated_control -->
@@ -39,7 +39,7 @@
       <div id="fab">
         <button
           class="circle"
-          on:click={() => ($userParams.avatar_seed = nanoid(8))}
+          onclick={() => ($userParams.avatar_seed = nanoid(8))}
         >
           <i>refresh</i>
         </button>

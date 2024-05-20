@@ -68,7 +68,7 @@
       <User
         user={contact}
         selected={isSelected(contact.uid)}
-        on:click={() => select(contact)}
+        onclick={() => select(contact)}
       />
     {/each}
 
@@ -80,7 +80,7 @@
       <User
         user={member}
         selected={isSelected(member.uid)}
-        on:click={() => select(member)}
+        onclick={() => select(member)}
       />
     {:else}
       {#if !$contacts.length}
@@ -106,7 +106,7 @@
     <p id="header" class="bold">Properties</p>
 
     <Button
-      on:click={async () =>
+      onclick={async () =>
         (name = await openEditDialog(
           {
             title: "Group name",

@@ -60,7 +60,7 @@
 
 {#if $files === undefined || $files.length == 0}
   <div class="centered">
-    <button on:click={() => $input.click()} class="extra">
+    <button onclick={() => $input.click()} class="extra">
       <i>share</i>
       <span>Share</span>
     </button>
@@ -71,8 +71,8 @@
       <div class="row">
         <p class="bold">Selected files:</p>
         <div class="max"></div>
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_missing_attribute a11y_no_static_element_interactions -->
-        <a on:click={() => $input.click()} style="color: var(--secondary)"
+        <!-- svelte-ignore a11y_click_events_have_key_events, a11y_missing_attribute, a11y_no_static_element_interactions -->
+        <a onclick={() => $input.click()} style="color: var(--secondary)"
           >Change</a
         >
       </div>
@@ -101,7 +101,7 @@
         <button
           class="responsive large secondary-container"
           style="margin: 0 5px 0 0;"
-          on:click={() => ui("#dialog-large")}
+          onclick={() => ui("#dialog-large")}
         >
           <i>send</i>
           <span>Select recipients</span>
@@ -112,7 +112,7 @@
         <button
           class="responsive large secondary-container"
           style="margin: 0 0 0 5px;"
-          on:click={() => openDialog({ mode: "qrcode" })}
+          onclick={() => openDialog({ mode: "qrcode" })}
         >
           <i>qr_code_2_add</i>
           <span>Create Guest Transfer</span>
@@ -135,9 +135,9 @@
 
           <div class="max"></div>
 
-          <!-- svelte-ignore a11y_click_events_have_key_events a11y_missing_attribute a11y_no_static_element_interactions -->
+          <!-- svelte-ignore a11y_click_events_have_key_events, a11y_missing_attribute, a11y_no_static_element_interactions -->
           <a
-            on:click={() => manager.cancelOutgoing(transfer.id)}
+            onclick={() => manager.cancelOutgoing(transfer.id)}
             class="clickable"
           >
             <p>Cancel</p>
@@ -157,7 +157,7 @@
                   <div class="max"></div>
                   <button
                     class="transparent circle"
-                    on:click={() =>
+                    onclick={() =>
                       transfer.handleFileTransferFinished(
                         recipient.did,
                         "canceled",

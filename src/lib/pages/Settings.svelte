@@ -46,28 +46,30 @@
       });
   };
 
-  // Open dialog
-  $: if (
-    $layout == "mobile" &&
-    ($path as RouteSettings).sub &&
-    $largeDialog &&
-    !$largeDialog.open
-  )
-    ui("#dialog-large");
+  $effect(() => {
+    // Open dialog
+    if (
+      $layout == "mobile" &&
+      ($path as RouteSettings).sub &&
+      $largeDialog &&
+      !$largeDialog.open
+    )
+      ui("#dialog-large");
 
-  // Close dialogs
-  $: if (
-    ($layout == "desktop" || !($path as RouteSettings).sub) &&
-    $largeDialog &&
-    $largeDialog.open
-  )
-    ui("#dialog-large");
-  $: if (
-    $layout == "desktop" &&
-    $dialogProperties.mode == "edit" &&
-    $generalDialog.open
-  )
-    closeDialog();
+    // Close dialogs
+    if (
+      ($layout == "desktop" || !($path as RouteSettings).sub) &&
+      $largeDialog &&
+      $largeDialog.open
+    )
+      ui("#dialog-large");
+    if (
+      $layout == "desktop" &&
+      $dialogProperties.mode == "edit" &&
+      $generalDialog.open
+    )
+      closeDialog();
+  });
 </script>
 
 {#if $layout == "desktop"}
@@ -77,24 +79,24 @@
         <h6>Settings</h6>
         <div class="max"></div>
         {#if "sub" in $path && $path.sub == "devices"}
-          <!-- svelte-ignore a11y_missing_attribute a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+          <!-- svelte-ignore a11y_missing_attribute, a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
           <a
             class="chip primary round"
-            on:click={() => openDialog({ mode: "add", addMode: "device" })}
+            onclick={() => openDialog({ mode: "add", addMode: "device" })}
             >Link device</a
           >
         {/if}
       </div>
       <div>
-        <!-- svelte-ignore a11y_missing_attribute a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+        <!-- svelte-ignore a11y_missing_attribute, a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
         <div class="tabs">
           <a
             class={($path as RouteSettings).sub ? "" : "active"}
-            on:click={() => changePath({ main: "settings" })}>General</a
+            onclick={() => changePath({ main: "settings" })}>General</a
           >
           <a
             class={($path as RouteSettings).sub ? "active" : ""}
-            on:click={() => changePath({ main: "settings", sub: "devices" })}
+            onclick={() => changePath({ main: "settings", sub: "devices" })}
             >Devices</a
           >
         </div>
@@ -115,9 +117,9 @@
                       <div class="field border small">
                         <input
                           bind:value={$userParams.display_name}
-                          on:focus={() =>
+                          onfocus={() =>
                             ($userParams.display_name = $user.display_name)}
-                          on:blur={() =>
+                          onblur={() =>
                             $userParams.display_name != $user.display_name &&
                             apiClient("ws").sendMessage({
                               type: "updateUser",
@@ -128,7 +130,7 @@
                         />
                       </div>
                     </div>
-                    <!-- svelte-ignore a11y_missing_attribute a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_missing_attribute, a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
                     <div class="row">
                       <p class="bold">Avatar:</p>
                       <div class="center-align">
@@ -146,13 +148,13 @@
                       </div>
                       <a
                         class="chip primary round"
-                        on:click={() => ($userParams.avatar_seed = nanoid(8))}
+                        onclick={() => ($userParams.avatar_seed = nanoid(8))}
                         >Change</a
                       >
                       {#if $userParams.avatar_seed != "" && $userParams.avatar_seed != $user.avatar_seed}
                         <a
                           class="chip primary round"
-                          on:click={() =>
+                          onclick={() =>
                             apiClient("ws").sendMessage({
                               type: "updateUser",
                               data: {
@@ -169,10 +171,10 @@
                 <td class="bold">Account:</td>
                 <td>
                   <div class="row">
-                    <!-- svelte-ignore a11y_missing_attribute a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_missing_attribute, a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
                     <a
                       class="chip primary round"
-                      on:click={() => apiClient("http").deleteAccount(false)}
+                      onclick={() => apiClient("http").deleteAccount(false)}
                       >Delete Account</a
                     >
                   </div>
@@ -207,10 +209,10 @@
                       <input
                         bind:value={$deviceParams[$devices.self.did]
                           .display_name}
-                        on:focus={() =>
+                        onfocus={() =>
                           ($deviceParams[$devices.self.did].display_name =
                             $devices.self.display_name)}
-                        on:blur={() => blur($devices.self, "name")}
+                        onblur={() => blur($devices.self, "name")}
                       />
                     </div></td
                   >
@@ -218,10 +220,10 @@
                     ><div class="field border small suffix">
                       <select
                         bind:value={$deviceParams[$devices.self.did].type}
-                        on:focus={() =>
+                        onfocus={() =>
                           ($deviceParams[$devices.self.did].type =
                             $devices.self.type)}
-                        on:blur={() => blur($devices.self, "type")}
+                        onblur={() => blur($devices.self, "type")}
                         style="min-width: 200px;"
                       >
                         {#each Object.entries(DeviceType) as [label, value]}
@@ -239,7 +241,7 @@
                   <td
                     ><button
                       class="transparent circle"
-                      on:click={() => apiClient("http").deleteAccount(true)}
+                      onclick={() => apiClient("http").deleteAccount(true)}
                     >
                       <i>delete</i>
                     </button></td
@@ -251,10 +253,10 @@
                       ><div class="field border small">
                         <input
                           bind:value={$deviceParams[device.did].display_name}
-                          on:focus={() =>
+                          onfocus={() =>
                             ($deviceParams[device.did].display_name =
                               device.display_name)}
-                          on:blur={() => blur(device, "name")}
+                          onblur={() => blur(device, "name")}
                         />
                       </div></td
                     >
@@ -262,9 +264,9 @@
                       ><div class="field border small suffix">
                         <select
                           bind:value={$deviceParams[device.did].type}
-                          on:focus={() =>
+                          onfocus={() =>
                             ($deviceParams[device.did].type = device.type)}
-                          on:blur={() => blur(device, "type")}
+                          onblur={() => blur(device, "type")}
                           style="min-width: 200px;"
                         >
                           {#each Object.entries(DeviceType) as [label, value]}
@@ -282,7 +284,7 @@
                     <td
                       ><button
                         class="transparent circle"
-                        on:click={() =>
+                        onclick={() =>
                           apiClient("ws").sendMessage({
                             type: "deleteDevice",
                             data: device.did,
@@ -304,7 +306,7 @@
   <p id="header" class="bold">User</p>
 
   <Button
-    on:click={async () =>
+    onclick={async () =>
       apiClient("ws").sendMessage({
         type: "updateUser",
         data: {
@@ -324,7 +326,7 @@
   </Button>
 
   <Button
-    on:click={async () =>
+    onclick={async () =>
       apiClient("ws").sendMessage({
         type: "updateUser",
         data: {
@@ -352,7 +354,7 @@
   <p id="header" class="bold">Devices</p>
 
   <Button
-    on:click={() => {
+    onclick={() => {
       changePath({ main: "settings", sub: "devices" });
     }}
   >
@@ -365,7 +367,7 @@
   <p id="header" class="bold">Account</p>
 
   <!-- svelte-ignore a11y_missing_attribute a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-  <Button on:click={() => apiClient("http").deleteAccount(false)}>
+  <Button onclick={() => apiClient("http").deleteAccount(false)}>
     <div style="color: red;">
       <p id="title">Delete account</p>
       <p id="subtitle">Removes user and all devices from database</p>

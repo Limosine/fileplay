@@ -9,18 +9,16 @@
 
 <nav class="right-align" style="padding: 10px 0 0 0;">
   <!-- eslint-disable no-undef -->
-  <!-- svelte-ignore missing-declaration -->
   <button
     class="transparent link"
-    on:click={() => {
+    onclick={() => {
       localStorage.setItem("subscribedToPush", "false");
       closeDialog();
     }}>Deny</button
   >
-  <!-- svelte-ignore missing-declaration -->
   <button
     class="transparent link"
-    on:click={async () => {
+    onclick={async () => {
       localStorage.setItem("subscribedToPush", "false");
       closeDialog(true);
       notifications().create($registration);

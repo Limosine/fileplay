@@ -16,7 +16,7 @@
   {/if}
 
   <Button
-    on:click={async () =>
+    onclick={async () =>
       (await openDialog({ mode: "delete" })) &&
       apiClient("ws").sendMessage({
         type: "deleteContact",

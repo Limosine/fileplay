@@ -4,12 +4,8 @@ declare global {
   namespace App {
     interface Platform {
       env?: {
-        COOKIE_SIGNING_SECRET: string;
-        COTURN_AUTH_SECRET: string;
-        PRIVATE_VAPID_KEY: string;
+        PUBLIC_HOSTNAME: string;
         PUBLIC_VAPID_KEY: string;
-        GCM_KEY: string;
-        WS_PORT: string;
       };
     }
   }

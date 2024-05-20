@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 
-import { files } from "$lib/lib/UI";
+import { files, updateFiles } from "$lib/lib/UI";
 import { blobToArrayBuffer } from "$lib/lib/utils";
 
 // Types:
@@ -147,7 +147,7 @@ export const generateInfos = () => {
 
     if (bigChunks === undefined) {
       bigChunks = chunkFileBig(get(files)[i].file);
-      files.update((files) => {
+      updateFiles((files) => {
         files[i].bigChunks = bigChunks;
         return files;
       });

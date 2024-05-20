@@ -17,10 +17,10 @@
   let sentAccept = false;
   let did: number;
   let filetransfer_id: string;
-  let sender: boolean;
+  let sender: boolean | undefined = $state();
 
   const waitingTemplateString = "Waiting for files";
-  let finalString = waitingTemplateString;
+  let finalString = $state(waitingTemplateString);
   let counter = 0;
   const animationInterval = setInterval(() => {
     if (counter >= 3) {
@@ -52,11 +52,11 @@
     clearInterval(animationInterval);
   });
 
-  $: {
+  $effect(() => {
     if (manager.incoming.length > 0) {
       clearInterval(animationInterval);
     }
-  }
+  });
 </script>
 
 <svelte:head>
@@ -72,10 +72,10 @@
 <div id="header">
   <header class="fixed">
     <nav>
-      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
       <p
         style="font-size: large; font-weight: 600;"
-        on:click={() => (window.location.href = "/")}
+        onclick={() => (window.location.href = "/")}
       >
         Fileplay
       </p>
@@ -83,7 +83,7 @@
       <Input />
       <button
         class="circle transparent"
-        on:click={() => {
+        onclick={() => {
           manager.cancelIncoming();
           manager.cancelOutgoing();
           peer().closeConnections();
@@ -153,15 +153,15 @@
   {#if manager.incoming.length > 0 || sender}
     <article class="secondary-container" style="margin: 0;">
       {#if $files === undefined || $files.length === 0}
-        <button class="center" on:click={() => $input.click()}
+        <button class="center" onclick={() => $input.click()}
           >Send files{sender ? "" : " back"}</button
         >
       {:else}
         <div class="row">
           <p class="bold">Selected files:</p>
           <div class="max"></div>
-          <!-- svelte-ignore a11y_click_events_have_key_events a11y_missing_attribute a11y_no_static_element_interactions -->
-          <a on:click={() => $input.click()} style="color: var(--secondary)"
+          <!-- svelte-ignore a11y_click_events_have_key_events, a11y_missing_attribute, a11y_no_static_element_interactions -->
+          <a onclick={() => $input.click()} style="color: var(--secondary)"
             >Change</a
           >
         </div>
@@ -193,7 +193,7 @@
           <button
             class="center"
             style="margin-top: 7px;"
-            on:click={() => {
+            onclick={() => {
               const previous = $page.url.searchParams.get("id");
               if (previous !== null)
                 manager.createTransfer({
@@ -208,13 +208,13 @@
           <div class="row" style="margin-top: 7px;">
             <div class="center">
               {#if state !== undefined}
-                <button on:click={() => manager.cancelOutgoing()}
+                <button onclick={() => manager.cancelOutgoing()}
                   >{capitalizeFirstLetter(state)}</button
                 >
               {/if}
               <button
                 class="circle tertiary"
-                on:click={() => {
+                onclick={() => {
                   manager.cancelOutgoing();
                   const previous = $page.url.searchParams.get("id");
                   if (previous !== null)

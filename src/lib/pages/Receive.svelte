@@ -4,7 +4,7 @@
   import { type IncomingFiletransfer } from "$lib/sharing/common";
   import { manager } from "$lib/sharing/manager.svelte";
 
-  let downloaded: string[] = [];
+  let downloaded: string[] = $state([]);
 
   const getScope = (did: number, ids: IncomingFiletransfer["ids"]) => {
     if (ids.type == "contact") {
@@ -35,19 +35,16 @@
         {#if transfer.state == "infos"}
           <button
             class="circle light-green"
-            on:click={() => transfer.sendAnswer(true)}
+            onclick={() => transfer.sendAnswer(true)}
           >
             <i>done</i>
           </button>
-          <button
-            class="circle red"
-            on:click={() => transfer.sendAnswer(false)}
-          >
+          <button class="circle red" onclick={() => transfer.sendAnswer(false)}>
             <i>close</i>
           </button>
         {:else if transfer.state == "receiving" || transfer.state == "received"}
-          <!-- svelte-ignore a11y_click_events_have_key_events a11y_missing_attribute a11y_no_static_element_interactions -->
-          <a on:click={() => transfer.sendAnswer(false)} class="clickable">
+          <!-- svelte-ignore a11y_click_events_have_key_events, a11y_missing_attribute, a11y_no_static_element_interactions -->
+          <a onclick={() => transfer.sendAnswer(false)} class="clickable">
             {#if transfer.state == "receiving"}
               <p>Cancel</p>
             {:else}
@@ -73,7 +70,7 @@
               {#if file.url !== undefined}
                 <a
                   class="button transparent circle small"
-                  on:click={() =>
+                  onclick={() =>
                     !downloaded.some((d) => d == file.id) &&
                     (downloaded = [...downloaded, file.id])}
                   href={file.url}

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { HttpResponse } from "@capacitor/core";
   import { nanoid } from "nanoid";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
@@ -28,18 +27,18 @@
   import Dialog from "$lib/components/Dialog.svelte";
   import Username from "$lib/components/Username.svelte";
 
-  let webManifest = "";
+  let webManifest = $state("");
 
   // Options
-  let progress = 0;
-  let setupError: string;
-  let actionDisabled = true;
+  let progress = $state(0);
+  let setupError: string = $state("");
+  let actionDisabled = $state(true);
 
-  let existing = false;
+  let existing = $state(false);
 
   // Setup (confirm)
-  const handleResponseError = async (res: HttpResponse) => {
-    const json_ = JSON.parse(res.data);
+  const handleResponseError = async (res: Response) => {
+    const json_ = await res.json();
     if (json_) {
       setupError = json_.message;
     } else {
@@ -93,7 +92,7 @@
     $userParams.avatar_seed = nanoid(8);
   });
 
-  $: {
+  $effect(() => {
     if (!$deviceParams[0].display_name || !$deviceParams[0].type)
       actionDisabled = true;
     else if (!existing) {
@@ -103,9 +102,7 @@
         $profaneUsername.loading ||
         !$userParams.avatar_seed;
     } else actionDisabled = !$linkingCode;
-  }
-
-  $: $layout = $width < 840 ? "mobile" : "desktop";
+  });
 </script>
 
 <svelte:window bind:innerHeight={$height} bind:innerWidth={$width} />
@@ -130,7 +127,7 @@
   </div>
   <div id="start" class="center-align middle-align" in:fade={{ duration: 200 }}>
     <button
-      on:click={() => (progress = 2)}
+      onclick={() => (progress = 2)}
       class="extra"
       style="margin-bottom: 100px;"
     >
@@ -181,7 +178,7 @@
               <button class="left-round">New</button>
               <button
                 class="right-round border"
-                on:click={() => {
+                onclick={() => {
                   existing = true;
                   setupError = "";
                 }}
@@ -191,7 +188,7 @@
             {:else}
               <button
                 class="left-round border"
-                on:click={() => {
+                onclick={() => {
                   existing = false;
                   setupError = "";
                 }}>New</button
@@ -224,7 +221,7 @@
 
           <button
             disabled={actionDisabled}
-            on:click={handleConfirm}
+            onclick={handleConfirm}
             class={actionDisabled ? "border" : ""}>Finish</button
           >
         </nav>
@@ -232,7 +229,7 @@
     </article>
   {:else}
     <button
-      on:click={() => --progress}
+      onclick={() => --progress}
       class="transparent circle"
       style="margin: 8px;"
     >
@@ -244,7 +241,7 @@
     <p id="header" class="bold">Device</p>
 
     <Button
-      on:click={async () =>
+      onclick={async () =>
         ($deviceParams[0].display_name = await openEditDialog(
           {
             title: "Device name",
@@ -268,7 +265,7 @@
     </Button>
 
     <Button
-      on:click={async () =>
+      onclick={async () =>
         ($deviceParams[0].type = await openEditDialog(
           { title: "Device type", type: "deviceType" },
           $deviceParams[0].type,
@@ -284,7 +281,7 @@
 
     <p id="header" class="bold">User</p>
 
-    <Button on:click={() => (existing = !existing)}>
+    <Button onclick={() => (existing = !existing)}>
       <div>
         <p id="title">Connect to existing</p>
         <p id="subtitle">Link your device to an existing user</p>
@@ -298,7 +295,7 @@
 
     {#if existing}
       <Button
-        on:click={async () =>
+        onclick={async () =>
           ($linkingCode = await openEditDialog(
             {
               title: "Linking code",
@@ -316,7 +313,7 @@
       </Button>
     {:else}
       <Button
-        on:click={async () =>
+        onclick={async () =>
           ($userParams.display_name = await openEditDialog(
             {
               title: "Username",
@@ -335,7 +332,7 @@
       </Button>
 
       <Button
-        on:click={async () =>
+        onclick={async () =>
           ($userParams.avatar_seed = await openEditDialog(
             {
               title: "Avatar",
@@ -365,7 +362,7 @@
       id="finish"
       class="round extra"
       disabled={actionDisabled}
-      on:click={() => handleConfirm()}
+      onclick={() => handleConfirm()}
     >
       {#if setupError}
         <p>{setupError}</p>

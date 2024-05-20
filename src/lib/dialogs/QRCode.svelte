@@ -4,8 +4,8 @@
   import { manager } from "$lib/sharing/manager.svelte";
   import { fade } from "svelte/transition";
 
-  let send = true;
-  let link: string;
+  let send = $state(true);
+  let link: string = $state("");
 
   const setLink = async () => {
     link = await manager.createGuestTransfer(send);
@@ -31,14 +31,14 @@
         <br />
         <nav class="no-space center-align">
           <button
-            on:click={() => navigator.clipboard.writeText(link)}
+            onclick={() => navigator.clipboard.writeText(link)}
             class="border left-round"
           >
             <i>content_copy</i>
             <div class="tooltip bottom">Copy link</div>
           </button>
           <button
-            on:click={() =>
+            onclick={() =>
               navigator.share({
                 url: link,
               })}
@@ -64,7 +64,7 @@
       <input bind:checked={send} type="checkbox" />
       <span>Include files</span>
     </label>
-    <button on:click={setLink}>Generate</button>
+    <button onclick={setLink}>Generate</button>
   </div>
 {/if}
 

@@ -1,13 +1,9 @@
 vite.config.ts.timestamp*
-src/lib/gql.ts
-*.key
-tmp*
-static/smui*
 .wrangler
+build*
 
-
-# Created by https://www.toptal.com/developers/gitignore/api/svelte,yarn,git,node
-# Edit at https://www.toptal.com/developers/gitignore?templates=svelte,yarn,git,node
+# Created by https://www.toptal.com/developers/gitignore/api/git,node,yarn,svelte
+# Edit at https://www.toptal.com/developers/gitignore?templates=git,node,yarn,svelte
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:
@@ -23,7 +19,6 @@ static/smui*
 *_BASE_*.txt
 *_LOCAL_*.txt
 *_REMOTE_*.txt
-
 
 ### Node ###
 # Logs
@@ -164,8 +159,6 @@ dist
 
 # SvelteKit build / generate output
 .svelte-kit
-build-node/
-build-static/
 
 ### Svelte ###
 # gitignore template for the SvelteKit, frontend web component framework
@@ -186,14 +179,9 @@ package
 
 # if you are NOT using Zero-installs, then:
 # comment the following lines
-#!.yarn/cache
+# !.yarn/cache
 
 # and uncomment the following lines
 # .pnp.*
 
-# End of https://www.toptal.com/developers/gitignore/api/svelte,yarn,git,node
-
-.env*
-.flaskenv*
-!.env.project
-!.env.vault
+# End of https://www.toptal.com/developers/gitignore/api/git,node,yarn,svelte

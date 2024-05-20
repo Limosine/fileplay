@@ -6,7 +6,6 @@
   - [ ] Keybinding
   - [ ] Check for browser compatibility and redirect
   - [ ] Desktop UI
-  - [ ] Enable runes mode in all files
 
 - [ ] Backend
 

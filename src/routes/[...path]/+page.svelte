@@ -1,13 +1,11 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { Capacitor } from "@capacitor/core";
   import { onMount } from "svelte";
 
   import { apiClient } from "$lib/api/client";
   import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
   import { handleMessage } from "$lib/lib/fetchers";
-  import { addListeners } from "$lib/lib/send-target";
   import {
     closeDialog,
     contacts,
@@ -15,7 +13,6 @@
     groupDevices,
     groups,
     height,
-    layout,
     path,
     rawFiles,
     user,
@@ -55,23 +52,20 @@
   let loaded = false;
   const onLoading = async () => {
     if (localStorage.getItem("loggedIn")) {
-      if (Capacitor.isNativePlatform()) await addListeners();
-      else navigator.serviceWorker?.addEventListener("message", handleMessage);
+      navigator.serviceWorker?.addEventListener("message", handleMessage);
 
       await setup();
       apiClient("ws");
 
-      if (!Capacitor.isNativePlatform()) {
-        if ($page.url.searchParams.has("share-target")) {
-          navigator.serviceWorker?.controller?.postMessage("share-ready");
-        }
+      if ($page.url.searchParams.has("share-target")) {
+        navigator.serviceWorker?.controller?.postMessage("share-ready");
+      }
 
-        if ($page.url.searchParams.has("accept-target")) {
-          const didString = $page.url.searchParams.get("did");
-          const nid = $page.url.searchParams.get("nid");
-          if (didString !== null && nid !== null)
-            manager.awaitReady(Number(didString), nid);
-        }
+      if ($page.url.searchParams.has("accept-target")) {
+        const didString = $page.url.searchParams.get("did");
+        const nid = $page.url.searchParams.get("nid");
+        if (didString !== null && nid !== null)
+          manager.awaitReady(Number(didString), nid);
       }
     }
   };
@@ -82,8 +76,6 @@
       onLoading();
     }
   });
-
-  $: $layout = $width < 840 ? "mobile" : "desktop";
 </script>
 
 <svelte:window

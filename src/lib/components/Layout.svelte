@@ -1,23 +1,27 @@
 <script lang="ts">
-  import {
-    layout,
-    openAddDialog,
-    path,
-  } from "$lib/lib/UI";
+  import type { Snippet } from "svelte";
+
+  import { layout, openAddDialog, path } from "$lib/lib/UI";
 
   import Footer from "./Footer.svelte";
   import Header from "./Header.svelte";
   import Menu from "./Menu.svelte";
   import Rail from "./Rail.svelte";
 
-  let header = true;
-  let rail = false;
-  let bar = false;
-  let add = false;
+  let {
+    children,
+  }: {
+    children?: Snippet;
+  } = $props();
 
-  let contentClasses: string[] = ["content"];
+  let header = $state(true);
+  let rail = $state(false);
+  let bar = $state(false);
+  let add = $state(false);
 
-  const updateClasses = (header: boolean, rail: boolean, bar: boolean) => {
+  let contentClasses: string[] = $state(["content"]);
+
+  const updateClasses = () => {
     const tempClasses = ["content"];
 
     if (header) tempClasses.push("header");
@@ -27,9 +31,9 @@
     contentClasses = tempClasses;
   };
 
-  $: updateClasses(header, rail, bar);
+  $effect(() => updateClasses());
 
-  $: {
+  $effect(() => {
     if ($layout == "desktop") rail = true;
     else rail = false;
 
@@ -42,7 +46,7 @@
 
     if ($path.main == "contacts" || $path.main == "groups") add = true;
     else add = false;
-  }
+  });
 </script>
 
 {#if rail}
@@ -58,11 +62,13 @@
 {/if}
 
 <div class={contentClasses.join(" ")}>
-  <slot />
+  {#if children}
+    {@render children()}
+  {/if}
 </div>
 
 {#if add}
-  <button class="square round extra add" on:click={() => openAddDialog()}>
+  <button class="square round extra add" onclick={() => openAddDialog()}>
     <i>add</i>
   </button>
 {/if}

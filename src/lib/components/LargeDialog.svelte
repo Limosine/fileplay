@@ -15,15 +15,16 @@
   import GroupProperties from "./GroupProperties.svelte";
   import GroupCreate from "./GroupCreate.svelte";
 
-  let groupPropertiesPage: "main" | "members" | "requests" | "add" = "main";
+  let groupPropertiesPage: "main" | "members" | "requests" | "add" =
+    $state("main");
 
-  let groupCreatePage: "add" | "name" = "add";
+  let groupCreatePage: "add" | "name" = $state("add");
   let groupCreateSelected: {
     uid: number;
     avatar_seed: string;
     display_name: string;
-  }[] = [];
-  let groupCreateName = ""
+  }[] = $state([]);
+  let groupCreateName = $state("");
 
   onMount(() => {
     $largeDialog.addEventListener("close", () => {

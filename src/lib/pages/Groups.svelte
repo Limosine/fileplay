@@ -11,14 +11,14 @@
 
   import Button from "$lib/components/Button.svelte";
 
-  let members: IGroup[] = [];
-  let requests: IGroup[] = [];
+  let members: IGroup[] = $state([]);
+  let requests: IGroup[] = $state([]);
 
-  const loadGroups = (groups: IGroup[]) => {
+  const loadGroups = () => {
     let membersTemp: IGroup[] = [];
     let requestsTemp: IGroup[] = [];
 
-    for (const group of groups) {
+    for (const group of $groups) {
       if (group.members.some((r) => r.uid == $user.uid)) {
         membersTemp.push(group);
       } else {
@@ -30,7 +30,7 @@
     requests = requestsTemp;
   };
 
-  $: loadGroups($groups);
+  $effect(() => loadGroups());
 </script>
 
 {#if requests.length > 0}
@@ -47,7 +47,7 @@
       <div class="max"></div>
       <button
         class="circle light-green"
-        on:click={() =>
+        onclick={() =>
           apiClient("ws").sendMessage({
             type: "acceptGroupRequest",
             data: request.gid,
@@ -57,7 +57,7 @@
       </button>
       <button
         class="circle red"
-        on:click={() =>
+        onclick={() =>
           apiClient("ws").sendMessage({
             type: "deleteGroupMember",
             data: {
@@ -91,7 +91,7 @@
   {/if}
 
   <Button
-    on:click={() => {
+    onclick={() => {
       $groupProperties = { mode: "properties", gid: member.gid };
       ui("#dialog-large");
     }}

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
 
-  export let user = false;
+  let { user = false } = $props();
 </script>
 
 <div

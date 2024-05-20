@@ -1,7 +1,8 @@
 import { browser } from "$app/environment";
 import { pushState } from "$app/navigation";
 import dayjs from "dayjs";
-import { get, writable } from "svelte/store";
+import { nanoid } from "nanoid";
+import { derived, get, writable, type Updater } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import type { Request } from "$lib/sharing/common";
@@ -18,7 +19,9 @@ import { getTimestamp } from "./history";
 // Window
 export const height = writable(0);
 export const width = writable(0);
-export const layout = writable<"mobile" | "desktop">("mobile");
+export const layout = derived(width, (width) =>
+  width < 840 ? "mobile" : "desktop",
+);
 export const offline = writable(false);
 
 // Navigation
@@ -39,14 +42,33 @@ export const profaneUsername = writable({
 // Input
 export const input = writable<HTMLInputElement>();
 export const rawFiles = writable<FileList>();
-export const files = writable<
-  {
-    id: string;
-    file: File;
-    bigChunks?: Blob[];
-    smallChunks?: Uint8Array[][];
-  }[]
->([]);
+interface Files {
+  id: string;
+  file: File;
+  bigChunks?: Blob[];
+  smallChunks?: Uint8Array[][];
+}
+
+export let updateFiles: (fn: Updater<Files[]>) => void;
+export const files = derived<typeof rawFiles, Files[]>(
+  rawFiles,
+  (raw, set, update) => {
+    updateFiles = update;
+
+    if (raw !== undefined) {
+      const tempFiles: { id: string; file: File }[] = [];
+
+      Array.from(raw).forEach((file) => {
+        const old = get(files).find((f) => f.file == file);
+        if (old === undefined) tempFiles.push({ id: nanoid(), file });
+        else tempFiles.push(old);
+      });
+
+      set(tempFiles);
+    }
+  },
+  [],
+);
 
 // Personal infos
 export const deviceParams = writable<

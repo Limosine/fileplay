@@ -5,19 +5,25 @@
   import { apiClient } from "$lib/api/client";
   import { closeDialog, type DialogAdd } from "$lib/lib/UI";
 
-  export let properties: DialogAdd;
+  let {
+    properties,
+  }: {
+    properties: DialogAdd;
+  } = $props();
 
-  let code = "";
-  let redeem = true;
+  let code = $state("");
+  let redeem = $state(true);
 
-  let infos: {
-    code: string;
-    expires: number;
-    refresh: number;
-  };
+  let infos:
+    | {
+        code: string;
+        expires: number;
+        refresh: number;
+      }
+    | undefined = $state();
 
   let requested = false;
-  let expires_in: number;
+  let expires_in: number | undefined = $state();
   let updateInterval: NodeJS.Timeout;
 
   const generateContactCode = async () => {
@@ -67,7 +73,7 @@
         <button class="left-round">Redeem code</button>
         <button
           class="right-round border"
-          on:click={() => {
+          onclick={() => {
             redeem = false;
           }}
         >
@@ -76,7 +82,7 @@
       {:else}
         <button
           class="left-round border"
-          on:click={() => {
+          onclick={() => {
             redeem = true;
           }}>Redeem code</button
         >
@@ -106,13 +112,13 @@
     {/if}
   </div>
   <nav class="right-align" style="padding: 10px 0 0 0;">
-    <button class="transparent link" on:click={() => closeDialog()}
+    <button class="transparent link" onclick={() => closeDialog()}
       >Cancel</button
     >
     <button
       disabled={code == ""}
       class="transparent link"
-      on:click={async () => {
+      onclick={async () => {
         await apiClient("ws").sendMessage({
           type: "redeemContactCode",
           data: code,

@@ -77,7 +77,7 @@
 
         <p id="header" class="bold">Members</p>
 
-        <Button on:click={() => (page = "members")}>
+        <Button onclick={() => (page = "members")}>
           <div>
             <p id="title">Members</p>
             <p id="subtitle">
@@ -90,7 +90,7 @@
 
         <div class="divider"></div>
 
-        <Button on:click={() => (page = "requests")}>
+        <Button onclick={() => (page = "requests")}>
           <div>
             <p id="title">Requests</p>
             <p id="subtitle">
@@ -104,7 +104,7 @@
         <div class="divider"></div>
 
         <Button
-          on:click={async () => {
+          onclick={async () => {
             if (group !== undefined && (await openDialog({ mode: "delete" }))) {
               ui("#dialog-large");
               apiClient("ws").sendMessage({
@@ -135,7 +135,7 @@
           subtitle="Joined at {dayjs
             .unix(member.joined_at)
             .format('DD.MM.YYYY, HH:mm')}."
-          on:click={async () => {
+          onclick={async () => {
             if ((await openDialog({ mode: "delete" })) && group !== undefined) {
               if (group.oid === $user.uid) ui("#dialog-large");
 
@@ -160,7 +160,7 @@
           subtitle="Created at {dayjs
             .unix(request.created_at)
             .format('DD.MM.YYYY, HH:mm')}."
-          on:click={async () =>
+          onclick={async () =>
             (await openDialog({ mode: "delete" })) &&
             group !== undefined &&
             apiClient("ws").sendMessage({
@@ -194,7 +194,7 @@
         <User
           user={contact}
           selected={isSelected(contact.uid)}
-          on:click={() => select(contact)}
+          onclick={() => select(contact)}
         />
       {/each}
 
@@ -206,7 +206,7 @@
         <User
           user={member}
           selected={isSelected(member.uid)}
-          on:click={() => select(member)}
+          onclick={() => select(member)}
         />
       {/each}
 

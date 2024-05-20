@@ -15,7 +15,7 @@
 
 <Fullscreen header="Devices" backAction={pathBackwards}>
   <Button
-    on:click={async () =>
+    onclick={async () =>
       apiClient("ws").sendMessage({
         type: "updateDevice",
         data: {
@@ -43,7 +43,7 @@
     <div class="divider"></div>
 
     <Button
-      on:click={async () =>
+      onclick={async () =>
         apiClient("ws").sendMessage({
           type: "updateDevice",
           data: {
@@ -78,7 +78,7 @@
     <button
       id="next-button"
       class="square round extra"
-      on:click={() => openAddDialog()}
+      onclick={() => openAddDialog()}
     >
       <i>add</i>
     </button>

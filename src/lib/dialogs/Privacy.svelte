@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { Capacitor } from "@capacitor/core";
-
   import { closeDialog, openDialog, registration } from "$lib/lib/UI";
 
   const click = async () => {
@@ -9,7 +7,7 @@
 
     if (
       localStorage.getItem("subscribedToPush") === null &&
-      (Capacitor.isNativePlatform() || $registration !== undefined)
+      $registration !== undefined
     )
       openDialog({ mode: "request" });
   };
@@ -33,7 +31,7 @@
 </div>
 
 <nav id="navigation" class="right-align">
-  <button on:click={click}>Let's share</button>
+  <button onclick={click}>Let's share</button>
 </nav>
 
 <style>

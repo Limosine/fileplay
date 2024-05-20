@@ -3,7 +3,7 @@ import { get } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import { peer } from "$lib/lib/simple-peer";
-import { contacts, devices, files, groupDevices, user } from "$lib/lib/UI";
+import { contacts, devices, files, groupDevices, updateFiles, user } from "$lib/lib/UI";
 
 import {
   chunkBlobSmall,
@@ -154,7 +154,7 @@ export class FiletransferOut {
 
         // Cache small chunks (for transfer to another device)
         if (index !== -1) {
-          files.update((files) => {
+          updateFiles((files) => {
             if (files[index].smallChunks === undefined)
               files[index].smallChunks = [];
             files[index].smallChunks![i] = chunks;

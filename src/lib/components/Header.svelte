@@ -7,8 +7,7 @@
   <header class="fixed">
     <nav>
       {#if $layout == "mobile"}
-        <!-- svelte-ignore missing-declaration -->
-        <button class="circle transparent" on:click={() => ui("#dialog-menu")}>
+        <button class="circle transparent" onclick={() => ui("#dialog-menu")}>
           <i>menu</i>
           <div class="tooltip bottom">Menu</div>
         </button>
@@ -27,7 +26,7 @@
       {#if $layout == "desktop"}
         <button
           class="circle {$path.main == 'settings' ? 'primary' : 'transparent'}"
-          on:click={() =>
+          onclick={() =>
             changePath({
               main: "settings",
             })}

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
   import { page } from "$app/stores";
-  import { Capacitor } from "@capacitor/core";
   import { onMount, type Snippet } from "svelte";
   import { quadOut } from "svelte/easing";
   import { fade } from "svelte/transition";
@@ -10,7 +9,6 @@
   import "beercss";
   import * as materialSymbols from "beercss/dist/cdn/material-symbols-outlined.woff2";
 
-  import { notifications } from "$lib/lib/notifications";
   import {
     closeDialog,
     getPath,
@@ -64,10 +62,7 @@
       });
     }
 
-    if (Capacitor.isNativePlatform()) {
-      await notifications().initNativeListeners();
-      open();
-    } else if (pwaInfo && "serviceWorker" in navigator) {
+    if (pwaInfo && "serviceWorker" in navigator) {
       try {
         const r = await navigator.serviceWorker.register("/service-worker.js", {
           scope: "/",
@@ -87,8 +82,6 @@
   $effect(() => {
     if (browser) $path = getPath(location.pathname, $page.url.pathname);
   });
-
-  // $inspect($page.url.pathname);
 </script>
 
 <svelte:head>

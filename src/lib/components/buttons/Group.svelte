@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { MouseEventHandler } from "svelte/elements";
+
   import type { IGroup } from "$lib/lib/fetchers";
   import { getLastSend, groupDevices } from "$lib/lib/UI";
 
@@ -10,15 +12,17 @@
     subtitle = "",
     lastSeen = true,
     selected = false,
+    onclick,
   }: {
     group: IGroup;
     subtitle?: string;
     lastSeen?: boolean;
     selected?: boolean;
+    onclick?: MouseEventHandler<HTMLAnchorElement>;
   } = $props();
 </script>
 
-<Button on:click>
+<Button {onclick}>
   {@const devices = $groupDevices.filter((d) => d.gid === group.gid).length}
   <div id="circle" class={devices < 1 ? undefined : "green-border"}>
     {devices < 1 ? "" : devices}
