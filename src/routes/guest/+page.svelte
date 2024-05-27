@@ -42,7 +42,7 @@
       navigator.serviceWorker?.addEventListener("message", handleMessage);
 
       await setup();
-      await apiClient("http").setupGuest();
+      //await apiClient("http").setupGuest();
 
       if (!sender) manager.requestRequest(did, filetransfer_id);
     }
@@ -83,8 +83,8 @@
       <Input />
       <button
         class="circle transparent"
-        onclick={() => {
-          manager.cancelIncoming();
+        onclick={async () => {
+          await manager.cancelIncoming();
           manager.cancelOutgoing();
           peer().closeConnections();
         }}

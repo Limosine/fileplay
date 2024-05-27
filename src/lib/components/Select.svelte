@@ -125,14 +125,17 @@
     else selected.splice(index, 1);
   };
 
-  const send = () => {
+  const send = async () => {
     const devices = selected.filter((s) => s.type == "device").map((d) => d.id);
     if (devices.length > 0)
-      manager.createTransfer({ type: "devices", ids: devices });
+      await manager.createTransfer({ type: "devices", ids: devices });
 
     for (const selection of selected.filter((s) => s.type != "device")) {
       if (selection.type == "contact" || selection.type == "group")
-        manager.createTransfer({ type: selection.type, id: selection.id });
+        await manager.createTransfer({
+          type: selection.type,
+          id: selection.id,
+        });
     }
 
     ui("#dialog-large");
@@ -152,7 +155,7 @@
         lastSeen
         user={c}
         selected={isSelected("contact", c.uid)}
-        on:click={() => select("contact", c.display_name, c.uid)}
+        onclick={() => select("contact", c.display_name, c.uid)}
       />
     {/if}
   {:else if type == "group"}
@@ -162,7 +165,7 @@
         lastSeen
         group={g}
         selected={isSelected("group", g.gid)}
-        on:click={() => select("group", g.name, g.gid)}
+        onclick={() => select("group", g.name, g.gid)}
       />
     {/if}
   {:else}
@@ -172,7 +175,7 @@
         lastSeen
         device={d}
         selected={isSelected("device", d.did)}
-        on:click={() => select("device", d.display_name, d.did)}
+        onclick={() => select("device", d.display_name, d.did)}
       />
     {/if}
   {/if}
@@ -225,7 +228,7 @@
             lastSeen
             device={d}
             selected={isSelected("device", d.did)}
-            on:click={() => select("device", d.display_name, d.did)}
+            onclick={() => select("device", d.display_name, d.did)}
           />
         {/each}
       {:else if !ownDevicesSelected}
@@ -238,7 +241,7 @@
             lastSeen
             group={g}
             selected={isSelected("group", g.gid)}
-            on:click={() => select("group", g.name, g.gid)}
+            onclick={() => select("group", g.name, g.gid)}
           />
         {/each}
 
@@ -251,7 +254,7 @@
             lastSeen
             user={c}
             selected={isSelected("contact", c.uid)}
-            on:click={() => select("contact", c.display_name, c.uid)}
+            onclick={() => select("contact", c.display_name, c.uid)}
           />
         {/each}
       {/if}

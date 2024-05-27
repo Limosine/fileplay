@@ -12,6 +12,7 @@
     subtitle = "",
     lastSeen = false,
     selected = false,
+    onclick,
   }: {
     user: { uid: number; avatar_seed: string; display_name: string };
     subtitle?: string;
@@ -21,7 +22,7 @@
   } = $props();
 </script>
 
-<Button on:click>
+<Button {onclick}>
   <div>
     <img
       class="circle medium"

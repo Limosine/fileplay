@@ -12,12 +12,12 @@ export const setup = async () => {
   }
 };
 
-const importKey = (key: JsonWebKey, publicKey: boolean) => {
+export const importKey = (key: JsonWebKey, publicKey: boolean) => {
   return crypto.subtle.importKey(
     "jwk",
     key,
     { name: "ECDH", namedCurve: "P-256" },
-    false,
+    true,
     publicKey ? [] : ["deriveKey"],
   );
 };
@@ -41,15 +41,6 @@ const getDerivedKey = async (foreignPublicKey: CryptoKey) => {
     false,
     ["encrypt", "decrypt"],
   );
-};
-
-export const updateKey = async (
-  did: number,
-  jsonKey: JsonWebKey,
-  id: 0 | 1,
-) => {
-  const key = await importKey(jsonKey, true);
-  return peer().setKey(did, key, id);
 };
 
 const encryptAes = async (

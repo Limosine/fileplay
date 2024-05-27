@@ -3,7 +3,14 @@ import { get } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import { peer } from "$lib/lib/p2p";
-import { contacts, devices, files, groupDevices, updateFiles, user } from "$lib/lib/UI";
+import {
+  contacts,
+  devices,
+  files,
+  groupDevices,
+  updateFiles,
+  user,
+} from "$lib/lib/UI";
 
 import {
   chunkBlobSmall,
@@ -54,7 +61,7 @@ export class FiletransferOut {
 
     if (properties.type != "toGuest") {
       this.sendRequest();
-      this.sendNotifications();
+      // this.sendNotifications(); // ZodError
     }
   }
 
@@ -75,7 +82,10 @@ export class FiletransferOut {
     });
   }
 
-  sendRequest(properties?: { type: "notification" | "guest"; from: number }) {
+  async sendRequest(properties?: {
+    type: "notification" | "guest";
+    from: number;
+  }) {
     const files = this.files.map((f) => {
       return {
         id: f.id,
@@ -100,7 +110,7 @@ export class FiletransferOut {
 
     if (properties === undefined) {
       for (const recipient of this.recipients) {
-        peer().sendMessage(recipient.did, request);
+        await peer().sendMessage(recipient.did, request);
       }
     } else {
       if (!this.recipients.some((r) => r.did === properties.from)) {
@@ -111,7 +121,7 @@ export class FiletransferOut {
         });
       }
 
-      peer().sendMessage(properties.from, request);
+      await peer().sendMessage(properties.from, request);
     }
   }
 

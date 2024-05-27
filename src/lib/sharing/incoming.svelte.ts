@@ -43,9 +43,9 @@ export class FiletransferIn {
       this.sendAnswer(true);
   }
 
-  sendAnswer(answer: boolean) {
+  async sendAnswer(answer: boolean) {
     if (this.state == "infos" || this.state == "receiving")
-      peer().sendMessage(this.did, {
+      await peer().sendMessage(this.did, {
         type: answer ? "accept" : "reject",
         id: this.id,
       });
@@ -54,7 +54,7 @@ export class FiletransferIn {
     else manager.incoming = manager.incoming.filter((t) => t.id != this.id);
   }
 
-  sendFinish(file_id: string, filetransfer_finished: boolean) {
+  async sendFinish(file_id: string, filetransfer_finished: boolean) {
     const file_index = this.files.findIndex((file) => file.id == file_id);
     if (file_index === -1) throw new Error("File not found.");
 
@@ -63,7 +63,7 @@ export class FiletransferIn {
       if (this.files[file_index].chunks[i] === undefined) missing.push(i);
     }
 
-    peer().sendMessage(this.did, {
+    await peer().sendMessage(this.did, {
       type: "file-finish",
       id: this.id,
       file_id,
@@ -73,7 +73,7 @@ export class FiletransferIn {
     if (missing.length !== 0) return;
 
     if (filetransfer_finished) {
-      peer().sendMessage(this.did, {
+      await peer().sendMessage(this.did, {
         type: "transfer-finish",
         id: this.id,
       });
@@ -86,7 +86,7 @@ export class FiletransferIn {
     this.files[file_index].url = createFileURL(file);
   }
 
-  handleChunk(
+  async handleChunk(
     file_id: string,
     chunk: Uint8Array,
     chunk_id: number,
@@ -99,9 +99,9 @@ export class FiletransferIn {
 
     if (final) {
       if (this.files.slice(-1)[0].id === file_id) {
-        this.sendFinish(file_id, true);
+        await this.sendFinish(file_id, true);
       } else {
-        this.sendFinish(file_id, false);
+        await this.sendFinish(file_id, false);
       }
     }
   }

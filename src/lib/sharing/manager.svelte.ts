@@ -24,14 +24,14 @@ class TransferManager {
   private notifications: { did: number; id: string }[] = [];
 
   // Initiating/Authorizing new filetransfer (Sender)
-  createTransfer(
+  async createTransfer(
     properties: OutgoingFileTransfer["ids"],
     files?: OutgoingFileInfos[],
   ) {
     if (properties.type == "devices") {
-      for (const device of properties.ids) increaseCounter("device", device);
+      for (const device of properties.ids) await increaseCounter("device", device);
     } else if (properties.type == "contact" || properties.type == "group")
-      increaseCounter(properties.type, properties.id);
+      await increaseCounter(properties.type, properties.id);
 
     this.outgoing.push(new FiletransferOut(properties, files));
   }
@@ -41,7 +41,7 @@ class TransferManager {
       type: "createTransfer",
     });
 
-    this.createTransfer({ type: "toGuest", transferId }, send ? undefined : []);
+    await this.createTransfer({ type: "toGuest", transferId }, send ? undefined : []);
 
     return `${location.protocol}//${location.host}/guest?did=${get(devices)?.self.did}&id=${transferId}${send ? "" : "&sender"}`;
   }
@@ -53,8 +53,8 @@ class TransferManager {
     );
   }
 
-  requestRequest(did: number, filetransfer_id: string) {
-    peer().sendMessage(did, {
+  async requestRequest(did: number, filetransfer_id: string) {
+    await peer().sendMessage(did, {
       type: "accept",
       id: filetransfer_id,
       guest: true,
@@ -68,13 +68,13 @@ class TransferManager {
     );
   };
 
-  private sendReady(did: number, nid: string) {
+  private async sendReady(did: number, nid: string) {
     this.notifications.push({
       did,
       id: nid,
     });
 
-    peer().sendMessage(did, {
+    await peer().sendMessage(did, {
       type: "ready",
       id: nid,
     });
@@ -192,7 +192,7 @@ class TransferManager {
   }
 
   // Handle WebRTC/WebSocket data
-  handle(data: Exclude<webRTCData, Update>, did: number) {
+  async handle(data: Exclude<webRTCData, Update>, did: number) {
     if (data.type == "error") {
       console.warn(`Filetransfer (did: ${did}): ${data.message}`);
     } else if (
@@ -206,21 +206,21 @@ class TransferManager {
     ) {
       // Sender:
       if (data.type == "ready") {
-        this.handleReady(did, data.id);
+        await this.handleReady(did, data.id);
       } else if (data.type == "accept") {
         if (data.guest == true)
-          this.getTransferOut(data.id).sendRequest({
+          await this.getTransferOut(data.id).sendRequest({
             type: "guest",
             from: did,
           });
-        else this.getTransferOut(data.id).sendChunked(did);
+        else await this.getTransferOut(data.id).sendChunked(did);
       } else if (data.type == "reject") {
         this.getTransferOut(data.id).handleFileTransferFinished(
           did,
           "rejected",
         );
       } else if (data.type == "file-finish") {
-        this.getTransferOut(data.id).handleFileFinish(
+        await this.getTransferOut(data.id).handleFileFinish(
           did,
           data.file_id,
           data.missing,
@@ -232,7 +232,7 @@ class TransferManager {
       } else if (data.type == "request") {
         this.handleRequest(did, data);
       } else if (data.type == "chunk") {
-        this.getTransferIn(data.id).handleChunk(
+        await this.getTransferIn(data.id).handleChunk(
           data.chunk.file_id,
           data.chunk.data,
           data.chunk.id,
@@ -240,23 +240,23 @@ class TransferManager {
         );
       }
     } else {
-      peer().sendMessage(did, {
+      await peer().sendMessage(did, {
         type: "error",
         message: "401 Unauthorized",
       });
     }
   }
 
-  private handleReady(did: number, nid: string) {
-    const unauthorized = () =>
-      peer().sendMessage(did, {
+  private async handleReady(did: number, nid: string) {
+    const unauthorized = async () =>
+      await peer().sendMessage(did, {
         type: "error",
         message: "401 Unauthorized",
       });
 
     const transfer = this.outgoing.find((transfer) => transfer.nid == nid);
 
-    if (transfer === undefined) unauthorized();
+    if (transfer === undefined) await unauthorized();
     else {
       if (transfer.ids.type == "contact") {
         const contact = get(contacts).find(
@@ -282,7 +282,7 @@ class TransferManager {
           return unauthorized();
       } else return unauthorized();
 
-      transfer.sendRequest({ type: "notification", from: did });
+      await transfer.sendRequest({ type: "notification", from: did });
     }
   }
 
@@ -317,9 +317,9 @@ class TransferManager {
     }
   }
 
-  cancelIncoming() {
+  async cancelIncoming() {
     for (const transfer of this.incoming) {
-      transfer.sendAnswer(false);
+      await transfer.sendAnswer(false);
     }
   }
 }
