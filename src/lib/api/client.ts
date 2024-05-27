@@ -2,7 +2,7 @@ import { browser } from "$app/environment";
 import { decode, encode } from "@msgpack/msgpack";
 import { get, readable, writable } from "svelte/store";
 
-import { peer } from "$lib/lib/simple-peer";
+import { peer } from "$lib/lib/p2p";
 import {
   closeDialog,
   contacts,
@@ -91,7 +91,7 @@ class WebSocketClient {
 
   private connect() {
     this.socket = new WebSocket(
-      `${browser && location.protocol == "https:" ? "wss:" : "ws:"}//${location.pathname}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
+      `${browser && location.protocol == "https:" ? "wss:" : "ws:"}//${location.host}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
 
     this.socket.binaryType = "arraybuffer";
@@ -214,7 +214,7 @@ class WebSocketClient {
       if (message.data.data.type == "signal")
         peer().signal(message.data.from, JSON.parse(message.data.data.data));
       else {
-        peer().handle(message.data.from, message.data.data.data, "websocket");
+        peer().handle(message.data.from, message.data.data.data);
       }
     } else if (message.type == "closeConnection") {
       peer().closeConnections(message.data);

@@ -3,7 +3,7 @@ import { get } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import { increaseCounter } from "$lib/lib/history";
-import { peer } from "$lib/lib/simple-peer";
+import { peer } from "$lib/lib/p2p";
 import { contacts, devices, groupDevices, groups } from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
 

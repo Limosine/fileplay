@@ -8,8 +8,8 @@
   import { apiClient } from "$lib/api/client";
   import Input from "$lib/components/Input.svelte";
   import { setup } from "$lib/lib/encryption";
-  import { peer } from "$lib/lib/simple-peer";
   import { handleMessage } from "$lib/lib/fetchers";
+  import { peer } from "$lib/lib/p2p";
   import { files, input, returnSubstring } from "$lib/lib/UI";
   import { manager } from "$lib/sharing/manager.svelte";
   import { capitalizeFirstLetter } from "$lib/lib/utils";

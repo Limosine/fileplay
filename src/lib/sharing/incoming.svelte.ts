@@ -1,4 +1,4 @@
-import { peer } from "$lib/lib/simple-peer";
+import { peer } from "$lib/lib/p2p";
 import { onGuestPage } from "$lib/lib/utils";
 
 import {

@@ -1,7 +1,7 @@
 import { numberToUint8Array, typedArrayToBuffer } from "$lib/lib/utils";
 import { concatUint8Arrays } from "$lib/sharing/common";
 
-import { peer } from "./simple-peer";
+import { peer } from "./p2p";
 
 let privateKey: CryptoKey;
 export let publicKeyJwk: JsonWebKey;

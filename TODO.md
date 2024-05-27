@@ -6,6 +6,7 @@
   - [ ] Keybinding
   - [ ] Check for browser compatibility and redirect
   - [ ] Desktop UI
+  - [ ] Add QUIC as WebRTC alternative
 
 - [ ] Backend
 

@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import { get } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
-import { peer } from "$lib/lib/simple-peer";
+import { peer } from "$lib/lib/p2p";
 import { contacts, devices, files, groupDevices, updateFiles, user } from "$lib/lib/UI";
 
 import {
