@@ -42,7 +42,7 @@
       navigator.serviceWorker?.addEventListener("message", handleMessage);
 
       await setup();
-      //await apiClient("http").setupGuest();
+      await apiClient("http").setupGuest();
 
       if (!sender) manager.requestRequest(did, filetransfer_id);
     }
