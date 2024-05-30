@@ -77,8 +77,10 @@ abstract class Transport {
         this.sendKey(undefined, true);
       else if (this.buffer.state == "idle") this.sendMessages();
     };
-    const onDestroy = () =>
+    const onDestroy = () => {
+      console.log("Peer: Destroyed");
       this.events.removeEventListener("connected", onConnect);
+    }
 
     this.events.addEventListener("connected", onConnect);
     this.events.addEventListener("destroyed", onDestroy, { once: true });
@@ -94,24 +96,24 @@ abstract class Transport {
     } else {
       if (this.buffer.state == "idle") this.buffer.state = "working";
 
-      await this.upper.sendChunk(this.did, chunk);
+      await this.sendChunk(chunk);
       this.sendMessages();
     }
   }
 
   abstract sendChunk(chunk: Uint8Array): MaybePromise<void>;
 
+  async addToBuffer(chunk: Uint8Array, immediately: boolean) {
+    if (immediately) {
+      this.buffer.data.unshift(chunk);
+    } else {
+      this.buffer.data.push(chunk);
+    }
+
+    if (this.buffer.state == "idle") await this.sendMessages();
+  }
+
   async sendMessage(data: webRTCData, encrypt = true, immediately = false) {
-    const addToBuffer = async (chunk: Uint8Array) => {
-      if (immediately) {
-        this.buffer.data.unshift(chunk);
-      } else {
-        this.buffer.data.push(chunk);
-      }
-
-      if (this.buffer.state == "idle") await this.sendMessages();
-    };
-
     if (encrypt && this.key === undefined) {
       const send = async () => {
         const chunk = concatUint8Arrays([
@@ -119,7 +121,7 @@ abstract class Transport {
           await encryptData(encode(data), this.did),
         ]);
 
-        await addToBuffer(chunk);
+        await this.upper.addToBuffer(this.did, chunk, immediately);
       };
 
       this.events.addEventListener("encrypted", send, { once: true });
@@ -134,7 +136,7 @@ abstract class Transport {
         chunk = concatUint8Arrays([numberToUint8Array(0, 1), encode(data)]);
       }
 
-      await addToBuffer(chunk);
+      await this.addToBuffer(chunk, immediately);
     }
   }
 
@@ -317,26 +319,37 @@ class WebRTC extends Transport {
 
     // Timeout
 
-    const timer = setTimeout(() => {
-      this.events.removeEventListener("connected", onConnected);
-      this.close();
-      const saved = createEmptyPromise();
-      this.upper.replace(
-        this.did,
-        new WebSocket(
-          this.upper,
+    if (this.initiator) {
+      const timer = setTimeout(() => {
+        this.events.removeEventListener("connected", onConnected);
+        this.events.removeEventListener("destroyed", onDestroyed);
+        this.close();
+        const saved = createEmptyPromise();
+        this.upper.replace(
           this.did,
-          this.initiator,
-          saved.promise,
-          this.events,
-          this.buffer.data,
-        ),
-      );
-      saved.resolve();
-    }, 1500);
+          new WebSocket(
+            this.upper,
+            this.did,
+            this.initiator,
+            saved.promise,
+            this.events,
+            this.buffer.data,
+          ),
+        );
+        saved.resolve();
+      }, 1500);
 
-    const onConnected = () => clearTimeout(timer);
-    this.events.addEventListener("connected", onConnected, { once: true });
+      const onConnected = () => {
+        clearTimeout(timer);
+        this.events.removeEventListener("destroyed", onDestroyed);
+      };
+      const onDestroyed = () => {
+        clearTimeout(timer);
+        this.events.removeEventListener("connected", onConnected);
+      };
+      this.events.addEventListener("connected", onConnected, { once: true });
+      this.events.addEventListener("destroyed", onDestroyed, { once: true });
+    }
 
     return peer;
   }
@@ -566,19 +579,24 @@ class Peer {
     }
   }
 
-  private async getConnectionConnect(
+  private getConnectionConnect(
     did: number,
     initiator: boolean,
     forceWebSocket?: boolean,
   ) {
+    const connect = () =>
+      this.connect(did, initiator, undefined, forceWebSocket, true);
+
     const conn = this.connections[did];
-    if (conn === undefined)
-      return await this.connect(did, initiator, undefined, forceWebSocket);
-    else return conn;
+    if (conn === undefined) return connect();
+    else if (forceWebSocket && conn instanceof WebRTC) {
+      conn.close();
+      return connect();
+    } else return conn;
   }
 
-  sendChunk(did: number, chunk: Uint8Array) {
-    return this.getConnection(did, "Peer").sendChunk(chunk);
+  addToBuffer(did: number, chunk: Uint8Array, immediately: boolean) {
+    return this.getConnection(did, "Peer").addToBuffer(chunk, immediately);
   }
 
   async sendMessage(
