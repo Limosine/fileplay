@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "start": "deno run --allow-net main.ts"
+    "start": "deno run --allow-all main.ts"
   },
   "imports": {
     "@hono/zod-validator": "npm:@hono/zod-validator",

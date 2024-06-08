@@ -12,22 +12,23 @@ import { DeviceType } from "../../common/common.ts";
 import { constants } from "../main.ts";
 
 export const createConstants = async () => {
-  const kys = new Kysely<DB>({
-    dialect: new PostgresJSDialect({
-      postgres: postgres(
-        "postgres://fileplay:fileplay@127.0.0.1:5432/fileplay"
-      ),
-    }),
-  });
-  if (!kys) throw new Error("Failed to access database");
-
+  const postgresPath = Deno.env.get("POSTGRES_PATH");
   const signingSecret = Deno.env.get("COOKIE_SIGNING_SECRET");
   const authSecret = Deno.env.get("COTURN_AUTH_SECRET");
 
+  if (postgresPath === undefined)
+    throw new Error("Please define a postgres path.");
   if (signingSecret === undefined)
     throw new Error("Please define a cookie signing secret.");
   if (authSecret === undefined)
     throw new Error("Please define a coturn auth secret.");
+
+  const kys = new Kysely<DB>({
+    dialect: new PostgresJSDialect({
+      postgres: postgres(postgresPath),
+    }),
+  });
+  if (!kys) throw new Error("Failed to access database");
 
   return {
     db: kys,

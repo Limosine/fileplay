@@ -43,4 +43,7 @@ app.get(
 
 addHandlers(app);
 
-Deno.serve(app.fetch);
+let port = Deno.env.get("PORT");
+if (port === undefined) port = "8000";
+
+Deno.serve({ port: parseInt(port) }, app.fetch);
