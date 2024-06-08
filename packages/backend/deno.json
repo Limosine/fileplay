@@ -1,0 +1,21 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net main.ts"
+  },
+  "imports": {
+    "@hono/zod-validator": "npm:@hono/zod-validator",
+    "@std/encoding": "jsr:@std/encoding",
+    "bad-words": "npm:bad-words",
+    "dayjs": "npm:dayjs",
+    "google-auth-library": "npm:google-auth-library",
+    "hono": "https://deno.land/x/hono@v4.3.11/mod.ts",
+    "hono/": "https://deno.land/x/hono@v4.3.11/",
+    "kysely": "npm:kysely",
+    "kysely-postgres-js": "npm:kysely-postgres-js",
+    "msgpackr": "npm:msgpackr",
+    "nanoid": "npm:nanoid",
+    "postgres": "https://deno.land/x/postgresjs@v3.4.3/mod.js",
+    "web-push": "npm:web-push",
+    "zod": "https://deno.land/x/zod@v3.23.8/mod.ts"
+  }
+}
