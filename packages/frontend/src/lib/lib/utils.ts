@@ -87,7 +87,7 @@ export const numberToUint8Array = (number: number, length = 4) => {
     array[i] = number % 256;
     number = Math.floor(number / 256);
   }
-  if (number % 256 !== 0) throw new Error("Conversion: Number to high.");
+  if (number % 256 !== 0) throw new Error("Conversion: Number too high.");
 
   return array;
 };

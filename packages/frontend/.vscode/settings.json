@@ -12,6 +12,8 @@
     "csrf",
     "dayjs",
     "Dicebear",
+    "DTLS",
+    "ECDH",
     "ecma",
     "ehpoc",
     "enctype",

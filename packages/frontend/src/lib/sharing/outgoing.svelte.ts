@@ -61,7 +61,7 @@ export class FiletransferOut {
 
     if (properties.type != "toGuest") {
       this.sendRequest();
-      // this.sendNotifications(); // ZodError
+      this.sendNotifications();
     }
   }
 

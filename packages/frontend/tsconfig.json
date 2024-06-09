@@ -27,6 +27,7 @@
     "./tests/**/*.ts",
     "./tests/**/*.svelte",
     "./env.d.ts",
+    "./functions/**/*.js"
   ]
   // Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
   //
