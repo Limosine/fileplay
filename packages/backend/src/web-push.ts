@@ -40,20 +40,14 @@ class WebPush {
   }
 
   async getAccessToken() {
-    const { default: key } = await import(this.firebasePath, {
-      with: { type: "json" },
-    });
+    const key = JSON.parse(Deno.readTextFileSync(this.firebasePath));
     const jwtClient = new JWT(
       key.client_email,
       undefined,
       key.private_key,
       "https://www.googleapis.com/auth/firebase.messaging"
     );
-    return await new Promise<string | null | undefined>(function (
-      resolve,
-      reject
-    ) {
-      // @ts-ignore Google types not working in Deno
+    return await new Promise<string | null | undefined>((resolve, reject) => {
       jwtClient.authorize((err, tokens) => {
         if (err) return reject(err);
         else if (tokens === undefined) return reject();
@@ -87,39 +81,40 @@ class WebPush {
       if (device.push_subscription !== null) {
         const data = JSON.parse(device.push_subscription);
         if (typeof data === "string") {
-          await fetch(
-            "https://fcm.googleapis.com/v1/projects/fileplay-me/messages:send",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + (await this.getAccessToken()),
-              },
-              body: JSON.stringify({
-                message: {
-                  token: data,
-                  notification: {
-                    title: "Sharing request",
-                    body: `${message.username} wants to share the file${
-                      message.files.length > 1 ? "s" : ""
-                    } '${message.files.toString()}' with you. Click to accept.`,
-                  },
-                  data: {
-                    did: message.did.toString(),
-                    nid: message.nid,
-                  },
-                  android: {
-                    ttl: "900s",
-                    priority: "high",
-                  },
+          console.log(
+            await fetch(
+              "https://fcm.googleapis.com/v1/projects/fileplay-me/messages:send",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: "Bearer " + (await this.getAccessToken()),
                 },
-              }),
-            }
+                body: JSON.stringify({
+                  message: {
+                    token: data,
+                    notification: {
+                      title: "Sharing request",
+                      body: `${message.username} wants to share the file${
+                        message.files.length > 1 ? "s" : ""
+                      } '${message.files.toString()}' with you. Click to accept.`,
+                    },
+                    data: {
+                      did: message.did.toString(),
+                      nid: message.nid,
+                    },
+                    android: {
+                      ttl: "900s",
+                      priority: "high",
+                    },
+                  },
+                }),
+              }
+            )
           );
         } else
-          await webpush.sendNotification(
-            JSON.parse(device.push_subscription),
-            JSON.stringify(message)
+          console.log(
+            await webpush.sendNotification(data, JSON.stringify(message))
           );
       }
     }
