@@ -38,11 +38,13 @@ self.addEventListener("push", (event) => {
   if (event.data === null) return console.warn("Empty push message.");
   const data: notificationData = event.data.json();
 
-  self.registration.showNotification("Sharing request", {
-    data,
-    body: `${data.username} wants to share the file${data.files.length > 1 ? "s" : ""} '${data.files.toString()}' with you. Click to accept.`,
-    icon: getDicebearUrl(data.avatarSeed),
-  });
+  event.waitUntil(
+    self.registration.showNotification("Sharing request", {
+      data,
+      body: `${data.username} wants to share the file${data.files.length > 1 ? "s" : ""} '${data.files.toString()}' with you. Click to accept.`,
+      icon: getDicebearUrl(data.avatarSeed),
+    }),
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {
