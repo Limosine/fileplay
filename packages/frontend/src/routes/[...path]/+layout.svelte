@@ -62,17 +62,20 @@
       });
     }
 
-    if (pwaInfo && "serviceWorker" in navigator) {
-      try {
-        const r = await navigator.serviceWorker.register("/service-worker.js", {
-          scope: "/",
-        });
-
-        $registration = r;
-        open();
-      } catch (e: any) {
-        console.log("SW registration error", e);
-      }
+    if (pwaInfo) {
+      const { useRegisterSW } = await import("virtual:pwa-register/svelte");
+      useRegisterSW({
+        immediate: true,
+        onRegistered(r) {
+          if (r !== undefined) {
+            $registration = r;
+            open();
+          }
+        },
+        onRegisterError(error) {
+          console.log("SW registration error", error);
+        },
+      });
     }
 
     if (localStorage.getItem("privacyAccepted") === null)

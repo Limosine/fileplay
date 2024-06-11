@@ -34,8 +34,8 @@ type notificationData = {
   files: string[];
 };
 
-self.addEventListener("push", async (event) => {
-  if (event.data === null) return;
+self.addEventListener("push", (event) => {
+  if (event.data === null) return console.warn("Empty push message.");
   const data: notificationData = event.data.json();
 
   self.registration.showNotification("Sharing request", {
@@ -75,7 +75,7 @@ const serveShareTarget = (event: FetchEvent) => {
   );
 };
 
-self.addEventListener("fetch", (event: FetchEvent) => {
+self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
   if (
@@ -99,7 +99,7 @@ const nextMessage = (dataVal: string) => {
   });
 };
 
-self.addEventListener("message", (event: ExtendableMessageEvent) => {
+self.addEventListener("message", (event) => {
   const resolvers = nextMessageResolveMap.get(event.data);
   if (!resolvers) return;
   nextMessageResolveMap.delete(event.data);
