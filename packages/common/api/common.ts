@@ -328,7 +328,7 @@ export const messageFromServerSchema = messageFromServerSchemaWithoutId.and(
   })
 );
 
-export type MessageFromServer = z.infer<typeof messageFromServerSchema>;
+export type MessageFromServer = z.infer<typeof messageFromServerSchemaWithoutId>;
 
 export type ResponseMap<T> =
     T extends z.infer<typeof createTransfer> ? Promise<z.infer<typeof filetransfer>["data"]> :

@@ -114,9 +114,9 @@ class WebSocketClient {
     });
 
     this.socket.addEventListener("message", (event) => {
-      let data: MessageFromServer;
+      let data;
       if (event.data instanceof ArrayBuffer) {
-        data = unpack(new Uint8Array(event.data)) as any;
+        data = unpack(new Uint8Array(event.data));
       } else if (typeof event.data == "string") {
         data = JSON.parse(event.data);
       } else {
@@ -181,7 +181,7 @@ class WebSocketClient {
     return undefined as ResponseMap<T>;
   }
 
-  private handleData(message: MessageFromServer) {
+  private handleData(message: MessageFromServer & { id: number }) {
     if (message.type == "user") {
       userParams.set({
         display_name: message.data.display_name,

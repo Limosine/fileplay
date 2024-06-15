@@ -162,7 +162,7 @@ export const onClose = (ws: WSContext) => {
 
 export const sendMessage = (
   ws: WSContext | number,
-  message: MessageFromServer,
+  message: MessageFromServer & { id?: number },
   error = true
 ) => {
   if (typeof ws === "number") {
