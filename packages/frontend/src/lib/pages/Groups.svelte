@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ui from "beercss";
+
   import { apiClient } from "$lib/api/client";
   import type { IGroup } from "$lib/lib/fetchers";
   import {

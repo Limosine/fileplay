@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ui from "beercss";
   import dayjs from "dayjs";
 
   import { apiClient } from "$lib/api/client";

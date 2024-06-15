@@ -1,4 +1,10 @@
-export function onRequest(context) {
+/// <reference types="@cloudflare/workers-types" />
+
+interface Env {
+  API_HOSTNAME: string;
+}
+
+export const onRequest: PagesFunction<Env> = (context) => {
   try {
     const url = new URL(context.request.url);
     if (url.pathname.startsWith("/api")) {
@@ -22,4 +28,4 @@ export function onRequest(context) {
     console.log(e);
     return context.next();
   }
-}
+};

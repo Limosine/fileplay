@@ -8,7 +8,6 @@
 <div>Do you want to enable notifications?</div>
 
 <nav class="right-align" style="padding: 10px 0 0 0;">
-  <!-- eslint-disable no-undef -->
   <button
     class="transparent link"
     onclick={() => {
@@ -18,11 +17,10 @@
   >
   <button
     class="transparent link"
-    onclick={async () => {
+    onclick={() => {
       localStorage.setItem("subscribedToPush", "false");
       closeDialog(true);
-      notifications().create($registration);
+      $notifications.create($registration);
     }}>Allow</button
   >
-  <!-- eslint-enable no-undef -->
 </nav>

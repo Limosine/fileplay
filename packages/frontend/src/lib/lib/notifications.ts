@@ -1,20 +1,7 @@
-import { get, writable } from "svelte/store";
+import { writable } from "svelte/store";
 
 import { PUBLIC_VAPID_KEY } from "$env/static/public";
 import { apiClient } from "$lib/api/client";
-
-const store = writable<Notifications>();
-
-export const notifications = () => {
-  let notificationStore = get(store);
-  if (notificationStore === undefined) {
-    notificationStore = new Notifications();
-    store.set(notificationStore);
-    return notificationStore;
-  } else {
-    return notificationStore;
-  }
-};
 
 class Notifications {
   initialized: boolean;
@@ -23,11 +10,9 @@ class Notifications {
     this.initialized = false;
   }
 
-  async create(registration?: ServiceWorkerRegistration) {
+  async create(registration: ServiceWorkerRegistration) {
     if (!this.initialized) {
-      if (registration !== undefined) {
-        await this.initWeb(registration);
-      } else throw new Error("Web-Push: SW registration has to be defined.");
+      await this.initWeb(registration);
 
       this.initialized = true;
     }
@@ -61,3 +46,5 @@ class Notifications {
     }
   }
 }
+
+export const notifications = writable(new Notifications());

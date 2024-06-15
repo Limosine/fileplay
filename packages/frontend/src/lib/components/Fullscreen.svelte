@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ui from "beercss";
   import { onDestroy, type Snippet } from "svelte";
 
   let {

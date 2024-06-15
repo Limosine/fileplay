@@ -1,29 +1,30 @@
 import { page } from "$app/stores";
 import { get } from "svelte/store";
+import type { z } from "zod";
 
-import type {
-  Contacts,
-  Devices,
-  GroupDevices,
-  Groups,
-  User,
+import {
+  contacts,
+  devices,
+  groupDevices,
+  groups,
+  user,
 } from "../../../../common/api/common";
 
 import { rawFiles } from "./UI";
 
 // User
-export type IUser = User["data"];
+export type IUser = z.infer<typeof user>["data"];
 
 // Devices
-export type IDevices = Devices["data"];
-export type IDeviceInfo = Contacts["data"][0]["devices"][0];
+export type IDevices = z.infer<typeof devices>["data"];
+export type IDeviceInfo = z.infer<typeof contacts>["data"][0]["devices"][0];
 
 // Contacts
-export type IContact = Contacts["data"][0];
+export type IContact = z.infer<typeof contacts>["data"][0];
 
 // Groups
-export type IGroup = Groups["data"][0];
-export type IGroupDevice = GroupDevices["data"][0];
+export type IGroup = z.infer<typeof groups>["data"][0];
+export type IGroupDevice = z.infer<typeof groupDevices>["data"][0];
 
 // Conversion
 export const arrayToFileList = (files: File[]) => {

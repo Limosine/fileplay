@@ -5,8 +5,9 @@
   import { quadOut } from "svelte/easing";
   import { fade } from "svelte/transition";
   import { pwaInfo } from "virtual:pwa-info";
+  import { useRegisterSW } from "virtual:pwa-register/svelte";
 
-  import "beercss";
+  import ui from "beercss";
   import * as materialSymbols from "beercss/dist/cdn/material-symbols-outlined.woff2";
 
   import {
@@ -30,12 +31,10 @@
     children?: Snippet;
   } = $props();
 
-  let webManifest = $state("");
-  let overlay: "" | "hidden" = $state("");
+  let webManifest = $derived(pwaInfo?.webManifest?.linkTag);
+  let overlay = $state<"" | "hidden">("");
 
-  onMount(async () => {
-    if (pwaInfo) webManifest = pwaInfo.webManifest.linkTag;
-
+  onMount(() => {
     const open = () => {
       if (
         localStorage.getItem("subscribedToPush") === null &&
@@ -63,7 +62,6 @@
     }
 
     if (pwaInfo) {
-      const { useRegisterSW } = await import("virtual:pwa-register/svelte");
       useRegisterSW({
         immediate: true,
         onRegistered(r) {
@@ -89,7 +87,7 @@
 
 <svelte:head>
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-  {@html webManifest}
+  {@html webManifest === undefined ? "" : webManifest}
   <link
     rel="preload"
     as="font"

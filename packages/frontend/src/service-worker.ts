@@ -3,7 +3,6 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-const sw = /** @type {ServiceWorkerGlobalScope} */ /** @type {unknown} */ self;
 declare const self: ServiceWorkerGlobalScope;
 
 import { precacheAndRoute } from "workbox-precaching";

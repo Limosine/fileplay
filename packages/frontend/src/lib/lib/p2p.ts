@@ -1,8 +1,8 @@
 import { page } from "$app/stores";
-import { decode, encode } from "@msgpack/msgpack";
+import { pack, unpack } from "msgpackr";
 import SimplePeer, { type SignalData } from "simple-peer";
-import { get, writable } from "svelte/store";
 import type { MaybePromise } from "@sveltejs/kit";
+import { get, writable } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import { concatUint8Arrays, type webRTCData } from "$lib/sharing/common";
@@ -80,7 +80,7 @@ abstract class Transport {
     const onDestroy = () => {
       console.log("Peer: Destroyed");
       this.events.removeEventListener("connected", onConnect);
-    }
+    };
 
     this.events.addEventListener("connected", onConnect);
     this.events.addEventListener("destroyed", onDestroy, { once: true });
@@ -118,7 +118,7 @@ abstract class Transport {
       const send = async () => {
         const chunk = concatUint8Arrays([
           numberToUint8Array(1, 1),
-          await encryptData(encode(data), this.did),
+          await encryptData(pack(data), this.did),
         ]);
 
         await this.upper.addToBuffer(this.did, chunk, immediately);
@@ -130,10 +130,10 @@ abstract class Transport {
       if (encrypt) {
         chunk = concatUint8Arrays([
           numberToUint8Array(1, 1),
-          await encryptData(encode(data), this.did),
+          await encryptData(pack(data), this.did),
         ]);
       } else {
-        chunk = concatUint8Arrays([numberToUint8Array(0, 1), encode(data)]);
+        chunk = concatUint8Arrays([numberToUint8Array(0, 1), pack(data)]);
       }
 
       await this.addToBuffer(chunk, immediately);
@@ -177,19 +177,19 @@ abstract class Transport {
     if (uint8ArrayToNumber(data.slice(0, 1)) === 1) {
       if (this.key !== undefined) {
         handleDecoded(
-          decode(await decryptData(data.slice(1), this.did)) as webRTCData,
+          unpack(await decryptData(data.slice(1), this.did)) as webRTCData,
         );
       } else {
         const decrypt = async () => {
           handleDecoded(
-            decode(await decryptData(data.slice(1), this.did)) as webRTCData,
+            unpack(await decryptData(data.slice(1), this.did)) as webRTCData,
           );
         };
 
         this.events.addEventListener("encrypted", decrypt, { once: true });
       }
     } else {
-      await handleDecoded(decode(data.slice(1)) as webRTCData);
+      await handleDecoded(unpack(data.slice(1)) as webRTCData);
     }
   }
 
@@ -465,9 +465,9 @@ class Peer {
 
   private async getTurnCredentials() {
     if (this.turn === undefined) {
-      this.turn = (await apiClient("ws").sendMessage({
+      this.turn = await apiClient("ws").sendMessage({
         type: "getTurnCredentials",
-      })) as TurnCredentials;
+      });
     }
 
     return this.turn;

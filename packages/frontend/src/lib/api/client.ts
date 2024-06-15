@@ -1,6 +1,7 @@
 import { browser } from "$app/environment";
-import { decode, encode } from "@msgpack/msgpack";
+import { pack, unpack } from "msgpackr";
 import { get, readable, writable } from "svelte/store";
+import type { MaybePromise } from "@sveltejs/kit";
 
 import { peer } from "$lib/lib/p2p";
 import {
@@ -20,6 +21,7 @@ import { onGuestPage } from "$lib/lib/utils";
 import type {
   MessageFromClient,
   MessageFromServer,
+  ResponseMap,
 } from "../../../../common/api/common";
 
 class HTTPClient {
@@ -114,7 +116,7 @@ class WebSocketClient {
     this.socket.addEventListener("message", (event) => {
       let data: MessageFromServer;
       if (event.data instanceof ArrayBuffer) {
-        data = decode(new Uint8Array(event.data)) as any;
+        data = unpack(new Uint8Array(event.data)) as any;
       } else if (typeof event.data == "string") {
         data = JSON.parse(event.data);
       } else {
@@ -156,30 +158,27 @@ class WebSocketClient {
     }
   }
 
-  sendMessage(message: MessageFromClient) {
-    const msg = {
-      id: ++this.messageId,
-      type: message.type,
-      data: "data" in message ? message.data : undefined,
-    };
+  sendMessage<T extends MessageFromClient>(message: T): ResponseMap<T> {
+    const msg = Object.assign(message, { id: ++this.messageId });
 
     if (this.socket.readyState === 1) {
-      this.socket.send(encode(msg));
+      this.socket.send(pack(msg));
     } else {
-      this.buffer.push(encode(msg));
+      this.buffer.push(pack(msg));
     }
 
     if (
       msg.type == "createTransfer" ||
-      msg.type == "createGroup" ||
       msg.type == "createContactCode" ||
       msg.type == "createDeviceCode" ||
       msg.type == "getTurnCredentials"
     ) {
-      return new Promise<any>((resolve) => {
+      return new Promise<Awaited<ResponseMap<T>>>((resolve) => {
         this.promises[msg.id] = resolve;
-      });
+      }) as any;
     }
+
+    return undefined as ResponseMap<T>;
   }
 
   private handleData(message: MessageFromServer) {

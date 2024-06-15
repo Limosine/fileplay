@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ui from "beercss";
+
   import { changePath, layout, path } from "$lib/lib/UI";
   import { capitalizeFirstLetter } from "$lib/lib/utils";
 </script>

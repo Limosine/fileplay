@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ui from "beercss";
+
   import { apiClient } from "$lib/api/client";
   import {
     contacts,
@@ -7,7 +9,7 @@
     returnSubstring,
     user as userStore,
   } from "$lib/lib/UI";
-  import { getDicebearUrl } from "../../../../common/common"
+  import { getDicebearUrl } from "../../../../common/common";
   import type { IGroup } from "$lib/lib/fetchers";
 
   import Button from "./Button.svelte";

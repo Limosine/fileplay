@@ -40,7 +40,8 @@
   const handleResponseError = async (res: Response) => {
     const json_ = await res.json();
     if (json_) {
-      setupError = json_.message;
+      if (json_ instanceof Error) setupError = json_.message;
+      else setupError = JSON.stringify(json_);
     } else {
       setupError = res.status.toString();
     }

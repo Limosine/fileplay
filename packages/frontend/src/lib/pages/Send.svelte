@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ui from "beercss";
+
   import {
     input,
     files,

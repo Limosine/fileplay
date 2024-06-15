@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ui from "beercss";
+
   import { changePath, menuDialog, path } from "$lib/lib/UI";
 </script>
 
