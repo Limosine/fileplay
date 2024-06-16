@@ -1,7 +1,9 @@
 import { JWT } from "google-auth-library";
-
-// @deno-types="npm:@types/web-push"
-import * as webpush from "web-push";
+import {
+  PushSubscription,
+  VapidKeys,
+  buildPushPayload,
+} from "@block65/webcrypto-web-push";
 
 import { Database } from "./kysely.ts";
 
@@ -12,10 +14,11 @@ export const webPush = () => {
 };
 
 class WebPush {
-  publicVapidKey: string;
+  keys: VapidKeys;
   private firebasePath: string;
 
   constructor() {
+    const vapidSubject = Deno.env.get("VAPID_SUBJECT");
     const publicVapidKey = Deno.env.get("PUBLIC_VAPID_KEY");
     const privateVapidKey = Deno.env.get("PRIVATE_VAPID_KEY");
     const gcmKey = Deno.env.get("GCM_KEY");
@@ -23,20 +26,19 @@ class WebPush {
 
     const define = (s: string) => new Error(`Please define a ${s}.`);
 
+    if (vapidSubject === undefined) throw define("vapid subject");
     if (publicVapidKey === undefined) throw define("public vapid key");
     if (privateVapidKey === undefined) throw define("private vapid key");
     if (gcmKey === undefined) throw define("gcm key");
     if (firebasePath === undefined) throw define("firebase path");
 
-    this.publicVapidKey = publicVapidKey;
     this.firebasePath = firebasePath;
 
-    webpush.setGCMAPIKey(gcmKey);
-    webpush.setVapidDetails(
-      "mailto:postmaster@wir-sind-frey.de",
-      publicVapidKey,
-      privateVapidKey
-    );
+    this.keys = {
+      subject: vapidSubject,
+      publicKey: publicVapidKey,
+      privateKey: privateVapidKey,
+    };
   }
 
   async getAccessToken() {
@@ -79,43 +81,59 @@ class WebPush {
 
     for (const device of devices) {
       if (device.push_subscription !== null) {
-        const data = JSON.parse(device.push_subscription);
+        const data: string | PushSubscription = JSON.parse(
+          device.push_subscription
+        );
+        let res: Response;
+
         if (typeof data === "string") {
-          console.log(
-            await fetch(
-              "https://fcm.googleapis.com/v1/projects/fileplay-me/messages:send",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: "Bearer " + (await this.getAccessToken()),
-                },
-                body: JSON.stringify({
-                  message: {
-                    token: data,
-                    notification: {
-                      title: "Sharing request",
-                      body: `${message.username} wants to share the file${
-                        message.files.length > 1 ? "s" : ""
-                      } '${message.files.toString()}' with you. Click to accept.`,
-                    },
-                    data: {
-                      did: message.did.toString(),
-                      nid: message.nid,
-                    },
-                    android: {
-                      ttl: "900s",
-                      priority: "high",
-                    },
+          res = await fetch(
+            "https://fcm.googleapis.com/v1/projects/fileplay-me/messages:send",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + (await this.getAccessToken()),
+              },
+              body: JSON.stringify({
+                message: {
+                  token: data,
+                  notification: {
+                    title: "Sharing request",
+                    body: `${message.username} wants to share the file${
+                      message.files.length > 1 ? "s" : ""
+                    } '${message.files.toString()}' with you. Click to accept.`,
                   },
-                }),
-              }
+                  data: {
+                    did: message.did.toString(),
+                    nid: message.nid,
+                  },
+                  android: {
+                    ttl: "900s",
+                    priority: "high",
+                  },
+                },
+              }),
+            }
+          );
+        } else {
+          res = await fetch(
+            data.endpoint,
+            await buildPushPayload(
+              {
+                data: message,
+                options: {
+                  ttl: 60,
+                  urgency: "high",
+                },
+              },
+              data,
+              this.keys
             )
           );
-        } else
-          console.log(
-            await webpush.sendNotification(data, JSON.stringify(message))
-          );
+        }
+
+        if (res.status !== 201) console.log(await res.text());
       }
     }
   }
