@@ -1,5 +1,16 @@
 <script lang="ts">
   import { changePath, path } from "$lib/lib/UI";
+  import { manager } from "$lib/sharing/manager.svelte";
+
+  const outgoingLength = $derived(
+    manager.outgoing.filter((o) =>
+      o.recipients.some((r) => r.state == "requesting" || r.state == "sending"),
+    ).length,
+  );
+  const incomingLength = $derived(
+    manager.incoming.filter((i) => i.state == "infos" || i.state == "receiving")
+      .length,
+  );
 </script>
 
 <div id="footer">
@@ -13,6 +24,9 @@
         })}
     >
       <i>arrow_upward</i>
+      {#if outgoingLength > 0}
+        <div class="badge">{outgoingLength}</div>
+      {/if}
       <span>Send</span>
     </a>
     <a
@@ -23,6 +37,9 @@
         })}
     >
       <i>arrow_downward</i>
+      {#if incomingLength > 0}
+        <div class="badge">{incomingLength}</div>
+      {/if}
       <span>Receive</span>
     </a>
   </nav>

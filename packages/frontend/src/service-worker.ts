@@ -52,7 +52,7 @@ self.addEventListener("notificationclick", (event) => {
   const data: notificationData = event.notification.data;
 
   event.waitUntil(
-    self.clients.openWindow(`/?accept-target&did=${data.did}&nid=${data.nid}`),
+    self.clients.openWindow(`/receive?accept-target&did=${data.did}&nid=${data.nid}`),
   );
 });
 

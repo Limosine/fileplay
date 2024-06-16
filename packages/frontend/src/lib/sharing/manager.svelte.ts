@@ -4,7 +4,13 @@ import { get } from "svelte/store";
 import { apiClient } from "$lib/api/client";
 import { increaseCounter } from "$lib/lib/history";
 import { peer } from "$lib/lib/p2p";
-import { contacts, devices, groupDevices, groups } from "$lib/lib/UI";
+import {
+  changePath,
+  contacts,
+  devices,
+  groupDevices,
+  groups,
+} from "$lib/lib/UI";
 import { onGuestPage } from "$lib/lib/utils";
 
 import type {
@@ -29,7 +35,8 @@ class TransferManager {
     files?: OutgoingFileInfos[],
   ) {
     if (properties.type == "devices") {
-      for (const device of properties.ids) await increaseCounter("device", device);
+      for (const device of properties.ids)
+        await increaseCounter("device", device);
     } else if (properties.type == "contact" || properties.type == "group")
       await increaseCounter(properties.type, properties.id);
 
@@ -41,7 +48,10 @@ class TransferManager {
       type: "createTransfer",
     });
 
-    await this.createTransfer({ type: "toGuest", transferId }, send ? undefined : []);
+    await this.createTransfer(
+      { type: "toGuest", transferId },
+      send ? undefined : [],
+    );
 
     return `${location.protocol}//${location.host}/guest?did=${get(devices)?.self.did}&id=${transferId}${send ? "" : "&sender"}`;
   }
@@ -51,6 +61,8 @@ class TransferManager {
     this.incoming.push(
       new FiletransferIn(data.id, did, data.files, data.ids, data.nid),
     );
+
+    if (!onGuestPage()) changePath({ main: "receive" });
   }
 
   async requestRequest(did: number, filetransfer_id: string) {
