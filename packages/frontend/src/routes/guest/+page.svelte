@@ -86,7 +86,7 @@
         onclick={async () => {
           await manager.cancelIncoming();
           manager.cancelOutgoing();
-          peer().closeConnections();
+          $peer.closeConnections();
         }}
       >
         <i>block</i>

@@ -1,3 +1,5 @@
+import { get } from "svelte/store";
+
 import { peer } from "$lib/lib/p2p";
 import { onGuestPage } from "$lib/lib/utils";
 
@@ -45,7 +47,7 @@ export class FiletransferIn {
 
   async sendAnswer(answer: boolean) {
     if (this.state == "infos" || this.state == "receiving")
-      await peer().sendMessage(this.did, {
+      await get(peer).sendMessage(this.did, {
         type: answer ? "accept" : "reject",
         id: this.id,
       });
@@ -63,7 +65,7 @@ export class FiletransferIn {
       if (this.files[file_index].chunks[i] === undefined) missing.push(i);
     }
 
-    await peer().sendMessage(this.did, {
+    await get(peer).sendMessage(this.did, {
       type: "file-finish",
       id: this.id,
       file_id,
@@ -73,7 +75,7 @@ export class FiletransferIn {
     if (missing.length !== 0) return;
 
     if (filetransfer_finished) {
-      await peer().sendMessage(this.did, {
+      await get(peer).sendMessage(this.did, {
         type: "transfer-finish",
         id: this.id,
       });

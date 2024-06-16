@@ -17,19 +17,6 @@ import {
 import type { IDeviceInfo } from "./fetchers";
 import { numberToUint8Array, onGuestPage, uint8ArrayToNumber } from "./utils";
 
-const store = writable<Peer>();
-
-export const peer = () => {
-  let peerStore = get(store);
-  if (peerStore === undefined) {
-    peerStore = new Peer();
-    store.set(peerStore);
-    return peerStore;
-  } else {
-    return peerStore;
-  }
-};
-
 const createEmptyPromise = () => {
   let res = () => {};
   const promise = new Promise<void>((resolve) => (res = resolve));
@@ -483,35 +470,30 @@ class Peer {
     if (this.connections[did] !== undefined && !forceOverwrite)
       return this.connections[did];
 
+    const saved = createEmptyPromise();
+    let transport: Transport;
     if (forceWebSocket || !SimplePeer.WEBRTC_SUPPORT) {
-      const saved = createEmptyPromise();
-      this.connections[did] = new WebSocket(
-        this,
-        did,
-        initiator,
-        saved.promise,
-        events,
-      );
-      saved.resolve();
+      transport = new WebSocket(this, did, initiator, saved.promise, events);
     } else {
-      const saved = createEmptyPromise();
       this.connections[did] = new WebRTCBuffer(
         this,
         did,
         initiator,
         saved.promise,
       );
-      this.connections[did] = new WebRTC(
+      transport = new WebRTC(
         this,
         did,
         initiator,
         await this.getTurnCredentials(),
         events,
       );
-      saved.resolve();
     }
 
-    return this.connections[did];
+    this.connections[did] = transport;
+    saved.resolve();
+
+    return transport;
   }
 
   replace(did: number, replacement: Transport) {
@@ -626,3 +608,5 @@ class Peer {
     return this.getConnection(did, "Encryption").increaseCounter();
   }
 }
+
+export const peer = writable(new Peer());

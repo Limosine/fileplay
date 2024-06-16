@@ -1,3 +1,5 @@
+import { get } from "svelte/store";
+
 import { numberToUint8Array, typedArrayToBuffer } from "$lib/lib/utils";
 import { concatUint8Arrays } from "$lib/sharing/common";
 
@@ -91,12 +93,12 @@ const decryptAes = async (
 };
 
 export const encryptData = async (array: Uint8Array, did: number) => {
-  const key = peer().getKey(did);
+  const key = get(peer).getKey(did);
 
   const encrypted = await encryptAes(
     typedArrayToBuffer(array),
     await getDerivedKey(key.data),
-    peer().increaseCounter(did),
+    get(peer).increaseCounter(did),
     key.id,
   );
 
@@ -104,7 +106,7 @@ export const encryptData = async (array: Uint8Array, did: number) => {
 };
 
 export const decryptData = async (array: Uint8Array, did: number) => {
-  const key = peer().getKey(did);
+  const key = get(peer).getKey(did);
 
   return await decryptAes(
     typedArrayToBuffer(array.slice(12)),

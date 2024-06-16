@@ -110,7 +110,7 @@ export class FiletransferOut {
 
     if (properties === undefined) {
       for (const recipient of this.recipients) {
-        await peer().sendMessage(recipient.did, request);
+        await get(peer).sendMessage(recipient.did, request);
       }
     } else {
       if (!this.recipients.some((r) => r.did === properties.from)) {
@@ -121,7 +121,7 @@ export class FiletransferOut {
         });
       }
 
-      await peer().sendMessage(properties.from, request);
+      await get(peer).sendMessage(properties.from, request);
     }
   }
 
@@ -182,7 +182,7 @@ export class FiletransferOut {
         if (
           this.recipients.some((r) => r.did === did && r.state == "sending")
         ) {
-          await peer().sendMessage(did, {
+          await get(peer).sendMessage(did, {
             type: "chunk",
             id: this.id,
             chunk: {
@@ -210,7 +210,7 @@ export class FiletransferOut {
 
     for (let i = 0; i < missing.length; i++) {
       const bigChunk = Math.floor(missing[i] / 1000);
-      await peer().sendMessage(did, {
+      await get(peer).sendMessage(did, {
         type: "chunk",
         id: this.id,
         chunk: {

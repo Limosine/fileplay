@@ -54,7 +54,7 @@ class TransferManager {
   }
 
   async requestRequest(did: number, filetransfer_id: string) {
-    await peer().sendMessage(did, {
+    await get(peer).sendMessage(did, {
       type: "accept",
       id: filetransfer_id,
       guest: true,
@@ -74,7 +74,7 @@ class TransferManager {
       id: nid,
     });
 
-    await peer().sendMessage(did, {
+    await get(peer).sendMessage(did, {
       type: "ready",
       id: nid,
     });
@@ -240,7 +240,7 @@ class TransferManager {
         );
       }
     } else {
-      await peer().sendMessage(did, {
+      await get(peer).sendMessage(did, {
         type: "error",
         message: "401 Unauthorized",
       });
@@ -249,7 +249,7 @@ class TransferManager {
 
   private async handleReady(did: number, nid: string) {
     const unauthorized = async () =>
-      await peer().sendMessage(did, {
+      await get(peer).sendMessage(did, {
         type: "error",
         message: "401 Unauthorized",
       });
@@ -297,7 +297,7 @@ class TransferManager {
 
           if (!ids.some((id) => id === recipient.did)) {
             ids.push(recipient.did);
-            peer().clearBuffer(recipient.did);
+            get(peer).clearBuffer(recipient.did);
           }
         }
       }
@@ -309,7 +309,7 @@ class TransferManager {
       if (transfer !== undefined) {
         for (const recipient of transfer.recipients) {
           recipient.state = "canceled";
-          peer().clearBuffer(recipient.did);
+          get(peer).clearBuffer(recipient.did);
         }
 
         this.outgoing = this.outgoing.filter((t) => t.id != id);

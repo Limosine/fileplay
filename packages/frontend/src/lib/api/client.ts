@@ -132,7 +132,7 @@ class WebSocketClient {
         "WebSocket closed" + (event.reason ? ", reason: " + event.reason : "."),
       );
 
-      peer().closeConnections("websocket");
+      get(peer).closeConnections("websocket");
 
       if (event.code !== 1008) {
         if (get(offline) === true) {
@@ -211,19 +211,19 @@ class WebSocketClient {
       devices.set(message.data);
     } else if (message.type == "contacts") {
       contacts.set(message.data);
-      peer().closeConnections(message.data.map((c) => c.devices));
+      get(peer).closeConnections(message.data.map((c) => c.devices));
     } else if (message.type == "groups") {
       groups.set(message.data);
     } else if (message.type == "group_devices") {
       groupDevices.set(message.data);
     } else if (message.type == "webRTCData") {
       if (message.data.data.type == "signal")
-        peer().signal(message.data.from, JSON.parse(message.data.data.data));
+        get(peer).signal(message.data.from, JSON.parse(message.data.data.data));
       else {
-        peer().handle(message.data.from, message.data.data.data);
+        get(peer).handle(message.data.from, message.data.data.data);
       }
     } else if (message.type == "closeConnection") {
-      peer().closeConnections(message.data);
+      get(peer).closeConnections(message.data);
     } else if (
       message.type == "contactCodeRedeemed" ||
       message.type == "deviceCodeRedeemed"
