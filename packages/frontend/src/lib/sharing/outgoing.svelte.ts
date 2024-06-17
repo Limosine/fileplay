@@ -20,6 +20,11 @@ import {
   type Request,
 } from "./common";
 
+interface Device {
+  did: number;
+  online?: boolean;
+}
+
 export class FiletransferOut {
   id: OutgoingFileTransfer["id"];
   nid: OutgoingFileTransfer["nid"];
@@ -31,11 +36,11 @@ export class FiletransferOut {
     properties: OutgoingFileTransfer["ids"],
     files = generateInfos(),
   ) {
-    let selectedDevices =
+    let selectedDevices: Device[] =
       properties.type == "group"
         ? get(groupDevices).filter((d) => d.gid === properties.id)
         : properties.type == "contact"
-          ? get(contacts).find((c) => c.uid === properties.id)?.devices
+          ? get(contacts).find((c) => c.uid === properties.id)?.devices || []
           : properties.type == "devices"
             ? get(devices).others.filter((d) =>
                 properties.ids.some((id) => id === d.did),
@@ -43,8 +48,6 @@ export class FiletransferOut {
             : properties.type == "fromGuest"
               ? [{ did: properties.id }]
               : [];
-
-    if (selectedDevices === undefined) selectedDevices = [];
 
     this.id = properties.type == "toGuest" ? properties.transferId : nanoid();
     this.nid = nanoid();
@@ -54,6 +57,7 @@ export class FiletransferOut {
       const recipient = $state<(typeof this.recipients)[0]>({
         state: "requesting",
         did: d.did,
+        online: !(d.online === false),
         filesSent: 0,
       });
       return recipient;
@@ -74,7 +78,7 @@ export class FiletransferOut {
         type: this.ids.type,
         ids:
           this.ids.type == "devices"
-            ? this.recipients.map((r) => r.did)
+            ? this.recipients.filter((r) => !r.online).map((r) => r.did)
             : [this.ids.id],
         nid: this.nid,
         files: this.files.map((f) => f.name),
@@ -117,6 +121,7 @@ export class FiletransferOut {
         this.recipients.push({
           state: "requesting",
           did: properties.from,
+          online: true,
           filesSent: 0,
         });
       }

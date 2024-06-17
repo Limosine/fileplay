@@ -114,6 +114,7 @@ export interface OutgoingFileTransfer {
       | "canceled"
       | "failed";
     did: number;
+    online: boolean;
     filesSent: number;
   }[];
 }

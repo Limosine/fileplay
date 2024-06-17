@@ -6,6 +6,7 @@ import {
 } from "@block65/webcrypto-web-push";
 
 import { Database } from "./kysely.ts";
+import { filterOfflineDevices } from "./ws.ts";
 
 let webPushValue: WebPush;
 export const webPush = () => {
@@ -73,11 +74,13 @@ class WebPush {
   ) {
     if (ids.length < 1) return;
 
-    const devices = await db
-      .selectFrom("devices")
-      .select(["push_subscription"])
-      .where(to == "devices" ? "did" : "uid", "in", ids)
-      .execute();
+    const devices = filterOfflineDevices(
+      await db
+        .selectFrom("devices")
+        .select(["did", "push_subscription"])
+        .where(to == "devices" ? "did" : "uid", "in", ids)
+        .execute()
+    );
 
     for (const device of devices) {
       if (device.push_subscription !== null) {

@@ -436,6 +436,19 @@ export function filterOnlineDevices<T extends { did: number }>(
   return onlineDevices;
 }
 
+export function filterOfflineDevices<T extends { did: number }>(
+  devices: T[]
+): T[] {
+  const offlineDevices = devices.slice();
+
+  for (const client of clients) {
+    const index = offlineDevices.findIndex((d) => d.did === client.device);
+    if (index !== -1) delete offlineDevices[index];
+  }
+
+  return offlineDevices;
+}
+
 export function markOnlineDevices<T extends { did: number }>(
   devices: T[]
 ): (T & { online: boolean })[] {
