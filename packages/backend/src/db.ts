@@ -494,3 +494,33 @@ export async function getUser(
     return { success: false, message: e };
   }
 }
+
+export function getInfos(db: Database):
+  | Promise<{
+      success: true;
+      message: {
+        users: number;
+        devices: number;
+      };
+    }>
+  | {
+      success: false;
+      message: unknown;
+    } {
+  try {
+    return db.transaction().execute(async (trx) => {
+      const users = await trx.selectFrom("users").select("uid").execute();
+      const devices = await trx.selectFrom("devices").select("did").execute();
+
+      return {
+        success: true,
+        message: {
+          users: users.length,
+          devices: devices.length,
+        },
+      };
+    });
+  } catch (e) {
+    return { success: false, message: e };
+  }
+}

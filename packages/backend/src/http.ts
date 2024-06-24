@@ -6,12 +6,14 @@ import { nanoid } from "nanoid";
 import { z } from "zod";
 
 import { isProfane } from "./common.ts";
-import { deleteDevice, httpAuthorized, httpContext } from "./db.ts";
+import { deleteDevice, getInfos, httpAuthorized, httpContext } from "./db.ts";
 import { getGuestID, setGuestID } from "./guest.ts";
 import { setDeviceID } from "./signing.ts";
 import { deviceStateChanged, notifyDevices, sendMessage } from "./ws.ts";
 
 import { DeviceType } from "../../common/common.ts";
+import { clients } from "../main.ts";
+import { guests } from "./values.ts";
 
 export const addHandlers = (app: Hono) => {
   app.post(
@@ -248,4 +250,26 @@ export const addHandlers = (app: Hono) => {
 
     return c.newResponse(null, 201);
   });
+
+  app.get(
+    "/status",
+    validator("cookie", () => {
+      return httpContext();
+    }),
+    async (c) => {
+      const ctx = c.req.valid("cookie");
+      const infos = await getInfos(ctx.database);
+
+      if (!infos.success) {
+        console.log(infos.message);
+        return c.newResponse(null, 500);
+      }
+
+      return c.json({
+        ...infos.message,
+        guests: guests.length,
+        online: clients.size,
+      });
+    }
+  );
 };
