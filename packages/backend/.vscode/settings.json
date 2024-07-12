@@ -1,0 +1,26 @@
+{
+  "deno.enablePaths": [
+    "./",
+    "../common/"
+  ],
+  "deno.enable": true,
+  "cSpell.words": [
+    "adminsdk",
+    "coturn",
+    "COTURN",
+    "dayjs",
+    "fileplay",
+    "filetransfer",
+    "Filetransfer",
+    "filetransfers",
+    "frey",
+    "GCMAPI",
+    "hono",
+    "jose",
+    "kysely",
+    "msgpackr",
+    "nixos",
+    "postgres",
+    "webpush"
+  ]
+}
