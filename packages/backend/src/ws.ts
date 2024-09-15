@@ -101,11 +101,15 @@ export const onOpen = async (ws: WSContext, c: Context) => {
     (client.device === undefined || client.user === undefined)
   ) {
     console.log("INFO: Authentication failure");
+
+    sendMessage(client, { type: "status", data: "unauthorized" });
     return client.close(1008, "Unauthorized");
   }
 
   // Add to clients
   clients.add(client);
+
+  sendMessage(client, { type: "status", data: "authorized" });
 
   // Notify devices
   if (client.user !== undefined) deviceStateChanged(constants.db, client.user);

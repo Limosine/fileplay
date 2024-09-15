@@ -1,6 +1,7 @@
 <script lang="ts">
   import { notifications } from "$lib/lib/notifications";
   import { closeDialog, registration } from "$lib/lib/UI";
+  import { settings } from "$lib/lib/settings.svelte";
 </script>
 
 <p style="font-size: large; margin-bottom: 10px;">Enable notifications?</p>
@@ -11,14 +12,14 @@
   <button
     class="transparent link"
     onclick={() => {
-      localStorage.setItem("subscribedToPush", "false");
+      settings.set("subscribedToPush", "false");
       closeDialog();
     }}>Deny</button
   >
   <button
     class="transparent link"
     onclick={() => {
-      localStorage.setItem("subscribedToPush", "false");
+      settings.set("subscribedToPush", "false");
       closeDialog(true);
       $notifications.create($registration);
     }}>Allow</button

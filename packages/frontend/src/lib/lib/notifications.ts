@@ -2,6 +2,7 @@ import { writable } from "svelte/store";
 
 import { PUBLIC_VAPID_KEY } from "$env/static/public";
 import { apiClient } from "$lib/api/client";
+import { settings } from "$lib/lib/settings.svelte";
 
 class Notifications {
   initialized: boolean;
@@ -31,7 +32,7 @@ class Notifications {
         applicationServerKey: PUBLIC_VAPID_KEY,
       });
 
-      localStorage.setItem("subscribedToPush", JSON.stringify(subscription));
+      settings.set("subscribedToPush", JSON.stringify(subscription));
 
       apiClient("ws").sendMessage({
         type: "updateDevice",

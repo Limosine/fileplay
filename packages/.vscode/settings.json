@@ -1,9 +1,24 @@
 {
-  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "deno.enablePaths": ["./backend/", "./common/"],
+  "deno.enable": true,
   "cSpell.words": [
+    "adminsdk",
+    "coturn",
+    "COTURN",
+    "dayjs",
+    "fileplay",
     "filetransfer",
     "Filetransfer",
-    "filetransfers"
+    "filetransfers",
+    "frey",
+    "GCMAPI",
+    "hono",
+    "jose",
+    "kysely",
+    "msgpackr",
+    "nixos",
+    "postgres",
+    "webpush"
   ],
   "sqltools.connections": [
     {
@@ -11,7 +26,7 @@
       "server": "127.0.0.1",
       "port": 5432,
       "driver": "PostgreSQL",
-      "name": "FIleplay (Local)",
+      "name": "Fileplay (Local)",
       "database": "fileplay",
       "username": "fileplay",
       "password": "fileplay"

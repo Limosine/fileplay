@@ -1,8 +1,8 @@
 import { browser } from "$app/environment";
 import { pack, unpack } from "msgpackr";
 import { get, readable, writable } from "svelte/store";
-import type { MaybePromise } from "@sveltejs/kit";
 
+import { error } from "$lib/lib/error.svelte";
 import { peer } from "$lib/lib/p2p";
 import {
   closeDialog,
@@ -12,7 +12,6 @@ import {
   dialogProperties,
   groupDevices,
   groups,
-  offline,
   user,
   userParams,
 } from "$lib/lib/UI";
@@ -85,6 +84,7 @@ class HTTPClient {
 }
 
 class WebSocketClient {
+  connected = writable(false);
   private socket: WebSocket;
   private messageId: number;
   private promises: ((value: any) => void)[];
@@ -98,20 +98,20 @@ class WebSocketClient {
     this.socket = this.connect();
   }
 
+  private onOpen = () => {
+    if (!onGuestPage()) {
+      this.sendMessage({ type: "deleteTransfer" });
+      this.sendMessage({ type: "getInfos" });
+    }
+    this.sendBuffered();
+  };
+
   private connect() {
     this.socket = new WebSocket(
       `${browser && location.protocol == "https:" ? "wss:" : "ws:"}//${location.host}/api/websocket?type=${onGuestPage() ? "guest" : "main"}`,
     );
 
     this.socket.binaryType = "arraybuffer";
-
-    this.socket.addEventListener("open", () => {
-      if (!onGuestPage()) {
-        this.sendMessage({ type: "deleteTransfer" });
-        this.sendMessage({ type: "getInfos" });
-      }
-      this.sendBuffered();
-    });
 
     this.socket.addEventListener("message", (event) => {
       let data;
@@ -132,18 +132,19 @@ class WebSocketClient {
         "WebSocket closed" + (event.reason ? ", reason: " + event.reason : "."),
       );
 
+      if (get(this.connected)) this.connected.set(false);
       get(peer).closeConnections("websocket");
 
       if (event.code !== 1008) {
-        if (get(offline) === true) {
-          const unsubscribe = offline.subscribe(async (offline) => {
-            if (!offline) {
+        if (get(error.error) !== false) {
+          const unsubscribe = error.error.subscribe(async (error) => {
+            if (error === false) {
               unsubscribe();
               this.connect();
             }
           });
         } else setTimeout(() => this.connect(), 5000);
-      } else location.href = "/setup";
+      }
     });
 
     return this.socket;
@@ -182,7 +183,14 @@ class WebSocketClient {
   }
 
   private handleData(message: MessageFromServer & { id: number }) {
-    if (message.type == "user") {
+    if (message.type == "status") {
+      if (message.data == "authorized" && !get(this.connected)) {
+        this.connected.set(true);
+        this.onOpen();
+      } else if (message.data == "unauthorized") {
+        error.unauthorized();
+      }
+    } else if (message.type == "user") {
       userParams.set({
         display_name: message.data.display_name,
         avatar_seed: message.data.avatar_seed,

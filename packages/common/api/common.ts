@@ -12,6 +12,11 @@ function type<T extends string>(...t: [T, ...T[]]) {
 
 // Messages from server
 
+const status = z.object({
+  type: type("status"),
+  data: type("authorized", "unauthorized"),
+});
+
 export const user = z.object({
   type: type("user"),
   data: z.object({
@@ -320,6 +325,7 @@ const messageFromServerSchemaWithoutId = z.union([
   closeConnection,
   codeRedeemed,
   error,
+  status,
 ]);
 
 export const messageFromServerSchema = messageFromServerSchemaWithoutId.and(
@@ -328,11 +334,17 @@ export const messageFromServerSchema = messageFromServerSchemaWithoutId.and(
   })
 );
 
-export type MessageFromServer = z.infer<typeof messageFromServerSchemaWithoutId>;
+export type MessageFromServer = z.infer<
+  typeof messageFromServerSchemaWithoutId
+>;
 
 export type ResponseMap<T> =
-    T extends z.infer<typeof createTransfer> ? Promise<z.infer<typeof filetransfer>["data"]> :
-    T extends z.infer<typeof createContactCode> ? Promise<z.infer<typeof linkingCode>["data"]> :
-    T extends z.infer<typeof createDeviceCode> ? Promise<z.infer<typeof linkingCode>["data"]> :
-    T extends z.infer<typeof getTurnCredentials> ? Promise<z.infer<typeof turnCredentials>["data"]> :
-    undefined;
+  T extends z.infer<typeof createTransfer>
+    ? Promise<z.infer<typeof filetransfer>["data"]>
+    : T extends z.infer<typeof createContactCode>
+      ? Promise<z.infer<typeof linkingCode>["data"]>
+      : T extends z.infer<typeof createDeviceCode>
+        ? Promise<z.infer<typeof linkingCode>["data"]>
+        : T extends z.infer<typeof getTurnCredentials>
+          ? Promise<z.infer<typeof turnCredentials>["data"]>
+          : undefined;

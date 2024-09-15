@@ -23,7 +23,6 @@ export const width = writable(0);
 export const layout = derived(width, (width) =>
   width < 840 ? "mobile" : "desktop",
 );
-export const offline = writable(false);
 
 // Navigation
 export const path = writable<Routes>({

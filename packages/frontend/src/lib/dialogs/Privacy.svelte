@@ -1,12 +1,13 @@
 <script lang="ts">
   import { closeDialog, openDialog, registration } from "$lib/lib/UI";
+  import { settings } from "$lib/lib/settings.svelte";
 
   const click = async () => {
-    localStorage.setItem("privacyAccepted", "true");
+    settings.set("privacyAccepted", "true");
     await closeDialog(true);
 
     if (
-      localStorage.getItem("subscribedToPush") === null &&
+      settings.settings["subscribedToPush"] === undefined &&
       $registration !== undefined
     )
       openDialog({ mode: "request" });
