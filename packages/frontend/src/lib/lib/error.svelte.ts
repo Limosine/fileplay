@@ -26,6 +26,16 @@ class VisibleError {
 
     setTimeout(() => (location.href = "/setup"), 2000);
   };
+
+  disconnected = (seconds: number) => {
+    this.error.set({
+      icon: "sync_problem",
+      text: `Disconnected, retrying in ${seconds} seconds.`,
+    });
+    this.overlay = "";
+
+    setTimeout(() => this.error.set(false), seconds * 1000);
+  };
 }
 
 export const error = new VisibleError();

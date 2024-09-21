@@ -13,6 +13,7 @@
     groupDevices,
     groups,
     height,
+    layout,
     path,
     rawFiles,
     user,
@@ -88,10 +89,25 @@
 
 <Input />
 
-{#if $path.main == "send"}
-  <Send />
-{:else if $path.main == "receive"}
-  <Receive />
+{#if $path.main == "send" || $path.main == "receive"}
+  {#if $layout == "mobile"}
+    {#if $path.main == "send"}
+      <Send />
+    {:else}
+      <Receive />
+    {/if}
+  {:else}
+    <div id="main">
+      <div>
+        <Send />
+      </div>
+      {#if manager.incoming.length > 0}
+        <div>
+          <Receive />
+        </div>
+      {/if}
+    </div>
+  {/if}
 {:else if $path.main == "contacts" && $contacts !== undefined}
   <Contacts />
 {:else if $path.main == "groups" && $groups !== undefined && $groupDevices !== undefined}
@@ -99,3 +115,15 @@
 {:else if $path.main == "settings" && $user !== undefined}
   <Settings />
 {/if}
+
+<style>
+  #main {
+    height: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+  }
+
+  #main > * {
+    flex: 1 1 0;
+  }
+</style>

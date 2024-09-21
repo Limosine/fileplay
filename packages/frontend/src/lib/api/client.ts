@@ -135,16 +135,18 @@ class WebSocketClient {
       if (get(this.connected)) this.connected.set(false);
       get(peer).closeConnections("websocket");
 
-      if (event.code !== 1008) {
-        if (get(error.error) !== false) {
-          const unsubscribe = error.error.subscribe(async (error) => {
-            if (error === false) {
-              unsubscribe();
-              this.connect();
-            }
-          });
-        } else setTimeout(() => this.connect(), 5000);
+      // event.code not working on Chrome
+
+      if (get(error.error) === false) {
+        error.disconnected(5);
       }
+
+      const unsubscribe = error.error.subscribe(async (error) => {
+        if (error === false) {
+          unsubscribe();
+          this.connect();
+        }
+      });
     });
 
     return this.socket;

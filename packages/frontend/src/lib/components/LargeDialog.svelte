@@ -49,7 +49,7 @@
 </script>
 
 <dialog id="dialog-large" bind:this={$largeDialog} class="right large">
-  {#if $path.main == "send"}
+  {#if $path.main == "send" || ($layout == "desktop" && $path.main == "receive")}
     <Select />
   {:else if $path.main == "groups"}
     {#if $groupProperties.mode == "create"}

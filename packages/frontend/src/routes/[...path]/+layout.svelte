@@ -17,6 +17,7 @@
     closeDialog,
     getPath,
     largeDialog,
+    layout,
     openDialog,
     path,
     registration,
@@ -148,7 +149,7 @@
 
 {#if error.overlay}
   <!-- Dialogs -->
-  {#if $path.main == "send" || $path.main == "groups" || $path.main == "settings"}
+  {#if $path.main == "send" || $path.main == "groups" || $path.main == "settings" || ($layout == "desktop" && $path.main == "receive")}
     <LargeDialog />
   {/if}
   <Dialog />
