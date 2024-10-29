@@ -7,7 +7,7 @@
 
   import Fullscreen from "$lib/components/Fullscreen.svelte";
   import Button from "$lib/components/Button.svelte";
-  import User from "$lib/components/buttons/User.svelte";
+  import UserComponent from "$lib/components/buttons/User.svelte";
   import { concatArrays } from "$lib/sharing/common";
 
   type User = { uid: number; display_name: string; avatar_seed: string };
@@ -131,7 +131,7 @@
           <div class="divider"></div>
         {/if}
 
-        <User
+        <UserComponent
           user={member}
           subtitle="Joined at {dayjs
             .unix(member.joined_at)
@@ -156,7 +156,7 @@
           <div class="divider"></div>
         {/if}
 
-        <User
+        <UserComponent
           user={request}
           subtitle="Created at {dayjs
             .unix(request.created_at)
@@ -192,7 +192,7 @@
           <p id="header" class="bold">Contacts</p>
         {/if}
 
-        <User
+        <UserComponent
           user={contact}
           selected={isSelected(contact.uid)}
           onclick={() => select(contact)}
@@ -204,7 +204,7 @@
           <p id="header" class="bold">Group members</p>
         {/if}
 
-        <User
+        <UserComponent
           user={member}
           selected={isSelected(member.uid)}
           onclick={() => select(member)}

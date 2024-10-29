@@ -14,7 +14,7 @@
 
   import Button from "./Button.svelte";
   import Fullscreen from "./Fullscreen.svelte";
-  import User from "./buttons/User.svelte";
+  import UserComponent from "./buttons/User.svelte";
 
   type User = { uid: number; avatar_seed: string; display_name: string };
 
@@ -67,7 +67,7 @@
         <p id="header" class="bold">Contacts</p>
       {/if}
 
-      <User
+      <UserComponent
         user={contact}
         selected={isSelected(contact.uid)}
         onclick={() => select(contact)}
@@ -79,7 +79,7 @@
         <p id="header" class="bold">Group members</p>
       {/if}
 
-      <User
+      <UserComponent
         user={member}
         selected={isSelected(member.uid)}
         onclick={() => select(member)}

@@ -1,7 +1,6 @@
 import { page } from "$app/stores";
 import { pack, unpack } from "msgpackr";
 import SimplePeer, { type SignalData } from "simple-peer";
-import type { MaybePromise } from "@sveltejs/kit";
 import { get, writable } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
@@ -15,7 +14,12 @@ import {
   publicKeyJwk,
 } from "./encryption";
 import type { IDeviceInfo } from "./fetchers";
-import { numberToUint8Array, onGuestPage, uint8ArrayToNumber } from "./utils";
+import {
+  numberToUint8Array,
+  onGuestPage,
+  uint8ArrayToNumber,
+  type MaybePromise,
+} from "./utils";
 
 const createEmptyPromise = () => {
   let res = () => {};

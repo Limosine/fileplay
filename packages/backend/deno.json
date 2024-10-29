@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "start": "deno run --allow-all main.ts"
+    "start": "deno run --allow-all main.ts",
+    "update": "deno run --allow-env --allow-read --allow-write='~/.local,.' --allow-run=git,deno --allow-net=jsr.io jsr:@molt/cli"
   },
   "imports": {
     "@block65/webcrypto-web-push": "npm:@block65/webcrypto-web-push",
@@ -15,7 +16,7 @@
     "kysely-postgres-js": "npm:kysely-postgres-js",
     "msgpackr": "npm:msgpackr",
     "nanoid": "npm:nanoid",
-    "postgres": "https://deno.land/x/postgresjs@v3.4.3/mod.js",
+    "postgres": "https://deno.land/x/postgresjs@v3.4.4/mod.js",
     "zod": "https://deno.land/x/zod@v3.23.8/mod.ts"
   }
 }
