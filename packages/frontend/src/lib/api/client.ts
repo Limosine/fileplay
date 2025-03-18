@@ -1,8 +1,8 @@
 import { browser } from "$app/environment";
 import { pack, unpack } from "msgpackr";
-import { get, readable, writable } from "svelte/store";
+import { derived, get, readable, writable } from "svelte/store";
 
-import { error } from "$lib/lib/error.svelte";
+import { error } from "$lib/lib/error";
 import { peer } from "$lib/lib/p2p";
 import {
   closeDialog,
@@ -15,7 +15,7 @@ import {
   user,
   userParams,
 } from "$lib/lib/UI";
-import { onGuestPage } from "$lib/lib/utils";
+import { onGuestPage, timeoutPromise } from "$lib/lib/utils";
 
 import type {
   MessageFromClient,
@@ -84,7 +84,8 @@ class HTTPClient {
 }
 
 class WebSocketClient {
-  connected = writable(false);
+  readonly connected = derived(error.error, (error) => error === false);
+
   private socket: WebSocket;
   private messageId: number;
   private promises: ((value: any) => void)[];
@@ -96,6 +97,12 @@ class WebSocketClient {
     this.buffer = [];
 
     this.socket = this.connect();
+
+    this.connected.subscribe((value) => {
+      if (!value) {
+        get(peer).closeConnections("websocket");
+      }
+    });
   }
 
   private onOpen = () => {
@@ -115,6 +122,7 @@ class WebSocketClient {
 
     this.socket.addEventListener("message", (event) => {
       let data;
+
       if (event.data instanceof ArrayBuffer) {
         data = unpack(new Uint8Array(event.data));
       } else if (typeof event.data == "string") {
@@ -132,20 +140,8 @@ class WebSocketClient {
         "WebSocket closed" + (event.reason ? ", reason: " + event.reason : "."),
       );
 
-      if (get(this.connected)) this.connected.set(false);
-      get(peer).closeConnections("websocket");
-
-      // event.code not working on Chrome
-
-      if (get(error.error) === false) {
-        error.disconnected(5);
-      }
-
-      const unsubscribe = error.error.subscribe(async (error) => {
-        if (error === false) {
-          unsubscribe();
-          this.connect();
-        }
+      error.disconnected(5).then(undefined, () => {
+        this.connect();
       });
     });
 
@@ -171,6 +167,7 @@ class WebSocketClient {
     }
 
     if (
+      msg.type == "checkConnection" ||
       msg.type == "createTransfer" ||
       msg.type == "createContactCode" ||
       msg.type == "createDeviceCode" ||
@@ -184,10 +181,22 @@ class WebSocketClient {
     return undefined as ResponseMap<T>;
   }
 
+  checkConnection() {
+    const result = Promise.race([
+      timeoutPromise(3000),
+      this.sendMessage({ type: "checkConnection" }),
+    ]);
+
+    return result.then(
+      (value) => value === true,
+      () => false,
+    );
+  }
+
   private handleData(message: MessageFromServer & { id: number }) {
     if (message.type == "status") {
       if (message.data == "authorized" && !get(this.connected)) {
-        this.connected.set(true);
+        error.error.set(false);
         this.onOpen();
       } else if (message.data == "unauthorized") {
         error.unauthorized();
@@ -240,6 +249,7 @@ class WebSocketClient {
     ) {
       if (get(dialogProperties).mode == "add") closeDialog(true);
     } else if (
+      message.type == "connected" ||
       message.type == "filetransfer" ||
       message.type == "contactLinkingCode" ||
       message.type == "deviceLinkingCode" ||
@@ -262,6 +272,7 @@ export function apiClient(method: "http" | "ws") {
     return get(httpStore);
   } else {
     let store = get(wsStore);
+
     if (store === undefined) {
       store = new WebSocketClient();
       wsStore.set(store);

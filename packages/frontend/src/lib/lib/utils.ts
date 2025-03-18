@@ -79,7 +79,7 @@ export const typedArrayToBuffer = (array: Uint8Array) => {
   return array.buffer.slice(
     array.byteOffset,
     array.byteLength + array.byteOffset,
-  );
+  ) as ArrayBuffer;
 };
 
 export const numberToUint8Array = (number: number, length = 4) => {
@@ -103,3 +103,6 @@ export const uint8ArrayToNumber = (array: Uint8Array) => {
 
   return number;
 };
+
+export const timeoutPromise = (ms: number) =>
+  new Promise<void>((_, reject) => setTimeout(reject, ms));

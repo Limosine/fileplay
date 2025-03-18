@@ -1,4 +1,4 @@
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import { pack, unpack } from "msgpackr";
 import SimplePeer, { type SignalData } from "simple-peer";
 import { get, writable } from "svelte/store";
@@ -285,7 +285,7 @@ class WebRTC extends Transport {
           type: "shareFromGuest",
           data: {
             did: this.did,
-            guestTransfer: String(get(page).url.searchParams.get("id")),
+            guestTransfer: String(page.url.searchParams.get("id")),
             data: { type: "signal", data: JSON.stringify(data) },
           },
         });
@@ -419,14 +419,14 @@ class WebSocket extends Transport {
     this.events.dispatchEvent(new Event("destroyed"));
   }
 
-  sendChunk(chunk: Uint8Array) {
+  sendChunk(chunk: Uint8Array<ArrayBuffer>) {
     apiClient("ws").sendMessage(
       onGuestPage()
         ? {
             type: "shareFromGuest",
             data: {
               did: this.did,
-              guestTransfer: String(get(page).url.searchParams.get("id")),
+              guestTransfer: String(page.url.searchParams.get("id")),
               data: { type: "webrtc", data: chunk },
             },
           }

@@ -1,40 +1,48 @@
-import { writable } from "svelte/store";
+import { derived, writable } from "svelte/store";
+
+import { timeoutPromise } from "./utils";
 
 class VisibleError {
-  overlay = $state<"" | "hidden">("");
-  readonly error = writable<false | { icon: string; text: string }>(false);
+  readonly error = writable<false | { icon: string; text: string }>({
+    icon: "",
+    text: "",
+  });
+
+  readonly overlay = derived(this.error, (error) =>
+    error === false ? "hidden" : "",
+  );
 
   solved = () => {
+    console.log("Error solved");
     this.error.set(false);
-    this.overlay = "hidden";
   };
 
   offline = () => {
+    console.log("Offline");
     this.error.set({
       icon: "cloud_off",
       text: "Offline, please connect to the internet.",
     });
-    this.overlay = "";
   };
 
   unauthorized = () => {
+    console.log("Unauthorized");
     this.error.set({
       icon: "warning",
       text: "Unauthorized, forwarding to setup.",
     });
-    this.overlay = "";
 
     setTimeout(() => (location.href = "/setup"), 2000);
   };
 
   disconnected = (seconds: number) => {
+    console.log("Disconnected");
     this.error.set({
       icon: "sync_problem",
       text: `Disconnected, retrying in ${seconds} seconds.`,
     });
-    this.overlay = "";
 
-    setTimeout(() => this.error.set(false), seconds * 1000);
+    return timeoutPromise(seconds * 1000);
   };
 }
 

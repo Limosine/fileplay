@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { onMount } from "svelte";
 
   import { apiClient } from "$lib/api/client";
@@ -58,13 +58,13 @@
       await setup();
       apiClient("ws");
 
-      if ($page.url.searchParams.has("share-target")) {
+      if (page.url.searchParams.has("share-target")) {
         navigator.serviceWorker?.controller?.postMessage("share-ready");
       }
 
-      if ($page.url.searchParams.has("accept-target")) {
-        const didString = $page.url.searchParams.get("did");
-        const nid = $page.url.searchParams.get("nid");
+      if (page.url.searchParams.has("accept-target")) {
+        const didString = page.url.searchParams.get("did");
+        const nid = page.url.searchParams.get("nid");
         if (didString !== null && nid !== null)
           manager.awaitReady(Number(didString), nid);
       }

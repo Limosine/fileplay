@@ -17,6 +17,11 @@ const status = z.object({
   data: type("authorized", "unauthorized"),
 });
 
+const connected = z.object({
+  type: type("connected"),
+  data: z.literal(true),
+});
+
 export const user = z.object({
   type: type("user"),
   data: z.object({
@@ -174,6 +179,10 @@ const requestsWithoutData = z.object({
   ),
 });
 
+const checkConnection = z.object({
+  type: type("checkConnection"),
+});
+
 const createTransfer = z.object({
   type: type("createTransfer"),
 });
@@ -283,7 +292,8 @@ const deleteGroupMember = z.object({
 });
 
 const messageFromClientSchemaWithoutId = z.union([
-  createTransfer, // With response
+  checkConnection, // With response
+  createTransfer,
   createContactCode,
   createDeviceCode,
   getTurnCredentials,
@@ -313,7 +323,8 @@ export type MessageFromClient = z.infer<
 >;
 
 const messageFromServerSchemaWithoutId = z.union([
-  filetransfer, // With request
+  connected, // With request
+  filetransfer,
   linkingCode,
   turnCredentials,
   user, // Without request
@@ -347,4 +358,6 @@ export type ResponseMap<T> =
         ? Promise<z.infer<typeof linkingCode>["data"]>
         : T extends z.infer<typeof getTurnCredentials>
           ? Promise<z.infer<typeof turnCredentials>["data"]>
-          : undefined;
+          : T extends z.infer<typeof checkConnection>
+            ? Promise<z.infer<typeof connected>["data"]>
+            : undefined;

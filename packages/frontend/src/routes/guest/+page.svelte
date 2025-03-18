@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { onDestroy, onMount } from "svelte";
 
   import "beercss";
@@ -35,9 +35,9 @@
   onMount(async () => {
     if (!sentAccept) {
       sentAccept = true;
-      did = Number($page.url.searchParams.get("did"));
-      filetransfer_id = String($page.url.searchParams.get("id"));
-      sender = $page.url.searchParams.has("sender");
+      did = Number(page.url.searchParams.get("did"));
+      filetransfer_id = String(page.url.searchParams.get("id"));
+      sender = page.url.searchParams.has("sender");
 
       navigator.serviceWorker?.addEventListener("message", handleMessage);
 
@@ -194,7 +194,7 @@
             class="center"
             style="margin-top: 7px;"
             onclick={() => {
-              const previous = $page.url.searchParams.get("id");
+              const previous = page.url.searchParams.get("id");
               if (previous !== null)
                 manager.createTransfer({
                   type: "fromGuest",
@@ -216,7 +216,7 @@
                 class="circle tertiary"
                 onclick={() => {
                   manager.cancelOutgoing();
-                  const previous = $page.url.searchParams.get("id");
+                  const previous = page.url.searchParams.get("id");
                   if (previous !== null)
                     manager.createTransfer({
                       type: "fromGuest",

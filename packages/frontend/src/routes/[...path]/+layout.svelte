@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { onMount, type Snippet } from "svelte";
   import { quadOut } from "svelte/easing";
   import { get } from "svelte/store";
@@ -12,7 +12,7 @@
   import * as materialSymbols from "beercss/dist/cdn/material-symbols-outlined.woff2";
 
   import { apiClient } from "$lib/api/client";
-  import { error } from "$lib/lib/error.svelte";
+  import { error } from "$lib/lib/error";
   import {
     closeDialog,
     getPath,
@@ -36,7 +36,7 @@
   } = $props();
 
   let webManifest = $derived(pwaInfo?.webManifest?.linkTag);
-  const errorStore = error.error;
+  const { error: errorStore, overlay } = error;
 
   onMount(async () => {
     const open = () => {
@@ -52,10 +52,12 @@
       if (!navigator.onLine) error.offline();
 
       const continueMount = () => {
-        error.overlay = "hidden";
+        $errorStore = false;
 
         window.addEventListener("online", () => {
-          error.solved();
+          apiClient("ws")
+            .checkConnection()
+            .then((v) => v && error.solved());
         });
         window.addEventListener("offline", () => {
           closeDialog();
@@ -100,7 +102,7 @@
   });
 
   $effect(() => {
-    if (browser) $path = getPath(location.pathname, $page.url.pathname);
+    if (browser) $path = getPath(location.pathname, page.url.pathname);
   });
 </script>
 
@@ -116,7 +118,7 @@
   />
 </svelte:head>
 
-{#if !error.overlay}
+{#if !$overlay}
   <div
     id="overlay"
     in:fade={{ duration: 200 }}
@@ -125,7 +127,7 @@
 
   <div
     id="logo"
-    class={error.overlay}
+    class={$overlay}
     in:fade={{ duration: 200 }}
     out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
   >
@@ -145,9 +147,9 @@
   </div>
 {/if}
 
-<div id="overlay" class={error.overlay}></div>
+<div id="overlay" class={$overlay}></div>
 
-{#if error.overlay}
+{#if $overlay}
   <!-- Dialogs -->
   {#if $path.main == "send" || $path.main == "groups" || $path.main == "settings" || ($layout == "desktop" && $path.main == "receive")}
     <LargeDialog />

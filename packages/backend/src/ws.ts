@@ -221,6 +221,13 @@ export const handleMessage = async (
        */
     });
 
+    // Check connection
+  } else if (data.type == "checkConnection") {
+    sendMessage(client, {
+      type: "connected",
+      data: true,
+    });
+
     // WebRTC sharing
   } else if (data.type == "getTurnCredentials") {
     await authorize(client, async () => {
