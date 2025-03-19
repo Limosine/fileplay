@@ -1,7 +1,8 @@
 import dayjs from "dayjs";
 import { zValidator } from "@hono/zod-validator";
-import { Hono, validator } from "hono/mod.ts";
-import { deleteCookie, getCookie } from "hono/helper/cookie/index.ts";
+import { Hono } from "@hono/hono";
+import { validator } from "@hono/hono/validator";
+import { deleteCookie, getCookie } from "@hono/hono/cookie";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 

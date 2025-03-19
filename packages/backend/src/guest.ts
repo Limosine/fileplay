@@ -1,5 +1,5 @@
-import { Context } from "hono/mod.ts";
-import { setCookie } from "hono/helper/cookie/index.ts";
+import { Context } from "@hono/hono";
+import { setCookie } from "@hono/hono/cookie";
 
 import { cookieOptions } from "./common.ts";
 import { sign, verify } from "./signing.ts";

@@ -1,5 +1,5 @@
-import { Context } from "hono/mod.ts";
-import { WSContext, WSMessageReceive } from "hono/helper/websocket/index.ts";
+import { Context } from "@hono/hono";
+import { WSContext, WSMessageReceive } from "@hono/hono/ws";
 import { unpack, pack } from "msgpackr";
 
 import {
@@ -224,6 +224,7 @@ export const handleMessage = async (
     // Check connection
   } else if (data.type == "checkConnection") {
     sendMessage(client, {
+      id: data.id,
       type: "connected",
       data: true,
     });

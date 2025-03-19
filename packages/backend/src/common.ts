@@ -1,5 +1,5 @@
-import { WSContext } from "hono/helper/websocket/index.ts";
-import { CookieOptions } from "hono/utils/cookie.ts";
+import { WSContext } from "@hono/hono/ws";
+import { CookieOptions } from "@hono/hono/utils/cookie";
 
 // Utils
 
@@ -28,8 +28,7 @@ export const isEmpty = (obj: object) => {
 };
 
 export const isProfane = async (s: string) => {
-  const Filter = (await import("bad-words")).default;
-  return new Filter().isProfane(s) as boolean;
+  return new (await import("bad-words")).Filter().isProfane(s);
 };
 
 export const cookieOptions: Readonly<CookieOptions> = Object.freeze({
