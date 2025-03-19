@@ -171,10 +171,8 @@ const error = z.object({
 const requestsWithoutData = z.object({
   type: type(
     "getInfos",
-    "getTurnCredentials",
     "deleteTransfer",
     "deleteContactCode",
-    "createDeviceCode",
     "deleteDeviceCode"
   ),
 });

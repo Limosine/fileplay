@@ -88,7 +88,10 @@ class WebSocketClient {
 
   private socket: WebSocket;
   private messageId: number;
-  private promises: ((value: any) => void)[];
+  private promises: {
+    resolve: (value: any) => void;
+    reject: (reason?: any) => void;
+  }[];
   private buffer: Uint8Array[];
 
   constructor() {
@@ -140,6 +143,13 @@ class WebSocketClient {
         "WebSocket closed" + (event.reason ? ", reason: " + event.reason : "."),
       );
 
+      for (let i = 0; i < this.promises.length; ++i) {
+        if (typeof this.promises[i] !== "undefined") {
+          this.promises[i].reject();
+          delete this.promises[i];
+        }
+      }
+
       error.disconnected(5).then(undefined, () => {
         this.connect();
       });
@@ -173,9 +183,19 @@ class WebSocketClient {
       msg.type == "createDeviceCode" ||
       msg.type == "getTurnCredentials"
     ) {
-      return new Promise<Awaited<ResponseMap<T>>>((resolve) => {
-        this.promises[msg.id] = resolve;
-      }) as any;
+      const promise = new Promise<Awaited<ResponseMap<T>>>((r, j) => {
+        this.promises[msg.id] = {
+          resolve: r,
+          reject: j,
+        };
+      });
+
+      promise.then(
+        () => delete this.promises[msg.id],
+        () => delete this.promises[msg.id],
+      );
+
+      return promise as any;
     }
 
     return undefined as ResponseMap<T>;
@@ -255,8 +275,10 @@ class WebSocketClient {
       message.type == "deviceLinkingCode" ||
       message.type == "turnCredentials"
     ) {
-      const resolve = this.promises[message.id];
-      if (resolve !== undefined) resolve(message.data);
+      const promise = this.promises[message.id];
+      if (promise !== undefined) promise.resolve(message.data);
+
+      delete this.promises[message.id];
     } else if (message.type == "error") {
       console.warn("Error from Server:", message.data);
     } else {
