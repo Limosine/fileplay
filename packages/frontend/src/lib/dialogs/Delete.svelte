@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { closeDialog } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 </script>
 
 <p style="font-size: large;">Confirm deletion</p>
 
 <nav class="right-align" style="padding: 10px 0 0 0;">
-  <button class="transparent link" onclick={() => closeDialog()}>
+  <button class="transparent link" onclick={() => ui_object.closeDialog()}>
     Cancel
   </button>
-  <button class="transparent link" onclick={() => closeDialog(true)}>
+  <button class="transparent link" onclick={() => ui_object.closeDialog(true)}>
     Delete
   </button>
 </nav>

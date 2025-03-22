@@ -2,7 +2,7 @@
   import { nanoid } from "nanoid";
 
   import { DeviceType, getDicebearUrl } from "../../../../common/common";
-  import type { DialogEdit } from "$lib/lib/UI";
+  import type { DialogEdit } from "$lib/lib/UI.svelte";
 
   let {
     properties,

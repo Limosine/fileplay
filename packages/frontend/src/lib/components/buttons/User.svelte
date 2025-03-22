@@ -2,7 +2,7 @@
   import type { MouseEventHandler } from "svelte/elements";
 
   import { getDicebearUrl } from "../../../../../common/common";
-  import { getLastSend } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 
   import Badge from "../Badge.svelte";
   import Button from "../Button.svelte";
@@ -45,7 +45,7 @@
   {#if lastSeen}
     <div class="max"></div>
     <div id="last-seen" class="bold">
-      {#await getLastSend("contact", user.uid) then lastSend}
+      {#await ui_object.getLastSend("contact", user.uid) then lastSend}
         {lastSend}
       {/await}
     </div>

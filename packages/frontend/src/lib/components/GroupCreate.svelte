@@ -2,13 +2,7 @@
   import ui from "beercss";
 
   import { apiClient } from "$lib/api/client";
-  import {
-    contacts,
-    groups,
-    openEditDialog,
-    returnSubstring,
-    user as userStore,
-  } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
   import { getDicebearUrl } from "../../../../common/common";
   import type { IGroup } from "$lib/lib/fetchers";
 
@@ -44,9 +38,10 @@
     for (const group of groups) {
       for (const member of group.members) {
         if (
+          ui_object.user !== undefined &&
           !members.some((m) => m.uid === member.uid) &&
-          !$contacts.some((c) => c.uid === member.uid) &&
-          member.uid !== $userStore.uid
+          !ui_object.contacts.some((c) => c.uid === member.uid) &&
+          member.uid !== ui_object.user.uid
         )
           members.push(member);
       }
@@ -62,7 +57,7 @@
     subheader="Add members"
     forceHeaderVisible={false}
   >
-    {#each $contacts as contact, index}
+    {#each ui_object.contacts as contact, index}
       {#if index === 0}
         <p id="header" class="bold">Contacts</p>
       {/if}
@@ -74,7 +69,7 @@
       />
     {/each}
 
-    {#each getGroupMembers($groups) as member, index}
+    {#each getGroupMembers(ui_object.groups) as member, index}
       {#if index === 0}
         <p id="header" class="bold">Group members</p>
       {/if}
@@ -85,7 +80,7 @@
         onclick={() => select(member)}
       />
     {:else}
-      {#if !$contacts.length}
+      {#if !ui_object.contacts.length}
         <div class="centered">
           <p class="large-text">No contacts or group members available</p>
         </div>
@@ -109,7 +104,7 @@
 
     <Button
       onclick={async () =>
-        (name = await openEditDialog(
+        (name = await ui_object.openEditDialog(
           {
             title: "Group name",
             placeholder: "Group name",
@@ -141,7 +136,7 @@
           />
 
           <p style="margin-bottom: 0;">
-            {returnSubstring(user.display_name, 10)}
+            {ui_object.returnSubstring(user.display_name, 10)}
           </p>
         </article>
       {/each}

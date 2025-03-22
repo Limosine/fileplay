@@ -3,14 +3,7 @@ import { get } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import { peer } from "$lib/lib/p2p";
-import {
-  contacts,
-  devices,
-  files,
-  groupDevices,
-  updateFiles,
-  user,
-} from "$lib/lib/UI";
+import { ui_object } from "$lib/lib/UI.svelte";
 
 import {
   chunkBlobSmall,
@@ -38,13 +31,14 @@ export class FiletransferOut {
   ) {
     let selectedDevices: Device[] =
       properties.type == "group"
-        ? get(groupDevices).filter((d) => d.gid === properties.id)
+        ? ui_object.groupDevices.filter((d) => d.gid === properties.id)
         : properties.type == "contact"
-          ? get(contacts).find((c) => c.uid === properties.id)?.devices || []
+          ? ui_object.contacts.find((c) => c.uid === properties.id)?.devices ||
+            []
           : properties.type == "devices"
-            ? get(devices).others.filter((d) =>
+            ? (ui_object.devices?.others.filter((d) =>
                 properties.ids.some((id) => id === d.did),
-              )
+              ) ?? [])
             : properties.type == "fromGuest"
               ? [{ did: properties.id }]
               : [];
@@ -98,6 +92,11 @@ export class FiletransferOut {
       };
     });
 
+    if (ui_object.user === undefined) {
+      console.warn("WARN: Failed to send request");
+      return;
+    }
+
     const request: Request = {
       type: "request",
       id: this.id,
@@ -105,7 +104,7 @@ export class FiletransferOut {
         this.ids.type == "group"
           ? this.ids
           : this.ids.type == "contact"
-            ? { type: this.ids.type, id: get(user).uid }
+            ? { type: this.ids.type, id: ui_object.user.uid }
             : { type: this.ids.type == "devices" ? "device" : "guest" },
       files,
       previous: this.ids.type == "fromGuest" ? this.ids.previous : undefined,
@@ -152,11 +151,11 @@ export class FiletransferOut {
     } else return;
 
     for (let i = 0; i < file.bigChunks.length; i++) {
-      const index = get(files).findIndex((f) => f.id == file.id);
+      const index = ui_object.files?.findIndex((f) => f.id == file.id) ?? -1;
       if (index === -1) console.warn("Filetransfer: Unable to cache chunks.");
 
       const smallChunks =
-        index === -1 ? undefined : get(files)[index].smallChunks;
+        index === -1 ? undefined : ui_object.files[index].smallChunks;
       let chunks: Uint8Array[];
       if (smallChunks === undefined || smallChunks[i] === undefined) {
         // Split the large chunks into small chunks (16 KB)
@@ -169,12 +168,9 @@ export class FiletransferOut {
 
         // Cache small chunks (for transfer to another device)
         if (index !== -1) {
-          updateFiles((files) => {
-            if (files[index].smallChunks === undefined)
-              files[index].smallChunks = [];
-            files[index].smallChunks![i] = chunks;
-            return files;
-          });
+          if (ui_object.files[index].smallChunks === undefined)
+            ui_object.files[index].smallChunks = [];
+          ui_object.files[index].smallChunks![i] = chunks;
         }
       } else {
         chunks = smallChunks[i];

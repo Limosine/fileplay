@@ -1,4 +1,4 @@
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import { get } from "svelte/store";
 import type { z } from "zod";
 
@@ -10,7 +10,7 @@ import {
   user,
 } from "../../../../common/api/common";
 
-import { rawFiles } from "./UI";
+import { ui_object } from "./UI.svelte";
 
 // User
 export type IUser = z.infer<typeof user>["data"];
@@ -42,8 +42,8 @@ export const handleMessage = (
   event: MessageEvent<{ data: any; action: string }>,
 ) => {
   if (event.data.action == "load-data") {
-    rawFiles.set(arrayToFileList(event.data.data));
+    ui_object.rawFiles = arrayToFileList(event.data.data);
 
-    get(page).url.searchParams.delete("share-target");
+    page.url.searchParams.delete("share-target");
   }
 };

@@ -1,7 +1,7 @@
 import { page } from "$app/state";
 import { pack, unpack } from "msgpackr";
 import SimplePeer, { type SignalData } from "simple-peer";
-import { get, writable } from "svelte/store";
+import { writable } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import { concatUint8Arrays, type webRTCData } from "$lib/sharing/common";
@@ -356,7 +356,7 @@ class WebRTC extends Transport {
   sendChunk(chunk: Uint8Array) {
     if (this.peer.writable) {
       return new Promise<void>((resolve) =>
-        this.peer.write(chunk, undefined, () => resolve()),
+        this.peer.write(chunk, () => resolve()),
       );
     } else {
       throw new Error("Peer: WebRTC instance not writable");

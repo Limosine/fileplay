@@ -2,7 +2,7 @@
   import type { MouseEventHandler } from "svelte/elements";
 
   import type { IGroup } from "$lib/lib/fetchers";
-  import { getLastSend, groupDevices } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 
   import Badge from "../Badge.svelte";
   import Button from "../Button.svelte";
@@ -23,7 +23,9 @@
 </script>
 
 <Button {onclick}>
-  {@const devices = $groupDevices.filter((d) => d.gid === group.gid).length}
+  {@const devices = ui_object.groupDevices.filter(
+    (d) => d.gid === group.gid,
+  ).length}
   <div id="circle" class={devices < 1 ? undefined : "green-border"}>
     {devices < 1 ? "" : devices}
 
@@ -46,7 +48,7 @@
   {#if lastSeen}
     <div class="max"></div>
     <div id="last-seen" class="bold">
-      {#await getLastSend("group", group.gid) then lastSend}
+      {#await ui_object.getLastSend("group", group.gid) then lastSend}
         {lastSend}
       {/await}
     </div>

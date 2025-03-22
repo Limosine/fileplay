@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { changePath, path } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 </script>
 
 <div id="rail">
@@ -13,9 +13,11 @@
     </a>
 
     <a
-      class={$path.main == "send" || $path.main == "receive" ? "active" : ""}
+      class={ui_object.path.main == "send" || ui_object.path.main == "receive"
+        ? "active"
+        : ""}
       onclick={() =>
-        changePath({
+        ui_object.changePath({
           main: "send",
         })}
     >
@@ -23,9 +25,9 @@
       <span>Home</span>
     </a>
     <a
-      class={$path.main == "contacts" ? "active" : ""}
+      class={ui_object.path.main == "contacts" ? "active" : ""}
       onclick={() =>
-        changePath({
+        ui_object.changePath({
           main: "contacts",
         })}
     >
@@ -33,9 +35,9 @@
       <span>Contacts</span>
     </a>
     <a
-      class={$path.main == "groups" ? "active" : ""}
+      class={ui_object.path.main == "groups" ? "active" : ""}
       onclick={() =>
-        changePath({
+        ui_object.changePath({
           main: "groups",
         })}
     >

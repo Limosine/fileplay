@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
 
-  import { layout, openAddDialog, path } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 
   import Footer from "./Footer.svelte";
   import Header from "./Header.svelte";
@@ -34,17 +34,18 @@
   $effect(() => updateClasses());
 
   $effect(() => {
-    if ($layout == "desktop") rail = true;
+    if (ui_object.layout == "desktop") rail = true;
     else rail = false;
 
     if (
-      $layout == "mobile" &&
-      ($path.main == "send" || $path.main == "receive")
+      ui_object.layout == "mobile" &&
+      (ui_object.path.main == "send" || ui_object.path.main == "receive")
     )
       bar = true;
     else bar = false;
 
-    if ($path.main == "contacts" || $path.main == "groups") add = true;
+    if (ui_object.path.main == "contacts" || ui_object.path.main == "groups")
+      add = true;
     else add = false;
   });
 </script>
@@ -53,7 +54,7 @@
   <Rail />
 {/if}
 
-{#if $layout == "mobile"}
+{#if ui_object.layout == "mobile"}
   <Menu />
 {/if}
 
@@ -68,7 +69,10 @@
 </div>
 
 {#if add}
-  <button class="square round extra add" onclick={() => openAddDialog()}>
+  <button
+    class="square round extra add"
+    onclick={() => ui_object.openAddDialog()}
+  >
     <i>add</i>
   </button>
 {/if}

@@ -1,16 +1,10 @@
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import { get } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import { increaseCounter } from "$lib/lib/history";
 import { peer } from "$lib/lib/p2p";
-import {
-  changePath,
-  contacts,
-  devices,
-  groupDevices,
-  groups,
-} from "$lib/lib/UI";
+import { ui_object } from "$lib/lib/UI.svelte";
 import { onGuestPage } from "$lib/lib/utils";
 
 import type {
@@ -53,7 +47,7 @@ class TransferManager {
       send ? undefined : [],
     );
 
-    return `${location.protocol}//${location.host}/guest?did=${get(devices)?.self.did}&id=${transferId}${send ? "" : "&sender"}`;
+    return `${location.protocol}//${location.host}/guest?did=${ui_object.devices?.self.did}&id=${transferId}${send ? "" : "&sender"}`;
   }
 
   // Handling/Accepting new filetransfer (Receiver)
@@ -62,7 +56,7 @@ class TransferManager {
       new FiletransferIn(data.id, did, data.files, data.ids, data.nid),
     );
 
-    if (!onGuestPage()) changePath({ main: "receive" });
+    if (!onGuestPage()) ui_object.changePath({ main: "receive" });
   }
 
   async requestRequest(did: number, filetransfer_id: string) {
@@ -80,7 +74,7 @@ class TransferManager {
     );
   };
 
-  private async sendReady(did: number, nid: string) {
+  async sendReady(did: number, nid: string) {
     this.notifications.push({
       did,
       id: nid,
@@ -93,19 +87,16 @@ class TransferManager {
   }
 
   awaitReady(did: number, nid: string) {
-    if (get(contacts).length > 0 || get(groups).length > 0)
-      this.sendReady(did, nid);
+    if (get(ui_object.init_props_all)) this.sendReady(did, nid);
     else {
-      const handle = async (array: unknown[]) => {
-        if (array.length > 0) {
-          unsubscribeContacts();
-          unsubscribeGroups();
+      const handle = async (all: boolean) => {
+        if (all) {
+          unsubscribe();
           this.sendReady(did, nid);
         }
       };
 
-      const unsubscribeContacts = contacts.subscribe(handle);
-      const unsubscribeGroups = groups.subscribe(handle);
+      const unsubscribe = ui_object.init_props_all.subscribe(handle);
     }
   }
 
@@ -119,7 +110,7 @@ class TransferManager {
   ) {
     // Guest page
     if (onGuestPage()) {
-      if (Number(get(page).url.searchParams.get("did")) === did) {
+      if (Number(page.url.searchParams.get("did")) === did) {
         return true;
       } else return false;
     }
@@ -156,7 +147,7 @@ class TransferManager {
     // New transfer from own device
     if (
       ids?.type == "device" &&
-      get(devices)?.others.some(
+      ui_object.devices?.others.some(
         (device) => type == "request" && device.did === did,
       )
     )
@@ -165,7 +156,7 @@ class TransferManager {
     // New transfer from contact
     if (
       ids?.type == "contact" &&
-      get(contacts).some(
+      ui_object.contacts.some(
         (con) =>
           type == "request" &&
           con.uid === ids.id &&
@@ -177,7 +168,7 @@ class TransferManager {
     // New transfer from group
     if (
       ids?.type == "group" &&
-      get(groupDevices).some(
+      ui_object.groupDevices.some(
         (device) =>
           type == "request" && device.did === did && device.gid === ids.id,
       )
@@ -271,7 +262,7 @@ class TransferManager {
     if (transfer === undefined) await unauthorized();
     else {
       if (transfer.ids.type == "contact") {
-        const contact = get(contacts).find(
+        const contact = ui_object.contacts.find(
           (c) => transfer.ids.type == "contact" && c.uid === transfer.ids.id,
         );
         if (
@@ -281,7 +272,7 @@ class TransferManager {
           return unauthorized();
       } else if (transfer.ids.type == "group") {
         if (
-          !get(groupDevices).some(
+          !ui_object.groupDevices.some(
             (d) =>
               transfer.ids.type == "group" &&
               d.gid === transfer.ids.id &&
@@ -290,7 +281,7 @@ class TransferManager {
         )
           return unauthorized();
       } else if (transfer.ids.type == "devices") {
-        if (!get(devices)?.others.some((d) => d.did === did))
+        if (!ui_object.devices?.others.some((d) => d.did === did))
           return unauthorized();
       } else return unauthorized();
 

@@ -2,31 +2,27 @@
   import dayjs from "dayjs";
 
   import { apiClient } from "$lib/api/client";
-  import {
-    devices,
-    openAddDialog,
-    openEditDialog,
-    pathBackwards,
-  } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 
   import Button from "$lib/components/Button.svelte";
   import Fullscreen from "$lib/components/Fullscreen.svelte";
 </script>
 
-<Fullscreen header="Devices" backAction={pathBackwards}>
+<Fullscreen header="Devices" backAction={ui_object.pathBackwards}>
   <Button
     onclick={async () =>
+      ui_object.devices !== undefined &&
       apiClient("ws").sendMessage({
         type: "updateDevice",
         data: {
           update: {
-            display_name: await openEditDialog(
+            display_name: await ui_object.openEditDialog(
               {
                 title: "Device name",
                 placeholder: "Google Pixel 5",
                 type: "string",
               },
-              $devices.self.display_name,
+              ui_object.devices.self.display_name,
             ),
           },
         },
@@ -34,51 +30,53 @@
   >
     <div>
       <p id="title">
-        {$devices.self.display_name}
+        {ui_object.devices?.self.display_name || ""}
       </p>
       <p id="subtitle">This device.</p>
     </div>
   </Button>
-  {#each $devices.others as device}
-    <div class="divider"></div>
+  {#if ui_object.devices !== undefined}
+    {#each ui_object.devices.others as device}
+      <div class="divider"></div>
 
-    <Button
-      onclick={async () =>
-        apiClient("ws").sendMessage({
-          type: "updateDevice",
-          data: {
-            did: device.did,
-            update: {
-              display_name: await openEditDialog(
-                {
-                  title: "Device name",
-                  placeholder: "Google Pixel 5",
-                  type: "string",
-                },
-                device.display_name,
-              ),
+      <Button
+        onclick={async () =>
+          apiClient("ws").sendMessage({
+            type: "updateDevice",
+            data: {
+              did: device.did,
+              update: {
+                display_name: await ui_object.openEditDialog(
+                  {
+                    title: "Device name",
+                    placeholder: "Google Pixel 5",
+                    type: "string",
+                  },
+                  device.display_name,
+                ),
+              },
             },
-          },
-        })}
-    >
-      <div>
-        <p id="title">
-          {device.display_name}
-        </p>
-        <p id="subtitle">
-          Created at {dayjs
-            .unix(device.created_at)
-            .format("HH:mm, DD.MM.YYYY")}.
-        </p>
-      </div>
-    </Button>
-  {/each}
+          })}
+      >
+        <div>
+          <p id="title">
+            {device.display_name}
+          </p>
+          <p id="subtitle">
+            Created at {dayjs
+              .unix(device.created_at)
+              .format("HH:mm, DD.MM.YYYY")}.
+          </p>
+        </div>
+      </Button>
+    {/each}
+  {/if}
 
   {#snippet footerSnippet()}
     <button
       id="next-button"
       class="square round extra"
-      onclick={() => openAddDialog()}
+      onclick={() => ui_object.openAddDialog()}
     >
       <i>add</i>
     </button>

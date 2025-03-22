@@ -1,14 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
-  import {
-    changePath,
-    devices,
-    groupProperties,
-    largeDialog,
-    layout,
-    path,
-  } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 
   import Devices from "./Devices.svelte";
   import Select from "./Select.svelte";
@@ -27,13 +20,13 @@
   let groupCreateName = $state("");
 
   onMount(() => {
-    $largeDialog.addEventListener("close", () => {
+    ui_object.largeDialog?.addEventListener("close", () => {
       if (
-        $layout == "mobile" &&
-        $path.main == "settings" &&
-        $path.sub !== undefined
+        ui_object.layout == "mobile" &&
+        ui_object.path.main == "settings" &&
+        ui_object.path.sub !== undefined
       )
-        changePath({ main: "settings" });
+        ui_object.changePath({ main: "settings" });
 
       if (groupPropertiesPage)
         setTimeout(() => (groupPropertiesPage = "main"), 400);
@@ -48,11 +41,11 @@
   });
 </script>
 
-<dialog id="dialog-large" bind:this={$largeDialog} class="right large">
-  {#if $path.main == "send" || ($layout == "desktop" && $path.main == "receive")}
+<dialog id="dialog-large" bind:this={ui_object.largeDialog} class="right large">
+  {#if ui_object.path.main == "send" || (ui_object.layout == "desktop" && ui_object.path.main == "receive")}
     <Select />
-  {:else if $path.main == "groups"}
-    {#if $groupProperties.mode == "create"}
+  {:else if ui_object.path.main == "groups"}
+    {#if ui_object.groupProperties.mode == "create"}
       <GroupCreate
         bind:page={groupCreatePage}
         bind:selected={groupCreateSelected}
@@ -61,10 +54,10 @@
     {:else}
       <GroupProperties
         bind:page={groupPropertiesPage}
-        gid={$groupProperties.gid}
+        gid={ui_object.groupProperties.gid}
       />
     {/if}
-  {:else if $path.main == "settings" && $devices !== undefined}
+  {:else if ui_object.path.main == "settings" && ui_object.devices !== undefined}
     <Devices />
   {/if}
 </dialog>

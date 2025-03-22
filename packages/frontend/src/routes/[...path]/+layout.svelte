@@ -13,15 +13,7 @@
 
   import { apiClient } from "$lib/api/client";
   import { error } from "$lib/lib/error";
-  import {
-    closeDialog,
-    getPath,
-    largeDialog,
-    layout,
-    openDialog,
-    path,
-    registration,
-  } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
   import { settings } from "$lib/lib/settings.svelte";
 
   import logo from "$lib/assets/Fileplay.svg";
@@ -44,7 +36,7 @@
         settings.settings["subscribedToPush"] === undefined &&
         settings.settings["privacyAccepted"] == "true"
       )
-        openDialog({ mode: "request" });
+        ui_object.openDialog({ mode: "request" });
     };
 
     if (browser) {
@@ -60,14 +52,14 @@
             .then((v) => v && error.solved());
         });
         window.addEventListener("offline", () => {
-          closeDialog();
-          if ($largeDialog?.open) ui("#dialog-large");
+          ui_object.closeDialog();
+          if (ui_object.largeDialog?.open) ui("#dialog-large");
 
           error.offline();
         });
 
         if (settings.settings["privacyAccepted"] === undefined)
-          openDialog({ mode: "privacy" });
+          ui_object.openDialog({ mode: "privacy" });
       };
 
       if (localStorage.getItem("loggedIn") == "true") {
@@ -90,7 +82,7 @@
         immediate: true,
         onRegistered(r) {
           if (r !== undefined) {
-            $registration = r;
+            ui_object.registration = r;
             open();
           }
         },
@@ -102,7 +94,8 @@
   });
 
   $effect(() => {
-    if (browser) $path = getPath(location.pathname, page.url.pathname);
+    if (browser)
+      ui_object.path = ui_object.getPath(location.pathname, page.url.pathname);
   });
 </script>
 
@@ -151,7 +144,7 @@
 
 {#if $overlay}
   <!-- Dialogs -->
-  {#if $path.main == "send" || $path.main == "groups" || $path.main == "settings" || ($layout == "desktop" && $path.main == "receive")}
+  {#if ui_object.path.main == "send" || ui_object.path.main == "groups" || ui_object.path.main == "settings" || (ui_object.layout == "desktop" && ui_object.path.main == "receive")}
     <LargeDialog />
   {/if}
   <Dialog />

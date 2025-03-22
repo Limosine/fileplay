@@ -53,7 +53,7 @@ export const deleteHistory = async (
 ) => {
   const db = await openDatabase();
 
-  db.delete("shared", IDBKeyRange.only([mode, id]));
+  await db.delete("shared", IDBKeyRange.only([mode, id]));
 };
 
 export const increaseCounter = async (

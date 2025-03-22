@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { fade } from "svelte/transition";
   import QRCode from "qrcode";
 
   import { manager } from "$lib/sharing/manager.svelte";
-  import { fade } from "svelte/transition";
 
   let send = $state(true);
   let link: string = $state("");
