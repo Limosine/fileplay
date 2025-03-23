@@ -6,30 +6,16 @@
   import { apiClient } from "$lib/api/client";
   import { DeviceType, getDicebearUrl } from "../../../../common/common";
   import { type IDevices } from "$lib/lib/fetchers";
-  import {
-    changePath,
-    deviceParams,
-    devices,
-    layout,
-    openDialog,
-    path,
-    user,
-    userParams,
-    type RouteSettings,
-    largeDialog,
-    generalDialog,
-    dialogProperties,
-    closeDialog,
-    openEditDialog,
-  } from "$lib/lib/UI";
+  import { ui_object, type RouteSettings } from "$lib/lib/UI.svelte";
 
   import Button from "$lib/components/Button.svelte";
 
   const blur = (device: IDevices["self"], mode: "type" | "name") => {
     if (
       (mode == "name" &&
-        $deviceParams[device.did].display_name != device.display_name) ||
-      (mode == "type" && $deviceParams[device.did].type != device.type)
+        ui_object.deviceParams[device.did].display_name !=
+          device.display_name) ||
+      (mode == "type" && ui_object.deviceParams[device.did].type != device.type)
     )
       apiClient("ws").sendMessage({
         type: "updateDevice",
@@ -37,10 +23,10 @@
           update:
             mode == "name"
               ? {
-                  display_name: $deviceParams[device.did].display_name,
+                  display_name: ui_object.deviceParams[device.did].display_name,
                 }
               : {
-                  type: $deviceParams[device.did].type as DeviceType,
+                  type: ui_object.deviceParams[device.did].type as DeviceType,
                 },
           did: device.did,
         },
@@ -50,40 +36,42 @@
   $effect(() => {
     // Open dialog
     if (
-      $layout == "mobile" &&
-      ($path as RouteSettings).sub &&
-      $largeDialog &&
-      !$largeDialog.open
+      ui_object.layout == "mobile" &&
+      (ui_object.path as RouteSettings).sub &&
+      ui_object.largeDialog &&
+      !ui_object.largeDialog.open
     )
       ui("#dialog-large");
 
     // Close dialogs
     if (
-      ($layout == "desktop" || !($path as RouteSettings).sub) &&
-      $largeDialog &&
-      $largeDialog.open
+      (ui_object.layout == "desktop" ||
+        !(ui_object.path as RouteSettings).sub) &&
+      ui_object.largeDialog &&
+      ui_object.largeDialog.open
     )
       ui("#dialog-large");
     if (
-      $layout == "desktop" &&
-      $dialogProperties.mode == "edit" &&
-      $generalDialog.open
+      ui_object.layout == "desktop" &&
+      ui_object.dialogProperties.mode == "edit" &&
+      ui_object.generalDialog?.open
     )
-      closeDialog();
+      ui_object.closeDialog();
   });
 </script>
 
-{#if $layout == "desktop"}
+{#if ui_object.layout == "desktop"}
   <div style="padding: 20px;">
     <article style="padding: 15px 12px;" class="secondary-container">
       <div class="row">
         <h6>Settings</h6>
         <div class="max"></div>
-        {#if "sub" in $path && $path.sub == "devices"}
+        {#if "sub" in ui_object.path && ui_object.path.sub == "devices"}
           <!-- svelte-ignore a11y_missing_attribute, a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
           <a
             class="chip primary round"
-            onclick={() => openDialog({ mode: "add", addMode: "device" })}
+            onclick={() =>
+              ui_object.openDialog({ mode: "add", addMode: "device" })}
             >Link device</a
           >
         {/if}
@@ -92,16 +80,20 @@
         <!-- svelte-ignore a11y_missing_attribute, a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
         <div class="tabs">
           <a
-            class={($path as RouteSettings).sub ? "" : "active"}
-            onclick={() => changePath({ main: "settings" })}>General</a
+            class={(ui_object.path as RouteSettings).sub ? "" : "active"}
+            onclick={() => ui_object.changePath({ main: "settings" })}
+            >General</a
           >
           <a
-            class={($path as RouteSettings).sub ? "active" : ""}
-            onclick={() => changePath({ main: "settings", sub: "devices" })}
+            class={(ui_object.path as RouteSettings).sub ? "active" : ""}
+            onclick={() =>
+              ui_object.changePath({ main: "settings", sub: "devices" })}
             >Devices</a
           >
         </div>
-        <div class="page {($path as RouteSettings).sub ? '' : 'active'}">
+        <div
+          class="page {(ui_object.path as RouteSettings).sub ? '' : 'active'}"
+        >
           <table id="general" class="border secondary-container">
             <colgroup>
               <col span="1" style="width: 20%;" />
@@ -117,15 +109,19 @@
                       <p class="bold">Username:</p>
                       <div class="field border small">
                         <input
-                          bind:value={$userParams.display_name}
+                          bind:value={ui_object.userParams.display_name}
                           onfocus={() =>
-                            ($userParams.display_name = $user.display_name)}
+                            ui_object.user !== undefined &&
+                            (ui_object.userParams.display_name =
+                              ui_object.user.display_name)}
                           onblur={() =>
-                            $userParams.display_name != $user.display_name &&
+                            ui_object.user !== undefined &&
+                            ui_object.userParams.display_name !=
+                              ui_object.user.display_name &&
                             apiClient("ws").sendMessage({
                               type: "updateUser",
                               data: {
-                                display_name: $userParams.display_name,
+                                display_name: ui_object.userParams.display_name,
                               },
                             })}
                         />
@@ -137,11 +133,13 @@
                       <div class="center-align">
                         <img
                           id="avatar-image"
-                          src={getDicebearUrl(
-                            $userParams.avatar_seed != ""
-                              ? $userParams.avatar_seed
-                              : $user.avatar_seed,
-                          )}
+                          src={ui_object.user !== undefined
+                            ? getDicebearUrl(
+                                ui_object.userParams.avatar_seed != ""
+                                  ? ui_object.userParams.avatar_seed
+                                  : ui_object.user.avatar_seed,
+                              )
+                            : undefined}
                           width="50"
                           alt="Avatar"
                           draggable="false"
@@ -149,17 +147,18 @@
                       </div>
                       <a
                         class="chip primary round"
-                        onclick={() => ($userParams.avatar_seed = nanoid(8))}
+                        onclick={() =>
+                          (ui_object.userParams.avatar_seed = nanoid(8))}
                         >Change</a
                       >
-                      {#if $userParams.avatar_seed != "" && $userParams.avatar_seed != $user.avatar_seed}
+                      {#if ui_object.userParams.avatar_seed != "" && ui_object.user !== undefined && ui_object.userParams.avatar_seed != ui_object.user.avatar_seed}
                         <a
                           class="chip primary round"
                           onclick={() =>
                             apiClient("ws").sendMessage({
                               type: "updateUser",
                               data: {
-                                avatar_seed: $userParams.avatar_seed,
+                                avatar_seed: ui_object.userParams.avatar_seed,
                               },
                             })}>Save</a
                         >
@@ -184,7 +183,9 @@
             </tbody>
           </table>
         </div>
-        <div class="page {($path as RouteSettings).sub ? 'active' : ''}">
+        <div
+          class="page {(ui_object.path as RouteSettings).sub ? 'active' : ''}"
+        >
           <table class="border secondary-container">
             <colgroup>
               <col />
@@ -203,28 +204,41 @@
             </thead>
 
             <tbody>
-              {#if $devices !== undefined}
+              {#if ui_object.devices !== undefined}
                 <tr>
                   <td
                     ><div class="field border small">
                       <input
-                        bind:value={$deviceParams[$devices.self.did]
-                          .display_name}
+                        bind:value={
+                          ui_object.deviceParams[ui_object.devices.self.did]
+                            .display_name
+                        }
                         onfocus={() =>
-                          ($deviceParams[$devices.self.did].display_name =
-                            $devices.self.display_name)}
-                        onblur={() => blur($devices.self, "name")}
+                          ui_object.devices !== undefined &&
+                          (ui_object.deviceParams[
+                            ui_object.devices.self.did
+                          ].display_name = ui_object.devices.self.display_name)}
+                        onblur={() =>
+                          ui_object.devices !== undefined &&
+                          blur(ui_object.devices.self, "name")}
                       />
                     </div></td
                   >
                   <td
                     ><div class="field border small suffix">
                       <select
-                        bind:value={$deviceParams[$devices.self.did].type}
+                        bind:value={
+                          ui_object.deviceParams[ui_object.devices.self.did]
+                            .type
+                        }
                         onfocus={() =>
-                          ($deviceParams[$devices.self.did].type =
-                            $devices.self.type)}
-                        onblur={() => blur($devices.self, "type")}
+                          ui_object.devices !== undefined &&
+                          (ui_object.deviceParams[
+                            ui_object.devices.self.did
+                          ].type = ui_object.devices.self.type)}
+                        onblur={() =>
+                          ui_object.devices !== undefined &&
+                          blur(ui_object.devices.self, "type")}
                         style="min-width: 200px;"
                       >
                         {#each Object.entries(DeviceType) as [label, value]}
@@ -236,7 +250,7 @@
                   >
                   <td
                     >{dayjs
-                      .unix($devices.self.created_at)
+                      .unix(ui_object.devices.self.created_at)
                       .format("HH:mm, DD.MM.YYYY")}</td
                   >
                   <td
@@ -248,14 +262,16 @@
                     </button></td
                   >
                 </tr>
-                {#each $devices.others as device}
+                {#each ui_object.devices.others as device}
                   <tr>
                     <td
                       ><div class="field border small">
                         <input
-                          bind:value={$deviceParams[device.did].display_name}
+                          bind:value={
+                            ui_object.deviceParams[device.did].display_name
+                          }
                           onfocus={() =>
-                            ($deviceParams[device.did].display_name =
+                            (ui_object.deviceParams[device.did].display_name =
                               device.display_name)}
                           onblur={() => blur(device, "name")}
                         />
@@ -264,9 +280,10 @@
                     <td
                       ><div class="field border small suffix">
                         <select
-                          bind:value={$deviceParams[device.did].type}
+                          bind:value={ui_object.deviceParams[device.did].type}
                           onfocus={() =>
-                            ($deviceParams[device.did].type = device.type)}
+                            (ui_object.deviceParams[device.did].type =
+                              device.type)}
                           onblur={() => blur(device, "type")}
                           style="min-width: 200px;"
                         >
@@ -308,12 +325,13 @@
 
   <Button
     onclick={async () =>
+      ui_object.user !== undefined &&
       apiClient("ws").sendMessage({
         type: "updateUser",
         data: {
-          display_name: await openEditDialog(
+          display_name: await ui_object.openEditDialog(
             { title: "Username", placeholder: "Username", type: "string" },
-            $user.display_name,
+            ui_object.user.display_name,
           ),
         },
       })}
@@ -321,19 +339,20 @@
     <div>
       <p id="title">Username</p>
       <p id="subtitle">
-        {$user.display_name}
+        {ui_object.user?.display_name}
       </p>
     </div>
   </Button>
 
   <Button
     onclick={async () =>
+      ui_object.user !== undefined &&
       apiClient("ws").sendMessage({
         type: "updateUser",
         data: {
-          avatar_seed: await openEditDialog(
+          avatar_seed: await ui_object.openEditDialog(
             { title: "Avatar", type: "avatar" },
-            $user.avatar_seed,
+            ui_object.user.avatar_seed,
           ),
         },
       })}
@@ -346,7 +365,9 @@
     <img
       class="responsive"
       style="height: 50px; width: 50px; margin-right: 5px;"
-      src={getDicebearUrl($user.avatar_seed)}
+      src={ui_object.user !== undefined
+        ? getDicebearUrl(ui_object.user.avatar_seed)
+        : undefined}
       alt="Avatar"
       draggable="false"
     />
@@ -356,7 +377,7 @@
 
   <Button
     onclick={() => {
-      changePath({ main: "settings", sub: "devices" });
+      ui_object.changePath({ main: "settings", sub: "devices" });
     }}
   >
     <div>

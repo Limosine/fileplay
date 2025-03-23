@@ -1,11 +1,15 @@
 <script lang="ts">
   import ui from "beercss";
 
-  import { changePath, menuDialog, path } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 </script>
 
 <!-- Corner radius? -->
-<dialog class="left no-padding" id="dialog-menu" bind:this={$menuDialog}>
+<dialog
+  class="left no-padding"
+  id="dialog-menu"
+  bind:this={ui_object.menuDialog}
+>
   <!-- svelte-ignore a11y_missing_attribute, a11y_click_events_have_key_events, a11y_no_static_element_interactions missing-declaration -->
   <nav class="drawer">
     <header>
@@ -15,9 +19,11 @@
       </nav>
     </header>
     <a
-      class={$path.main == "send" || $path.main == "receive" ? "active" : ""}
+      class={ui_object.path.main == "send" || ui_object.path.main == "receive"
+        ? "active"
+        : ""}
       onclick={() => {
-        changePath({
+        ui_object.changePath({
           main: "send",
         });
         ui("#dialog-menu");
@@ -27,9 +33,9 @@
       <span>Home</span>
     </a>
     <a
-      class={$path.main == "contacts" ? "active" : ""}
+      class={ui_object.path.main == "contacts" ? "active" : ""}
       onclick={() => {
-        changePath({
+        ui_object.changePath({
           main: "contacts",
         });
         ui("#dialog-menu");
@@ -39,9 +45,9 @@
       <span>Contacts</span>
     </a>
     <a
-      class={$path.main == "groups" ? "active" : ""}
+      class={ui_object.path.main == "groups" ? "active" : ""}
       onclick={() => {
-        changePath({
+        ui_object.changePath({
           main: "groups",
         });
         ui("#dialog-menu");
@@ -57,9 +63,9 @@
     <label>Settings</label>
 
     <a
-      class={$path.main == "settings" ? "active" : ""}
+      class={ui_object.path.main == "settings" ? "active" : ""}
       onclick={() => {
-        changePath({
+        ui_object.changePath({
           main: "settings",
         });
         ui("#dialog-menu");

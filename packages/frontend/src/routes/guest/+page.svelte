@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { onDestroy, onMount } from "svelte";
 
   import "beercss";
@@ -10,7 +10,7 @@
   import { setup } from "$lib/lib/encryption";
   import { handleMessage } from "$lib/lib/fetchers";
   import { peer } from "$lib/lib/p2p";
-  import { files, input, returnSubstring } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
   import { manager } from "$lib/sharing/manager.svelte";
   import { capitalizeFirstLetter } from "$lib/lib/utils";
 
@@ -35,9 +35,9 @@
   onMount(async () => {
     if (!sentAccept) {
       sentAccept = true;
-      did = Number($page.url.searchParams.get("did"));
-      filetransfer_id = String($page.url.searchParams.get("id"));
-      sender = $page.url.searchParams.has("sender");
+      did = Number(page.url.searchParams.get("did"));
+      filetransfer_id = String(page.url.searchParams.get("id"));
+      sender = page.url.searchParams.has("sender");
 
       navigator.serviceWorker?.addEventListener("message", handleMessage);
 
@@ -117,7 +117,7 @@
                   class="border left-round"
                   style="width: calc(100% - 51px); height: 50px; border-right-style: none;"
                 >
-                  <span>{returnSubstring(file.name, 25)}</span>
+                  <span>{ui_object.returnSubstring(file.name, 25)}</span>
                 </article>
                 <a
                   class="button large right-round"
@@ -133,7 +133,7 @@
                   style="width: 100%; height: 50px;"
                 >
                   <span>
-                    {returnSubstring(file.name, 25)}
+                    {ui_object.returnSubstring(file.name, 25)}
                   </span>
                   <progress
                     class="max"
@@ -152,8 +152,8 @@
 
   {#if manager.incoming.length > 0 || sender}
     <article class="secondary-container" style="margin: 0;">
-      {#if $files === undefined || $files.length === 0}
-        <button class="center" onclick={() => $input.click()}
+      {#if ui_object.files.length === 0}
+        <button class="center" onclick={() => ui_object.input?.click()}
           >Send files{sender ? "" : " back"}</button
         >
       {:else}
@@ -161,12 +161,13 @@
           <p class="bold">Selected files:</p>
           <div class="max"></div>
           <!-- svelte-ignore a11y_click_events_have_key_events, a11y_missing_attribute, a11y_no_static_element_interactions -->
-          <a onclick={() => $input.click()} style="color: var(--secondary)"
-            >Change</a
+          <a
+            onclick={() => ui_object.input?.click()}
+            style="color: var(--secondary)">Change</a
           >
         </div>
         <div class="row wrap">
-          {#each Array.from($files) as file}
+          {#each Array.from(ui_object.files) as file}
             <article class="square round tertiary">
               <i class="center middle">
                 {#if file.file.type.slice(0, file.file.type.indexOf("/")) == "audio"}
@@ -194,7 +195,7 @@
             class="center"
             style="margin-top: 7px;"
             onclick={() => {
-              const previous = $page.url.searchParams.get("id");
+              const previous = page.url.searchParams.get("id");
               if (previous !== null)
                 manager.createTransfer({
                   type: "fromGuest",
@@ -216,7 +217,7 @@
                 class="circle tertiary"
                 onclick={() => {
                   manager.cancelOutgoing();
-                  const previous = $page.url.searchParams.get("id");
+                  const previous = page.url.searchParams.get("id");
                   if (previous !== null)
                     manager.createTransfer({
                       type: "fromGuest",

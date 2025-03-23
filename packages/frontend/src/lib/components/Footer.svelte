@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { changePath, path } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
   import { manager } from "$lib/sharing/manager.svelte";
 
   const outgoingLength = $derived(
@@ -17,9 +17,9 @@
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_missing_attribute, a11y_no_static_element_interactions -->
   <nav class="bottom" style="justify-content: space-around; z-index: 99;">
     <a
-      class={$path.main == "send" ? "active" : ""}
+      class={ui_object.path.main == "send" ? "active" : ""}
       onclick={() =>
-        changePath({
+        ui_object.changePath({
           main: "send",
         })}
     >
@@ -30,9 +30,9 @@
       <span>Send</span>
     </a>
     <a
-      class={$path.main == "receive" ? "active" : ""}
+      class={ui_object.path.main == "receive" ? "active" : ""}
       onclick={() =>
-        changePath({
+        ui_object.changePath({
           main: "receive",
         })}
     >

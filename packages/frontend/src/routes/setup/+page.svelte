@@ -10,16 +10,7 @@
   import { apiClient } from "$lib/api/client";
   import { DeviceType, getDicebearUrl } from "../../../../common/common";
   import { clearObjectStores } from "$lib/lib/history";
-  import {
-    deviceParams,
-    userParams,
-    profaneUsername,
-    linkingCode,
-    width,
-    layout,
-    height,
-    openEditDialog,
-  } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
   import { ValueToName } from "$lib/lib/utils";
 
   import logo from "$lib/assets/Fileplay.svg";
@@ -50,8 +41,8 @@
   const handleConfirm = async () => {
     // Setup device
     const res = await apiClient("http").setupDevice({
-      display_name: $deviceParams[0].display_name,
-      type: $deviceParams[0].type,
+      display_name: ui_object.deviceParams[0].display_name,
+      type: ui_object.deviceParams[0].type,
     });
 
     if (Array.from(res.status.toString())[0] != "2") {
@@ -60,7 +51,7 @@
 
     if (existing) {
       // Link to existing user
-      const res = await apiClient("http").setupDevice($linkingCode);
+      const res = await apiClient("http").setupDevice(ui_object.linkingCode);
 
       if (Array.from(res.status.toString())[0] != "2") {
         return handleResponseError(res);
@@ -68,8 +59,8 @@
     } else {
       // Setup user
       const res = await apiClient("http").setupUser({
-        display_name: $userParams.display_name,
-        avatar_seed: $userParams.avatar_seed,
+        display_name: ui_object.userParams.display_name,
+        avatar_seed: ui_object.userParams.avatar_seed,
       });
 
       if (Array.from(res.status.toString())[0] != "2") {
@@ -90,23 +81,29 @@
     progress = 1;
 
     // Generate avatar seed
-    $userParams.avatar_seed = nanoid(8);
+    ui_object.userParams.avatar_seed = nanoid(8);
   });
 
   $effect(() => {
-    if (!$deviceParams[0].display_name || !$deviceParams[0].type)
+    if (
+      !ui_object.deviceParams[0].display_name ||
+      !ui_object.deviceParams[0].type
+    )
       actionDisabled = true;
     else if (!existing) {
       actionDisabled =
-        !$userParams.display_name ||
-        $profaneUsername.profane ||
-        $profaneUsername.loading ||
-        !$userParams.avatar_seed;
-    } else actionDisabled = !$linkingCode;
+        !ui_object.userParams.display_name ||
+        ui_object.profaneUsername.profane ||
+        ui_object.profaneUsername.loading ||
+        !ui_object.userParams.avatar_seed;
+    } else actionDisabled = !ui_object.linkingCode;
   });
 </script>
 
-<svelte:window bind:innerHeight={$height} bind:innerWidth={$width} />
+<svelte:window
+  bind:innerHeight={ui_object.height}
+  bind:innerWidth={ui_object.width}
+/>
 
 <svelte:head>
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -137,9 +134,9 @@
     </button>
   </div>
 {:else if progress == 2}
-  {#if $layout == "desktop"}
+  {#if ui_object.layout == "desktop"}
     <article
-      class="border center {$height >= 630 ? 'middle' : ''}"
+      class="border center {ui_object.height >= 630 ? 'middle' : ''}"
       style="margin: 0; width: 600px;"
     >
       <h6 style="padding: 16px 16px 0 16px;">Setup</h6>
@@ -152,14 +149,17 @@
           style="padding-bottom: 30px;"
         >
           <div class="field label">
-            <input bind:value={$deviceParams[0].display_name} maxlength={32} />
+            <input
+              bind:value={ui_object.deviceParams[0].display_name}
+              maxlength={32}
+            />
             <!-- svelte-ignore a11y_label_has_associated_control -->
             <label>Device Name</label>
           </div>
 
           <div class="field label suffix">
             <select
-              bind:value={$deviceParams[0].type}
+              bind:value={ui_object.deviceParams[0].type}
               style="min-width: 200px;"
             >
               {#each Object.entries(DeviceType) as [label, value]}
@@ -209,7 +209,7 @@
               <strong>Generate linking code</strong>.
             </p>
             <div class="field label">
-              <input bind:value={$linkingCode} maxlength={6} />
+              <input bind:value={ui_object.linkingCode} maxlength={6} />
               <!-- svelte-ignore a11y_label_has_associated_control -->
               <label>Linking Code</label>
             </div>
@@ -243,23 +243,26 @@
 
     <Button
       onclick={async () =>
-        ($deviceParams[0].display_name = await openEditDialog(
-          {
-            title: "Device name",
-            type: "string",
-            placeholder: "Google Pixel 5",
-          },
-          $deviceParams[0].display_name,
-        ))}
+        (ui_object.deviceParams[0].display_name =
+          await ui_object.openEditDialog(
+            {
+              title: "Device name",
+              type: "string",
+              placeholder: "Google Pixel 5",
+            },
+            ui_object.deviceParams[0].display_name,
+          ))}
     >
       <div>
         <p id="title">Device name</p>
         <p
           id="subtitle"
-          style={!$deviceParams[0].display_name ? "font-style: italic;" : ""}
+          style={!ui_object.deviceParams[0].display_name
+            ? "font-style: italic;"
+            : ""}
         >
-          {$deviceParams[0].display_name
-            ? $deviceParams[0].display_name
+          {ui_object.deviceParams[0].display_name
+            ? ui_object.deviceParams[0].display_name
             : "Google Pixel 5"}
         </p>
       </div>
@@ -267,15 +270,17 @@
 
     <Button
       onclick={async () =>
-        ($deviceParams[0].type = await openEditDialog(
+        (ui_object.deviceParams[0].type = await ui_object.openEditDialog(
           { title: "Device type", type: "deviceType" },
-          $deviceParams[0].type,
+          ui_object.deviceParams[0].type,
         ))}
     >
       <div>
         <p id="title">Device type</p>
         <p id="subtitle">
-          {$deviceParams[0].type ? ValueToName($deviceParams[0].type) : ""}
+          {ui_object.deviceParams[0].type
+            ? ValueToName(ui_object.deviceParams[0].type)
+            : ""}
         </p>
       </div>
     </Button>
@@ -297,14 +302,14 @@
     {#if existing}
       <Button
         onclick={async () =>
-          ($linkingCode = await openEditDialog(
+          (ui_object.linkingCode = await ui_object.openEditDialog(
             {
               title: "Linking code",
               type: "string",
               placeholder: "6-digit code",
               length: 6,
             },
-            $linkingCode,
+            ui_object.linkingCode,
           ))}
       >
         <div>
@@ -315,31 +320,31 @@
     {:else}
       <Button
         onclick={async () =>
-          ($userParams.display_name = await openEditDialog(
+          (ui_object.userParams.display_name = await ui_object.openEditDialog(
             {
               title: "Username",
               placeholder: "Username",
               type: "string",
             },
-            $userParams.display_name,
+            ui_object.userParams.display_name,
           ))}
       >
         <div>
           <p id="title">Username</p>
           <p id="subtitle">
-            {$userParams.display_name}
+            {ui_object.userParams.display_name}
           </p>
         </div>
       </Button>
 
       <Button
         onclick={async () =>
-          ($userParams.avatar_seed = await openEditDialog(
+          (ui_object.userParams.avatar_seed = await ui_object.openEditDialog(
             {
               title: "Avatar",
               type: "avatar",
             },
-            $userParams.avatar_seed,
+            ui_object.userParams.avatar_seed,
           ))}
       >
         <div>
@@ -350,7 +355,7 @@
         <img
           class="responsive"
           style="height: 50px; width: 50px; margin-right: 5px;"
-          src={getDicebearUrl($userParams.avatar_seed)}
+          src={getDicebearUrl(ui_object.userParams.avatar_seed)}
           alt="Avatar"
           draggable="false"
         />

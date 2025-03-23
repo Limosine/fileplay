@@ -1,6 +1,6 @@
 import { encodeBase64 } from "@std/encoding";
-import { Context } from "hono/mod.ts";
-import { setCookie } from "hono/helper/cookie/index.ts";
+import { Context } from "@hono/hono";
+import { setCookie } from "@hono/hono/cookie";
 
 import { arrayBufferToHex, cookieOptions, hexToArrayBuffer } from "./common.ts";
 import { getSalt, getUid } from "./db.ts";

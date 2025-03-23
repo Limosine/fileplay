@@ -1,8 +1,7 @@
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import { pack, unpack } from "msgpackr";
 import SimplePeer, { type SignalData } from "simple-peer";
-import type { MaybePromise } from "@sveltejs/kit";
-import { get, writable } from "svelte/store";
+import { writable } from "svelte/store";
 
 import { apiClient } from "$lib/api/client";
 import { concatUint8Arrays, type webRTCData } from "$lib/sharing/common";
@@ -15,7 +14,12 @@ import {
   publicKeyJwk,
 } from "./encryption";
 import type { IDeviceInfo } from "./fetchers";
-import { numberToUint8Array, onGuestPage, uint8ArrayToNumber } from "./utils";
+import {
+  numberToUint8Array,
+  onGuestPage,
+  uint8ArrayToNumber,
+  type MaybePromise,
+} from "./utils";
 
 const createEmptyPromise = () => {
   let res = () => {};
@@ -281,7 +285,7 @@ class WebRTC extends Transport {
           type: "shareFromGuest",
           data: {
             did: this.did,
-            guestTransfer: String(get(page).url.searchParams.get("id")),
+            guestTransfer: String(page.url.searchParams.get("id")),
             data: { type: "signal", data: JSON.stringify(data) },
           },
         });
@@ -352,7 +356,7 @@ class WebRTC extends Transport {
   sendChunk(chunk: Uint8Array) {
     if (this.peer.writable) {
       return new Promise<void>((resolve) =>
-        this.peer.write(chunk, undefined, () => resolve()),
+        this.peer.write(chunk, () => resolve()),
       );
     } else {
       throw new Error("Peer: WebRTC instance not writable");
@@ -415,14 +419,14 @@ class WebSocket extends Transport {
     this.events.dispatchEvent(new Event("destroyed"));
   }
 
-  sendChunk(chunk: Uint8Array) {
+  sendChunk(chunk: Uint8Array<ArrayBuffer>) {
     apiClient("ws").sendMessage(
       onGuestPage()
         ? {
             type: "shareFromGuest",
             data: {
               did: this.did,
-              guestTransfer: String(get(page).url.searchParams.get("id")),
+              guestTransfer: String(page.url.searchParams.get("id")),
               data: { type: "webrtc", data: chunk },
             },
           }

@@ -1,6 +1,7 @@
-import { Context } from "hono/mod.ts";
-import { WSContext, WSMessageReceive } from "hono/helper/websocket/index.ts";
-import { unpack, pack } from "msgpackr";
+import { Context } from "@hono/hono";
+import { WSContext, WSMessageReceive } from "@hono/hono/ws";
+// @deno-types="msgpackr/index.d.ts"
+import { unpack, pack } from "msgpackr/index.js";
 
 import {
   authenticate,
@@ -101,11 +102,15 @@ export const onOpen = async (ws: WSContext, c: Context) => {
     (client.device === undefined || client.user === undefined)
   ) {
     console.log("INFO: Authentication failure");
+
+    sendMessage(client, { type: "status", data: "unauthorized" });
     return client.close(1008, "Unauthorized");
   }
 
   // Add to clients
   clients.add(client);
+
+  sendMessage(client, { type: "status", data: "authorized" });
 
   // Notify devices
   if (client.user !== undefined) deviceStateChanged(constants.db, client.user);
@@ -215,6 +220,14 @@ export const handleMessage = async (
        * devices
        * group devices
        */
+    });
+
+    // Check connection
+  } else if (data.type == "checkConnection") {
+    sendMessage(client, {
+      id: data.id,
+      type: "connected",
+      data: true,
     });
 
     // WebRTC sharing

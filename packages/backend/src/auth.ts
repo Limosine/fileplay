@@ -1,5 +1,5 @@
-import { getCookie } from "hono/helper/cookie/index.ts";
-import { Context } from "hono/mod.ts";
+import { Context } from "@hono/hono";
+import { getCookie } from "@hono/hono/cookie";
 
 import { AuthenticationIds, MaybePromise } from "./common.ts";
 import { getGuestID } from "./guest.ts";

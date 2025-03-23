@@ -1,27 +1,16 @@
 import { browser } from "$app/environment";
 import { pack, unpack } from "msgpackr";
-import { get, readable, writable } from "svelte/store";
-import type { MaybePromise } from "@sveltejs/kit";
+import { derived, get, readable, writable } from "svelte/store";
 
+import { error } from "$lib/lib/error";
 import { peer } from "$lib/lib/p2p";
-import {
-  closeDialog,
-  contacts,
-  deviceParams,
-  devices,
-  dialogProperties,
-  groupDevices,
-  groups,
-  offline,
-  user,
-  userParams,
-} from "$lib/lib/UI";
-import { onGuestPage } from "$lib/lib/utils";
+import { ui_object } from "$lib/lib/UI.svelte";
+import { onGuestPage, timeoutPromise } from "$lib/lib/utils";
 
-import type {
-  MessageFromClient,
-  MessageFromServer,
-  ResponseMap,
+import {
+  type MessageFromClient,
+  type MessageFromServer,
+  type ResponseMap,
 } from "../../../../common/api/common";
 
 class HTTPClient {
@@ -85,9 +74,14 @@ class HTTPClient {
 }
 
 class WebSocketClient {
+  readonly connected = derived(error.error, (error) => error === false);
+
   private socket: WebSocket;
   private messageId: number;
-  private promises: ((value: any) => void)[];
+  private promises: {
+    resolve: (value: any) => void;
+    reject: (reason?: any) => void;
+  }[];
   private buffer: Uint8Array[];
 
   constructor() {
@@ -96,7 +90,28 @@ class WebSocketClient {
     this.buffer = [];
 
     this.socket = this.connect();
+
+    this.connected.subscribe((value) => {
+      if (!value) {
+        get(peer).closeConnections("websocket");
+
+        for (let i = 0; i < this.promises.length; ++i) {
+          if (typeof this.promises[i] !== "undefined") {
+            this.promises[i].reject();
+            delete this.promises[i];
+          }
+        }
+      }
+    });
   }
+
+  private onOpen = () => {
+    if (!onGuestPage()) {
+      this.sendMessage({ type: "deleteTransfer" });
+      this.sendMessage({ type: "getInfos" });
+    }
+    this.sendBuffered();
+  };
 
   private connect() {
     this.socket = new WebSocket(
@@ -105,16 +120,9 @@ class WebSocketClient {
 
     this.socket.binaryType = "arraybuffer";
 
-    this.socket.addEventListener("open", () => {
-      if (!onGuestPage()) {
-        this.sendMessage({ type: "deleteTransfer" });
-        this.sendMessage({ type: "getInfos" });
-      }
-      this.sendBuffered();
-    });
-
     this.socket.addEventListener("message", (event) => {
       let data;
+
       if (event.data instanceof ArrayBuffer) {
         data = unpack(new Uint8Array(event.data));
       } else if (typeof event.data == "string") {
@@ -132,18 +140,7 @@ class WebSocketClient {
         "WebSocket closed" + (event.reason ? ", reason: " + event.reason : "."),
       );
 
-      get(peer).closeConnections("websocket");
-
-      if (event.code !== 1008) {
-        if (get(offline) === true) {
-          const unsubscribe = offline.subscribe(async (offline) => {
-            if (!offline) {
-              unsubscribe();
-              this.connect();
-            }
-          });
-        } else setTimeout(() => this.connect(), 5000);
-      } else location.href = "/setup";
+      error.disconnected(5).then(undefined, () => this.connect());
     });
 
     return this.socket;
@@ -168,54 +165,88 @@ class WebSocketClient {
     }
 
     if (
+      msg.type == "checkConnection" ||
       msg.type == "createTransfer" ||
       msg.type == "createContactCode" ||
       msg.type == "createDeviceCode" ||
       msg.type == "getTurnCredentials"
     ) {
-      return new Promise<Awaited<ResponseMap<T>>>((resolve) => {
-        this.promises[msg.id] = resolve;
-      }) as any;
+      const promise = new Promise<Awaited<ResponseMap<T>>>((r, j) => {
+        this.promises[msg.id] = {
+          resolve: r,
+          reject: j,
+        };
+      });
+
+      promise.then(
+        () => delete this.promises[msg.id],
+        () => delete this.promises[msg.id],
+      );
+
+      return promise as any;
     }
 
     return undefined as ResponseMap<T>;
   }
 
+  checkConnection() {
+    const result = Promise.race([
+      timeoutPromise(3000),
+      this.sendMessage({ type: "checkConnection" }),
+    ]);
+
+    return result.then(
+      (value) => value === true,
+      () => false,
+    );
+  }
+
   private handleData(message: MessageFromServer & { id: number }) {
-    if (message.type == "user") {
-      userParams.set({
+    if (message.type == "status") {
+      if (message.data == "authorized" && !get(this.connected)) {
+        error.error.set(false);
+        this.onOpen();
+      } else if (message.data == "unauthorized") {
+        error.unauthorized();
+      }
+    } else if (message.type == "user") {
+      ui_object.userParams = {
         display_name: message.data.display_name,
         avatar_seed: message.data.avatar_seed,
-      });
+      };
 
-      user.set(message.data);
+      if (!ui_object.user !== undefined) ui_object.initialized("user");
+      ui_object.user = message.data;
     } else if (message.type == "devices") {
-      deviceParams.update((deviceParams) => {
-        deviceParams = [];
+      const deviceParams = [];
 
-        deviceParams[message.data.self.did] = {
-          display_name: message.data.self.display_name,
-          type: message.data.self.type,
+      deviceParams[message.data.self.did] = {
+        display_name: message.data.self.display_name,
+        type: message.data.self.type,
+      };
+
+      for (const infos of message.data.others) {
+        deviceParams[infos.did] = {
+          display_name: infos.display_name,
+          type: infos.type,
         };
+      }
 
-        for (const infos of message.data.others) {
-          deviceParams[infos.did] = {
-            display_name: infos.display_name,
-            type: infos.type,
-          };
-        }
+      ui_object.deviceParams = deviceParams;
 
-        return deviceParams;
-      });
-
-      devices.set(message.data);
+      if (!ui_object.devices !== undefined) ui_object.initialized("devices");
+      ui_object.devices = message.data;
     } else if (message.type == "contacts") {
-      contacts.set(message.data);
+      ui_object.contacts = message.data;
+      if (!ui_object.init_props.contacts) ui_object.initialized("contacts");
       get(peer).closeConnections(message.data.map((c) => c.devices));
     } else if (message.type == "groups") {
-      groups.set(message.data);
+      if (!ui_object.init_props.groups) ui_object.initialized("groups");
+      ui_object.groups = message.data;
     } else if (message.type == "group_devices") {
-      groupDevices.set(message.data);
+      if (!ui_object.init_props.groupDevices)
+        ui_object.initialized("groupDevices");
+      ui_object.groupDevices = message.data;
     } else if (message.type == "webRTCData") {
       if (message.data.data.type == "signal")
         get(peer).signal(message.data.from, JSON.parse(message.data.data.data));
@@ -228,15 +259,18 @@ class WebSocketClient {
       message.type == "contactCodeRedeemed" ||
       message.type == "deviceCodeRedeemed"
     ) {
-      if (get(dialogProperties).mode == "add") closeDialog(true);
+      if (ui_object.dialogProperties.mode == "add") ui_object.closeDialog(true);
     } else if (
+      message.type == "connected" ||
       message.type == "filetransfer" ||
       message.type == "contactLinkingCode" ||
       message.type == "deviceLinkingCode" ||
       message.type == "turnCredentials"
     ) {
-      const resolve = this.promises[message.id];
-      if (resolve !== undefined) resolve(message.data);
+      const promise = this.promises[message.id];
+      if (promise !== undefined) promise.resolve(message.data);
+
+      delete this.promises[message.id];
     } else if (message.type == "error") {
       console.warn("Error from Server:", message.data);
     } else {
@@ -252,6 +286,7 @@ export function apiClient(method: "http" | "ws") {
     return get(httpStore);
   } else {
     let store = get(wsStore);
+
     if (store === undefined) {
       store = new WebSocketClient();
       wsStore.set(store);

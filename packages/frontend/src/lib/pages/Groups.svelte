@@ -3,13 +3,7 @@
 
   import { apiClient } from "$lib/api/client";
   import type { IGroup } from "$lib/lib/fetchers";
-  import {
-    groupDevices,
-    groupProperties,
-    groups,
-    layout,
-    user,
-  } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 
   import Button from "$lib/components/Button.svelte";
 
@@ -20,8 +14,8 @@
     let membersTemp: IGroup[] = [];
     let requestsTemp: IGroup[] = [];
 
-    for (const group of $groups) {
-      if (group.members.some((r) => r.uid == $user.uid)) {
+    for (const group of ui_object.groups) {
+      if (group.members.some((r) => r.uid == ui_object.user?.uid)) {
         membersTemp.push(group);
       } else {
         requestsTemp.push(group);
@@ -78,7 +72,7 @@
 {/if}
 
 {#each members as member, index}
-  {#if index === 0 && ($layout == "desktop" || requests.length > 0)}
+  {#if index === 0 && (ui_object.layout == "desktop" || requests.length > 0)}
     <p
       id="header"
       class="bold"
@@ -94,15 +88,15 @@
 
   <Button
     onclick={() => {
-      $groupProperties = { mode: "properties", gid: member.gid };
+      ui_object.groupProperties = { mode: "properties", gid: member.gid };
       ui("#dialog-large");
     }}
   >
-    {#if $groupDevices.filter((d) => d.gid === member.gid).length < 2}
+    {#if ui_object.groupDevices.filter((d) => d.gid === member.gid).length < 2}
       <div id="circle" style="border-color: var(--tertiary);"></div>
     {:else}
       <div id="circle" class="green-border">
-        {$groupDevices.filter((d) => d.gid === member.gid).length - 1}
+        {ui_object.groupDevices.filter((d) => d.gid === member.gid).length - 1}
       </div>
     {/if}
     <div>

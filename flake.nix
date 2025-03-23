@@ -12,6 +12,8 @@
         "aarch64-linux"
       ];
 
+      flake.octodns-config = import ./octodns.nix {};
+
       perSystem = { pkgs, ... }: {
         packages.backend = pkgs.callPackage ./packages/backend/package.nix {};
         packages.turn = pkgs.callPackage ./packages/turn/package.nix {};

@@ -3,11 +3,11 @@
   import dayjs from "dayjs";
 
   import { apiClient } from "$lib/api/client";
-  import { contacts, groups, openDialog, user } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
 
   import Fullscreen from "$lib/components/Fullscreen.svelte";
   import Button from "$lib/components/Button.svelte";
-  import User from "$lib/components/buttons/User.svelte";
+  import UserComponent from "$lib/components/buttons/User.svelte";
   import { concatArrays } from "$lib/sharing/common";
 
   type User = { uid: number; display_name: string; avatar_seed: string };
@@ -20,7 +20,7 @@
     page: "main" | "members" | "requests" | "add";
   } = $props();
 
-  let group = $derived($groups.find((g) => g.gid === gid));
+  let group = $derived(ui_object.groups.find((g) => g.gid === gid));
 
   const selected: User[] = $state([]);
 
@@ -33,15 +33,15 @@
   };
 
   const filterContacts = () =>
-    $contacts.filter(
+    ui_object.contacts.filter(
       (c) =>
         !group?.members.some((m) => m.uid === c.uid) &&
         !group?.requests.some((r) => r.uid === c.uid),
     );
 
-  const filterGroupMembers = (contacts: typeof $contacts) => {
+  const filterGroupMembers = (contacts: typeof ui_object.contacts) => {
     const users = concatArrays(
-      $groups.map((g) => (g.members as User[]).concat(g.requests)),
+      ui_object.groups.map((g) => (g.members as User[]).concat(g.requests)),
     );
 
     return users.filter(
@@ -106,7 +106,10 @@
 
         <Button
           onclick={async () => {
-            if (group !== undefined && (await openDialog({ mode: "delete" }))) {
+            if (
+              group !== undefined &&
+              (await ui_object.openDialog({ mode: "delete" }))
+            ) {
               ui("#dialog-large");
               apiClient("ws").sendMessage({
                 type: "deleteGroupMember",
@@ -116,9 +119,11 @@
           }}
         >
           <div style="color: red;">
-            <p id="title">
-              {owner.uid === $user.uid ? "Delete" : "Leave"} group
-            </p>
+            {#if ui_object.user !== undefined}
+              <p id="title">
+                {owner.uid === ui_object.user.uid ? "Delete" : "Leave"} group
+              </p>
+            {/if}
             <p id="subtitle"></p>
           </div>
         </Button>
@@ -131,14 +136,21 @@
           <div class="divider"></div>
         {/if}
 
-        <User
+        <UserComponent
           user={member}
           subtitle="Joined at {dayjs
             .unix(member.joined_at)
             .format('DD.MM.YYYY, HH:mm')}."
           onclick={async () => {
-            if ((await openDialog({ mode: "delete" })) && group !== undefined) {
-              if (group.oid === $user.uid) ui("#dialog-large");
+            if (
+              (await ui_object.openDialog({ mode: "delete" })) &&
+              group !== undefined
+            ) {
+              if (
+                ui_object.user !== undefined &&
+                group.oid === ui_object.user.uid
+              )
+                ui("#dialog-large");
 
               apiClient("ws").sendMessage({
                 type: "deleteGroupMember",
@@ -156,13 +168,13 @@
           <div class="divider"></div>
         {/if}
 
-        <User
+        <UserComponent
           user={request}
           subtitle="Created at {dayjs
             .unix(request.created_at)
             .format('DD.MM.YYYY, HH:mm')}."
           onclick={async () =>
-            (await openDialog({ mode: "delete" })) &&
+            (await ui_object.openDialog({ mode: "delete" })) &&
             group !== undefined &&
             apiClient("ws").sendMessage({
               type: "deleteGroupMember",
@@ -192,7 +204,7 @@
           <p id="header" class="bold">Contacts</p>
         {/if}
 
-        <User
+        <UserComponent
           user={contact}
           selected={isSelected(contact.uid)}
           onclick={() => select(contact)}
@@ -204,7 +216,7 @@
           <p id="header" class="bold">Group members</p>
         {/if}
 
-        <User
+        <UserComponent
           user={member}
           selected={isSelected(member.uid)}
           onclick={() => select(member)}

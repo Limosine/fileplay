@@ -17,10 +17,9 @@ export const onRequest: PagesFunction<Env> = (context) => {
       newUrl.pathname = url.pathname.replace("/api", "");
 
       const modifiedRequest = new Request(newUrl, context.request);
-      modifiedRequest.headers.set(
-        "x-request-ip",
-        context.request.headers.get("x-real-ip"),
-      );
+      const xRealIp = context.request.headers.get("x-real-ip");
+      if (xRealIp !== null)
+        modifiedRequest.headers.set("x-request-ip", xRealIp);
       return fetch(modifiedRequest);
     }
     return context.next();

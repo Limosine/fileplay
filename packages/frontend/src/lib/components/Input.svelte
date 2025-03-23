@@ -1,9 +1,20 @@
 <script lang="ts">
-  import { input, rawFiles } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
+
+  $effect(() => {
+    if (ui_object.rawFiles !== undefined) {
+      ui_object.syncFiles();
+    }
+  });
 </script>
 
 <!-- svelte-ignore component_name_lowercase -->
-<input type="file" bind:this={$input} bind:files={$rawFiles} multiple />
+<input
+  type="file"
+  bind:this={ui_object.input}
+  bind:files={ui_object.rawFiles}
+  multiple
+/>
 
 <style>
   input {

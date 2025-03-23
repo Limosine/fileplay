@@ -1,13 +1,14 @@
 <script lang="ts">
   import { apiClient } from "$lib/api/client";
+  import { ui_object } from "$lib/lib/UI.svelte";
+
   import { getDicebearUrl } from "../../../../common/common";
-  import { contacts, layout, openDialog } from "$lib/lib/UI";
 
   import Button from "$lib/components/Button.svelte";
 </script>
 
-{#each $contacts as contact, index}
-  {#if index === 0 && $layout == "desktop"}
+{#each ui_object.contacts as contact, index}
+  {#if index === 0 && ui_object.layout == "desktop"}
     <p id="header" class="bold">Contacts</p>
   {/if}
 
@@ -17,7 +18,7 @@
 
   <Button
     onclick={async () =>
-      (await openDialog({ mode: "delete" })) &&
+      (await ui_object.openDialog({ mode: "delete" })) &&
       apiClient("ws").sendMessage({
         type: "deleteContact",
         data: contact.uid,

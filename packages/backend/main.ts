@@ -1,8 +1,7 @@
 /// <reference types="npm:@types/node" />
 
-import { Hono } from "hono/mod.ts";
-import { upgradeWebSocket } from "hono/adapter/deno/index.ts";
-import { HandlerInterface as _HandlerInterface } from "hono/types.ts"; // Trigger download
+import { Hono } from "@hono/hono";
+import { upgradeWebSocket } from "@hono/hono/deno";
 
 import { EWSContext } from "./src/common.ts";
 import { createConstants } from "./src/db.ts";
@@ -25,20 +24,23 @@ const app = new Hono();
 
 app.get(
   "/websocket",
-  upgradeWebSocket((c) => {
-    return {
-      onOpen: (_, ws) => onOpen(ws, c),
+  upgradeWebSocket(
+    (c) => {
+      return {
+        onOpen: (_, ws) => onOpen(ws, c),
 
-      onMessage: (event, ws) => onMessage(ws, event.data),
+        onMessage: (event, ws) => onMessage(ws, event.data),
 
-      onClose: (_, ws) => onClose(ws),
+        onClose: (_, ws) => onClose(ws),
 
-      onError: (err, ws) => {
-        console.warn("Error from client:", err);
-        onClose(ws);
-      },
-    };
-  })
+        onError: (err, ws) => {
+          console.warn("Error from client:", err);
+          onClose(ws);
+        },
+      };
+    },
+    { idleTimeout: 25 }
+  )
 );
 
 addHandlers(app);

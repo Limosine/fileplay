@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { contacts, devices, groups, returnSubstring } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
   import { capitalizeFirstLetter } from "$lib/lib/utils";
   import { type IncomingFiletransfer } from "$lib/sharing/common";
   import { manager } from "$lib/sharing/manager.svelte";
@@ -8,13 +8,13 @@
 
   const getScope = (did: number, ids: IncomingFiletransfer["ids"]) => {
     if (ids.type == "contact") {
-      const contact = $contacts.find((c) => c.uid === ids.id);
+      const contact = ui_object.contacts.find((c) => c.uid === ids.id);
       return `Contact "${contact?.display_name}"`;
     } else if (ids.type == "group") {
-      const group = $groups.find((g) => g.gid === ids.id);
+      const group = ui_object.groups.find((g) => g.gid === ids.id);
       return `Group "${group?.name}"`;
     } else if (ids.type == "device") {
-      const device = $devices.others.find((d) => d.did === did);
+      const device = ui_object.devices?.others.find((d) => d.did === did);
       return `Device "${device?.display_name}"`;
     } else return `Guest "${did}"`;
   };
@@ -60,7 +60,7 @@
         {#each transfer.files as file}
           <article id="file" class="tertiary">
             <div class="row">
-              <p>{returnSubstring(file.name, 25)}</p>
+              <p>{ui_object.returnSubstring(file.name, 25)}</p>
               <div class="max"></div>
 
               {#if downloaded.some((d) => d == file.id)}

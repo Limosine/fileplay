@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 
-import { files, updateFiles } from "$lib/lib/UI";
+import { ui_object } from "$lib/lib/UI.svelte";
 import { blobToArrayBuffer } from "$lib/lib/utils";
 
 // Types:
@@ -143,23 +143,21 @@ export const createFileURL = (file: any) => {
 export const generateInfos = () => {
   // Split the files into large chunks (16000 KB)
   const fileInfos: OutgoingFileInfos[] = [];
-  for (let i = 0; i < get(files).length; i++) {
-    let bigChunks = get(files)[i].bigChunks;
+
+  for (let i = 0; i < ui_object.files.length; i++) {
+    let bigChunks = ui_object.files[i].bigChunks;
 
     if (bigChunks === undefined) {
-      bigChunks = chunkFileBig(get(files)[i].file);
-      updateFiles((files) => {
-        files[i].bigChunks = bigChunks;
-        return files;
-      });
+      bigChunks = chunkFileBig(ui_object.files[i].file);
+      ui_object.files[i].bigChunks = bigChunks;
     }
 
     fileInfos.push({
-      id: get(files)[i].id,
-      name: get(files)[i].file.name,
+      id: ui_object.files[i].id,
+      name: ui_object.files[i].file.name,
       bigChunks,
       small: {
-        chunks_length: Math.ceil(get(files)[i].file.size / (16 * 1024)),
+        chunks_length: Math.ceil(ui_object.files[i].file.size / (16 * 1024)),
       },
       completed: 0,
     });

@@ -1,14 +1,14 @@
 <script lang="ts">
   import ui from "beercss";
 
-  import { changePath, layout, path } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
   import { capitalizeFirstLetter } from "$lib/lib/utils";
 </script>
 
 <div id="header">
   <header class="fixed">
     <nav>
-      {#if $layout == "mobile"}
+      {#if ui_object.layout == "mobile"}
         <button class="circle transparent" onclick={() => ui("#dialog-menu")}>
           <i>menu</i>
           <div class="tooltip bottom">Menu</div>
@@ -16,20 +16,22 @@
 
         <p style="font-size: large; font-weight: 600;">
           {capitalizeFirstLetter(
-            $path.main == "send" || $path.main == "receive"
+            ui_object.path.main == "send" || ui_object.path.main == "receive"
               ? "home"
-              : $path.main,
+              : ui_object.path.main,
           )}
         </p>
       {/if}
 
       <div class="max"></div>
 
-      {#if $layout == "desktop"}
+      {#if ui_object.layout == "desktop"}
         <button
-          class="circle {$path.main == 'settings' ? 'primary' : 'transparent'}"
+          class="circle {ui_object.path.main == 'settings'
+            ? 'primary'
+            : 'transparent'}"
           onclick={() =>
-            changePath({
+            ui_object.changePath({
               main: "settings",
             })}
         >

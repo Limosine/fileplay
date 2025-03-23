@@ -1,9 +1,11 @@
-import { Context, HTTPException } from "hono/mod.ts";
-import { getCookie } from "hono/helper/cookie/index.ts";
+import { Context } from "@hono/hono";
+import { HTTPException } from "@hono/hono/http-exception";
+import { getCookie } from "@hono/hono/cookie";
 import { Kysely } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/postgres";
 import { PostgresJSDialect } from "kysely-postgres-js";
 import postgres from "postgres";
+import { z } from "zod";
 
 import { DB, Database } from "./kysely.ts";
 import { loadKey, getDeviceID } from "./signing.ts";
@@ -11,29 +13,26 @@ import { loadKey, getDeviceID } from "./signing.ts";
 import { DeviceType } from "../../common/common.ts";
 import { constants } from "../main.ts";
 
-export const createConstants = async () => {
-  const postgresPath = Deno.env.get("POSTGRES_PATH");
-  const signingSecret = Deno.env.get("COOKIE_SIGNING_SECRET");
-  const authSecret = Deno.env.get("COTURN_AUTH_SECRET");
+const env = z.object({
+  POSTGRES_PATH: z.string(),
+  COOKIE_SIGNING_SECRET: z.string(),
+  COTURN_AUTH_SECRET: z.string(),
+});
 
-  if (postgresPath === undefined)
-    throw new Error("Please define a postgres path.");
-  if (signingSecret === undefined)
-    throw new Error("Please define a cookie signing secret.");
-  if (authSecret === undefined)
-    throw new Error("Please define a coturn auth secret.");
+export const createConstants = async () => {
+  const e = env.parse(Deno.env.toObject());
 
   const kys = new Kysely<DB>({
     dialect: new PostgresJSDialect({
-      postgres: postgres(postgresPath),
+      postgres: postgres(e.POSTGRES_PATH),
     }),
   });
   if (!kys) throw new Error("Failed to access database");
 
   return {
     db: kys,
-    cookieKey: await loadKey(signingSecret),
-    turnKey: await loadKey(authSecret, "SHA-1"),
+    cookieKey: await loadKey(e.COOKIE_SIGNING_SECRET),
+    turnKey: await loadKey(e.COTURN_AUTH_SECRET, "SHA-1"),
   };
 };
 

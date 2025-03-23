@@ -3,7 +3,7 @@
   import { onDestroy, onMount } from "svelte";
 
   import { apiClient } from "$lib/api/client";
-  import { closeDialog, type DialogAdd } from "$lib/lib/UI";
+  import { ui_object, type DialogAdd } from "$lib/lib/UI.svelte";
 
   let {
     properties,
@@ -112,18 +112,18 @@
     {/if}
   </div>
   <nav class="right-align" style="padding: 10px 0 0 0;">
-    <button class="transparent link" onclick={() => closeDialog()}
+    <button class="transparent link" onclick={() => ui_object.closeDialog()}
       >Cancel</button
     >
     <button
       disabled={code == ""}
       class="transparent link"
-      onclick={async () => {
-        await apiClient("ws").sendMessage({
+      onclick={() => {
+        apiClient("ws").sendMessage({
           type: "redeemContactCode",
           data: code,
         });
-        closeDialog(true);
+        ui_object.closeDialog(true);
       }}>Add</button
     >
   </nav>

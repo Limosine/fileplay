@@ -1,9 +1,10 @@
 import { JWT } from "google-auth-library";
 import {
-  PushSubscription,
-  VapidKeys,
+  type PushSubscription,
+  type VapidKeys,
   buildPushPayload,
 } from "@block65/webcrypto-web-push";
+import { z } from "zod";
 
 import { Database } from "./kysely.ts";
 import { filterOfflineDevices } from "./ws.ts";
@@ -14,36 +15,30 @@ export const webPush = () => {
   return webPushValue;
 };
 
+const env = z.object({
+  VAPID_SUBJECT: z.string(),
+  PUBLIC_VAPID_KEY: z.string(),
+  PRIVATE_VAPID_KEY: z.string(),
+  GCM_KEY: z.string(),
+  FIREBASE_PATH: z.string(),
+});
+
 class WebPush {
-  keys: VapidKeys;
-  private firebasePath: string;
+  private e: z.infer<typeof env>;
+  private keys: VapidKeys;
 
   constructor() {
-    const vapidSubject = Deno.env.get("VAPID_SUBJECT");
-    const publicVapidKey = Deno.env.get("PUBLIC_VAPID_KEY");
-    const privateVapidKey = Deno.env.get("PRIVATE_VAPID_KEY");
-    const gcmKey = Deno.env.get("GCM_KEY");
-    const firebasePath = Deno.env.get("FIREBASE_PATH");
-
-    const define = (s: string) => new Error(`Please define a ${s}.`);
-
-    if (vapidSubject === undefined) throw define("vapid subject");
-    if (publicVapidKey === undefined) throw define("public vapid key");
-    if (privateVapidKey === undefined) throw define("private vapid key");
-    if (gcmKey === undefined) throw define("gcm key");
-    if (firebasePath === undefined) throw define("firebase path");
-
-    this.firebasePath = firebasePath;
+    this.e = env.parse(Deno.env.toObject());
 
     this.keys = {
-      subject: vapidSubject,
-      publicKey: publicVapidKey,
-      privateKey: privateVapidKey,
+      subject: this.e.VAPID_SUBJECT,
+      publicKey: this.e.PUBLIC_VAPID_KEY,
+      privateKey: this.e.PRIVATE_VAPID_KEY,
     };
   }
 
   async getAccessToken() {
-    const key = JSON.parse(Deno.readTextFileSync(this.firebasePath));
+    const key = JSON.parse(Deno.readTextFileSync(this.e.FIREBASE_PATH));
     const jwtClient = new JWT(
       key.client_email,
       undefined,
@@ -87,6 +82,7 @@ class WebPush {
         const data: string | PushSubscription = JSON.parse(
           device.push_subscription
         );
+
         let res: Response;
 
         if (typeof data === "string") {

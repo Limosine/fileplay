@@ -8,7 +8,7 @@
     getFrequently as getFrequentlyUnwrapped,
     getRecently as getRecentlyUnwrapped,
   } from "$lib/lib/history";
-  import { contacts, devices, groups } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
   import { manager } from "$lib/sharing/manager.svelte";
 
   import Fullscreen from "./Fullscreen.svelte";
@@ -46,9 +46,11 @@
 
       for (const f of history) {
         if (
-          (f.type == "contact" && $contacts.some((c) => c.uid === f.id)) ||
-          (f.type == "group" && $groups.some((g) => g.gid === f.id)) ||
-          (f.type == "device" && $devices.others.some((d) => d.did === f.id))
+          (f.type == "contact" &&
+            ui_object.contacts.some((c) => c.uid === f.id)) ||
+          (f.type == "group" && ui_object.groups.some((g) => g.gid === f.id)) ||
+          (f.type == "device" &&
+            ui_object.devices?.others.some((d) => d.did === f.id))
         )
           array.push(f);
         else {
@@ -61,13 +63,13 @@
       return array;
     };
 
-    if ($devices !== undefined) return filter();
+    if (ui_object.devices !== undefined) return filter();
     else {
       return new Promise<HistoryArray>((resolve) => {
-        const unsubscribe = devices.subscribe(async (devices) => {
-          if (devices !== undefined) {
-            unsubscribe();
-            resolve(await filter());
+        const cleanup = $effect.root(() => {
+          if (ui_object.devices !== undefined) {
+            cleanup();
+            resolve(filter());
           }
         });
       });
@@ -150,7 +152,7 @@
 
 {#snippet switcher(type: "group" | "device" | "contact", id: number)}
   {#if type == "contact"}
-    {@const c = $contacts.find((c) => c.uid == id)}
+    {@const c = ui_object.contacts.find((c) => c.uid == id)}
     {#if c !== undefined}
       <User
         lastSeen
@@ -160,7 +162,7 @@
       />
     {/if}
   {:else if type == "group"}
-    {@const g = $groups.find((g) => g.gid == id)}
+    {@const g = ui_object.groups.find((g) => g.gid == id)}
     {#if g !== undefined}
       <Group
         lastSeen
@@ -170,7 +172,7 @@
       />
     {/if}
   {:else}
-    {@const d = $devices?.others.find((d) => d.did == id)}
+    {@const d = ui_object.devices?.others.find((d) => d.did == id)}
     {#if d !== undefined}
       <Device
         lastSeen
@@ -219,8 +221,8 @@
         {@render switcher(element.type, element.id)}
       {/each}
 
-      {#if ownDevicesSelected && $devices !== undefined}
-        {#each filterDevices($devices.others, frequently, recently) as d, index}
+      {#if ownDevicesSelected && ui_object.devices !== undefined}
+        {#each filterDevices(ui_object.devices.others, frequently, recently) as d, index}
           {#if index === 0}
             <p id="header" class="bold">Own devices</p>
           {/if}
@@ -233,7 +235,7 @@
           />
         {/each}
       {:else if !ownDevicesSelected}
-        {#each filterGroups($groups, frequently, recently) as g, index}
+        {#each filterGroups(ui_object.groups, frequently, recently) as g, index}
           {#if index === 0}
             <p id="header" class="bold">Groups</p>
           {/if}
@@ -246,7 +248,7 @@
           />
         {/each}
 
-        {#each filterContacts($contacts, frequently, recently) as c, index}
+        {#each filterContacts(ui_object.contacts, frequently, recently) as c, index}
           {#if index === 0}
             <p id="header" class="bold">Contacts</p>
           {/if}
@@ -262,8 +264,8 @@
     {/await}
   {/await}
 
-  {#if !$contacts.length && !$groups.length}
-    {#if !$devices?.others.length}
+  {#if !ui_object.contacts.length && !ui_object.groups.length}
+    {#if !ui_object.devices?.others.length}
       <div class="centered">
         <p class="large-text">No contacts, groups or devices available</p>
       </div>

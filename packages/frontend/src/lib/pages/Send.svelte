@@ -1,15 +1,7 @@
 <script lang="ts">
   import ui from "beercss";
 
-  import {
-    input,
-    files,
-    openDialog,
-    contacts,
-    groups,
-    devices,
-    groupDevices,
-  } from "$lib/lib/UI";
+  import { ui_object } from "$lib/lib/UI.svelte";
   import { capitalizeFirstLetter } from "$lib/lib/utils";
   import type {
     OutgoingFileInfos,
@@ -19,10 +11,10 @@
 
   const getScope = (ids: OutgoingFileTransfer["ids"]) => {
     if (ids.type == "contact") {
-      const contact = $contacts.find((c) => c.uid === ids.id);
+      const contact = ui_object.contacts.find((c) => c.uid === ids.id);
       return `Contact "${contact ? contact.display_name : ""}"`;
     } else if (ids.type == "group") {
-      const group = $groups.find((g) => g.gid === ids.id);
+      const group = ui_object.groups.find((g) => g.gid === ids.id);
       return `Group "${group ? group.name : ""}"`;
     } else if (ids.type == "devices") {
       return "Devices";
@@ -31,15 +23,15 @@
 
   const getName = (did: number, ids: OutgoingFileTransfer["ids"]) => {
     if (ids.type == "contact") {
-      const device = $contacts
+      const device = ui_object.contacts
         .find((c) => c.uid === ids.id)
         ?.devices.find((d) => d.did === did);
       return device === undefined ? "" : device.display_name;
     } else if (ids.type == "devices") {
-      const device = $devices.others.find((d) => d.did === did);
+      const device = ui_object.devices?.others.find((d) => d.did === did);
       return device === undefined ? "" : device.display_name;
     } else if (ids.type == "group") {
-      const device = $groupDevices.find(
+      const device = ui_object.groupDevices.find(
         (d) => d.gid === ids.id && d.did === did,
       );
       return device === undefined ? "" : device.display_name;
@@ -60,9 +52,9 @@
   };
 </script>
 
-{#if $files === undefined || $files.length == 0}
+{#if ui_object.files.length == 0}
   <div class="centered">
-    <button onclick={() => $input.click()} class="extra">
+    <button onclick={() => ui_object.input?.click()} class="extra">
       <i>share</i>
       <span>Share</span>
     </button>
@@ -74,12 +66,13 @@
         <p class="bold">Selected files:</p>
         <div class="max"></div>
         <!-- svelte-ignore a11y_click_events_have_key_events, a11y_missing_attribute, a11y_no_static_element_interactions -->
-        <a onclick={() => $input.click()} style="color: var(--secondary)"
-          >Change</a
+        <a
+          onclick={() => ui_object.input?.click()}
+          style="color: var(--secondary)">Change</a
         >
       </div>
       <div class="row wrap" style="margin-top: 16px;">
-        {#each Array.from($files) as file}
+        {#each Array.from(ui_object.files) as file}
           <article class="square round tertiary">
             <i class="center middle">
               {#if file.file.type.slice(0, file.file.type.indexOf("/")) == "audio"}
@@ -114,7 +107,7 @@
         <button
           class="responsive large secondary-container"
           style="margin: 0 0 0 5px;"
-          onclick={() => openDialog({ mode: "qrcode" })}
+          onclick={() => ui_object.openDialog({ mode: "qrcode" })}
         >
           <i>qr_code_2_add</i>
           <span>Create Guest Transfer</span>

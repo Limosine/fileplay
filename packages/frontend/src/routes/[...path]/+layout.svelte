@@ -1,8 +1,9 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { onMount, type Snippet } from "svelte";
   import { quadOut } from "svelte/easing";
+  import { get } from "svelte/store";
   import { fade } from "svelte/transition";
   import { pwaInfo } from "virtual:pwa-info";
   import { useRegisterSW } from "virtual:pwa-register/svelte";
@@ -10,15 +11,10 @@
   import ui from "beercss";
   import * as materialSymbols from "beercss/dist/cdn/material-symbols-outlined.woff2";
 
-  import {
-    closeDialog,
-    getPath,
-    largeDialog,
-    offline,
-    openDialog,
-    path,
-    registration,
-  } from "$lib/lib/UI";
+  import { apiClient } from "$lib/api/client";
+  import { error } from "$lib/lib/error";
+  import { ui_object } from "$lib/lib/UI.svelte";
+  import { settings } from "$lib/lib/settings.svelte";
 
   import logo from "$lib/assets/Fileplay.svg";
   import Layout from "$lib/components/Layout.svelte";
@@ -32,33 +28,53 @@
   } = $props();
 
   let webManifest = $derived(pwaInfo?.webManifest?.linkTag);
-  let overlay = $state<"" | "hidden">("");
+  const { error: errorStore, overlay } = error;
 
-  onMount(() => {
+  onMount(async () => {
     const open = () => {
       if (
-        localStorage.getItem("subscribedToPush") === null &&
-        localStorage.getItem("privacyAccepted") == "true"
+        settings.settings["subscribedToPush"] === undefined &&
+        settings.settings["privacyAccepted"] == "true"
       )
-        openDialog({ mode: "request" });
+        ui_object.openDialog({ mode: "request" });
     };
 
     if (browser) {
-      $offline = !navigator.onLine;
+      await settings.init();
+      if (!navigator.onLine) error.offline();
 
-      if (localStorage.getItem("loggedIn") == "true") overlay = "hidden";
+      const continueMount = () => {
+        $errorStore = false;
 
-      window.addEventListener("online", () => {
-        $offline = false;
-        overlay = "hidden";
-      });
-      window.addEventListener("offline", () => {
-        closeDialog();
-        if ($largeDialog?.open) ui("#dialog-large");
+        window.addEventListener("online", () => {
+          apiClient("ws")
+            .checkConnection()
+            .then((v) => v && error.solved());
+        });
+        window.addEventListener("offline", () => {
+          ui_object.closeDialog();
+          if (ui_object.largeDialog?.open) ui("#dialog-large");
 
-        $offline = true;
-        overlay = "";
-      });
+          error.offline();
+        });
+
+        if (settings.settings["privacyAccepted"] === undefined)
+          ui_object.openDialog({ mode: "privacy" });
+      };
+
+      if (localStorage.getItem("loggedIn") == "true") {
+        if (get(apiClient("ws").connected)) continueMount();
+        else {
+          const unsubscribe = apiClient("ws").connected.subscribe(
+            async (connected) => {
+              if (connected) {
+                unsubscribe();
+                continueMount();
+              }
+            },
+          );
+        }
+      }
     }
 
     if (pwaInfo) {
@@ -66,7 +82,7 @@
         immediate: true,
         onRegistered(r) {
           if (r !== undefined) {
-            $registration = r;
+            ui_object.registration = r;
             open();
           }
         },
@@ -75,13 +91,11 @@
         },
       });
     }
-
-    if (localStorage.getItem("privacyAccepted") === null)
-      openDialog({ mode: "privacy" });
   });
 
   $effect(() => {
-    if (browser) $path = getPath(location.pathname, $page.url.pathname);
+    if (browser)
+      ui_object.path = ui_object.getPath(location.pathname, page.url.pathname);
   });
 </script>
 
@@ -97,7 +111,7 @@
   />
 </svelte:head>
 
-{#if !overlay}
+{#if !$overlay}
   <div
     id="overlay"
     in:fade={{ duration: 200 }}
@@ -106,7 +120,7 @@
 
   <div
     id="logo"
-    class={overlay}
+    class={$overlay}
     in:fade={{ duration: 200 }}
     out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
   >
@@ -119,18 +133,18 @@
     in:fade={{ duration: 200 }}
     out:fade={{ delay: 200, duration: 1000, easing: quadOut }}
   >
-    {#if $offline}
-      <i class="extra">cloud_off</i>
-      <p class="large-text">Offline, please connect to the internet.</p>
+    {#if $errorStore !== false}
+      <i class="extra">{$errorStore.icon}</i>
+      <p class="large-text">{$errorStore.text}</p>
     {/if}
   </div>
 {/if}
 
-<div id="overlay" class={overlay}></div>
+<div id="overlay" class={$overlay}></div>
 
-{#if overlay}
+{#if $overlay}
   <!-- Dialogs -->
-  {#if $path.main == "send" || $path.main == "groups" || $path.main == "settings"}
+  {#if ui_object.path.main == "send" || ui_object.path.main == "groups" || ui_object.path.main == "settings" || (ui_object.layout == "desktop" && ui_object.path.main == "receive")}
     <LargeDialog />
   {/if}
   <Dialog />

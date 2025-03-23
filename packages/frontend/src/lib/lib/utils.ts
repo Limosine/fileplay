@@ -2,14 +2,16 @@ import { browser } from "$app/environment";
 
 import { DeviceType } from "../../../../common/common";
 
+export type MaybePromise<T> = T | Promise<T>;
+
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export const onGuestPage = () =>
   browser && window.location.pathname.slice(0, 6) == "/guest";
 
 export const isProfane = async (s: string) => {
-  const Filter = (await import("bad-words")).default;
-  return new Filter().isProfane(s);
+  const Filter = await import("bad-words");
+  return new Filter.Filter().isProfane(s);
 };
 
 export const ValueToName = (value: string) => {
@@ -77,7 +79,7 @@ export const typedArrayToBuffer = (array: Uint8Array) => {
   return array.buffer.slice(
     array.byteOffset,
     array.byteLength + array.byteOffset,
-  );
+  ) as ArrayBuffer;
 };
 
 export const numberToUint8Array = (number: number, length = 4) => {
@@ -101,3 +103,6 @@ export const uint8ArrayToNumber = (array: Uint8Array) => {
 
   return number;
 };
+
+export const timeoutPromise = (ms: number) =>
+  new Promise<void>((_, reject) => setTimeout(reject, ms));
