@@ -2,18 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%sveltekit.assets%/favicon.svg" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="viewport" content="width=device-width" />
+
+    <!-- PWA -->
     <title>Fileplay</title>
+    <meta name="viewport" content="width=device-width" />
+    <meta name="theme-color" content="#251E1D" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
     %sveltekit.head%
 
-    <!-- PWA-Assets -->
+    <!-- Description -->
+    <meta name="description" content="Transfer files quickly and end-to-end encrypted. Share with contacts, groups and via QR code. Free and Open Source." />
+    <meta name="keywords" content="File, Transfer, P2P, E2EE" />
+    <meta name="author" content="Quentin Frey et al." />
+
+    <!-- Icons -->
+    <link rel="icon" href="%sveltekit.assets%/favicon.svg" />
     <link rel="apple-touch-icon" href="/pwa-assets/apple-icon-180.png" />
-
-    <meta name="theme-color" content="#251E1D" />
-
-    <meta name="apple-mobile-web-app-capable" content="yes" />
 
     <link
       rel="apple-touch-startup-image"
