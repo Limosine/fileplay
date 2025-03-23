@@ -1,6 +1,7 @@
 import { Context } from "@hono/hono";
 import { WSContext, WSMessageReceive } from "@hono/hono/ws";
-import { unpack, pack } from "msgpackr";
+// @deno-types="msgpackr/index.d.ts"
+import { unpack, pack } from "msgpackr/index.js";
 
 import {
   authenticate,
