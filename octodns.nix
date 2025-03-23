@@ -28,6 +28,11 @@ let
     ];
   };
 
+  alias_record = value: proxied // {
+    type = "ALIAS";
+    inherit value;
+  };
+
   cname_record = value: proxied // {
     type = "CNAME";
     inherit value;
@@ -40,6 +45,7 @@ let
 in {
   domain."fileplay.me" = {
     "" = [
+      (alias_record "fileplay.pages.dev.")
       mx_record
       (txt_record "v=spf1 include:_spf.mx.cloudflare.net ~all")
     ];
@@ -54,10 +60,6 @@ in {
 
     "api" = [ a_record ];
     "api-dev" = [ a_record ];
-
-    "app" = [ 
-      (cname_record "fileplay.pages.dev.")
-    ];
 
     "dev" = [ 
       (cname_record "dev.fileplay.pages.dev.")
