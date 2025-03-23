@@ -47,7 +47,10 @@ in {
     "" = [
       (alias_record "fileplay.pages.dev.")
       mx_record
-      (txt_record "v=spf1 include:_spf.mx.cloudflare.net ~all")
+      (txt_record [
+        "v=spf1 include:_spf.mx.cloudflare.net ~all"
+        "google-site-verification=jUjE_Hr1pOzC4A_1fIYiZrav9JZtSj30P7RQOjiiDn8"
+      ])
     ];
 
     "_dmarc" = [
