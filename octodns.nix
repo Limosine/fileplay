@@ -64,6 +64,13 @@ in {
     "api" = [ a_record ];
     "api-dev" = [ a_record ];
 
+    "app" = [
+      (proxied // {
+        type = "A";
+        value = "192.0.2.1";
+      })
+    ];
+
     "dev" = [ 
       (cname_record "dev.fileplay.pages.dev.")
     ];
