@@ -446,7 +446,7 @@ class WebSocket extends Transport {
 }
 
 class Peer {
-  private connections: Transport[];
+  private connections: (Transport | undefined)[];
 
   private turn: TurnCredentials | undefined;
 
@@ -530,7 +530,7 @@ class Peer {
         }
 
         this.connections = this.connections.filter(async (c, i) => {
-          if (!dIds.some((d) => i === d)) {
+          if (c !== undefined && !dIds.some((d) => i === d)) {
             await c.close();
           } else return true;
         });
@@ -538,7 +538,7 @@ class Peer {
     } else {
       // Close all connections
       for (const conn of this.connections) {
-        conn.close();
+        if (conn !== undefined) conn.close();
       }
 
       this.connections.length = 0;
@@ -552,7 +552,7 @@ class Peer {
   clearBuffer(did?: number) {
     if (did === undefined) {
       for (const peer of this.connections) {
-        peer.clearBuffer();
+        if (peer !== undefined) peer.clearBuffer();
       }
     } else this.connections[did]?.clearBuffer();
   }

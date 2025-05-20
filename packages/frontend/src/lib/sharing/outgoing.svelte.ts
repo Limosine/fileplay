@@ -92,7 +92,7 @@ export class FiletransferOut {
       };
     });
 
-    if (ui_object.user === undefined) {
+    if (this.ids.type != "fromGuest" && ui_object.user === undefined) {
       console.warn("WARN: Failed to send request");
       return;
     }
@@ -104,7 +104,7 @@ export class FiletransferOut {
         this.ids.type == "group"
           ? this.ids
           : this.ids.type == "contact"
-            ? { type: this.ids.type, id: ui_object.user.uid }
+            ? { type: this.ids.type, id: ui_object.user?.uid ?? 0 }
             : { type: this.ids.type == "devices" ? "device" : "guest" },
       files,
       previous: this.ids.type == "fromGuest" ? this.ids.previous : undefined,

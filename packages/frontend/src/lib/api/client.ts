@@ -77,6 +77,7 @@ class WebSocketClient {
   readonly connected = derived(error.error, (error) => error === false);
 
   private socket: WebSocket;
+  private reconnectSeconds: number;
   private messageId: number;
   private promises: {
     resolve: (value: any) => void;
@@ -85,6 +86,7 @@ class WebSocketClient {
   private buffer: Uint8Array[];
 
   constructor() {
+    this.reconnectSeconds = 0;
     this.messageId = 0;
     this.promises = [];
     this.buffer = [];
@@ -123,6 +125,8 @@ class WebSocketClient {
     this.socket.addEventListener("message", (event) => {
       let data;
 
+      if (this.reconnectSeconds != 0) this.reconnectSeconds = 0;
+
       if (event.data instanceof ArrayBuffer) {
         data = unpack(new Uint8Array(event.data));
       } else if (typeof event.data == "string") {
@@ -140,7 +144,9 @@ class WebSocketClient {
         "WebSocket closed" + (event.reason ? ", reason: " + event.reason : "."),
       );
 
-      error.disconnected(5).then(undefined, () => this.connect());
+      error
+        .disconnected(this.reconnectSeconds > 10 ? 10 : this.reconnectSeconds++)
+        .then(undefined, () => this.connect());
     });
 
     return this.socket;

@@ -39,7 +39,7 @@ class VisibleError {
     console.log("Disconnected");
     this.error.set({
       icon: "sync_problem",
-      text: `Disconnected, retrying in ${seconds} seconds.`,
+      text: `Disconnected, retrying ${seconds == 0 ? "now" : `in ${seconds} seconds`}.`,
     });
 
     return timeoutPromise(seconds * 1000);
