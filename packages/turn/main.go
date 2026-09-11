@@ -11,7 +11,7 @@ import (
 	"syscall"
 
 	"github.com/pion/logging"
-	"github.com/pion/turn/v3"
+	"github.com/pion/turn/v5"
 )
 
 func main() {
