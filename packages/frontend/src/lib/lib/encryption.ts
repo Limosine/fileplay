@@ -83,7 +83,7 @@ const decryptAes = async (
     await crypto.subtle.decrypt(
       {
         name: "AES-GCM",
-        iv,
+        iv: typedArrayToBuffer(iv),
         additionalData: typedArrayToBuffer(iv),
       },
       key,

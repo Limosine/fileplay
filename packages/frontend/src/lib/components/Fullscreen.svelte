@@ -28,6 +28,7 @@
     footerSnippet?: Snippet;
   } = $props();
 
+  // svelte-ignore state_referenced_locally
   let headerVisible = $state(forceHeaderVisible);
   let observer: IntersectionObserver;
 

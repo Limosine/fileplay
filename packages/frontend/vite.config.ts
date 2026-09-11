@@ -23,9 +23,9 @@ export default async function (config: ConfigEnv): Promise<UserConfig> {
         devOptions: {
           enabled: false,
         },
-        manifest: (await import(
-          "./static/manifest.json"
-        )) as Partial<ManifestOptions>,
+        manifest: (await import("./static/manifest.json", {
+          with: { type: "json" },
+        })) as Partial<ManifestOptions>,
       }),
     ],
     build: {

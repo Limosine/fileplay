@@ -1,6 +1,5 @@
 {
   "deno.enablePaths": ["./backend/", "./common/"],
-  "deno.enable": true,
   "cSpell.words": [
     "adminsdk",
     "coturn",

@@ -14,7 +14,7 @@ const config = {
       fallback: "index.html",
     }),
     csrf: {
-      checkOrigin: false,
+      trustedOrigins: ["*"],
     },
     serviceWorker: {
       register: false,
